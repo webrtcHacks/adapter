@@ -1,3 +1,10 @@
 language: node_js
 node_js:
   - 0.10
+
+install:
+  - npm install -g jshint jscs
+
+script:
+  - jshint *.js
+  - jscs --preset google *.js

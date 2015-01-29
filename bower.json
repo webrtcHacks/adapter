@@ -23,19 +23,5 @@
     "Chromium",
     "Firefox"
   ],
-  "license": "BSD-3-Clause",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests",
-    "Gruntfile.js",
-    "index.html",
-    "package.json",
-    "samples/web/content",
-    "samples/web/css",
-    "samples/web/js/lib",
-    "samples/web/js/videopipe.js"
-  ]
+  "license": "BSD-3-Clause"
 }
