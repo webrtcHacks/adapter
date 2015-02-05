@@ -236,8 +236,8 @@ if (typeof module !== 'undefined') {
     attachMediaStream: attachMediaStream,
     reattachMediaStream: reattachMediaStream,
     webrtcDetectedBrowser: webrtcDetectedBrowser,
-    webrtcDetectedVersion: webrtcDetectedVersion,
-    requestUserMedia: requestUserMedia
-    //trace: trace
+    webrtcDetectedVersion: webrtcDetectedVersion
+    //requestUserMedia: not exposed on purpose.
+    //trace: not exposed on purpose.
   };
 }
