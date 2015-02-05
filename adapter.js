@@ -228,3 +228,16 @@ function requestUserMedia(constraints) {
     }
   });
 }
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    RTCPeerConnection: RTCPeerConnection,
+    getUserMedia: getUserMedia,
+    attachMediaStream: attachMediaStream,
+    reattachMediaStream: reattachMediaStream,
+    webrtcDetectedBrowser: webrtcDetectedBrowser,
+    webrtcDetectedVersion: webrtcDetectedVersion,
+    requestUserMedia: requestUserMedia,
+    trace: trace
+  };
+}
