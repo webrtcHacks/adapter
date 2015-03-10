@@ -45,12 +45,14 @@ if (navigator.mozGetUserMedia) {
 
   // The RTCPeerConnection object.
   RTCPeerConnection = function(pcConfig, pcConstraints) {
-    // .urls is not supported in FF yet.
-    if (pcConfig && pcConfig.iceServers) {
-      for (var i = 0; i < pcConfig.iceServers.length; i++) {
-        if (pcConfig.iceServers[i].hasOwnProperty('urls')) {
-          pcConfig.iceServers[i].url = pcConfig.iceServers[i].urls;
-          delete pcConfig.iceServers[i].urls;
+    if (webrtcDetectedVersion < 38) {
+      // .urls is not supported in FF < 38.
+      if (pcConfig && pcConfig.iceServers) {
+        for (var i = 0; i < pcConfig.iceServers.length; i++) {
+          if (pcConfig.iceServers[i].hasOwnProperty('urls')) {
+            pcConfig.iceServers[i].url = pcConfig.iceServers[i].urls;
+            delete pcConfig.iceServers[i].urls;
+          }
         }
       }
     }
@@ -116,16 +118,24 @@ if (navigator.mozGetUserMedia) {
   };
 
   window.createIceServers = function(urls, username, password) {
-    var iceServers = [];
-    // Use .url for FireFox.
-    for (var i = 0; i < urls.length; i++) {
-      var iceServer =
-        window.createIceServer(urls[i], username, password);
-      if (iceServer !== null) {
-        iceServers.push(iceServer);
+    if (webrtcDetectedVersion < 38) {
+      var iceServers = [];
+      // Use .url for FireFox.
+      for (var i = 0; i < urls.length; i++) {
+        var iceServer =
+          window.createIceServer(urls[i], username, password);
+        if (iceServer !== null) {
+          iceServers.push(iceServer);
+        }
       }
+      return iceServers;
+    } else {
+      return {
+        'urls': urls,
+        'credential': password,
+        'username': username
+      };
     }
-    return iceServers;
   };
 
   // Attach a media stream to an element.
