@@ -10,7 +10,7 @@
 /* jshint browser: true, camelcase: true, curly: true, devel: true,
    eqeqeq: true, forin: false, globalstrict: true, node: true,
    quotmark: single, undef: true, unused: strict */
-/* global mozRTCIceCandidate, mozRTCPeerConnection,
+/* global mozRTCIceCandidate, mozRTCPeerConnection, Promise,
 mozRTCSessionDescription, webkitRTCPeerConnection, MediaStreamTrack */
 /* exported trace,requestUserMedia */
 'use strict';
