@@ -214,15 +214,8 @@ if (navigator.mozGetUserMedia) {
 // Returns the result of getUserMedia as a Promise.
 function requestUserMedia(constraints) {
   return new Promise(function(resolve, reject) {
-    var onSuccess = function(stream) {
-      resolve(stream);
-    };
-    var onError = function(error) {
-      reject(error);
-    };
-
     try {
-      getUserMedia(constraints, onSuccess, onError);
+      getUserMedia(constraints, resolve, reject);
     } catch (e) {
       reject(e);
     }
