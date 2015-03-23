@@ -21,6 +21,7 @@ var attachMediaStream = null;
 var reattachMediaStream = null;
 var webrtcDetectedBrowser = null;
 var webrtcDetectedVersion = null;
+var webrtcMinimumVersion = null;
 
 function trace(text) {
   // This function is used for logging.
@@ -40,8 +41,12 @@ if (navigator.mozGetUserMedia) {
 
   webrtcDetectedBrowser = 'firefox';
 
+  // the detected firefox version.
   webrtcDetectedVersion =
     parseInt(navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1], 10);
+
+  // the minimum firefox version still supported by adapter.
+  webrtcMinimumVersion = 31;
 
   // The RTCPeerConnection object.
   RTCPeerConnection = function(pcConfig, pcConstraints) {
@@ -110,14 +115,13 @@ if (navigator.mozGetUserMedia) {
   console.log('This appears to be Chrome');
 
   webrtcDetectedBrowser = 'chrome';
-  // Temporary fix until crbug/374263 is fixed.
-  // Setting Chrome version to 999, if version is unavailable.
-  var result = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
-  if (result !== null) {
-    webrtcDetectedVersion = parseInt(result[2], 10);
-  } else {
-    webrtcDetectedVersion = 999;
-  }
+
+  // the detected chrome version.
+  webrtcDetectedVersion = 
+    parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+
+  // the minimum chrome version still supported by adapter.
+  webrtcMinimumVersion = 38;
 
   // The RTCPeerConnection object.
   RTCPeerConnection = function(pcConfig, pcConstraints) {
@@ -174,7 +178,8 @@ if (typeof module !== 'undefined') {
     attachMediaStream: attachMediaStream,
     reattachMediaStream: reattachMediaStream,
     webrtcDetectedBrowser: webrtcDetectedBrowser,
-    webrtcDetectedVersion: webrtcDetectedVersion
+    webrtcDetectedVersion: webrtcDetectedVersion,
+    webrtcMinimumVersion: webrtcMinimumVersion
     //requestUserMedia: not exposed on purpose.
     //trace: not exposed on purpose.
   };
