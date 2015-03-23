@@ -117,7 +117,7 @@ if (navigator.mozGetUserMedia) {
   webrtcDetectedBrowser = 'chrome';
 
   // the detected chrome version.
-  webrtcDetectedVersion = 
+  webrtcDetectedVersion =
     parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
 
   // the minimum chrome version still supported by adapter.
