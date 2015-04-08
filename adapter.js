@@ -65,15 +65,14 @@ if (navigator.mozGetUserMedia) {
   window.RTCIceCandidate = mozRTCIceCandidate;
 
   // getUserMedia constraints shim.
-  getUserMedia = (webrtcDetectedVersion < 38)? function(c, onSuccess, onError) {
+  getUserMedia = (webrtcDetectedVersion < 38) ? function(c, onSuccess, onError) {
     var constraintsToFF37 = function(c) {
       if (typeof c !== 'object' || c.require) {
         return c;
       }
       var require = [];
       Object.keys(c).forEach(function(key) {
-        var r = c[key] = (typeof c[key] === 'object')?
-            c[key] : { ideal: c[key] };
+        var r = c[key] = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
         if (r.exact !== undefined) {
           r.min = r.max = r.exact;
           delete r.exact;
@@ -84,7 +83,7 @@ if (navigator.mozGetUserMedia) {
         if (r.ideal !== undefined) {
           c.advanced = c.advanced || [];
           var oc = {};
-          oc[key] = { min: r.ideal, max: r.ideal };
+          oc[key] = {min: r.ideal, max: r.ideal};
           c.advanced.push(oc);
           delete r.ideal;
           if (!Object.keys(r).length) {
@@ -235,7 +234,7 @@ if (navigator.mozGetUserMedia) {
         if (key === 'require' || key === 'advanced') {
           return;
         }
-        var r = (typeof c[key] === 'object')? c[key] : { ideal: c[key] };
+        var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
         if (r.exact !== undefined && typeof r.exact === 'number') {
           r.min = r.max = r.exact;
         }
@@ -243,7 +242,7 @@ if (navigator.mozGetUserMedia) {
           if (prefix) {
             return prefix + name.charAt(0).toUpperCase() + name.slice(1);
           }
-          return (name === 'deviceId')? 'sourceId' : name;
+          return (name === 'deviceId') ? 'sourceId' : name;
         };
         if (r.ideal !== undefined) {
           cc.optional = cc.optional || [];
