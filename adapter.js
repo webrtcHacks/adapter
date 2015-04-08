@@ -65,14 +65,16 @@ if (navigator.mozGetUserMedia) {
   window.RTCIceCandidate = mozRTCIceCandidate;
 
   // getUserMedia constraints shim.
-  getUserMedia = (webrtcDetectedVersion < 38) ? function(c, onSuccess, onError) {
+  getUserMedia = (webrtcDetectedVersion < 38) ?
+      function(c, onSuccess, onError) {
     var constraintsToFF37 = function(c) {
       if (typeof c !== 'object' || c.require) {
         return c;
       }
       var require = [];
       Object.keys(c).forEach(function(key) {
-        var r = c[key] = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
+        var r = c[key] = (typeof c[key] === 'object') ?
+            c[key] : {ideal: c[key]};
         if (r.exact !== undefined) {
           r.min = r.max = r.exact;
           delete r.exact;
