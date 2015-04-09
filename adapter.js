@@ -208,9 +208,9 @@ if (navigator.mozGetUserMedia) {
     to.src = from.src;
   };
 
-  navigator.mediaDevices = navigator.mediaDevices || {
-    getUserMedia: requestUserMedia,
-    enumerateDevices: function() {
+  if (!navigator.mediaDevices) {
+    navigator.mediaDevices = {getUserMedia: requestUserMedia,
+                              enumerateDevices: function() {
       return new Promise(function(resolve) {
         var kinds = {audio: 'audioinput', video: 'videoinput'};
         return MediaStreamTrack.getSources(function(devices) {
@@ -222,8 +222,8 @@ if (navigator.mozGetUserMedia) {
           }));
         });
       });
-    }
-  };
+    }};
+  }
 } else {
   console.log('Browser does not appear to be WebRTC-capable');
 }
