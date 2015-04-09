@@ -68,15 +68,19 @@ if (navigator.mozGetUserMedia) {
   getUserMedia = navigator.mozGetUserMedia.bind(navigator);
   navigator.getUserMedia = getUserMedia;
 
-  // Shim for MediaStreamTrack.getSources.
-  MediaStreamTrack.getSources = function(successCb) {
-    setTimeout(function() {
+  // Shim for mediaDevices on older versions.
+  if (!navigator.mediaDevices) {
+    navigator.mediaDevices = {getUserMedia: requestUserMedia};
+  }
+  navigator.mediaDevices.enumerateDevices =
+      navigator.mediaDevices.enumerateDevices || function() {
+    return new Promise(function(resolve) {
       var infos = [
-        {kind: 'audio', id: 'default', label:'', facing:''},
-        {kind: 'video', id: 'default', label:'', facing:''}
+        {kind: 'audioinput', id: 'default', label:'', groupId:''},
+        {kind: 'videoinput', id: 'default', label:'', groupId:''}
       ];
-      successCb(infos);
-    }, 0);
+      resolve(infos);
+    });
   };
 
   // Creates ICE server from the URL for FF.
