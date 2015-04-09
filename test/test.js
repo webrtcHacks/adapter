@@ -112,3 +112,26 @@ test('basic connection establishment', function(t) {
     }
   );
 });
+
+test('call enumerateDevices', function (t) {
+  var step = 'enumerateDevices() must succeed';
+  navigator.mediaDevices.enumerateDevices()
+  .then(function(devices) {
+    t.pass(step);
+    step = 'valid enumerateDevices output: ' + JSON.stringify(devices);
+    t.ok(devices.length > 0, 'At least one device found');
+    devices.forEach(function(d) {
+      t.ok(d.kind == 'videoinput' ||
+           d.kind == 'audioinput' ||
+           d.kind == 'audiooutput', 'Known device kind');
+      t.ok(d.deviceId.length !== undefined, 'device id present');
+      t.ok(d.label.length !== undefined, 'device label present');
+    });
+    t.pass(step);
+    t.end();
+  })
+  .catch(function(err) {
+    t.fail(step + ' - ' + err.toString());
+    t.end();
+  });
+});
