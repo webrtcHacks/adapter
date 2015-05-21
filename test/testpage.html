@@ -1,5 +1,6 @@
 <html>
 <head>
+<meta charset="utf-8">
 <title>Test page for adapter.js</title>
 </head>
 <body>
@@ -11,8 +12,8 @@ The browser version is: <span id="browserversion"></span>
 <script>
 var browser_display = document.getElementById('browser');
 var version_display = document.getElementById('browserversion');
-browser_display.innerText = webrtcDetectedBrowser;
-version_display.innerText = webrtcDetectedVersion;
+browser_display.innerHTML = webrtcDetectedBrowser;
+version_display.innerHTML = webrtcDetectedVersion;
 </script>
 </body>
 </html>
