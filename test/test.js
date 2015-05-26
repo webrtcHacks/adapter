@@ -6,6 +6,6 @@ m = require('../adapter.js');
 
 test('Browser identified', function(t) {
   t.plan(2);
-  t.ok(m.webrtcDetectedBrowser);
-  t.ok(m.webrtcDetectedVersion);
+  t.ok(m.webrtcDetectedBrowser, 'Browser detected');
+  t.ok(m.webrtcDetectedVersion, 'Browser version detected');
 });
