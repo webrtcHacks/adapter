@@ -12,8 +12,17 @@ module.exports = function(grunt) {
       },
       files: ['adapter.js']
     },
+    jscs: {
+      src: 'adapter.js',
+      options: {
+        config: '.jscsrc',
+        'excludeFiles': [
+        ]
+      }
+    },
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.registerTask('default', ['jshint']);
+  grunt.loadNpmTasks('grunt-jscs');
+  grunt.registerTask('default', ['jshint', 'jscs']);
 };
