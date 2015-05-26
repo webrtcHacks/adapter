@@ -18,7 +18,8 @@ test('basic connection establishment', function(t) {
 
   pc1.createDataChannel('somechannel');
   pc1.oniceconnectionstatechange = function() {
-    if (pc1.iceConnectionState === 'connected') {
+    if (pc1.iceConnectionState === 'connected' ||
+        pc1.iceConnectionState === 'completed') {
       t.pass('P2P connection established');
       t.end();
     }
