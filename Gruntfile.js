@@ -20,9 +20,13 @@ module.exports = function(grunt) {
         ]
       }
     },
+    testling: {
+      files: "test/test.js" 
+    },
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs');
-  grunt.registerTask('default', ['jshint', 'jscs']);
+  grunt.loadNpmTasks('grunt-testling');
+  grunt.registerTask('default', ['jshint', 'jscs', 'testling']);
 };

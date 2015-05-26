@@ -19,19 +19,14 @@ matrix:
     - env: BROWSER=chrome  BVER=unstable
     - env: BROWSER=firefox BVER=unstable
 
-install:
-  - npm install -g jshint jscs
-  - npm install
-
 before_script:
   - ./node_modules/travis-multirunner/setup.sh
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 
-script:
-   - jshint *.js
-   - jscs --preset google *.js
-   - npm test
+-script:
+  - grunt
 
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
+

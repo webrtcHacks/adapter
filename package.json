@@ -11,11 +11,7 @@
     "test": "testling -x start-$BROWSER"
   },
   "testling": {
-    "files": "test/test.js",
-    "browsers": [
-      "chrome/34..latest",
-      "firefox/25..latest"
-    ]
+    "files": "test/test.js"
   },
   "devDependencies": {
     "browserify": "^10.2.1",
@@ -24,8 +20,7 @@
     "grunt-contrib-nodeunit": "~0.4.1",
     "grunt-contrib-uglify": "~0.5.0",
     "grunt-jscs": ">=0.8.1",
-    "tape": "^4.0.0",
-    "testling": "^1.7.1",
+    "grunt-testling": "^1.2.0",
     "travis-multirunner": "^2.1.0"
   }
 }
