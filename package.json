@@ -21,6 +21,7 @@
     "grunt-contrib-uglify": "~0.5.0",
     "grunt-jscs": ">=0.8.1",
     "grunt-testling": "^1.2.0",
+    "tape": "^4.0.0",
     "testling": "^1.7.1",
     "travis-multirunner": "^2.1.0"
   }
