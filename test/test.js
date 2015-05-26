@@ -15,13 +15,17 @@ test('Browser identified', function(t) {
 test('basic connection establishment', function(t) {
   var pc1 = new m.RTCPeerConnection(null);
   var pc2 = new m.RTCPeerConnection(null);
+  var ended = false;
 
   pc1.createDataChannel('somechannel');
   pc1.oniceconnectionstatechange = function() {
     if (pc1.iceConnectionState === 'connected' ||
         pc1.iceConnectionState === 'completed') {
       t.pass('P2P connection established');
-      t.end();
+      if (!ended) {
+        ended = true;
+        t.end();
+      }
     }
   };
 
