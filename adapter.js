@@ -219,10 +219,10 @@ if (navigator.mozGetUserMedia) {
       }
       return cc;
     };
-    console.log('spec: ' + JSON.stringify(c));
+    console.log('spec:   ' + JSON.stringify(c)); // whitespace for alignment
     c.audio = constraintsToChrome(c.audio);
     c.video = constraintsToChrome(c.video);
-    console.log('chrm: ' + JSON.stringify(c));
+    console.log('chrome: ' + JSON.stringify(c));
     return navigator.webkitGetUserMedia(c, onSuccess, onError);
   };
   navigator.getUserMedia = getUserMedia;
