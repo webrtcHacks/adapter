@@ -31,8 +31,7 @@ test('basic connection establishment', function(t) {
 
   var addCandidate = function(pc, event) {
     if (event.candidate) {
-      var cand = JSON.parse(JSON.stringify(event.candidate));
-      cand = new RTCIceCandidate(cand);
+      var cand = new RTCIceCandidate(event.candidate);
       pc.addIceCandidate(cand,
         function() {
         },
@@ -55,7 +54,6 @@ test('basic connection establishment', function(t) {
         function() {
           t.pass('pc1.setLocalDescription');
 
-          offer = JSON.parse(JSON.stringify(offer));
           offer = new RTCSessionDescription(offer);
           t.pass('created RTCSessionDescription from offer');
           pc2.setRemoteDescription(offer,
@@ -67,7 +65,6 @@ test('basic connection establishment', function(t) {
                   pc2.setLocalDescription(answer,
                     function() {
                       t.pass('pc2.setLocalDescription');
-                      answer = JSON.parse(JSON.stringify(answer));
                       answer = new RTCSessionDescription(answer);
                       t.pass('created RTCSessionDescription from answer');
                       pc1.setRemoteDescription(answer,
