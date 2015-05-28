@@ -23,6 +23,6 @@
     "grunt-testling": "^1.2.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
-    "travis-multirunner": "^2.1.0"
+    "travis-multirunner": "^2.2.0"
   }
 }
