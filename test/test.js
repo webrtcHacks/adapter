@@ -20,3 +20,25 @@ test('create RTCPeerConnection', function (t) {
   t.plan(1);
   t.ok(typeof(new m.RTCPeerConnection()) === 'object', 'RTCPeerConnection constructor');
 });
+
+test('call getUserMedia with constraints', function (t) {
+  t.plan(3);
+  var impossibleConstraints = {
+    video: {
+      width: 1280,
+      height: {min: 200, ideal: 720, max: 1080},
+      frameRate: { exact: 0 } // to fail
+    },
+  };
+  new Promise(function(resolve, reject) {
+    navigator.getUserMedia(impossibleConstraints, resolve, reject);
+  })
+  .then(function() {
+    t.fail('getUserMedia(impossibleConstraints) must fail');
+    t.end();
+  })
+  .catch(function(err) {
+    t.pass('getUserMedia(impossibleConstraints) must fail');
+    t.ok(err.name.indexOf("Error") >= 0, 'must fail with named Error');
+  });
+});
