@@ -24,7 +24,6 @@ test('create RTCPeerConnection', function (t) {
 });
 
 test('call getUserMedia with constraints', function (t) {
-  t.plan(3);
   var impossibleConstraints = {
     video: {
       width: 1280,
@@ -42,6 +41,7 @@ test('call getUserMedia with constraints', function (t) {
   .catch(function(err) {
     t.pass('getUserMedia(impossibleConstraints) must fail');
     t.ok(err.name.indexOf("Error") >= 0, 'must fail with named Error');
+    t.end();
   });
 });
 
