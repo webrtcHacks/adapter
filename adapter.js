@@ -13,6 +13,7 @@
 /* global mozRTCIceCandidate, mozRTCPeerConnection, Promise,
 mozRTCSessionDescription, webkitRTCPeerConnection, MediaStreamTrack */
 /* exported trace,requestUserMedia */
+
 'use strict';
 
 var RTCPeerConnection = null;
@@ -84,9 +85,47 @@ if (navigator.mozGetUserMedia) {
   // The RTCIceCandidate object.
   window.RTCIceCandidate = mozRTCIceCandidate;
 
-  // getUserMedia shim (only difference is the prefix).
-  // Code from Adam Barth.
-  getUserMedia = navigator.mozGetUserMedia.bind(navigator);
+  // getUserMedia constraints shim.
+  getUserMedia = (webrtcDetectedVersion < 38) ?
+      function(c, onSuccess, onError) {
+    var constraintsToFF37 = function(c) {
+      if (typeof c !== 'object' || c.require) {
+        return c;
+      }
+      var require = [];
+      Object.keys(c).forEach(function(key) {
+        var r = c[key] = (typeof c[key] === 'object') ?
+            c[key] : {ideal: c[key]};
+        if (r.exact !== undefined) {
+          r.min = r.max = r.exact;
+          delete r.exact;
+        }
+        if (r.min !== undefined || r.max !== undefined) {
+          require.push(key);
+        }
+        if (r.ideal !== undefined) {
+          c.advanced = c.advanced || [];
+          var oc = {};
+          oc[key] = {min: r.ideal, max: r.ideal};
+          c.advanced.push(oc);
+          delete r.ideal;
+          if (!Object.keys(r).length) {
+            delete c[key];
+          }
+        }
+      });
+      if (require.length) {
+        c.require = require;
+      }
+      return c;
+    };
+    console.log('spec: ' + JSON.stringify(c));
+    c.audio = constraintsToFF37(c.audio);
+    c.video = constraintsToFF37(c.video);
+    console.log('ff37: ' + JSON.stringify(c));
+    return navigator.mozGetUserMedia(c, onSuccess, onError);
+  } : navigator.mozGetUserMedia.bind(navigator);
+
   navigator.getUserMedia = getUserMedia;
 
   // Shim for MediaStreamTrack.getSources.
@@ -128,9 +167,64 @@ if (navigator.mozGetUserMedia) {
     return new webkitRTCPeerConnection(pcConfig, pcConstraints);
   };
 
-  // Get UserMedia (only difference is the prefix).
-  // Code from Adam Barth.
-  getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
+  // getUserMedia constraints shim.
+  getUserMedia = function(c, onSuccess, onError) {
+    var constraintsToChrome = function(c) {
+      if (typeof c !== 'object' || c.mandatory || c.optional) {
+        return c;
+      }
+      var cc = {};
+      Object.keys(c).forEach(function(key) {
+        if (key === 'require' || key === 'advanced') {
+          return;
+        }
+        var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
+        if (r.exact !== undefined && typeof r.exact === 'number') {
+          r.min = r.max = r.exact;
+        }
+        var oldname = function(prefix, name) {
+          if (prefix) {
+            return prefix + name.charAt(0).toUpperCase() + name.slice(1);
+          }
+          return (name === 'deviceId') ? 'sourceId' : name;
+        };
+        if (r.ideal !== undefined) {
+          cc.optional = cc.optional || [];
+          var oc = {};
+          if (typeof r.ideal === 'number') {
+            oc[oldname('min', key)] = r.ideal;
+            cc.optional.push(oc);
+            oc = {};
+            oc[oldname('max', key)] = r.ideal;
+            cc.optional.push(oc);
+          } else {
+            oc[oldname('', key)] = r.ideal;
+            cc.optional.push(oc);
+          }
+        }
+        if (r.exact !== undefined && typeof r.exact !== 'number') {
+          cc.mandatory = cc.mandatory || {};
+          cc.mandatory[oldname('', key)] = r.exact;
+        } else {
+          ['min', 'max'].forEach(function(mix) {
+            if (r[mix] !== undefined) {
+              cc.mandatory = cc.mandatory || {};
+              cc.mandatory[oldname(mix, key)] = r[mix];
+            }
+          });
+        }
+      });
+      if (c.advanced) {
+        cc.optional = (cc.optional || []).concat(c.advanced);
+      }
+      return cc;
+    };
+    console.log('spec:   ' + JSON.stringify(c)); // whitespace for alignment
+    c.audio = constraintsToChrome(c.audio);
+    c.video = constraintsToChrome(c.video);
+    console.log('chrome: ' + JSON.stringify(c));
+    return navigator.webkitGetUserMedia(c, onSuccess, onError);
+  };
   navigator.getUserMedia = getUserMedia;
 
   // Attach a media stream to an element.
