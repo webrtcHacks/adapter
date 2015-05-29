@@ -111,7 +111,7 @@ if (navigator.mozGetUserMedia) {
       try {
         return orgEnumerateDevices();
       } catch (e) {
-        if (e.name == "NotFoundError") {
+        if (e.name === 'NotFoundError') {
           return [];
         } else {
           throw e;
