@@ -108,15 +108,12 @@ if (navigator.mozGetUserMedia) {
     var orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
     navigator.mediaDevices.enumerateDevices = function() {
-      try {
-        return orgEnumerateDevices();
-      } catch (e) {
+      return orgEnumerateDevices().catch(function(e) {
         if (e.name === 'NotFoundError') {
           return [];
-        } else {
-          throw e;
         }
-      }
+        throw e;
+      });
     };
   }
   // Attach a media stream to an element.
