@@ -103,7 +103,22 @@ if (navigator.mozGetUserMedia) {
       resolve(infos);
     });
   };
-
+  if (webrtcDetectedVersion < 41) {
+    // Work around http://bugzil.la/1169665
+    var orgEnumerateDevices =
+        navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
+    navigator.mediaDevices.enumerateDevices = function() {
+      try {
+        return orgEnumerateDevices();
+      } catch (e) {
+        if (e.name == "NotFoundError") {
+          return [];
+        } else {
+          throw e;
+        }
+      }
+    };
+  }
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
     console.log('Attaching media stream');
