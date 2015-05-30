@@ -128,17 +128,33 @@ if (navigator.mozGetUserMedia) {
 
   navigator.getUserMedia = getUserMedia;
 
-  // Shim for MediaStreamTrack.getSources.
-  MediaStreamTrack.getSources = function(successCb) {
-    setTimeout(function() {
+  // Shim for mediaDevices on older versions.
+  if (!navigator.mediaDevices) {
+    navigator.mediaDevices = {getUserMedia: requestUserMedia};
+  }
+  navigator.mediaDevices.enumerateDevices =
+      navigator.mediaDevices.enumerateDevices || function() {
+    return new Promise(function(resolve) {
       var infos = [
-        {kind: 'audio', id: 'default', label:'', facing:''},
-        {kind: 'video', id: 'default', label:'', facing:''}
+        {kind: 'audioinput', deviceId: 'default', label:'', groupId:''},
+        {kind: 'videoinput', deviceId: 'default', label:'', groupId:''}
       ];
-      successCb(infos);
-    }, 0);
+      resolve(infos);
+    });
   };
-
+  if (webrtcDetectedVersion < 41) {
+    // Work around http://bugzil.la/1169665
+    var orgEnumerateDevices =
+        navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
+    navigator.mediaDevices.enumerateDevices = function() {
+      return orgEnumerateDevices().catch(function(e) {
+        if (e.name === 'NotFoundError') {
+          return [];
+        }
+        throw e;
+      });
+    };
+  }
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
     console.log('Attaching media stream');
@@ -243,6 +259,23 @@ if (navigator.mozGetUserMedia) {
   reattachMediaStream = function(to, from) {
     to.src = from.src;
   };
+
+  if (!navigator.mediaDevices) {
+    navigator.mediaDevices = {getUserMedia: requestUserMedia,
+                              enumerateDevices: function() {
+      return new Promise(function(resolve) {
+        var kinds = {audio: 'audioinput', video: 'videoinput'};
+        return MediaStreamTrack.getSources(function(devices) {
+          resolve(devices.map(function(device) {
+            return {label: device.label,
+                    kind: kinds[device.kind],
+                    deviceId: device.id,
+                    groupId: ''};
+          }));
+        });
+      });
+    }};
+  }
 } else {
   console.log('Browser does not appear to be WebRTC-capable');
 }
@@ -250,11 +283,7 @@ if (navigator.mozGetUserMedia) {
 // Returns the result of getUserMedia as a Promise.
 function requestUserMedia(constraints) {
   return new Promise(function(resolve, reject) {
-    try {
-      getUserMedia(constraints, resolve, reject);
-    } catch (e) {
-      reject(e);
-    }
+    getUserMedia(constraints, resolve, reject);
   });
 }
 
