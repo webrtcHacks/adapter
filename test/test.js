@@ -20,12 +20,12 @@ test('Browser supported by adapter.js', function (t) {
 
 test('create RTCPeerConnection', function (t) {
   t.plan(1);
-  t.ok(typeof(new m.RTCPeerConnection()) === 'object', 'RTCPeerConnection constructor');
+  t.ok(typeof(new RTCPeerConnection()) === 'object', 'RTCPeerConnection constructor');
 });
 
 test('basic connection establishment', function(t) {
-  var pc1 = new m.RTCPeerConnection(null);
-  var pc2 = new m.RTCPeerConnection(null);
+  var pc1 = new RTCPeerConnection(null);
+  var pc2 = new RTCPeerConnection(null);
   var ended = false;
 
   pc1.createDataChannel('somechannel');
