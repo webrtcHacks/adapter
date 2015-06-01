@@ -179,8 +179,155 @@ if (navigator.mozGetUserMedia) {
   webrtcMinimumVersion = 38;
 
   // The RTCPeerConnection object.
+  // In Chrome this is a wrapper around the native peerconnection.
   RTCPeerConnection = function(pcConfig, pcConstraints) {
-    return new webkitRTCPeerConnection(pcConfig, pcConstraints);
+    var self = this;
+    this.peerconnection = new webkitRTCPeerConnection(pcConfig, pcConstraints);
+
+    var events = [
+        'onaddstream',
+        'onremovestream',
+        'ondatachannel',
+        'onicecandidate',
+        'onsignalingstatechange',
+        'oniceconnectionstatechange',
+        'onicegatheringstatechange',
+        'onnegotiationneeded'
+    ];
+    events.forEach(function(eventname) {
+      self[eventname] = null;
+      self.peerconnection[eventname] = function(event) {
+        if (self[eventname] !== null) {
+          self[eventname].apply(self, [event]);
+        }
+      };
+    });
+
+    this.getLocalStreams = this.peerconnection.getLocalStreams.bind(
+        this.peerconnection);
+    this.getRemoteStreams = this.peerconnection.getRemoteStreams.bind(
+        this.peerconnection);
+    this.addEventListener = this.peerconnection.addEventListener.bind(
+        this.peerconnection);
+  };
+
+  var properties = [
+      'signalingState',
+      'iceConnectionState',
+      'iceGatheringState',
+      'localDescription',
+      'remoteDescription'
+  ];
+  properties.forEach(function(prop) {
+    Object.defineProperty(RTCPeerConnection.prototype, prop, {
+      get: function() {
+        return this.peerconnection[prop];
+      }
+    });
+  });
+
+  RTCPeerConnection.prototype.addStream = function(stream) {
+    this.peerconnection.addStream(stream);
+  };
+
+  RTCPeerConnection.prototype.removeStream = function(stream) {
+    this.peerconnection.removeStream(stream);
+  };
+
+  RTCPeerConnection.prototype.close = function() {
+    this.peerconnection.close();
+  };
+
+  RTCPeerConnection.prototype.createDataChannel = function(label, opts) {
+    return this.peerconnection.createDataChannel(label, opts);
+  };
+
+  RTCPeerConnection.prototype.setLocalDescription = function(description,
+      successCallback, failureCallback) {
+    this.peerconnection.setLocalDescription(description,
+      function() {
+        if (successCallback) {
+          successCallback();
+        }
+      },
+      function(err) {
+        if (failureCallback) {
+          failureCallback(err);
+        }
+      }
+    );
+  };
+
+  RTCPeerConnection.prototype.setRemoteDescription = function(description,
+      successCallback, failureCallback) {
+    this.peerconnection.setRemoteDescription(description,
+      function() {
+        if (successCallback) {
+          successCallback();
+        }
+      },
+      function(err) {
+        if (failureCallback) {
+          failureCallback(err);
+          failureCallback(err);
+        }
+      }
+    );
+  };
+
+  RTCPeerConnection.prototype.createOffer = function(successCallback,
+      failureCallback, constraints) {
+    this.peerconnection.createOffer(
+      function(offer) {
+        if (successCallback) {
+          successCallback(offer);
+        }
+      },
+      function(err) {
+        if (failureCallback) {
+          failureCallback(err);
+        }
+      },
+      constraints
+    );
+  };
+
+  RTCPeerConnection.prototype.createAnswer = function(successCallback,
+      failureCallback, constraints) {
+    this.peerconnection.createAnswer(
+      function(answer) {
+        if (successCallback) {
+          successCallback(answer);
+        }
+      },
+      function(err) {
+        if (failureCallback) {
+          failureCallback(err);
+        }
+      },
+      constraints
+    );
+  };
+
+  RTCPeerConnection.prototype.addIceCandidate = function(candidate,
+      successCallback, failureCallback) {
+    this.peerconnection.addIceCandidate(candidate,
+      function() {
+        if (successCallback) {
+          successCallback();
+        }
+      },
+      function(err) {
+        if (failureCallback) {
+          failureCallback(err);
+        }
+      }
+    );
+  };
+
+  RTCPeerConnection.prototype.getStats = function(selector, callback,
+      errback) {
+    this.peerconnection.getStats(selector, callback, errback);
   };
 
   // getUserMedia constraints shim.
