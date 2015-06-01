@@ -207,6 +207,8 @@ if (navigator.mozGetUserMedia) {
         this.peerconnection);
     this.getRemoteStreams = this.peerconnection.getRemoteStreams.bind(
         this.peerconnection);
+    this.addEventListener = this.peerconnection.addEventListener.bind(
+        this.peerconnection);
   };
 
   var properties = [
