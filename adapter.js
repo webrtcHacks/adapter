@@ -186,17 +186,13 @@ if (navigator.mozGetUserMedia) {
     var createOffer = webkitRTCPeerConnection.prototype.createOffer;
     webkitRTCPeerConnection.prototype.createOffer = function() {
       var self = this;
-      if (arguments.length < 1 || arguments.length === 1 && typeof(arguments[0]) === 'object') {
+      if (arguments.length < 1 || (arguments.length === 1 &&
+          typeof(arguments[0]) === 'object')) {
         var opts = arguments.length === 1 ? arguments[0] : undefined;
-        return new Promise(function (resolve, reject) {
-          console.log('here');
+        return new Promise(function(resolve, reject) {
           createOffer.apply(self, [
-              function (offer) {
-                resolve(offer);
-              },
-              function (err) {
-                reject(err);
-              },
+              resolve,
+              reject,
               opts]
           );
         });
@@ -207,16 +203,13 @@ if (navigator.mozGetUserMedia) {
     var createAnswer = webkitRTCPeerConnection.prototype.createAnswer;
     webkitRTCPeerConnection.prototype.createAnswer = function() {
       var self = this;
-      if (arguments.length < 1 || arguments.length === 1 && typeof(arguments[0]) === 'object') {
+      if (arguments.length < 1 || (arguments.length === 1 &&
+          typeof(arguments[0]) === 'object')) {
         var opts = arguments.length === 1 ? arguments[0] : undefined;
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
           createAnswer.apply(self, [
-              function (offer) {
-                resolve(offer);
-              },
-              function (err) {
-                reject(err);
-              },
+              resolve,
+              reject,
               opts]
           );
         });
@@ -224,49 +217,47 @@ if (navigator.mozGetUserMedia) {
         return createAnswer.apply(this, arguments);
       }
     };
-    var setLocalDescription = webkitRTCPeerConnection.prototype.setLocalDescription;
+    var SLD = webkitRTCPeerConnection.prototype.setLocalDescription;
     webkitRTCPeerConnection.prototype.setLocalDescription = function() {
       var args = arguments;
       var self = this;
-      return new Promise(function (resolve, reject) {
-        setLocalDescription.apply(self, [args[0],
-            function () {
+      return new Promise(function(resolve, reject) {
+        SLD.apply(self, [args[0],
+            function() {
               resolve();
               if (args.length >= 2) {
                 args[1].apply(null, []);
               }
             },
-            function (err) {
+            function(err) {
               reject(err);
               if (args.length >= 3) {
                 args[2].apply(null, [err]);
               }
             }]
           );
-        }
-      );
+      });
     };
-    var setRemoteDescription = webkitRTCPeerConnection.prototype.setRemoteDescription;
+    var SRD = webkitRTCPeerConnection.prototype.setRemoteDescription;
     webkitRTCPeerConnection.prototype.setRemoteDescription = function() {
       var args = arguments;
       var self = this;
-      return new Promise(function (resolve, reject) {
-        setRemoteDescription.apply(self, [args[0],
-            function () {
+      return new Promise(function(resolve, reject) {
+        SRD.apply(self, [args[0],
+            function() {
               resolve();
               if (args.length >= 2) {
                 args[1].apply(null, []);
               }
             },
-            function (err) {
+            function(err) {
               reject(err);
               if (arguments.length >= 3) {
                 args[2].apply(null, [err]);
               }
             }]
           );
-        }
-      );
+      });
     };
   })();
 

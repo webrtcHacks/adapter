@@ -188,6 +188,7 @@ test('basic connection establishment with promise', function(t) {
   }).then(function () {
     t.pass('pc2.createAnswer');
     return pc1.setRemoteDescription(pc2.localDescription);
+  }).then(function () {
   }).catch(function (err) {
     t.fail(err.toString());
   });
