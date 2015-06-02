@@ -182,104 +182,52 @@ if (navigator.mozGetUserMedia) {
   RTCPeerConnection = function(pcConfig, pcConstraints) {
     return new webkitRTCPeerConnection(pcConfig, pcConstraints);
   };
+  // add promise support
   (function() {
-    var createOffer = webkitRTCPeerConnection.prototype.createOffer;
-    webkitRTCPeerConnection.prototype.createOffer = function() {
-      var self = this;
-      if (arguments.length < 1 || (arguments.length === 1 &&
-          typeof(arguments[0]) === 'object')) {
-        var opts = arguments.length === 1 ? arguments[0] : undefined;
+    ['createOffer', 'createAnswer'].forEach(function(method) {
+      var nativeMethod = webkitRTCPeerConnection.prototype[method];
+      webkitRTCPeerConnection.prototype[method] = function() {
+        var self = this;
+        if (arguments.length < 1 || (arguments.length === 1 &&
+            typeof(arguments[0]) === 'object')) {
+          var opts = arguments.length === 1 ? arguments[0] : undefined;
+          return new Promise(function(resolve, reject) {
+            nativeMethod.apply(self, [
+                resolve,
+                reject,
+                opts]
+            );
+          });
+        } else {
+          return nativeMethod.apply(this, arguments);
+        }
+      };
+    });
+
+    ['setLocalDescription', 'setRemoteDescription',
+        'addIceCandidate'].forEach(function(method) {
+      var nativeMethod = webkitRTCPeerConnection.prototype[method];
+      webkitRTCPeerConnection.prototype[method] = function() {
+        var args = arguments;
+        var self = this;
         return new Promise(function(resolve, reject) {
-          createOffer.apply(self, [
-              resolve,
-              reject,
-              opts]
-          );
+          nativeMethod.apply(self, [args[0],
+              function() {
+                resolve();
+                if (args.length >= 2) {
+                  args[1].apply(null, []);
+                }
+              },
+              function(err) {
+                reject(err);
+                if (args.length >= 3) {
+                  args[2].apply(null, [err]);
+                }
+              }]
+            );
         });
-      } else {
-        return createOffer.apply(this, arguments);
-      }
-    };
-    var createAnswer = webkitRTCPeerConnection.prototype.createAnswer;
-    webkitRTCPeerConnection.prototype.createAnswer = function() {
-      var self = this;
-      if (arguments.length < 1 || (arguments.length === 1 &&
-          typeof(arguments[0]) === 'object')) {
-        var opts = arguments.length === 1 ? arguments[0] : undefined;
-        return new Promise(function(resolve, reject) {
-          createAnswer.apply(self, [
-              resolve,
-              reject,
-              opts]
-          );
-        });
-      } else {
-        return createAnswer.apply(this, arguments);
-      }
-    };
-    var SLD = webkitRTCPeerConnection.prototype.setLocalDescription;
-    webkitRTCPeerConnection.prototype.setLocalDescription = function() {
-      var args = arguments;
-      var self = this;
-      return new Promise(function(resolve, reject) {
-        SLD.apply(self, [args[0],
-            function() {
-              resolve();
-              if (args.length >= 2) {
-                args[1].apply(null, []);
-              }
-            },
-            function(err) {
-              reject(err);
-              if (args.length >= 3) {
-                args[2].apply(null, [err]);
-              }
-            }]
-          );
-      });
-    };
-    var SRD = webkitRTCPeerConnection.prototype.setRemoteDescription;
-    webkitRTCPeerConnection.prototype.setRemoteDescription = function() {
-      var args = arguments;
-      var self = this;
-      return new Promise(function(resolve, reject) {
-        SRD.apply(self, [args[0],
-            function() {
-              resolve();
-              if (args.length >= 2) {
-                args[1].apply(null, []);
-              }
-            },
-            function(err) {
-              reject(err);
-              if (arguments.length >= 3) {
-                args[2].apply(null, [err]);
-              }
-            }]
-          );
-      });
-    };
-    var addIceCandidate = webkitRTCPeerConnection.prototype.addIceCandidate;
-    webkitRTCPeerConnection.prototype.addIceCandidate = function() {
-      var args = arguments;
-      var self = this;
-      return new Promise(function(resolve, reject) {
-        addIceCandidate.apply(self, [args[0],
-            function() {
-              resolve();
-              if (args.length >= 2) {
-                args[1].apply(null, []);
-              }
-            },
-            function(err) {
-              reject(err);
-              if (arguments.length >= 3) {
-                args[2].apply(null, [err]);
-              }
-            }]
-          );
-      });
-    };
+      };
+    });
   })();
 
   // getUserMedia constraints shim.
