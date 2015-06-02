@@ -68,6 +68,7 @@ test('basic connection establishment', function(t) {
       var cand = new RTCIceCandidate(event.candidate);
       pc.addIceCandidate(cand,
         function() {
+          t.pass('addIceCandidate');
         },
         function(err) {
           t.fail('addIceCandidate ' + err.toString());
@@ -157,13 +158,12 @@ test('basic connection establishment with promise', function(t) {
   var addCandidate = function(pc, event) {
     if (event.candidate) {
       var cand = new RTCIceCandidate(event.candidate);
-      pc.addIceCandidate(cand,
-        function() {
-        },
-        function(err) {
-          t.fail('addIceCandidate ' + err.toString());
-        }
-      );
+      pc.addIceCandidate(cand)
+          .then(function () {
+          })
+          .catch(function (err) {
+            t.fail('addIceCandidate ' + err.toString());
+          });
     }
   };
   pc1.onicecandidate = function(event) {
@@ -189,6 +189,7 @@ test('basic connection establishment with promise', function(t) {
     t.pass('pc2.createAnswer');
     return pc1.setRemoteDescription(pc2.localDescription);
   }).then(function () {
+    t.pass('pc1.setRemoteDescription');
   }).catch(function (err) {
     t.fail(err.toString());
   });

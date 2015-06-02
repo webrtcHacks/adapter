@@ -259,6 +259,27 @@ if (navigator.mozGetUserMedia) {
           );
       });
     };
+    var addIceCandidate = webkitRTCPeerConnection.prototype.addIceCandidate;
+    webkitRTCPeerConnection.prototype.addIceCandidate = function() {
+      var args = arguments;
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        addIceCandidate.apply(self, [args[0],
+            function() {
+              resolve();
+              if (args.length >= 2) {
+                args[1].apply(null, []);
+              }
+            },
+            function(err) {
+              reject(err);
+              if (arguments.length >= 3) {
+                args[2].apply(null, [err]);
+              }
+            }]
+          );
+      });
+    };
   })();
 
   // getUserMedia constraints shim.
