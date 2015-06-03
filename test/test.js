@@ -14,22 +14,24 @@ test('Browser identified', function(t) {
   t.ok(m.webrtcMinimumVersion, 'Minimum Browser version detected');
 });
 
-test('Browser supported by adapter.js', function (t) {
+test('Browser supported by adapter.js', function(t) {
   t.plan(1);
-  t.ok(m.webrtcDetectedVersion >= m.webrtcMinimumVersion, 'Browser version supported by adapter.js');
+  t.ok(m.webrtcDetectedVersion >= m.webrtcMinimumVersion,
+      'Browser version supported by adapter.js');
 });
 
-test('create RTCPeerConnection', function (t) {
+test('create RTCPeerConnection', function(t) {
   t.plan(1);
-  t.ok(typeof(new RTCPeerConnection()) === 'object', 'RTCPeerConnection constructor');
+  t.ok(typeof(new RTCPeerConnection()) === 'object',
+      'RTCPeerConnection constructor');
 });
 
-test('call getUserMedia with constraints', function (t) {
+test('call getUserMedia with constraints', function(t) {
   var impossibleConstraints = {
     video: {
       width: 1280,
       height: {min: 200, ideal: 720, max: 1080},
-      frameRate: { exact: 0 } // to fail
+      frameRate: {exact: 0} // to fail
     },
   };
   new Promise(function(resolve, reject) {
@@ -41,7 +43,7 @@ test('call getUserMedia with constraints', function (t) {
   })
   .catch(function(err) {
     t.pass('getUserMedia(impossibleConstraints) must fail');
-    t.ok(err.name.indexOf("Error") >= 0, 'must fail with named Error');
+    t.ok(err.name.indexOf('Error') >= 0, 'must fail with named Error');
     t.end();
   });
 });
@@ -159,9 +161,9 @@ test('basic connection establishment with promise', function(t) {
     if (event.candidate) {
       var cand = new RTCIceCandidate(event.candidate);
       pc.addIceCandidate(cand)
-          .then(function () {
+          .then(function() {
           })
-          .catch(function (err) {
+          .catch(function(err) {
             t.fail('addIceCandidate ' + err.toString());
           });
     }
@@ -173,39 +175,39 @@ test('basic connection establishment with promise', function(t) {
     addCandidate(pc1, event);
   };
 
-  pc1.createOffer().then(function (offer) {
+  pc1.createOffer().then(function(offer) {
     t.pass('pc1.createOffer');
     return pc1.setLocalDescription(offer);
-  }).then(function () {
+  }).then(function() {
     t.pass('pc1.setLocalDescription');
     return pc2.setRemoteDescription(pc1.localDescription);
-  }).then(function () {
+  }).then(function() {
     t.pass('pc2.setRemoteDescription');
     return pc2.createAnswer();
-  }).then(function (answer) {
+  }).then(function(answer) {
     t.pass('pc2.createAnswer');
     return pc2.setLocalDescription(answer);
-  }).then(function () {
+  }).then(function() {
     t.pass('pc2.setLocalDescription');
     return pc1.setRemoteDescription(pc2.localDescription);
-  }).then(function () {
+  }).then(function() {
     t.pass('pc1.setRemoteDescription');
-  }).catch(function (err) {
+  }).catch(function(err) {
     t.fail(err.toString());
   });
 });
 
-test('call enumerateDevices', function (t) {
+test('call enumerateDevices', function(t) {
   var step = 'enumerateDevices() must succeed';
   navigator.mediaDevices.enumerateDevices()
   .then(function(devices) {
     t.pass(step);
     step = 'valid enumerateDevices output: ' + JSON.stringify(devices);
-    t.ok(typeof devices.length === "number", 'Produced a devices array');
+    t.ok(typeof devices.length === 'number', 'Produced a devices array');
     devices.forEach(function(d) {
-      t.ok(d.kind == 'videoinput' ||
-           d.kind == 'audioinput' ||
-           d.kind == 'audiooutput', 'Known device kind');
+      t.ok(d.kind === 'videoinput' ||
+           d.kind === 'audioinput' ||
+           d.kind === 'audiooutput', 'Known device kind');
       t.ok(d.deviceId.length !== undefined, 'device id present');
       t.ok(d.label.length !== undefined, 'device label present');
     });

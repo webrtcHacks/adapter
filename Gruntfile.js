@@ -10,10 +10,10 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      files: ['adapter.js']
+      files: ['adapter.js', 'test/*.js']
     },
     jscs: {
-      src: 'adapter.js',
+      src: ['adapter.js', 'test/*.js'],
       options: {
         config: '.jscsrc',
         'excludeFiles': [

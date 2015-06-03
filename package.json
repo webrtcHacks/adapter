@@ -5,7 +5,7 @@
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "https://github.com/w3brtc/adapter.git"
+    "url": "https://github.com/webrtc/adapter.git"
   },
   "scripts": {
     "test": "testling -x start-$BROWSER"
