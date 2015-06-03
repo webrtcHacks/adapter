@@ -2,6 +2,7 @@
 // This is a basic test file for use with testling.
 // The test script language comes from tape.
 /* jshint node: true */
+/* global Promise */
 var test = require('tape');
 
 var m = require('../adapter.js');
@@ -67,6 +68,7 @@ test('basic connection establishment', function(t) {
       var cand = new RTCIceCandidate(event.candidate);
       pc.addIceCandidate(cand,
         function() {
+          t.pass('addIceCandidate');
         },
         function(err) {
           t.fail('addIceCandidate ' + err.toString());
@@ -83,6 +85,7 @@ test('basic connection establishment', function(t) {
 
   pc1.createOffer(
     function(offer) {
+      t.pass('pc1.createOffer');
       pc1.setLocalDescription(offer,
         function() {
           t.pass('pc1.setLocalDescription');
@@ -133,6 +136,63 @@ test('basic connection establishment', function(t) {
       t.fail('pc1 failed to create offer ' + err.toString());
     }
   );
+});
+
+test('basic connection establishment with promise', function(t) {
+  var pc1 = new m.RTCPeerConnection(null);
+  var pc2 = new m.RTCPeerConnection(null);
+  var ended = false;
+
+  pc1.createDataChannel('somechannel');
+  pc1.oniceconnectionstatechange = function() {
+    if (pc1.iceConnectionState === 'connected' ||
+        pc1.iceConnectionState === 'completed') {
+      t.pass('P2P connection established');
+      if (!ended) {
+        ended = true;
+        t.end();
+      }
+    }
+  };
+
+  var addCandidate = function(pc, event) {
+    if (event.candidate) {
+      var cand = new RTCIceCandidate(event.candidate);
+      pc.addIceCandidate(cand)
+          .then(function () {
+          })
+          .catch(function (err) {
+            t.fail('addIceCandidate ' + err.toString());
+          });
+    }
+  };
+  pc1.onicecandidate = function(event) {
+    addCandidate(pc2, event);
+  };
+  pc2.onicecandidate = function(event) {
+    addCandidate(pc1, event);
+  };
+
+  pc1.createOffer().then(function (offer) {
+    t.pass('pc1.createOffer');
+    return pc1.setLocalDescription(offer);
+  }).then(function () {
+    t.pass('pc1.setLocalDescription');
+    return pc2.setRemoteDescription(pc1.localDescription);
+  }).then(function () {
+    t.pass('pc2.setRemoteDescription');
+    return pc2.createAnswer();
+  }).then(function (answer) {
+    t.pass('pc2.createAnswer');
+    return pc2.setLocalDescription(answer);
+  }).then(function () {
+    t.pass('pc2.setLocalDescription');
+    return pc1.setRemoteDescription(pc2.localDescription);
+  }).then(function () {
+    t.pass('pc1.setRemoteDescription');
+  }).catch(function (err) {
+    t.fail(err.toString());
+  });
 });
 
 test('call enumerateDevices', function (t) {
