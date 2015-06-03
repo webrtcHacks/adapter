@@ -160,12 +160,9 @@ test('basic connection establishment with promise', function(t) {
   var addCandidate = function(pc, event) {
     if (event.candidate) {
       var cand = new RTCIceCandidate(event.candidate);
-      pc.addIceCandidate(cand)
-          .then(function() {
-          })
-          .catch(function(err) {
-            t.fail('addIceCandidate ' + err.toString());
-          });
+      pc.addIceCandidate(cand).catch(function(err) {
+        t.fail('addIceCandidate ' + err.toString());
+      });
     }
   };
   pc1.onicecandidate = function(event) {
