@@ -16,7 +16,6 @@ mozRTCSessionDescription, webkitRTCPeerConnection, MediaStreamTrack */
 
 'use strict';
 
-var RTCPeerConnection = null;
 var getUserMedia = null;
 var attachMediaStream = null;
 var reattachMediaStream = null;
@@ -50,7 +49,7 @@ if (navigator.mozGetUserMedia) {
   webrtcMinimumVersion = 31;
 
   // The RTCPeerConnection object.
-  RTCPeerConnection = function(pcConfig, pcConstraints) {
+  window.RTCPeerConnection = function(pcConfig, pcConstraints) {
     if (webrtcDetectedVersion < 38) {
       // .urls is not supported in FF < 38.
       // create RTCIceServers with a single url.
@@ -179,7 +178,7 @@ if (navigator.mozGetUserMedia) {
   webrtcMinimumVersion = 38;
 
   // The RTCPeerConnection object.
-  RTCPeerConnection = function(pcConfig, pcConstraints) {
+  window.RTCPeerConnection = function(pcConfig, pcConstraints) {
     return new webkitRTCPeerConnection(pcConfig, pcConstraints);
   };
   // add promise support
