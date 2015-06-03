@@ -13,6 +13,9 @@
   "moduleType": [
     "globals"
   ],
+  "ignore": [
+    "test/*"
+  ],
   "keywords": [
     "WebRTC",
     "PeerConnection",
