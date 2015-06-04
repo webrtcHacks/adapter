@@ -1,7 +1,7 @@
 {
-  "name": "webrtc-adapter",
-  "version": "0.1.0",
-  "description": "Hide browser differences in WebRTC APIs",
+  "name": "webrtc-adapter-test",
+  "version": "0.1.1",
+  "description": "Hide browser differences in WebRTC APIs (test package name)",
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
