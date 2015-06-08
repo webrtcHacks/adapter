@@ -243,8 +243,7 @@ if (navigator.mozGetUserMedia) {
       }
       var cc = {};
       Object.keys(c).forEach(function(key) {
-        if (key === 'require' || key === 'advanced' || key === 'mediaSource' ||
-            key === mozMediaSource) {
+        if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
           return;
         }
         var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
