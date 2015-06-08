@@ -154,14 +154,8 @@ if (navigator.mozGetUserMedia) {
       });
     };
   }
-  // Attach a media stream to an element.
-  attachMediaStream = function(element, stream) {
-    console.log('Attaching media stream');
-    element.mozSrcObject = stream;
-  };
 
   reattachMediaStream = function(to, from) {
-    console.log('Reattaching media stream');
     to.mozSrcObject = from.mozSrcObject;
   };
 
@@ -283,19 +277,6 @@ if (navigator.mozGetUserMedia) {
   };
   navigator.getUserMedia = getUserMedia;
 
-  // Attach a media stream to an element.
-  attachMediaStream = function(element, stream) {
-    if (typeof element.srcObject !== 'undefined') {
-      element.srcObject = stream;
-    } else if (typeof element.mozSrcObject !== 'undefined') {
-      element.mozSrcObject = stream;
-    } else if (typeof element.src !== 'undefined') {
-      element.src = URL.createObjectURL(stream);
-    } else {
-      console.log('Error attaching stream to element.');
-    }
-  };
-
   reattachMediaStream = function(to, from) {
     to.src = from.src;
   };
@@ -326,15 +307,25 @@ if (navigator.mozGetUserMedia) {
   // the minimum version still supported by adapter.
   webrtcMinimumVersion = 12;
 
-  attachMediaStream = function(element, stream) {
-    element.srcObject = stream;
-  };
   reattachMediaStream = function(to, from) {
     to.srcObject = from.srcObject;
   };
 } else {
   console.log('Browser does not appear to be WebRTC-capable');
 }
+
+// Attach a media stream to an element.
+attachMediaStream = function(element, stream) {
+  if (typeof element.srcObject !== 'undefined') {
+    element.srcObject = stream;
+  } else if (typeof element.mozSrcObject !== 'undefined') {
+    element.mozSrcObject = stream;
+  } else if (typeof element.src !== 'undefined') {
+    element.src = URL.createObjectURL(stream);
+  } else {
+    console.log('Error attaching stream to element.');
+  }
+};
 
 // Returns the result of getUserMedia as a Promise.
 function requestUserMedia(constraints) {
