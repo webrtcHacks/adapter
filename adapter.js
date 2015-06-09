@@ -290,6 +290,7 @@ if (navigator.mozGetUserMedia) {
   }
 } else if (navigator.mediaDevices && navigator.userAgent.match(
     /Edge\/(\d+).(\d+)$/)) {
+  console.log('This appears to be Edge');
   webrtcDetectedBrowser = 'edge';
 
   webrtcDetectedVersion =
