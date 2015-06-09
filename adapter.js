@@ -153,6 +153,7 @@ if (navigator.mozGetUserMedia) {
         throw e;
       });
     };
+    navigator.mediaDevices.addEventListener = function () { };
   }
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
@@ -315,6 +316,7 @@ if (navigator.mozGetUserMedia) {
         });
       });
     }};
+    navigator.mediaDevices.addEventListener = function () { };
   }
 } else {
   console.log('Browser does not appear to be WebRTC-capable');
