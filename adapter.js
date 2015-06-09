@@ -141,6 +141,12 @@ if (navigator.mozGetUserMedia) {
       resolve(infos);
     });
   };
+  // in case someone wants to listen/unlisten for the devicechange event.
+  if (!navigator.mediaDevices.addEventListener) {
+    navigator.mediaDevices.addEventListener = function() { };
+    navigator.mediaDevices.removeEventListener = function() { };
+  }
+
   if (webrtcDetectedVersion < 41) {
     // Work around http://bugzil.la/1169665
     var orgEnumerateDevices =
@@ -153,7 +159,6 @@ if (navigator.mozGetUserMedia) {
         throw e;
       });
     };
-    navigator.mediaDevices.addEventListener = function () { };
   }
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
@@ -316,7 +321,9 @@ if (navigator.mozGetUserMedia) {
         });
       });
     }};
-    navigator.mediaDevices.addEventListener = function () { };
+    // in case someone wants to listen for the devicechange event.
+    navigator.mediaDevices.addEventListener = function() { };
+    navigator.mediaDevices.removeEventListener = function() { };
   }
 } else {
   console.log('Browser does not appear to be WebRTC-capable');
