@@ -129,7 +129,10 @@ if (navigator.mozGetUserMedia) {
 
   // Shim for mediaDevices on older versions.
   if (!navigator.mediaDevices) {
-    navigator.mediaDevices = {getUserMedia: requestUserMedia};
+    navigator.mediaDevices = {getUserMedia: requestUserMedia,
+      addEventListener: function() { },
+      removeEventListener: function() { }
+    };
   }
   navigator.mediaDevices.enumerateDevices =
       navigator.mediaDevices.enumerateDevices || function() {
@@ -141,11 +144,6 @@ if (navigator.mozGetUserMedia) {
       resolve(infos);
     });
   };
-  // in case someone wants to listen/unlisten for the devicechange event.
-  if (!navigator.mediaDevices.addEventListener) {
-    navigator.mediaDevices.addEventListener = function() { };
-    navigator.mediaDevices.removeEventListener = function() { };
-  }
 
   if (webrtcDetectedVersion < 41) {
     // Work around http://bugzil.la/1169665
