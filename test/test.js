@@ -216,3 +216,13 @@ test('call enumerateDevices', function(t) {
     t.end();
   });
 });
+
+test('navigator.mediaDevices eventlisteners', function(t) {
+  navigator.mediaDevices.addEventListener('devicechanged', function() {
+  });
+  t.pass('navigator.mediaDevices.addEventListener');
+  navigator.mediaDevices.removeEventListener('devicechanged', function() {
+  });
+  t.pass('navigator.mediaDevices.removeEventListener');
+  t.end();
+});
