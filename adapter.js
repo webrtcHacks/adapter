@@ -154,6 +154,11 @@ if (navigator.mozGetUserMedia) {
       });
     };
   }
+
+  reattachMediaStream = function(to, from) {
+    to.mozSrcObject = from.mozSrcObject;
+  };
+
 } else if (navigator.webkitGetUserMedia) {
   console.log('This appears to be Chrome');
 
@@ -272,6 +277,10 @@ if (navigator.mozGetUserMedia) {
   };
   navigator.getUserMedia = getUserMedia;
 
+  reattachMediaStream = function(to, from) {
+    to.src = from.src;
+  };
+
   if (!navigator.mediaDevices) {
     navigator.mediaDevices = {getUserMedia: requestUserMedia,
                               enumerateDevices: function() {
@@ -298,6 +307,10 @@ if (navigator.mozGetUserMedia) {
 
   // the minimum version still supported by adapter.
   webrtcMinimumVersion = 12;
+
+  reattachMediaStream = function(to, from) {
+    to.srcObject = from.srcObject;
+  };
 } else {
   console.log('Browser does not appear to be WebRTC-capable');
 }
@@ -312,19 +325,6 @@ attachMediaStream = function(element, stream) {
     element.src = URL.createObjectURL(stream);
   } else {
     console.log('Error attaching stream to element.');
-  }
-};
-
-// Attach a media stream from one element to another.
-reattachMediaStream = function(to, from) {
-  if (from.srcObject) {
-    to.srcObject = from.srcObject;
-  } else if (from.mozSrcObject) {
-    to.mozSrcObject = from.mozSrcObject;
-  } else if (from.src) {
-    to.src = from.src;
-  } else {
-    console.log('Error reattaching from one element to another.');
   }
 };
 
