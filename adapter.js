@@ -287,8 +287,6 @@ if (navigator.mozGetUserMedia) {
   attachMediaStream = function(element, stream) {
     if (typeof element.srcObject !== 'undefined') {
       element.srcObject = stream;
-    } else if (typeof element.mozSrcObject !== 'undefined') {
-      element.mozSrcObject = stream;
     } else if (typeof element.src !== 'undefined') {
       element.src = URL.createObjectURL(stream);
     } else {
