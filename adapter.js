@@ -287,8 +287,6 @@ if (navigator.mozGetUserMedia) {
   attachMediaStream = function(element, stream) {
     if (typeof element.srcObject !== 'undefined') {
       element.srcObject = stream;
-    } else if (typeof element.mozSrcObject !== 'undefined') {
-      element.mozSrcObject = stream;
     } else if (typeof element.src !== 'undefined') {
       element.src = URL.createObjectURL(stream);
     } else {
@@ -316,6 +314,23 @@ if (navigator.mozGetUserMedia) {
       });
     }};
   }
+} else if (navigator.mediaDevices && navigator.userAgent.match(
+    /Edge\/(\d+).(\d+)$/)) {
+  console.log('This appears to be Edge');
+  webrtcDetectedBrowser = 'edge';
+
+  webrtcDetectedVersion =
+    parseInt(navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)[2], 10);
+
+  // the minimum version still supported by adapter.
+  webrtcMinimumVersion = 12;
+
+  attachMediaStream = function(element, stream) {
+    element.srcObject = stream;
+  };
+  reattachMediaStream = function(to, from) {
+    to.srcObject = from.srcObject;
+  };
 } else {
   console.log('Browser does not appear to be WebRTC-capable');
 }
