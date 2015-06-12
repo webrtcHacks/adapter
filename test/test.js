@@ -217,12 +217,13 @@ test('call enumerateDevices', function(t) {
   });
 });
 
+// test that adding and removing an eventlistener on navigator.mediaDevices
+// is possible. The usecase for this is the devicechanged event.
+// This does not test whether devicechanged is actually called.
 test('navigator.mediaDevices eventlisteners', function(t) {
-  navigator.mediaDevices.addEventListener('devicechanged', function() {
-  });
-  t.pass('navigator.mediaDevices.addEventListener');
-  navigator.mediaDevices.removeEventListener('devicechanged', function() {
-  });
-  t.pass('navigator.mediaDevices.removeEventListener');
-  t.end();
+  t.plan(2);
+  t.ok(typeof(navigator.mediaDevices.addEventListener) === 'function',
+      'navigator.mediaDevices.addEventListener is a function');
+  t.ok(typeof(navigator.mediaDevices.removeEventListener) === 'function',
+      'navigator.mediaDevices.removeEventListener is a function');
 });
