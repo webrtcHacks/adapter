@@ -129,7 +129,10 @@ if (navigator.mozGetUserMedia) {
 
   // Shim for mediaDevices on older versions.
   if (!navigator.mediaDevices) {
-    navigator.mediaDevices = {getUserMedia: requestUserMedia};
+    navigator.mediaDevices = {getUserMedia: requestUserMedia,
+      addEventListener: function() { },
+      removeEventListener: function() { }
+    };
   }
   navigator.mediaDevices.enumerateDevices =
       navigator.mediaDevices.enumerateDevices || function() {
@@ -141,6 +144,7 @@ if (navigator.mozGetUserMedia) {
       resolve(infos);
     });
   };
+
   if (webrtcDetectedVersion < 41) {
     // Work around http://bugzil.la/1169665
     var orgEnumerateDevices =
@@ -313,6 +317,9 @@ if (navigator.mozGetUserMedia) {
         });
       });
     }};
+    // in case someone wants to listen for the devicechange event.
+    navigator.mediaDevices.addEventListener = function() { };
+    navigator.mediaDevices.removeEventListener = function() { };
   }
 } else if (navigator.mediaDevices && navigator.userAgent.match(
     /Edge\/(\d+).(\d+)$/)) {
