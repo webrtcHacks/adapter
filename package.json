@@ -9,7 +9,7 @@
     "url": "https://github.com/webrtc/adapter.git"
   },
   "scripts": {
-    "test": "testling -x start-$BROWSER"
+    "test": "test/run-tests"
   },
   "testling": {
     "files": "test/test.js"
