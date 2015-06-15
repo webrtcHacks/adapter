@@ -31,7 +31,6 @@ git clone https://github.com/webrtc/adapter.git
 ```
 
 #### Install npm dependencies
-Chrome stable is currently installed as the default browser for the tests.
 ```bash
 sudo npm install
 ```
@@ -43,9 +42,11 @@ npm test
 ```
 
 #### Change browser and channel/version for testing
-Export desired browser and channel/version(BVER) (Chrome and Firefox is currently supported, check [travis-multirunner](https://github.com/DamonOehlman/travis-multirunner/blob/master/) repo for updates around this).
-Current Firefox channels are stable, beta and nightly.
-Current Chrome channels for Linux are stable, beta and unstable.
+Chrome stable is currently installed as the default browser for the tests.
+
+Currently Chrome and Firefox is currently supported, check [travis-multirunner](https://github.com/DamonOehlman/travis-multirunner/blob/master/) repo for updates around this.
+Firefox channels currently supported are stable, beta and nightly.
+Chrome channels currently supported on Linux are stable, beta and unstable.
 
 Export env variables BROWSER and BVER to change browser and channel/version and the rerun the tests:
 ```bash
