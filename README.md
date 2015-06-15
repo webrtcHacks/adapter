@@ -4,19 +4,25 @@
 [adapter.js] is a shim to insulate apps from spec changes and prefix differences. In fact, the standards and protocols used for WebRTC implementations are highly stable, and there are only a few prefixed names. For full interop information, see [webrtc.org/web-apis/interop](http://www.webrtc.org/web-apis/interop).
 
 ## Install ##
+
 #### Bower
 ```bash
 bower install webrtc-adapter
 ```
-#### Inclusion on Browser
-```html
-<script src="bower_components/webrtc-adapter/adapter.js"></script>
-```
+
 #### NPM
 ```bash
 npm install webrtc-adapter-test
 ```
-#### Inclusion on Browser
+
+## Inclusion on Browser ##
+
+#### Bower
+```html
+<script src="bower_components/webrtc-adapter/adapter.js"></script>
+```
+
+#### NPM
 Copy to desired location in your src tree or use a minify/vulcanize tool (node_modules is usually not published with the code).
 See [webrtc/samples repo](https://github.com/webrtc/samples/blob/master/package.json) as an example on how you can do this.
 
@@ -45,10 +51,15 @@ npm test
 Chrome stable is currently installed as the default browser for the tests.
 
 Currently Chrome and Firefox is currently supported, check [travis-multirunner](https://github.com/DamonOehlman/travis-multirunner/blob/master/) repo for updates around this.
-Firefox channels currently supported are stable, beta and nightly.
-Chrome channels currently supported on Linux are stable, beta and unstable.
+Firefox channels supported are stable, beta and nightly.
+Chrome channels supported on Linux are stable, beta and unstable.
 
-Export env variables BROWSER and BVER to change browser and channel/version and the rerun the tests:
+To select a different browser and/or channel version, change environment variables BROWSER and BVER, then you can rerun the tests with the new browser.
 ```bash
 export BROWSER=firefox BVER=nightly
+```
+
+Alternatively you can also do it without changing environment variables.
+```bash
+BROWSER=firefox BVER=nightly npm test
 ```
