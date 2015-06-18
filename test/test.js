@@ -227,3 +227,63 @@ test('navigator.mediaDevices eventlisteners', function(t) {
   t.ok(typeof(navigator.mediaDevices.removeEventListener) === 'function',
       'navigator.mediaDevices.removeEventListener is a function');
 });
+
+// Test Chrome polyfill for getStats.
+test('getStats', function(t) {
+  var pc1 = new m.RTCPeerConnection(null);
+
+  // Test expected new behavior.
+  new Promise(function(resolve, reject) {
+    pc1.getStats(null, resolve, reject);
+  })
+  .then(function(report) {
+    t.equal(typeof(report), 'object', 'report is an object.');
+    for (var key in report) {
+      // This avoids problems with Firefox
+      if (typeof(report[key]) === 'function') {
+        continue;
+      }
+      t.equal(report[key].id, key, 'report key matches stats id.');
+    }
+    t.end();
+  })
+  .catch(function(err) {
+    t.fail('getStats() should never fail with error: ' + err.toString());
+    t.end();
+  });
+});
+
+// Test that polyfill for Chrome getStats falls back to builtin functionality
+// when the old getStats function signature is used; when the callback is passed
+// as the first argument.
+test('originalChromeGetStats', function(t) {
+  var pc1 = new m.RTCPeerConnection(null);
+
+  if (m.webrtcDetectedBrowser === 'chrome') {
+    new Promise(function(resolve, reject) {  // jshint ignore: line
+      pc1.getStats(resolve, null);
+    })
+    .then(function(response) {
+      var reports = response.result();
+      reports.forEach(function(report) {
+        t.equal(typeof(report), 'object');
+        t.equal(typeof(report.id), 'string');
+        t.equal(typeof(report.type), 'string');
+        t.equal(typeof(report.timestamp), 'object');
+        report.names().forEach(function(name) {
+          t.notEqual(report.stat(name), null,
+              'stat ' +
+              name + ' not equal to null');
+        });
+      });
+      t.end();
+    })
+    .catch(function(err) {
+      t.fail('getStats() should never fail with error: ' + err.toString());
+      t.end();
+    });
+  } else {
+    // All other browsers.
+    t.end();
+  }
+});
