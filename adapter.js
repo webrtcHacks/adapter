@@ -384,7 +384,7 @@ function requestUserMedia(constraints) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    RTCPeerConnection: RTCPeerConnection,
+    RTCPeerConnection: window.RTCPeerConnection,
     getUserMedia: getUserMedia,
     attachMediaStream: attachMediaStream,
     reattachMediaStream: reattachMediaStream,
@@ -398,7 +398,7 @@ if (typeof module !== 'undefined') {
   // Expose objects and functions when RequireJS is doing the loading.
   define([], function() {
     return {
-      RTCPeerConnection: RTCPeerConnection,
+      RTCPeerConnection: window.RTCPeerConnection,
       getUserMedia: getUserMedia,
       attachMediaStream: attachMediaStream,
       reattachMediaStream: reattachMediaStream,
