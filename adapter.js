@@ -385,7 +385,12 @@ function requestUserMedia(constraints) {
 }
 
 if (typeof module !== 'undefined') {
-  var RTCPeerConnection = (typeof window === 'undefined') ? undefined : window.RTCPeerConnection;
+  var RTCPeerConnection;
+  if (typeof window === 'undefined') {
+    RTCPeerConnection = undefined;
+  } else {
+    RTCPeerConnection = window.RTCPeerConnection;
+  }
   module.exports = {
     RTCPeerConnection: RTCPeerConnection,
     getUserMedia: getUserMedia,
