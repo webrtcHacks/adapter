@@ -1,7 +1,7 @@
 'use strict';
 
 /* For jshint: */
-/* globals module */
+/* globals module, require */
 
 module.exports = function(grunt) {
   grunt.initConfig({
@@ -21,11 +21,14 @@ module.exports = function(grunt) {
       }
     },
     testling: {
-      files: "test/test.js" 
-    },
+      files: 'test/test.js'
+    }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs');
-  grunt.registerTask('default', ['jshint', 'jscs']);
+  grunt.registerTask('verify-require', 'Verifies the script can be required in a node context', function () {
+      require('./adapter');
+  });
+  grunt.registerTask('default', ['jshint', 'jscs', 'verify-require']);
 };

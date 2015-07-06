@@ -38,6 +38,7 @@ function trace(text) {
 
 if (typeof window === 'undefined' || !window.navigator) {
   console.log('This does not appear to be a browser');
+  webrtcDetectedBrowser = 'not a browser';
 } else if (navigator.mozGetUserMedia) {
   console.log('This appears to be Firefox');
 
@@ -385,10 +386,8 @@ function requestUserMedia(constraints) {
 }
 
 if (typeof module !== 'undefined') {
-  var RTCPeerConnection;
-  if (typeof window === 'undefined') {
-    RTCPeerConnection = undefined;
-  } else {
+  var RTCPeerConnection = 'undefined';
+  if (typeof window !== 'undefined') {
     RTCPeerConnection = window.RTCPeerConnection;
   }
   module.exports = {
