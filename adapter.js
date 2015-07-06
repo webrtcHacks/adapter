@@ -36,7 +36,10 @@ function trace(text) {
   }
 }
 
-if (navigator.mozGetUserMedia) {
+if (typeof window === 'undefined' || !window.navigator) {
+  console.log('This does not appear to be a browser');
+  webrtcDetectedBrowser = 'not a browser';
+} else if (navigator.mozGetUserMedia) {
   console.log('This appears to be Firefox');
 
   webrtcDetectedBrowser = 'firefox';
@@ -383,8 +386,12 @@ function requestUserMedia(constraints) {
 }
 
 if (typeof module !== 'undefined') {
+  var RTCPeerConnection = 'undefined';
+  if (typeof window !== 'undefined') {
+    RTCPeerConnection = window.RTCPeerConnection;
+  }
   module.exports = {
-    RTCPeerConnection: window.RTCPeerConnection,
+    RTCPeerConnection: RTCPeerConnection,
     getUserMedia: getUserMedia,
     attachMediaStream: attachMediaStream,
     reattachMediaStream: reattachMediaStream,
