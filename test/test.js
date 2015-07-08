@@ -27,6 +27,29 @@ test('create RTCPeerConnection', function(t) {
       'RTCPeerConnection constructor');
 });
 
+test('attachMediaStream', function (t) {
+  var video = document.createElement('video');
+  var resized = false;
+  video.onresize = function() {
+    if (!resized) {
+      // in chrome, this is called twice?
+      t.pass('got stream with w=' + video.videoWidth + ',h=' + video.videoHeight);
+      t.end();
+      resized = true;
+    }
+  };
+  var constraints = {video: true};
+  if (m.webrtcDetectedBrowser === 'firefox') constraints.fake = true;
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    t.pass('got stream.');
+    m.attachMediaStream(video, stream);
+  })
+  .catch(function (err) {
+    t.fail(err.toString());
+  });
+});
+
 test('call getUserMedia with constraints', function(t) {
   var impossibleConstraints = {
     video: {
