@@ -386,7 +386,7 @@ function requestUserMedia(constraints) {
 }
 
 if (typeof module !== 'undefined') {
-  var RTCPeerConnection = 'undefined';
+  var RTCPeerConnection;
   if (typeof window !== 'undefined') {
     RTCPeerConnection = window.RTCPeerConnection;
   }
