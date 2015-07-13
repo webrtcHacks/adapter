@@ -23,6 +23,15 @@ var webrtcDetectedBrowser = null;
 var webrtcDetectedVersion = null;
 var webrtcMinimumVersion = null;
 
+function webrtcLogger() {
+  // suppress console.log output when being included as a module
+  if (typeof module !== 'undefined' ||
+      ((typeof require === 'function') && (typeof define === 'function'))) {
+    return undefined;
+  }
+  return console.log.apply(console, arguments);
+}
+
 function trace(text) {
   // This function is used for logging.
   if (text[text.length - 1] === '\n') {
@@ -30,17 +39,17 @@ function trace(text) {
   }
   if (window.performance) {
     var now = (window.performance.now() / 1000).toFixed(3);
-    console.log(now + ': ' + text);
+    webrtcLogger(now + ': ' + text);
   } else {
-    console.log(text);
+    webrtcLogger(text);
   }
 }
 
 if (typeof window === 'undefined' || !window.navigator) {
-  console.log('This does not appear to be a browser');
+  webrtcLogger('This does not appear to be a browser');
   webrtcDetectedBrowser = 'not a browser';
 } else if (navigator.mozGetUserMedia) {
-  console.log('This appears to be Firefox');
+  webrtcLogger('This appears to be Firefox');
 
   webrtcDetectedBrowser = 'firefox';
 
@@ -121,10 +130,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       return c;
     };
-    console.log('spec: ' + JSON.stringify(c));
     c.audio = constraintsToFF37(c.audio);
     c.video = constraintsToFF37(c.video);
-    console.log('ff37: ' + JSON.stringify(c));
     return navigator.mozGetUserMedia(c, onSuccess, onError);
   } : navigator.mozGetUserMedia.bind(navigator);
 
@@ -163,17 +170,15 @@ if (typeof window === 'undefined' || !window.navigator) {
   }
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
-    console.log('Attaching media stream');
     element.mozSrcObject = stream;
   };
 
   reattachMediaStream = function(to, from) {
-    console.log('Reattaching media stream');
     to.mozSrcObject = from.mozSrcObject;
   };
 
 } else if (navigator.webkitGetUserMedia) {
-  console.log('This appears to be Chrome');
+  webrtcLogger('This appears to be Chrome');
 
   webrtcDetectedBrowser = 'chrome';
 
@@ -315,10 +320,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       return cc;
     };
-    console.log('spec:   ' + JSON.stringify(c)); // whitespace for alignment
     c.audio = constraintsToChrome(c.audio);
     c.video = constraintsToChrome(c.video);
-    console.log('chrome: ' + JSON.stringify(c));
     return navigator.webkitGetUserMedia(c, onSuccess, onError);
   };
   navigator.getUserMedia = getUserMedia;
@@ -330,7 +333,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     } else if (typeof element.src !== 'undefined') {
       element.src = URL.createObjectURL(stream);
     } else {
-      console.log('Error attaching stream to element.');
+      webrtcLogger('Error attaching stream to element.');
     }
   };
 
@@ -359,7 +362,7 @@ if (typeof window === 'undefined' || !window.navigator) {
   }
 } else if (navigator.mediaDevices && navigator.userAgent.match(
     /Edge\/(\d+).(\d+)$/)) {
-  console.log('This appears to be Edge');
+  webrtcLogger('This appears to be Edge');
   webrtcDetectedBrowser = 'edge';
 
   webrtcDetectedVersion =
@@ -375,7 +378,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     to.srcObject = from.srcObject;
   };
 } else {
-  console.log('Browser does not appear to be WebRTC-capable');
+  webrtcLogger('Browser does not appear to be WebRTC-capable');
 }
 
 // Returns the result of getUserMedia as a Promise.
