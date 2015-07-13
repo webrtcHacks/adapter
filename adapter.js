@@ -368,6 +368,8 @@ if (typeof window === 'undefined' || !window.navigator) {
   // the minimum version still supported by adapter.
   webrtcMinimumVersion = 12;
 
+  getUserMedia = navigator.getUserMedia;
+
   attachMediaStream = function(element, stream) {
     element.srcObject = stream;
   };
