@@ -35,7 +35,7 @@ test('attachMediaStream', function(t) {
     t.pass('got stream with w=' + video.videoWidth +
            ',h=' + video.videoHeight);
     t.end();
-  }
+  };
 
   var constraints = {video: true, fake: true};
   navigator.mediaDevices.getUserMedia(constraints)
