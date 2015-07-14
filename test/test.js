@@ -29,24 +29,20 @@ test('create RTCPeerConnection', function(t) {
 
 test('attachMediaStream', function(t) {
   var video = document.createElement('video');
-  var resized = false;
-  video.onresize = function() {
-    if (!resized) {
-      // in chrome, this is called twice?
-      t.pass('got stream with w=' + video.videoWidth +
-             ',h=' + video.videoHeight);
-      t.end();
-      resized = true;
-    }
-  };
-  var constraints = {video: true};
-  if (m.webrtcDetectedBrowser === 'firefox') {
-    constraints.fake = true;
+  // if attachMediaStream works, we should get a video
+  // at some point. This will trigger onloadedmetadata
+  video.onloadedmetadata = function() {
+    t.pass('got stream with w=' + video.videoWidth +
+           ',h=' + video.videoHeight);
+    t.end();
   }
+
+  var constraints = {video: true, fake: true};
   navigator.mediaDevices.getUserMedia(constraints)
   .then(function(stream) {
     t.pass('got stream.');
     m.attachMediaStream(video, stream);
+    t.pass('attachMediaStream worked');
   })
   .catch(function(err) {
     t.fail(err.toString());
