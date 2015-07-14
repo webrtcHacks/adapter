@@ -186,15 +186,19 @@ if (typeof window === 'undefined' || !window.navigator) {
 
   // The RTCPeerConnection object.
   window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-    var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints);
-    var origGetStats = pc.getStats.bind(pc);
-    pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
-      // If selector is a function then we are in the old style stats so just
-      // pass back the original getStats format to avoid breaking old users.
-      if (typeof selector === 'function') {
-        return origGetStats(selector, successCallback);
-      }
+    return new webkitRTCPeerConnection(pcConfig, pcConstraints);
+  }
 
+  // fix getStats
+  ['getStats'].forEach(function(method) { // jshint ignore: line
+    var nativeMethod = webkitRTCPeerConnection.prototype[method];
+    webkitRTCPeerConnection.prototype[method] = function() {
+      var self = this;
+      var args = arguments;
+
+      if (arguments.length > 0 && typeof arguments[0] === 'function') {
+        return nativeMethod.apply(this, arguments);
+      }
       var fixChromeStats = function(response) {
         var standardReport = {};
         var reports = response.result();
@@ -212,14 +216,20 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         return standardReport;
       };
-      var successCallbackWrapper = function(response) {
-        successCallback(fixChromeStats(response));
-      };
-      return origGetStats(successCallbackWrapper, selector);
-    };
+      if (arguments.length >= 2) {
+        var successCallbackWrapper = function(response) {
+          args[1](fixChromeStats(response));
+        };
 
-    return pc;
-  };
+        return nativeMethod.apply(this, [successCallbackWrapper, arguments[0]]);
+      }
+
+      // promise-support
+      return new Promise(function(resolve, reject) {
+        nativeMethod.apply(self, [resolve, reject]);
+      });
+    };
+  });
 
   // add promise support
   ['createOffer', 'createAnswer'].forEach(function(method) {
