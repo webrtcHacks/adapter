@@ -26,12 +26,11 @@ var webrtcUtils = {
   log: function() {
     // suppress console.log output when being included as a module.
     if (!(typeof module !== 'undefined' ||
-        (typeof require === 'function') && (typeof define === 'function'))) { 
+        (typeof require === 'function') && (typeof define === 'function'))) {
       console.log.apply(console, arguments);
     }
   }
 };
-
 
 function trace(text) {
   // This function is used for logging.
