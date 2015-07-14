@@ -185,10 +185,12 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcMinimumVersion = 38;
 
   // The RTCPeerConnection object.
-  window.RTCPeerConnection = window.webkitRTCPeerConnection;
+  window.RTCPeerConnection = function(pcConfig, pcConstraints) {
+    return new webkitRTCPeerConnection(pcConfig, pcConstraints);
+  }
 
   // fix getStats
-  ['getStats'].forEach(function(method) {
+  ['getStats'].forEach(function(method) { // jshint ignore: line
     var nativeMethod = webkitRTCPeerConnection.prototype[method];
     webkitRTCPeerConnection.prototype[method] = function() {
       var self = this;
