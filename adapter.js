@@ -185,16 +185,17 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcMinimumVersion = 38;
 
   // The RTCPeerConnection object.
-  window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-    var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints);
-    var origGetStats = pc.getStats.bind(pc);
-    pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
-      // If selector is a function then we are in the old style stats so just
-      // pass back the original getStats format to avoid breaking old users.
-      if (typeof selector === 'function') {
-        return origGetStats(selector, successCallback);
-      }
+  window.RTCPeerConnection = window.webkitRTCPeerConnection;
 
+  // fix getStats
+  ['getStats'].forEach(function(method) {
+    var nativeMethod = webkitRTCPeerConnection.prototype[method];
+    webkitRTCPeerConnection.prototype[method] = function() {
+      var self = this;
+      var args = arguments;
+      if (typeof arguments[0] === 'function') {
+        return nativeMethod.apply(this, arguments);
+      }
       var fixChromeStats = function(response) {
         var standardReport = {};
         var reports = response.result();
@@ -213,13 +214,11 @@ if (typeof window === 'undefined' || !window.navigator) {
         return standardReport;
       };
       var successCallbackWrapper = function(response) {
-        successCallback(fixChromeStats(response));
+        args[1](fixChromeStats(response));
       };
-      return origGetStats(successCallbackWrapper, selector);
+      return nativeMethod.apply(this, [successCallbackWrapper, arguments[0]]);
     };
-
-    return pc;
-  };
+  });
 
   // add promise support
   ['createOffer', 'createAnswer'].forEach(function(method) {
