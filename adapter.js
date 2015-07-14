@@ -353,9 +353,18 @@ if (typeof window === 'undefined' || !window.navigator) {
         });
       });
     }};
-    // in case someone wants to listen for the devicechange event.
-    navigator.mediaDevices.addEventListener = function() { };
-    navigator.mediaDevices.removeEventListener = function() { };
+  }
+  // Dummy devicechange event methods.
+  // TODO(KaptenJansson) remove once implemented in Chrome stable.
+  if (typeof navigator.mediaDevices.addEventListener === 'undefined') {
+    navigator.mediaDevices.addEventListener = function() {
+      console.log('Dummy mediaDevices.addEventListener OK');
+    };
+  }
+  if (typeof navigator.mediaDevices.removeEventListener === 'undefined') {
+    navigator.mediaDevices.removeEventListener = function() {
+      console.log('Dummy mediaDevices.removeEventListener OK');
+    };
   }
 } else if (navigator.mediaDevices && navigator.userAgent.match(
     /Edge\/(\d+).(\d+)$/)) {
