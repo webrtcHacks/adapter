@@ -223,7 +223,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
 
       // promise-support
-      return new Promise(function (resolve, reject) {
+      return new Promise(function(resolve, reject) {
         nativeMethod.apply(self, [resolve, reject]);
       });
     };

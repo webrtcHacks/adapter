@@ -297,5 +297,5 @@ test('getStats promise', function(t) {
   t.ok(typeof p === 'object', 'getStats with no arguments returns a Promise');
 
   var q = pc1.getStats(null);
-  t.ok(typeof p === 'object', 'getStats with a selector returns a Promise');
+  t.ok(typeof q === 'object', 'getStats with a selector returns a Promise');
 });
