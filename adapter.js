@@ -193,7 +193,8 @@ if (typeof window === 'undefined' || !window.navigator) {
     webkitRTCPeerConnection.prototype[method] = function() {
       var self = this;
       var args = arguments;
-      if (typeof arguments[0] === 'function') {
+
+      if (arguments.length > 0 && typeof arguments[0] === 'function') {
         return nativeMethod.apply(this, arguments);
       }
       var fixChromeStats = function(response) {
@@ -213,10 +214,18 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         return standardReport;
       };
-      var successCallbackWrapper = function(response) {
-        args[1](fixChromeStats(response));
-      };
-      return nativeMethod.apply(this, [successCallbackWrapper, arguments[0]]);
+      if (arguments.length >= 2) {
+        var successCallbackWrapper = function(response) {
+          args[1](fixChromeStats(response));
+        };
+
+        return nativeMethod.apply(this, [successCallbackWrapper, arguments[0]]);
+      }
+
+      // promise-support
+      return new Promise(function (resolve, reject) {
+        nativeMethod.apply(self, [resolve, reject]);
+      });
     };
   });
 
