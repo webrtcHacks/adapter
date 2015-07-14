@@ -189,9 +189,12 @@ if (typeof window === 'undefined' || !window.navigator) {
     var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints);
     var origGetStats = pc.getStats.bind(pc);
     pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
+      var self = this;
+      var args = arguments;
+
       // If selector is a function then we are in the old style stats so just
       // pass back the original getStats format to avoid breaking old users.
-      if (typeof selector === 'function') {
+      if (arguments.length > 0 && typeof selector === 'function') {
         return origGetStats(selector, successCallback);
       }
 
@@ -212,10 +215,19 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         return standardReport;
       };
-      var successCallbackWrapper = function(response) {
-        successCallback(fixChromeStats(response));
-      };
-      return origGetStats(successCallbackWrapper, selector);
+
+      if (arguments.length >= 2) {
+        var successCallbackWrapper = function(response) {
+          args[1](fixChromeStats(response));
+        };
+
+        return origGetStats.apply(this, [successCallbackWrapper, arguments[0]]);
+      }
+
+      // promise-support
+      return new Promise(function(resolve, reject) {
+        origGetStats.apply(self, [resolve, reject]);
+      });
     };
 
     return pc;
