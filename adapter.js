@@ -96,19 +96,31 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       var require = [];
       Object.keys(c).forEach(function(key) {
+        if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
+          return;
+        }
         var r = c[key] = (typeof c[key] === 'object') ?
             c[key] : {ideal: c[key]};
-        if (r.exact !== undefined) {
-          r.min = r.max = r.exact;
-          delete r.exact;
-        }
-        if (r.min !== undefined || r.max !== undefined) {
+        if (r.min !== undefined ||
+            r.max !== undefined || r.exact !== undefined) {
           require.push(key);
+        }
+        if (r.exact !== undefined) {
+          if (typeof r.exact === 'number') {
+            r.min = r.max = r.exact;
+          } else {
+            c[key] = r.exact;
+          }
+          delete r.exact;
         }
         if (r.ideal !== undefined) {
           c.advanced = c.advanced || [];
           var oc = {};
-          oc[key] = {min: r.ideal, max: r.ideal};
+          if (typeof r.ideal === 'number') {
+            oc[key] = {min: r.ideal, max: r.ideal};
+          } else {
+            oc[key] = r.ideal;
+          }
           c.advanced.push(oc);
           delete r.ideal;
           if (!Object.keys(r).length) {
@@ -270,7 +282,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       var cc = {};
       Object.keys(c).forEach(function(key) {
-        if (key === 'require' || key === 'advanced') {
+        if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
           return;
         }
         var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
