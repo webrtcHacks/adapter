@@ -97,8 +97,7 @@ if (typeof window === 'undefined' || !window.navigator) {
   window.RTCIceCandidate = mozRTCIceCandidate;
 
   // getUserMedia constraints shim.
-  getUserMedia = (webrtcDetectedVersion < 38) ?
-      function(c, onSuccess, onError) {
+  getUserMedia = function(constraints, onSuccess, onError) {
     var constraintsToFF37 = function(c) {
       if (typeof c !== 'object' || c.require) {
         return c;
@@ -142,12 +141,18 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       return c;
     };
-    webrtcUtils.log('spec: ' + JSON.stringify(c));
-    c.audio = constraintsToFF37(c.audio);
-    c.video = constraintsToFF37(c.video);
-    webrtcUtils.log('ff37: ' + JSON.stringify(c));
-    return navigator.mozGetUserMedia(c, onSuccess, onError);
-  } : navigator.mozGetUserMedia.bind(navigator);
+    if (webrtcDetectedVersion < 38) {
+      webrtcUtils.log('spec: ' + JSON.stringify(constraints));
+      if (constraints.audio) {
+        constraints.audio = constraintsToFF37(constraints.audio);
+      }
+      if (constraints.video) {
+        constraints.video = constraintsToFF37(constraints.video);
+      }
+      webrtcUtils.log('ff37: ' + JSON.stringify(constraints));
+    }
+    return navigator.mozGetUserMedia(constraints, onSuccess, onError);
+  };
 
   navigator.getUserMedia = getUserMedia;
 
@@ -346,11 +351,15 @@ if (typeof window === 'undefined' || !window.navigator) {
     return cc;
   };
 
-  getUserMedia = function(c, onSuccess, onError) {
-    c.audio = constraintsToChrome(c.audio);
-    c.video = constraintsToChrome(c.video);
-    webrtcUtils.log('chrome: ' + JSON.stringify(c));
-    return navigator.webkitGetUserMedia(c, onSuccess, onError);
+  getUserMedia = function(constraints, onSuccess, onError) {
+    if (constraints.audio) {
+      constraints.audio = constraintsToChrome(constraints.audio);
+    }
+    if (constraints.video) {
+      constraints.video = constraintsToChrome(constraints.video);
+    }
+    webrtcUtils.log('chrome: ' + JSON.stringify(constraints));
+    return navigator.webkitGetUserMedia(constraints, onSuccess, onError);
   };
   navigator.getUserMedia = getUserMedia;
 
@@ -450,6 +459,13 @@ function requestUserMedia(constraints) {
   });
 }
 
+var webrtcTesting = {};
+Object.defineProperty(webrtcTesting, "version", {
+  set: function (version) {
+    webrtcDetectedVersion = version;
+  }
+});
+
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
   if (typeof window !== 'undefined') {
@@ -462,7 +478,8 @@ if (typeof module !== 'undefined') {
     reattachMediaStream: reattachMediaStream,
     webrtcDetectedBrowser: webrtcDetectedBrowser,
     webrtcDetectedVersion: webrtcDetectedVersion,
-    webrtcMinimumVersion: webrtcMinimumVersion
+    webrtcMinimumVersion: webrtcMinimumVersion,
+    webrtcTesting: webrtcTesting
     //requestUserMedia: not exposed on purpose.
     //trace: not exposed on purpose.
   };
@@ -476,7 +493,8 @@ if (typeof module !== 'undefined') {
       reattachMediaStream: reattachMediaStream,
       webrtcDetectedBrowser: webrtcDetectedBrowser,
       webrtcDetectedVersion: webrtcDetectedVersion,
-      webrtcMinimumVersion: webrtcMinimumVersion
+      webrtcMinimumVersion: webrtcMinimumVersion,
+      webrtcTesting: webrtcTesting
       //requestUserMedia: not exposed on purpose.
       //trace: not exposed on purpose.
     };
