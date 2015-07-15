@@ -240,7 +240,7 @@ test('call enumerateDevices', function(t) {
   });
 });
 
-// test that adding and removing an eventlistener on navigator.mediaDevices
+// Test that adding and removing an eventlistener on navigator.mediaDevices
 // is possible. The usecase for this is the devicechanged event.
 // This does not test whether devicechanged is actually called.
 test('navigator.mediaDevices eventlisteners', function(t) {
@@ -249,6 +249,19 @@ test('navigator.mediaDevices eventlisteners', function(t) {
       'navigator.mediaDevices.addEventListener is a function');
   t.ok(typeof(navigator.mediaDevices.removeEventListener) === 'function',
       'navigator.mediaDevices.removeEventListener is a function');
+});
+
+// Test that getUserMedia is shimmed properly.
+test('navigator.mediaDevices.getUserMedia', function(t) {
+  navigator.mediaDevices.getUserMedia({video: true, fake: true})
+  .then(function(stream) {
+    t.ok(stream.getVideoTracks().length > 0, 'Got stream with video tracks.');
+    t.end();
+  })
+  .catch(function(err) {
+    t.fail('getUserMedia failed with error: ' + err.toString());
+    t.end();
+  });
 });
 
 // Test Chrome polyfill for getStats.
