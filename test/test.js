@@ -24,8 +24,10 @@ test('Browser supported by adapter.js', function(t) {
 test('getUserMedia shim', function(t) {
   t.ok(typeof navigator.getUserMedia !== 'undefined',
        'navigator.getUserMedia is defined');
-  t.ok(navigator.mediaDevices && typeof navigator.mediaDevices !== 'undefined',
+  t.ok(navigator.mediaDevices &&
+       typeof navigator.mediaDevices.getUserMedia !== 'undefined',
        'navigator.mediaDevices.getUserMedia is defined');
+  t.end();
 });
 
 test('RTCPeerConnection shim', function(t) {
@@ -35,6 +37,7 @@ test('RTCPeerConnection shim', function(t) {
        'RTCSessionDescription is defined');
   t.ok(typeof window.RTCIceCandidate !== 'undefined',
        'RTCIceCandidate is defined');
+  t.end();
 });
 
 test('create RTCPeerConnection', function(t) {
