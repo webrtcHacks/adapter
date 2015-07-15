@@ -358,12 +358,12 @@ if (typeof window === 'undefined' || !window.navigator) {
   // TODO(KaptenJansson) remove once implemented in Chrome stable.
   if (typeof navigator.mediaDevices.addEventListener === 'undefined') {
     navigator.mediaDevices.addEventListener = function() {
-      console.log('Dummy mediaDevices.addEventListener OK');
+      console.log('Dummy mediaDevices.addEventListener called.');
     };
   }
   if (typeof navigator.mediaDevices.removeEventListener === 'undefined') {
     navigator.mediaDevices.removeEventListener = function() {
-      console.log('Dummy mediaDevices.removeEventListener OK');
+      console.log('Dummy mediaDevices.removeEventListener called.');
     };
   }
 } else if (navigator.mediaDevices && navigator.userAgent.match(
