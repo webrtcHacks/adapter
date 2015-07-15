@@ -30,7 +30,7 @@ test('create RTCPeerConnection', function(t) {
 test('attachMediaStream', function(t) {
   var video = document.createElement('video');
   // if attachMediaStream works, we should get a video
-  // at some point. This will trigger onloadedmetadata
+  // at some point. This will trigger onloadedmetadata.
   video.onloadedmetadata = function() {
     t.pass('got stream with w=' + video.videoWidth +
            ',h=' + video.videoHeight);
