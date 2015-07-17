@@ -5,7 +5,22 @@
 /* global Promise */
 var test = require('tape');
 
+// adapter.js is not supposed to spill console.log
+// when used as a module. This temporarily overloads
+// console.log so we can assert this.
+var logCount = 0;
+var saveConsole = console.log.bind(console);
+console.log = function() {
+  logCount++;
+  saveConsole.apply(saveConsole, arguments);
+};
 var m = require('../adapter.js');
+console.log = saveConsole;
+
+test('log suppression', function(t) {
+  t.ok(logCount === 0, 'adapter.js does not use console.log');
+  t.end();
+});
 
 test('Browser identified', function(t) {
   t.plan(3);
