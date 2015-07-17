@@ -1,6 +1,6 @@
 {
   "name": "webrtc-adapter-test",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Hide browser differences in WebRTC APIs (test package name)",
   "license": "BSD-3-Clause",
   "main": "adapter.js",
