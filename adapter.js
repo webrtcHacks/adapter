@@ -263,57 +263,58 @@ if (typeof window === 'undefined' || !window.navigator) {
   });
 
   // getUserMedia constraints shim.
-  getUserMedia = function(c, onSuccess, onError) {
-    var constraintsToChrome = function(c) {
-      if (typeof c !== 'object' || c.mandatory || c.optional) {
-        return c;
+  var constraintsToChrome = function(c) {
+    if (typeof c !== 'object' || c.mandatory || c.optional) {
+      return c;
+    }
+    var cc = {};
+    Object.keys(c).forEach(function(key) {
+      if (key === 'require' || key === 'advanced') {
+        return;
       }
-      var cc = {};
-      Object.keys(c).forEach(function(key) {
-        if (key === 'require' || key === 'advanced') {
-          return;
+      var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
+      if (r.exact !== undefined && typeof r.exact === 'number') {
+        r.min = r.max = r.exact;
+      }
+      var oldname = function(prefix, name) {
+        if (prefix) {
+          return prefix + name.charAt(0).toUpperCase() + name.slice(1);
         }
-        var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
-        if (r.exact !== undefined && typeof r.exact === 'number') {
-          r.min = r.max = r.exact;
-        }
-        var oldname = function(prefix, name) {
-          if (prefix) {
-            return prefix + name.charAt(0).toUpperCase() + name.slice(1);
-          }
-          return (name === 'deviceId') ? 'sourceId' : name;
-        };
-        if (r.ideal !== undefined) {
-          cc.optional = cc.optional || [];
-          var oc = {};
-          if (typeof r.ideal === 'number') {
-            oc[oldname('min', key)] = r.ideal;
-            cc.optional.push(oc);
-            oc = {};
-            oc[oldname('max', key)] = r.ideal;
-            cc.optional.push(oc);
-          } else {
-            oc[oldname('', key)] = r.ideal;
-            cc.optional.push(oc);
-          }
-        }
-        if (r.exact !== undefined && typeof r.exact !== 'number') {
-          cc.mandatory = cc.mandatory || {};
-          cc.mandatory[oldname('', key)] = r.exact;
+        return (name === 'deviceId') ? 'sourceId' : name;
+      };
+      if (r.ideal !== undefined) {
+        cc.optional = cc.optional || [];
+        var oc = {};
+        if (typeof r.ideal === 'number') {
+          oc[oldname('min', key)] = r.ideal;
+          cc.optional.push(oc);
+          oc = {};
+          oc[oldname('max', key)] = r.ideal;
+          cc.optional.push(oc);
         } else {
-          ['min', 'max'].forEach(function(mix) {
-            if (r[mix] !== undefined) {
-              cc.mandatory = cc.mandatory || {};
-              cc.mandatory[oldname(mix, key)] = r[mix];
-            }
-          });
+          oc[oldname('', key)] = r.ideal;
+          cc.optional.push(oc);
         }
-      });
-      if (c.advanced) {
-        cc.optional = (cc.optional || []).concat(c.advanced);
       }
-      return cc;
-    };
+      if (r.exact !== undefined && typeof r.exact !== 'number') {
+        cc.mandatory = cc.mandatory || {};
+        cc.mandatory[oldname('', key)] = r.exact;
+      } else {
+        ['min', 'max'].forEach(function(mix) {
+          if (r[mix] !== undefined) {
+            cc.mandatory = cc.mandatory || {};
+            cc.mandatory[oldname(mix, key)] = r[mix];
+          }
+        });
+      }
+    });
+    if (c.advanced) {
+      cc.optional = (cc.optional || []).concat(c.advanced);
+    }
+    return cc;
+  };
+
+  getUserMedia = function(c, onSuccess, onError) {
     console.log('spec:   ' + JSON.stringify(c)); // whitespace for alignment
     c.audio = constraintsToChrome(c.audio);
     c.video = constraintsToChrome(c.video);
@@ -321,21 +322,6 @@ if (typeof window === 'undefined' || !window.navigator) {
     return navigator.webkitGetUserMedia(c, onSuccess, onError);
   };
   navigator.getUserMedia = getUserMedia;
-
-  // Attach a media stream to an element.
-  attachMediaStream = function(element, stream) {
-    if (typeof element.srcObject !== 'undefined') {
-      element.srcObject = stream;
-    } else if (typeof element.src !== 'undefined') {
-      element.src = URL.createObjectURL(stream);
-    } else {
-      console.log('Error attaching stream to element.');
-    }
-  };
-
-  reattachMediaStream = function(to, from) {
-    to.src = from.src;
-  };
 
   if (!navigator.mediaDevices) {
     navigator.mediaDevices = {getUserMedia: requestUserMedia,
@@ -355,10 +341,22 @@ if (typeof window === 'undefined' || !window.navigator) {
   }
 
   // A shim for getUserMedia method on the mediaDevices object.
-  // TODO(KaptenJansson) remove once in implented in Chrome stable.
+  // TODO(KaptenJansson) remove once in implemented in Chrome stable.
   if (!navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia = function(constraints) {
       return requestUserMedia(constraints);
+    };
+  } else {
+    // even though Chrome 45 has navigator.mediaDevices and a getUserMedia
+    // function which returns a Promise, it does not accept spec-style constraints.
+    var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+        bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = function(c) {
+      console.log('spec:   ' + JSON.stringify(c)); // whitespace for alignment
+      c.audio = constraintsToChrome(c.audio);
+      c.video = constraintsToChrome(c.video);
+      console.log('chrome: ' + JSON.stringify(c));
+      return origGetUserMedia(c);
     };
   }
 
@@ -374,6 +372,22 @@ if (typeof window === 'undefined' || !window.navigator) {
       console.log('Dummy mediaDevices.removeEventListener called.');
     };
   }
+
+  // Attach a media stream to an element.
+  attachMediaStream = function(element, stream) {
+    if (typeof element.srcObject !== 'undefined') {
+      element.srcObject = stream;
+    } else if (typeof element.src !== 'undefined') {
+      element.src = URL.createObjectURL(stream);
+    } else {
+      console.log('Error attaching stream to element.');
+    }
+  };
+
+  reattachMediaStream = function(to, from) {
+    to.src = from.src;
+  };
+
 } else if (navigator.mediaDevices && navigator.userAgent.match(
     /Edge\/(\d+).(\d+)$/)) {
   console.log('This appears to be Edge');
