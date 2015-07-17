@@ -348,14 +348,15 @@ if (typeof window === 'undefined' || !window.navigator) {
   }
 
   // A shim for getUserMedia method on the mediaDevices object.
-  // TODO(KaptenJansson) remove once in implemented in Chrome stable.
+  // TODO(KaptenJansson) remove once implemented in Chrome stable.
   if (!navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia = function(constraints) {
       return requestUserMedia(constraints);
     };
   } else {
-    // even though Chrome 45 has navigator.mediaDevices and a getUserMedia
-    // function which returns a Promise, it does not accept spec-style constraints.
+    // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
+    // function which returns a Promise, it does not accept spec-style
+    // constraints.
     var origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
