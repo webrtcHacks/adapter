@@ -134,10 +134,10 @@ test('check getUserMedia legacy constraints converter', function(t) {
   function testBeforeAfterPairs(gum, pairs) {
     pairs.forEach(function(beforeAfter, i) {
       var constraints = mugGum(gum, function() {
-        navigator.getUserMedia(beforeAfter[0], function(){}, function(){});
+        navigator.getUserMedia(beforeAfter[0], function() {}, function() {});
       });
       t.deepEqual(constraints, beforeAfter[1],
-                  'Constraints ' + (i+1) + ' back-converted to ' + gum);
+                  'Constraints ' + (i + 1) + ' back-converted to ' + gum);
     });
   }
 

@@ -461,7 +461,7 @@ function requestUserMedia(constraints) {
 
 var webrtcTesting = {};
 Object.defineProperty(webrtcTesting, 'version', {
-  set: function (version) {
+  set: function(version) {
     webrtcDetectedVersion = version;
   }
 });
