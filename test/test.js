@@ -36,6 +36,25 @@ test('Browser supported by adapter.js', function(t) {
       'Browser version supported by adapter.js');
 });
 
+test('getUserMedia shim', function(t) {
+  t.ok(typeof navigator.getUserMedia !== 'undefined',
+       'navigator.getUserMedia is defined');
+  t.ok(navigator.mediaDevices &&
+       typeof navigator.mediaDevices.getUserMedia !== 'undefined',
+       'navigator.mediaDevices.getUserMedia is defined');
+  t.end();
+});
+
+test('RTCPeerConnection shim', function(t) {
+  t.ok(typeof window.RTCPeerConnection !== 'undefined',
+       'RTCPeerConnection is defined');
+  t.ok(typeof window.RTCSessionDescription !== 'undefined',
+       'RTCSessionDescription is defined');
+  t.ok(typeof window.RTCIceCandidate !== 'undefined',
+       'RTCIceCandidate is defined');
+  t.end();
+});
+
 test('create RTCPeerConnection', function(t) {
   t.plan(1);
   t.ok(typeof(new RTCPeerConnection()) === 'object',
@@ -179,8 +198,8 @@ test('basic connection establishment', function(t) {
 });
 
 test('basic connection establishment with promise', function(t) {
-  var pc1 = new m.RTCPeerConnection(null);
-  var pc2 = new m.RTCPeerConnection(null);
+  var pc1 = new RTCPeerConnection(null);
+  var pc2 = new RTCPeerConnection(null);
   var ended = false;
 
   pc1.createDataChannel('somechannel');
@@ -281,7 +300,7 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
 
 // Test Chrome polyfill for getStats.
 test('getStats', function(t) {
-  var pc1 = new m.RTCPeerConnection(null);
+  var pc1 = new RTCPeerConnection(null);
 
   // Test expected new behavior.
   new Promise(function(resolve, reject) {
@@ -308,7 +327,7 @@ test('getStats', function(t) {
 // when the old getStats function signature is used; when the callback is passed
 // as the first argument.
 test('originalChromeGetStats', function(t) {
-  var pc1 = new m.RTCPeerConnection(null);
+  var pc1 = new RTCPeerConnection(null);
 
   if (m.webrtcDetectedBrowser === 'chrome') {
     new Promise(function(resolve, reject) {  // jshint ignore: line
