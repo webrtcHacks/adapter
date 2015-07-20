@@ -86,7 +86,7 @@ test('create RTCPeerConnection', function(t) {
 
 test('attachMediaStream', function(t) {
   // onloadedmetadata had issues in Firefox < 38.
-  t.plan((m.webrtcDetectedBrowser == 'firefox' &&
+  t.plan((m.webrtcDetectedBrowser === 'firefox' &&
           m.webrtcDetectedVersion < 38) ? 2 : 3);
   var video = document.createElement('video');
   // if attachMediaStream works, we should get a video
@@ -148,7 +148,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
         [
          {
            video: {
-             mediaSource:"screen",
+             mediaSource:'screen',
              width: 1280,
              height: {min: 200, ideal: 720, max: 1080},
              facingMode: 'user',
@@ -157,7 +157,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
          },
          {
            video: {
-             mediaSource:"screen",
+             mediaSource:'screen',
              height: {min: 200, max:1080},
              frameRate: {max: 50, min: 50},
              advanced:[
@@ -204,7 +204,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
         [
          {
            video: {
-             mediaSource:"screen",
+             mediaSource:'screen',
              width: 1280,
              height: {min: 200, ideal: 720, max: 1080},
              facingMode: 'user',
@@ -213,7 +213,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
          },
          {
            video: {
-             mediaSource:"screen",
+             mediaSource:'screen',
              width: 1280,
              height: {min: 200, ideal: 720, max: 1080},
              facingMode: 'user',
@@ -290,7 +290,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
       [
        {
          video: {
-           mediaSource:"screen",
+           mediaSource:'screen',
            advanced:[
              {facingMode: 'user'}
            ],
