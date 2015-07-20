@@ -338,3 +338,14 @@ test('originalChromeGetStats', function(t) {
     t.end();
   }
 });
+
+test('getStats promise', function(t) {
+  t.plan(2);
+  var pc1 = new m.RTCPeerConnection(null);
+
+  var p = pc1.getStats();
+  t.ok(typeof p === 'object', 'getStats with no arguments returns a Promise');
+
+  var q = pc1.getStats(null);
+  t.ok(typeof q === 'object', 'getStats with a selector returns a Promise');
+});
