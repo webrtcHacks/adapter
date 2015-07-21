@@ -22,6 +22,34 @@ module.exports = function(grunt) {
     },
     testling: {
       files: 'test/test.js'
+    },
+    copy: {
+      build: {
+        cwd: '.',
+        files: [
+          {src: [
+            // Make sure to add files that should be included for the NPM
+            // package here.
+            'adapter.js',
+            'bower.json',
+            'package.json',
+            'CONTRIBUTING.md',
+            'LICENSE.md',
+            'README.md',
+            'README-w3c-tests.md',
+            'test/**'
+            ],
+            dest: 'out',
+            nonull: true,
+            expand: true
+          }
+        ]
+      }
+    },
+    clean: {
+      build: {
+        src: ['out/*']
+      }
     }
   });
 
@@ -30,5 +58,8 @@ module.exports = function(grunt) {
   grunt.registerTask('verify-require', 'Verifies the script can be required in a node context', function () {
       require('./adapter');
   });
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.registerTask('default', ['jshint', 'jscs', 'verify-require']);
+  grunt.registerTask('build', ['clean', 'copy']);
 };
