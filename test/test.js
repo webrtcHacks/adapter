@@ -94,7 +94,7 @@ test('call getUserMedia with constraints', function(t) {
   };
   if (m.webrtcDetectedBrowser === 'firefox') {
     if (m.webrtcDetectedVersion < 42) {
-      t.skip('getUserMedia(impossibleConstraints) must fail (firefox <42 can't turn off fake devices)');
+      t.skip('getUserMedia(impossibleConstraints) must fail (firefox <42 cannot turn off fake devices)');
       return;
     }
     impossibleConstraints.fake = false; // override
