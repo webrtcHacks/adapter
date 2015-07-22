@@ -23,7 +23,7 @@ test('log suppression', function(t) {
   t.end();
 });
 
-// Helpers to test adapter's legacy constraints-manipulation
+// Helpers to test adapter's legacy constraints-manipulation.
 
 function pretendVersion(m, version, func) {
   var realVersion = m.webrtcDetectedVersion;
@@ -32,7 +32,7 @@ function pretendVersion(m, version, func) {
   m.webrtcTesting.version = realVersion;
 }
 
-function mugGum(gum, func) {
+function interceptGumForConstraints(gum, func) {
   var origGum = navigator[gum].bind(navigator);
   var netConstraints;
   navigator[gum] = function(constraints) {
@@ -133,7 +133,7 @@ test('call getUserMedia with constraints', function(t) {
 test('check getUserMedia legacy constraints converter', function(t) {
   function testBeforeAfterPairs(gum, pairs) {
     pairs.forEach(function(beforeAfter, i) {
-      var constraints = mugGum(gum, function() {
+      var constraints = interceptGumForConstraints(gum, function() {
         navigator.getUserMedia(beforeAfter[0], function() {}, function() {});
       });
       t.deepEqual(constraints, beforeAfter[1],
@@ -144,7 +144,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
   if (m.webrtcDetectedBrowser === 'firefox') {
     pretendVersion(m, 37, function() {
       testBeforeAfterPairs('mozGetUserMedia', [
-        // test that spec constraints get back-converted on FF37
+        // Test that spec constraints get back-converted on FF37.
         [
          {
            video: {
@@ -169,7 +169,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
            }
          }
         ],
-        // test that legacy constraints pass through unharmed on FF37
+        // Test that legacy constraints pass through unharmed on FF37.
         [
          {
            video: {
@@ -200,7 +200,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
     });
     pretendVersion(m, 38, function() {
       testBeforeAfterPairs('mozGetUserMedia', [
-        // test that spec constraints pass through unharmed on FF38+
+        // Test that spec constraints pass through unharmed on FF38+.
         [
          {
            video: {
@@ -225,7 +225,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
     });
   } else if (m.webrtcDetectedBrowser === 'chrome') {
     testBeforeAfterPairs('webkitGetUserMedia', [
-      // test that spec constraints get back-converted on Chrome
+      // Test that spec constraints get back-converted on Chrome.
       [
        {
          video: {
@@ -251,7 +251,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
          }
        }
       ],
-      // test that legacy constraints pass through unharmed on Chrome
+      // Test that legacy constraints pass through unharmed on Chrome.
       [
        {
          video: {
@@ -286,7 +286,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
          }
        }
       ],
-      // test code protecting Chrome from choking on common unknown constraints
+      // Test code protecting Chrome from choking on common unknown constraints.
       [
        {
          video: {
