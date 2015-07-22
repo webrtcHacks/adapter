@@ -94,7 +94,8 @@ test('call getUserMedia with constraints', function(t) {
   };
   if (m.webrtcDetectedBrowser === 'firefox') {
     if (m.webrtcDetectedVersion < 42) {
-      t.skip('getUserMedia(impossibleConstraints) must fail (firefox <42 cannot turn off fake devices)');
+      t.skip('getUserMedia(impossibleConstraints) must fail ' +
+             '(firefox <42 cannot turn off fake devices)');
       return;
     }
     impossibleConstraints.fake = false; // override
@@ -106,7 +107,8 @@ test('call getUserMedia with constraints', function(t) {
     t.fail('getUserMedia(impossibleConstraints) must fail');
   })
   .catch(function(err) {
-    t.ok(err.name.indexOf('Error') >= 0, 'getUserMedia(impossibleConstraints) must fail');
+    t.ok(err.name.indexOf('Error') >= 0,
+         'getUserMedia(impossibleConstraints) must fail');
   });
 });
 
