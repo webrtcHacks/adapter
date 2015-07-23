@@ -14,6 +14,7 @@ console.log = function() {
   logCount++;
   saveConsole.apply(saveConsole, arguments);
 };
+
 var m = require('../adapter.js');
 console.log = saveConsole;
 
@@ -21,6 +22,28 @@ test('log suppression', function(t) {
   t.ok(logCount === 0, 'adapter.js does not use console.log');
   t.end();
 });
+
+// Helpers to test adapter's legacy constraints-manipulation.
+
+function pretendVersion(m, version, func) {
+  var realVersion = m.webrtcDetectedVersion;
+  m.webrtcTesting.version = version;
+  func();
+  m.webrtcTesting.version = realVersion;
+}
+
+function interceptGumForConstraints(gum, func) {
+  var origGum = navigator[gum].bind(navigator);
+  var netConstraints;
+  navigator[gum] = function(constraints) {
+    netConstraints = constraints;
+  };
+  func();
+  navigator[gum] = origGum;
+  return netConstraints;
+}
+
+// Start of tests.
 
 test('Browser identified', function(t) {
   t.plan(3);
@@ -62,13 +85,15 @@ test('create RTCPeerConnection', function(t) {
 });
 
 test('attachMediaStream', function(t) {
+  // onloadedmetadata had issues in Firefox < 38.
+  t.plan((m.webrtcDetectedBrowser === 'firefox' &&
+          m.webrtcDetectedVersion < 38) ? 2 : 3);
   var video = document.createElement('video');
   // if attachMediaStream works, we should get a video
   // at some point. This will trigger onloadedmetadata.
   video.onloadedmetadata = function() {
     t.pass('got stream with w=' + video.videoWidth +
            ',h=' + video.videoHeight);
-    t.end();
   };
 
   var constraints = {video: true, fake: true};
@@ -76,7 +101,7 @@ test('attachMediaStream', function(t) {
   .then(function(stream) {
     t.pass('got stream.');
     m.attachMediaStream(video, stream);
-    t.pass('attachMediaStream worked');
+    t.pass('attachMediaStream returned');
   })
   .catch(function(err) {
     t.fail(err.toString());
@@ -110,6 +135,186 @@ test('call getUserMedia with constraints', function(t) {
     t.ok(err.name.indexOf('Error') >= 0,
          'getUserMedia(impossibleConstraints) must fail');
   });
+});
+
+test('check getUserMedia legacy constraints converter', function(t) {
+  function testBeforeAfterPairs(gum, pairs) {
+    pairs.forEach(function(beforeAfter, i) {
+      var constraints = interceptGumForConstraints(gum, function() {
+        navigator.getUserMedia(beforeAfter[0], function() {}, function() {});
+      });
+      t.deepEqual(constraints, beforeAfter[1],
+                  'Constraints ' + (i + 1) + ' back-converted to ' + gum);
+    });
+  }
+
+  if (m.webrtcDetectedBrowser === 'firefox') {
+    pretendVersion(m, 37, function() {
+      testBeforeAfterPairs('mozGetUserMedia', [
+        // Test that spec constraints get back-converted on FF37.
+        [
+         {
+           video: {
+             mediaSource:'screen',
+             width: 1280,
+             height: {min: 200, ideal: 720, max: 1080},
+             facingMode: 'user',
+             frameRate: {exact: 50}
+           }
+         },
+         {
+           video: {
+             mediaSource:'screen',
+             height: {min: 200, max:1080},
+             frameRate: {max: 50, min: 50},
+             advanced:[
+               {width: {min: 1280, max: 1280}},
+               {height: {min: 720, max: 720}},
+               {facingMode: 'user'}
+             ],
+             require:['height', 'frameRate']
+           }
+         }
+        ],
+        // Test that legacy constraints pass through unharmed on FF37.
+        [
+         {
+           video: {
+             height: {min: 200, max:1080},
+             frameRate: {max: 50, min: 50},
+             advanced:[
+               {width: {min: 1280, max: 1280}},
+               {height: {min: 720, max: 720}},
+               {facingMode: 'user'}
+             ],
+             require:['height', 'frameRate']
+           }
+         },
+         {
+           video: {
+             height: {min: 200, max:1080},
+             frameRate: {max: 50, min: 50},
+             advanced:[
+               {width: {min: 1280, max: 1280}},
+               {height: {min: 720, max: 720}},
+               {facingMode: 'user'}
+             ],
+             require:['height', 'frameRate']
+           }
+         }
+        ],
+      ]);
+    });
+    pretendVersion(m, 38, function() {
+      testBeforeAfterPairs('mozGetUserMedia', [
+        // Test that spec constraints pass through unharmed on FF38+.
+        [
+         {
+           video: {
+             mediaSource:'screen',
+             width: 1280,
+             height: {min: 200, ideal: 720, max: 1080},
+             facingMode: 'user',
+             frameRate: {exact: 50}
+           }
+         },
+         {
+           video: {
+             mediaSource:'screen',
+             width: 1280,
+             height: {min: 200, ideal: 720, max: 1080},
+             facingMode: 'user',
+             frameRate: {exact: 50}
+           }
+         },
+        ],
+      ]);
+    });
+  } else if (m.webrtcDetectedBrowser === 'chrome') {
+    testBeforeAfterPairs('webkitGetUserMedia', [
+      // Test that spec constraints get back-converted on Chrome.
+      [
+       {
+         video: {
+           width: 1280,
+           height: {min: 200, ideal: 720, max: 1080},
+           frameRate: {exact: 50}
+         }
+       },
+       {
+         video: {
+           mandatory: {
+             maxFrameRate: 50,
+             maxHeight: 1080,
+             minHeight: 200,
+             minFrameRate: 50
+           },
+           optional: [
+             {minWidth: 1280},
+             {maxWidth: 1280},
+             {minHeight: 720},
+             {maxHeight: 720},
+           ]
+         }
+       }
+      ],
+      // Test that legacy constraints pass through unharmed on Chrome.
+      [
+       {
+         video: {
+           mandatory: {
+             maxFrameRate: 50,
+             maxHeight: 1080,
+             minHeight: 200,
+             minFrameRate: 50
+           },
+           optional: [
+             {minWidth: 1280},
+             {maxWidth: 1280},
+             {minHeight: 720},
+             {maxHeight: 720},
+           ]
+         }
+       },
+       {
+         video: {
+           mandatory: {
+             maxFrameRate: 50,
+             maxHeight: 1080,
+             minHeight: 200,
+             minFrameRate: 50
+           },
+           optional: [
+             {minWidth: 1280},
+             {maxWidth: 1280},
+             {minHeight: 720},
+             {maxHeight: 720},
+           ]
+         }
+       }
+      ],
+      // Test code protecting Chrome from choking on common unknown constraints.
+      [
+       {
+         video: {
+           mediaSource:'screen',
+           advanced:[
+             {facingMode: 'user'}
+           ],
+           require:['height', 'frameRate']
+         }
+       },
+       {
+         video: {
+           optional: [
+             {facingMode: 'user'}
+           ]
+         }
+       }
+      ]
+    ]);
+  }
+  t.end();
 });
 
 test('basic connection establishment', function(t) {
