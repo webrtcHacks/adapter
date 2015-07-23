@@ -24,6 +24,6 @@
     "grunt-jscs": ">=0.8.1",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
-    "travis-multirunner": "^2.5.0"
+    "travis-multirunner": "^2.6.0"
   }
 }
