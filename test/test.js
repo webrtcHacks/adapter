@@ -84,6 +84,7 @@ test('attachMediaStream', function(t) {
 });
 
 test('call getUserMedia with constraints', function(t) {
+  t.plan(1);
   var impossibleConstraints = {
     video: {
       width: 1280,
@@ -91,17 +92,23 @@ test('call getUserMedia with constraints', function(t) {
       frameRate: {exact: 0} // to fail
     },
   };
+  if (m.webrtcDetectedBrowser === 'firefox') {
+    if (m.webrtcDetectedVersion < 42) {
+      t.skip('getUserMedia(impossibleConstraints) must fail ' +
+             '(firefox <42 cannot turn off fake devices)');
+      return;
+    }
+    impossibleConstraints.fake = false; // override
+  }
   new Promise(function(resolve, reject) {
     navigator.getUserMedia(impossibleConstraints, resolve, reject);
   })
   .then(function() {
     t.fail('getUserMedia(impossibleConstraints) must fail');
-    t.end();
   })
   .catch(function(err) {
-    t.pass('getUserMedia(impossibleConstraints) must fail');
-    t.ok(err.name.indexOf('Error') >= 0, 'must fail with named Error');
-    t.end();
+    t.ok(err.name.indexOf('Error') >= 0,
+         'getUserMedia(impossibleConstraints) must fail');
   });
 });
 
