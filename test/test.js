@@ -587,7 +587,8 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
     t.pass('iceTransportPolicy is not implemented by Firefox yet.');
     t.end();
   }
-  var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay', iceServers: []});
+  var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
+      iceServers: []});
 
   // Since we try to gather only relay candidates without specifying
   // a TURN server, we should not get any candidates.
@@ -601,7 +602,7 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
         t.fail('got unexpected candidates. ' + JSON.stringify(candidates));
       }
     } else {
-      candidates.push(event.candidate); 
+      candidates.push(event.candidate);
     }
   };
 
