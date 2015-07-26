@@ -580,3 +580,34 @@ test('getStats promise', function(t) {
   var q = pc1.getStats(null);
   t.ok(typeof q === 'object', 'getStats with a selector returns a Promise');
 });
+
+test('iceTransportPolicy is translated to iceTransports', function(t) {
+  if (m.webrtcDetectedBrowser === 'firefox') {
+    // not implemented yet.
+    t.pass('iceTransportPolicy is not implemented by Firefox yet.');
+    t.end();
+  }
+  var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay', iceServers: []});
+
+  // Since we try to gather only relay candidates without specifying
+  // a TURN server, we should not get any candidates.
+  var candidates = [];
+  pc1.createDataChannel('somechannel');
+  pc1.onicecandidate = function(event) {
+    if (!event.candidate) {
+      if (candidates.length === 0) {
+        t.pass('iceTransportPolicy was translated to iceTransport');
+      } else {
+        t.fail('got unexpected candidates. ' + JSON.stringify(candidates));
+      }
+    } else {
+      candidates.push(event.candidate); 
+    }
+  };
+
+  pc1.createOffer().then(function(offer) {
+    return pc1.setLocalDescription(offer);
+  }).catch(function(err) {
+    t.fail(err.toString());
+  });
+});
