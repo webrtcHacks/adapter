@@ -205,7 +205,8 @@ if (typeof window === 'undefined' || !window.navigator) {
     to.srcObject = from.srcObject;
   };
 
-} else if (navigator.webkitGetUserMedia) {
+} else if (navigator.webkitGetUserMedia &&
+    navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)) {
   webrtcUtils.log('This appears to be Chrome');
 
   webrtcDetectedBrowser = 'chrome';
@@ -476,6 +477,25 @@ if (typeof window === 'undefined' || !window.navigator) {
   };
   reattachMediaStream = function(to, from) {
     to.srcObject = from.srcObject;
+  };
+} else if (window.cordova &&
+    window.cordova.plugins && window.cordova.plugins.iosrtc) {
+  webrtcUtils.log('This appears to be Safari');
+
+  webrtcDetectedBrowser = 'safari';
+  // Detected iOS version.
+  webrtcDetectedVersion = parseInt(navigator.appVersion.match(/OS (\d+)_/)[1], 10);
+  // Minimum supported iOS version.
+  webrtcMinimumVersion = 7;
+  // NOTE: assume user has waited until deviceready before loading adapter.js, to avoid side effects.
+  // NOTE: assume window.cordova.plugins.iosrtc.registerGlobals() has been called.
+  getUserMedia = navigator.getUserMedia;
+
+  attachMediaStream = function(element, stream) {
+    element.src = URL.createObjectURL(stream);
+  };
+  reattachMediaStream = function(to, from) {
+    to.src = from.src;
   };
 } else {
   webrtcUtils.log('Browser does not appear to be WebRTC-capable');
