@@ -210,6 +210,12 @@ if (typeof window === 'undefined' || !window.navigator) {
 
   // The RTCPeerConnection object.
   window.RTCPeerConnection = function(pcConfig, pcConstraints) {
+    // Translate iceTransportPolicy to iceTransports,
+    // see https://code.google.com/p/webrtc/issues/detail?id=4869
+    if (pcConfig && pcConfig.iceTransportPolicy) {
+      pcConfig.iceTransports = pcConfig.iceTransportPolicy;
+    }
+
     var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints);
     var origGetStats = pc.getStats.bind(pc);
     pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
