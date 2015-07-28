@@ -155,7 +155,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
         [
          {
            video: {
-             mediaSource:'screen',
+             mediaSource: 'screen',
              width: 1280,
              height: {min: 200, ideal: 720, max: 1080},
              facingMode: 'user',
@@ -164,15 +164,15 @@ test('check getUserMedia legacy constraints converter', function(t) {
          },
          {
            video: {
-             mediaSource:'screen',
-             height: {min: 200, max:1080},
+             mediaSource: 'screen',
+             height: {min: 200, max: 1080},
              frameRate: {max: 50, min: 50},
-             advanced:[
+             advanced: [
                {width: {min: 1280, max: 1280}},
                {height: {min: 720, max: 720}},
                {facingMode: 'user'}
              ],
-             require:['height', 'frameRate']
+             require: ['height', 'frameRate']
            }
          }
         ],
@@ -180,26 +180,26 @@ test('check getUserMedia legacy constraints converter', function(t) {
         [
          {
            video: {
-             height: {min: 200, max:1080},
+             height: {min: 200, max: 1080},
              frameRate: {max: 50, min: 50},
-             advanced:[
+             advanced: [
                {width: {min: 1280, max: 1280}},
                {height: {min: 720, max: 720}},
                {facingMode: 'user'}
              ],
-             require:['height', 'frameRate']
+             require: ['height', 'frameRate']
            }
          },
          {
            video: {
-             height: {min: 200, max:1080},
+             height: {min: 200, max: 1080},
              frameRate: {max: 50, min: 50},
-             advanced:[
+             advanced: [
                {width: {min: 1280, max: 1280}},
                {height: {min: 720, max: 720}},
                {facingMode: 'user'}
              ],
-             require:['height', 'frameRate']
+             require: ['height', 'frameRate']
            }
          }
         ],
@@ -211,7 +211,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
         [
          {
            video: {
-             mediaSource:'screen',
+             mediaSource: 'screen',
              width: 1280,
              height: {min: 200, ideal: 720, max: 1080},
              facingMode: 'user',
@@ -220,7 +220,7 @@ test('check getUserMedia legacy constraints converter', function(t) {
          },
          {
            video: {
-             mediaSource:'screen',
+             mediaSource: 'screen',
              width: 1280,
              height: {min: 200, ideal: 720, max: 1080},
              facingMode: 'user',
@@ -297,11 +297,11 @@ test('check getUserMedia legacy constraints converter', function(t) {
       [
        {
          video: {
-           mediaSource:'screen',
-           advanced:[
+           mediaSource: 'screen',
+           advanced: [
              {facingMode: 'user'}
            ],
-           require:['height', 'frameRate']
+           require: ['height', 'frameRate']
          }
        },
        {
