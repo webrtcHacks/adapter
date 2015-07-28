@@ -87,7 +87,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         pcConfig.iceServers = newIceServers;
       }
     }
-    return new mozRTCPeerConnection(pcConfig, pcConstraints);
+    return new mozRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
   };
 
   // The RTCSessionDescription object.
@@ -167,8 +167,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       navigator.mediaDevices.enumerateDevices || function() {
     return new Promise(function(resolve) {
       var infos = [
-        {kind: 'audioinput', deviceId: 'default', label:'', groupId:''},
-        {kind: 'videoinput', deviceId: 'default', label:'', groupId:''}
+        {kind: 'audioinput', deviceId: 'default', label: '', groupId: ''},
+        {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''}
       ];
       resolve(infos);
     });
@@ -216,7 +216,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       pcConfig.iceTransports = pcConfig.iceTransportPolicy;
     }
 
-    var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints);
+    var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
     var origGetStats = pc.getStats.bind(pc);
     pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
       var self = this;
