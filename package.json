@@ -8,6 +8,9 @@
     "type": "git",
     "url": "https://github.com/webrtc/adapter.git"
   },
+  "bin": {
+    "run-tests": "./test/run-test"
+  },
   "scripts": {
     "test": "test/run-tests"
   },
