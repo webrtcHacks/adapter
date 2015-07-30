@@ -430,18 +430,22 @@ if (typeof window === 'undefined' || !window.navigator) {
   }
 
   Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
+    get: function() {
+      return this._srcObject;
+    },
     set: function(stream) {
+      // TODO: use revokeObjectURL is src is set and stream is null?
+      this._srcObject = stream;
       this.src = URL.createObjectURL(stream);
     }
-    // TODO: get: function() { ... }
   });
+
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
     element.srcObject = stream;
   };
-
   reattachMediaStream = function(to, from) {
-    to.src = from.src; // FIXME
+    to.srcObject = from.srcObject;
   };
 
 } else if (navigator.mediaDevices && navigator.userAgent.match(
