@@ -108,6 +108,39 @@ test('attachMediaStream', function(t) {
   });
 });
 
+test('reattachMediaStream', function(t) {
+  // onloadedmetadata had issues in Firefox < 38.
+  t.plan((m.webrtcDetectedBrowser === 'firefox' &&
+          m.webrtcDetectedVersion < 38) ? 2 : 4);
+  var video2 = document.createElement('video');
+  video2.onloadedmetadata = function() {
+    t.pass('got stream on second video with w=' + video.videoWidth +
+           ',h=' + video.videoHeight);
+  };
+
+  var video = document.createElement('video');
+  // if attachMediaStream works, we should get a video
+  // at some point. This will trigger onloadedmetadata
+  // This reattaches to the second video which will trigger
+  // onloadedmetadata there.
+  video.onloadedmetadata = function() {
+    t.pass('got stream on first video with w=' + video.videoWidth +
+           ',h=' + video.videoHeight);
+    m.reattachMediaStream(video2, video);
+  };
+
+  var constraints = {video: true, fake: true};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    t.pass('got stream.');
+    m.attachMediaStream(video, stream);
+    t.pass('attachMediaStream returned');
+  })
+  .catch(function(err) {
+    t.fail(err.toString());
+  });
+});
+
 test('call getUserMedia with constraints', function(t) {
   t.plan(1);
   var impossibleConstraints = {
