@@ -130,7 +130,7 @@ test('reattachMediaStream', function(t) {
   video2.onloadedmetadata = function() {
     t.pass('got stream on second video with w=' + video.videoWidth +
            ',h=' + video.videoHeight);
-  }
+  };
 
   var constraints = {video: true, fake: true};
   navigator.mediaDevices.getUserMedia(constraints)
@@ -174,7 +174,8 @@ test('srcObject set from another object', function(t) {
     t.pass('got stream.');
     video.srcObject = stream;
     video2.srcObject = video.srcObject;
-    t.ok(video.srcObject.id === video2.srcObject.id, 'stream ids from srcObjects match');
+    t.ok(video.srcObject.id === video2.srcObject.id,
+        'stream ids from srcObjects match');
     t.end();
   })
   .catch(function(err) {
@@ -225,7 +226,7 @@ test('reattaching mediaStream directly', function(t) {
   video2.onloadedmetadata = function() {
     t.pass('got stream on second video with w=' + video.videoWidth +
            ',h=' + video.videoHeight);
-  }
+  };
 
   var constraints = {video: true, fake: true};
   navigator.mediaDevices.getUserMedia(constraints)
