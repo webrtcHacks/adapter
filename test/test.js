@@ -118,8 +118,8 @@ test('reattachMediaStream', function(t) {
     t.pass('got stream.');
     var video = document.createElement('video');
 
-    // if attachMediaStream works, we should get a video
-    // at some point. This will trigger onloadedmetadata
+    // If attachMediaStream works, we should get a video
+    // at some point. This will trigger onloadedmetadata.
     // This reattaches to the second video which will trigger
     // onloadedmetadata there.
     video.onloadedmetadata = function() {
@@ -187,7 +187,7 @@ test('attach mediaStream directly', function(t) {
   t.plan((m.webrtcDetectedBrowser === 'firefox' &&
           m.webrtcDetectedVersion < 38) ? 2 : 3);
   var video = document.createElement('video');
-  // if attachMediaStream works, we should get a video
+  // If attachMediaStream works, we should get a video
   // at some point. This will trigger onloadedmetadata.
   video.onloadedmetadata = function() {
     t.pass('got stream with w=' + video.videoWidth +
@@ -211,8 +211,8 @@ test('reattaching mediaStream directly', function(t) {
   t.plan((m.webrtcDetectedBrowser === 'firefox' &&
           m.webrtcDetectedVersion < 38) ? 2 : 4);
   var video = document.createElement('video');
-  // if attachMediaStream works, we should get a video
-  // at some point. This will trigger onloadedmetadata
+  // If attachMediaStream works, we should get a video
+  // at some point. This will trigger onloadedmetadata.
   // This reattaches to the second video which will trigger
   // onloadedmetadata there.
   video.onloadedmetadata = function() {
@@ -233,7 +233,6 @@ test('reattaching mediaStream directly', function(t) {
     t.pass('got stream.');
     video.srcObject = stream;
     t.pass('srcObject set');
-    console.log(video.srcObject.id);
   })
   .catch(function(err) {
     t.fail(err.toString());

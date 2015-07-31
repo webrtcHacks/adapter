@@ -48,7 +48,7 @@ function trace(text) {
 if (typeof window === 'undefined' || !window.navigator) {
   webrtcUtils.log('This does not appear to be a browser');
   webrtcDetectedBrowser = 'not a browser';
-} else if (navigator.mozGetUserMedia) {
+} else if (navigator.mozGetUserMedia && window.mozRTCPeerConnection) {
   webrtcUtils.log('This appears to be Firefox');
 
   webrtcDetectedBrowser = 'firefox';
