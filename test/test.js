@@ -157,6 +157,7 @@ test('video srcObject getter/setter test', function(t) {
     t.ok(video.srcObject.id === stream.id,
         'srcObject getter returns stream object');
     // FIXME: add a video.srcObject = null here?
+    stream.getTracks().forEach(function(track) { track.stop(); });
   })
   .catch(function(err) {
     t.fail(err.toString());
@@ -175,6 +176,7 @@ test('srcObject set from another object', function(t) {
     video2.srcObject = video.srcObject;
     t.ok(video.srcObject.id === video2.srcObject.id,
         'stream ids from srcObjects match');
+    stream.getTracks().forEach(function(track) { track.stop(); });
     t.end();
   })
   .catch(function(err) {
@@ -187,19 +189,20 @@ test('attach mediaStream directly', function(t) {
   t.plan((m.webrtcDetectedBrowser === 'firefox' &&
           m.webrtcDetectedVersion < 38) ? 2 : 3);
   var video = document.createElement('video');
-  // If attachMediaStream works, we should get a video
-  // at some point. This will trigger onloadedmetadata.
-  video.onloadedmetadata = function() {
-    t.pass('got stream with w=' + video.videoWidth +
-           ',h=' + video.videoHeight);
-  };
-
   var constraints = {video: true, fake: true};
   navigator.mediaDevices.getUserMedia(constraints)
   .then(function(stream) {
     t.pass('got stream.');
     video.srcObject = stream;
     t.pass('attachMediaStream returned');
+
+    // If attachMediaStream works, we should get a video
+    // at some point. This will trigger onloadedmetadata.
+    video.onloadedmetadata = function() {
+      t.pass('got stream with w=' + video.videoWidth +
+             ',h=' + video.videoHeight);
+      stream.getTracks().forEach(function(track) { track.stop(); });
+    };
   })
   .catch(function(err) {
     t.fail(err.toString());
@@ -211,28 +214,28 @@ test('reattaching mediaStream directly', function(t) {
   t.plan((m.webrtcDetectedBrowser === 'firefox' &&
           m.webrtcDetectedVersion < 38) ? 2 : 4);
   var video = document.createElement('video');
-  // If attachMediaStream works, we should get a video
-  // at some point. This will trigger onloadedmetadata.
-  // This reattaches to the second video which will trigger
-  // onloadedmetadata there.
-  video.onloadedmetadata = function() {
-    t.pass('got stream on first video with w=' + video.videoWidth +
-           ',h=' + video.videoHeight);
-    video2.srcObject = video.srcObject;
-  };
-
-  var video2 = document.createElement('video');
-  video2.onloadedmetadata = function() {
-    t.pass('got stream on second video with w=' + video.videoWidth +
-           ',h=' + video.videoHeight);
-  };
-
   var constraints = {video: true, fake: true};
   navigator.mediaDevices.getUserMedia(constraints)
   .then(function(stream) {
     t.pass('got stream.');
     video.srcObject = stream;
     t.pass('srcObject set');
+
+    // If attachMediaStream works, we should get a video
+    // at some point. This will trigger onloadedmetadata.
+    // This reattaches to the second video which will trigger
+    // onloadedmetadata there.
+    video.onloadedmetadata = function() {
+      t.pass('got stream on first video with w=' + video.videoWidth +
+             ',h=' + video.videoHeight);
+      video2.srcObject = video.srcObject;
+    };
+
+    var video2 = document.createElement('video');
+    video2.onloadedmetadata = function() {
+      t.pass('got stream on second video with w=' + video.videoWidth +
+             ',h=' + video.videoHeight);
+    };
   })
   .catch(function(err) {
     t.fail(err.toString());
