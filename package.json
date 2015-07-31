@@ -9,6 +9,7 @@
     "url": "https://github.com/webrtc/adapter.git"
   },
   "scripts": {
+    "postinstall": "grunt githooks",
     "test": "test/run-tests"
   },
   "testling": {
@@ -21,6 +22,7 @@
     "grunt-contrib-jshint": "^0.11.2",
     "grunt-contrib-nodeunit": "~0.4.1",
     "grunt-contrib-uglify": "^0.9.1",
+    "grunt-githooks": "^0.3.1",
     "grunt-jscs": "^2.0.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
