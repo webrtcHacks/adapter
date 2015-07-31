@@ -187,13 +187,22 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
     };
   }
+
+  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
+    get: function() {
+      return this.mozSrcObject;
+    },
+    set: function(stream) {
+      this.mozSrcObject = stream;
+    }
+  });
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
-    element.mozSrcObject = stream;
+    element.srcObject = stream;
   };
 
   reattachMediaStream = function(to, from) {
-    to.mozSrcObject = from.mozSrcObject;
+    to.srcObject = from.srcObject;
   };
 
 } else if (navigator.webkitGetUserMedia) {
@@ -420,9 +429,20 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
   }
 
+  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
+    get: function() {
+      return this._srcObject;
+    },
+    set: function(stream) {
+      // TODO: use revokeObjectURL is src is set and stream is null?
+      this._srcObject = stream;
+      this.src = URL.createObjectURL(stream);
+    }
+  });
+
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
-    if (typeof element.srcObject !== 'undefined') {
+    if (webrtcDetectedVersion >= 43) {
       element.srcObject = stream;
     } else if (typeof element.src !== 'undefined') {
       element.src = URL.createObjectURL(stream);
@@ -430,9 +450,12 @@ if (typeof window === 'undefined' || !window.navigator) {
       webrtcUtils.log('Error attaching stream to element.');
     }
   };
-
   reattachMediaStream = function(to, from) {
-    to.src = from.src;
+    if (webrtcDetectedVersion >= 43) {
+      to.srcObject = from.srcObject;
+    } else {
+      to.src = from.src;
+    }
   };
 
 } else if (navigator.mediaDevices && navigator.userAgent.match(
