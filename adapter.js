@@ -442,10 +442,20 @@ if (typeof window === 'undefined' || !window.navigator) {
 
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
-    element.srcObject = stream;
+    if (webrtcDetectedVersion >= 43) {
+      element.srcObject = stream;
+    } else if (typeof element.src !== 'undefined') {
+      element.src = URL.createObjectURL(stream);
+    } else {
+      webrtcUtils.log('Error attaching stream to element.');
+    }
   };
   reattachMediaStream = function(to, from) {
-    to.srcObject = from.srcObject;
+    if (webrtcDetectedVersion >= 43) {
+      to.srcObject = from.srcObject;
+    } else {
+      to.src = from.src;
+    }
   };
 
 } else if (navigator.mediaDevices && navigator.userAgent.match(
