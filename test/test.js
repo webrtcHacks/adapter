@@ -89,10 +89,43 @@ test('attachMediaStream', function(t) {
   t.plan((m.webrtcDetectedBrowser === 'firefox' &&
           m.webrtcDetectedVersion < 38) ? 2 : 3);
   var video = document.createElement('video');
-  // if attachMediaStream works, we should get a video
+  // If attachMediaStream works, we should get a video
   // at some point. This will trigger onloadedmetadata.
   video.onloadedmetadata = function() {
     t.pass('got stream with w=' + video.videoWidth +
+           ',h=' + video.videoHeight);
+  };
+
+  var constraints = {video: true, fake: true};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    t.pass('got stream.');
+    m.attachMediaStream(video, stream);
+    t.pass('attachMediaStream returned');
+  })
+  .catch(function(err) {
+    t.fail(err.toString());
+  });
+});
+
+test('reattachMediaStream', function(t) {
+  // onloadedmetadata had issues in Firefox < 38.
+  t.plan((m.webrtcDetectedBrowser === 'firefox' &&
+          m.webrtcDetectedVersion < 38) ? 2 : 4);
+  var video = document.createElement('video');
+  // If attachMediaStream works, we should get a video
+  // at some point. This will trigger onloadedmetadata.
+  // onloadedmetadata reattaches to the second video which
+  // will trigger onloadedmetadata there as well.
+  video.onloadedmetadata = function() {
+    t.pass('got stream on first video with w=' + video.videoWidth +
+           ',h=' + video.videoHeight);
+    m.reattachMediaStream(video2, video);
+  };
+
+  var video2 = document.createElement('video');
+  video2.onloadedmetadata = function() {
+    t.pass('got stream on second video with w=' + video.videoWidth +
            ',h=' + video.videoHeight);
   };
 
