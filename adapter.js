@@ -91,10 +91,10 @@ if (typeof window === 'undefined' || !window.navigator) {
   };
 
   // The RTCSessionDescription object.
-  window.RTCSessionDescription = mozRTCSessionDescription;
+  window.RTCSessionDescription = window.mozRTCSessionDescription;
 
   // The RTCIceCandidate object.
-  window.RTCIceCandidate = mozRTCIceCandidate;
+  window.RTCIceCandidate = window.mozRTCIceCandidate;
 
   // getUserMedia constraints shim.
   getUserMedia = function(constraints, onSuccess, onError) {
