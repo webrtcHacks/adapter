@@ -6,6 +6,11 @@
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    githooks: {
+      all: {
+        'pre-commit': 'jshint jscs'
+      }
+    },
     jshint: {
       options: {
         jshintrc: '.jshintrc'
@@ -27,6 +32,7 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs');
+  grunt.loadNpmTasks('grunt-githooks');
   grunt.registerTask('verify-require', 'Verifies the script can be required in a node context', function () {
       require('./adapter');
   });
