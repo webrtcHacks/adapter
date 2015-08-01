@@ -471,9 +471,9 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcUtils.createMediaStreamMethods();
 } else if (window.cordova &&
     window.cordova.plugins && window.cordova.plugins.iosrtc) {
-  webrtcUtils.log('This appears to be Safari');
+  webrtcUtils.log('This appears to be Safari with the IOSRTC plugin');
 
-  webrtcDetectedBrowser = 'safari';
+  webrtcDetectedBrowser = 'safari+iosrtc';
   // Detected iOS version.
   webrtcDetectedVersion = parseInt(navigator.appVersion.match(/OS (\d+)_/)[1], 10);
   // Minimum supported iOS version.
