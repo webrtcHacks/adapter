@@ -23,12 +23,35 @@ var webrtcDetectedBrowser = null;
 var webrtcDetectedVersion = null;
 var webrtcMinimumVersion = null;
 var webrtcUtils = {
-  log: function() {
-    // suppress console.log output when being included as a module.
-    if (!(typeof module !== 'undefined' ||
-        typeof require === 'function') && (typeof define === 'function')) {
-      console.log.apply(console, arguments);
-    }
+  // suppress console.log output when being included as a module.
+  log: !(typeof module !== 'undefined' ||
+    typeof require === 'function') &&
+    typeof define === 'function' ? console.log.bind(console) : function() {},
+
+  shimSrcObject: function() {
+    var property = webrtcDetectedBrowser === 'firefox' ?
+      'mozSrcObject' : '_srcObject';
+    var setSrc = property === '_srcObject' && true;
+    Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
+      get: function() {
+        return this[property];
+      },
+      set: function(stream) {
+        // TODO: use revokeObjectURL if src is set and stream is null?
+        this[property] = stream;
+        if (setSrc) {
+          this.src = URL.createObjectURL(stream);
+        }
+      }
+    });
+  },
+  createMediaStreamMethods: function() {
+    attachMediaStream = function(element, stream) {
+      element.srcObject = stream;
+    };
+    reattachMediaStream = function(to, from) {
+      to.srcObject = from.srcObject;
+    };
   }
 };
 
@@ -187,25 +210,10 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
     };
   }
-
-  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
-    get: function() {
-      return this.mozSrcObject;
-    },
-    set: function(stream) {
-      this.mozSrcObject = stream;
-    }
-  });
-  // Attach a media stream to an element.
-  attachMediaStream = function(element, stream) {
-    element.srcObject = stream;
-  };
-
-  reattachMediaStream = function(to, from) {
-    to.srcObject = from.srcObject;
-  };
-
-} else if (navigator.webkitGetUserMedia) {
+  webrtcUtils.shimSrcObject();
+  webrtcUtils.createMediaStreamMethods();
+} else if (navigator.webkitGetUserMedia &&
+    ('addons' in Object(window.opr) || window.chrome)) {
   webrtcUtils.log('This appears to be Chrome');
 
   webrtcDetectedBrowser = 'chrome';
@@ -428,18 +436,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       webrtcUtils.log('Dummy mediaDevices.removeEventListener called.');
     };
   }
-
-  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
-    get: function() {
-      return this._srcObject;
-    },
-    set: function(stream) {
-      // TODO: use revokeObjectURL is src is set and stream is null?
-      this._srcObject = stream;
-      this.src = URL.createObjectURL(stream);
-    }
-  });
-
+  webrtcUtils.shimSrcObject();
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
     if (webrtcDetectedVersion >= 43) {
@@ -471,12 +468,21 @@ if (typeof window === 'undefined' || !window.navigator) {
 
   getUserMedia = navigator.getUserMedia;
 
-  attachMediaStream = function(element, stream) {
-    element.srcObject = stream;
-  };
-  reattachMediaStream = function(to, from) {
-    to.srcObject = from.srcObject;
-  };
+  webrtcUtils.createMediaStreamMethods();
+} else if (window.cordova &&
+    window.cordova.plugins && window.cordova.plugins.iosrtc) {
+  webrtcUtils.log('This appears to be Safari with the IOSRTC plugin');
+
+  webrtcDetectedBrowser = 'safari+iosrtc';
+  // Detected iOS version.
+  webrtcDetectedVersion = parseInt(navigator.appVersion.match(/OS (\d+)_/)[1], 10);
+  // Minimum supported iOS version.
+  webrtcMinimumVersion = 7;
+  // NOTE: assume user has waited until deviceready before loading adapter.js, to avoid side effects.
+  // NOTE: assume window.cordova.plugins.iosrtc.registerGlobals() has been called.
+  getUserMedia = navigator.getUserMedia;
+  webrtcUtils.shimSrcObject();
+  webrtcUtils.createMediaStreamMethods();
 } else {
   webrtcUtils.log('Browser does not appear to be WebRTC-capable');
 }
