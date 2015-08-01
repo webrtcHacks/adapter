@@ -434,7 +434,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       return this._srcObject;
     },
     set: function(stream) {
-      // TODO: use revokeObjectURL is src is set and stream is null?
       this._srcObject = stream;
       this.src = URL.createObjectURL(stream);
     }
