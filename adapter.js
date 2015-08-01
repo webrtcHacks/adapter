@@ -265,7 +265,14 @@ if (typeof window === 'undefined' || !window.navigator) {
 
       // promise-support
       return new Promise(function(resolve, reject) {
-        origGetStats.apply(self, [resolve, reject]);
+        if (args.length === 1 && selector === null) {
+          origGetStats.apply(self, [
+              function(response) {
+                resolve.apply(null, [fixChromeStats(response)]);
+              }, reject]);
+        } else {
+          origGetStats.apply(self, [resolve, reject]);
+        }
       });
     };
 
