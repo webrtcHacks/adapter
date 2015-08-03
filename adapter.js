@@ -25,10 +25,11 @@ var webrtcMinimumVersion = null;
 var webrtcUtils = {
   log: function() {
     // suppress console.log output when being included as a module.
-    if (!(typeof module !== 'undefined' ||
-        typeof require === 'function') && (typeof define === 'function')) {
-      console.log.apply(console, arguments);
+    if (typeof module !== 'undefined' ||
+        typeof require === 'function' && typeof define === 'function') {
+      return;
     }
+    console.log.apply(console, arguments);
   }
 };
 
