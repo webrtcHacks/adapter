@@ -9,7 +9,6 @@
     "url": "https://github.com/webrtc/adapter.git"
   },
   "scripts": {
-    "postinstall": "grunt githooks",
     "test": "test/run-tests"
   },
   "testling": {
