@@ -46,7 +46,9 @@ function trace(text) {
   }
 }
 
-if (typeof window !== 'undefined' && window.HTMLVideoElement &&
+// In a browser with support for, HTMLMediaElement define
+// srcObject on the prototype for attaching media streams to elements
+if (typeof window !== 'undefined' && window.HTMLMediaElement &&
     !window.HTMLMediaElement.prototype.srcObject) {
   webrtcUtils.log('Creating HTMLMediaElement.prototype.srcObject');
   Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
