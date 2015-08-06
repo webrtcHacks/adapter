@@ -47,9 +47,9 @@ function trace(text) {
 }
 
 if (typeof window !== 'undefined' && window.HTMLVideoElement &&
-    !window.HTMLVideoElement.prototype.srcObject) {
-  webrtcUtils.log('Creating HTMLVideoElement.prototype.srcObject');
-  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
+    !window.HTMLMediaElement.prototype.srcObject) {
+  webrtcUtils.log('Creating HTMLMediaElement.prototype.srcObject');
+  Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
     get: function() {
       return this.mozSrcObject || this._srcObject;
     },
