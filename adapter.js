@@ -46,11 +46,8 @@ function trace(text) {
   }
 }
 
-if (typeof window === 'undefined' || !window.HTMLVideoElement) {
-  webrtcUtils.log('HTMLVideoElement is not supported');
-} else if (window.HTMLVideoElement.prototype.srcObject) {
-  webrtcUtils.log('srcObject is supported natively');
-} else {
+if (typeof window !== 'undefined' && window.HTMLVideoElement &&
+    !window.HTMLVideoElement.prototype.srcObject) {
   webrtcUtils.log('Creating HTMLVideoElement.prototype.srcObject');
   Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
     get: function() {
