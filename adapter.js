@@ -50,7 +50,6 @@ function trace(text) {
 // srcObject on the prototype for attaching media streams to elements
 if (typeof window !== 'undefined' && window.HTMLMediaElement &&
     !window.HTMLMediaElement.prototype.srcObject) {
-  webrtcUtils.log('Creating HTMLMediaElement.prototype.srcObject');
   Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
     get: function() {
       return this.mozSrcObject || this._srcObject;
