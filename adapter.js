@@ -46,6 +46,27 @@ function trace(text) {
   }
 }
 
+if (typeof window === 'undefined' || !window.HTMLVideoElement) {
+  webrtcUtils.log('HTMLVideoElement is not supported');
+} else if (window.HTMLVideoElement.prototype.srcObject) {
+  webrtcUtils.log('srcObject is supported natively');
+} else {
+  webrtcUtils.log('Creating HTMLVideoElement.prototype.srcObject');
+  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
+    get: function() {
+      return this.mozSrcObject || this._srcObject;
+    },
+    set: function(stream) {
+      if (this.mozSrcObject) {
+        this.mozSrcObject = stream;
+      } else {
+        this._srcObject = stream;
+        this.src = URL.createObjectURL(stream);
+      }
+    }
+  });
+}
+
 if (typeof window === 'undefined' || !window.navigator) {
   webrtcUtils.log('This does not appear to be a browser');
   webrtcDetectedBrowser = 'not a browser';
@@ -189,14 +210,6 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
   }
 
-  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
-    get: function() {
-      return this.mozSrcObject;
-    },
-    set: function(stream) {
-      this.mozSrcObject = stream;
-    }
-  });
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
     element.srcObject = stream;
@@ -436,16 +449,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       webrtcUtils.log('Dummy mediaDevices.removeEventListener called.');
     };
   }
-
-  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
-    get: function() {
-      return this._srcObject;
-    },
-    set: function(stream) {
-      this._srcObject = stream;
-      this.src = URL.createObjectURL(stream);
-    }
-  });
 
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
