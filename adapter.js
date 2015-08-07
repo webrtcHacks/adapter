@@ -49,7 +49,7 @@ function trace(text) {
 // In a browser with support for HTMLMediaElement, define srcObject
 // on the prototype (only once!) for attaching media streams to elements.
 if (typeof window === 'object' && window.HTMLMediaElement &&
-    !window.HTMLMediaElement.prototype.srcObject) {
+    !window.HTMLMediaElement.prototype.hasOwnProperty('srcObject')) {
   Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
     get: function() {
       return this.mozSrcObject || this._srcObject;
