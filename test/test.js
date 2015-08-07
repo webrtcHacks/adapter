@@ -164,6 +164,25 @@ test('video srcObject getter/setter test', function(t) {
   });
 });
 
+test('audio srcObject getter/setter test', function(t) {
+  t.plan(3);
+  var audio = document.createElement('audio');
+
+  var constraints = {video: false, audio: true, fake: true};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    t.pass('got stream');
+    audio.srcObject = stream;
+    t.pass('srcObject set');
+    t.ok(audio.srcObject.id === stream.id,
+        'srcObject getter returns stream object');
+    stream.getTracks().forEach(function(track) { track.stop(); });
+  })
+  .catch(function(err) {
+    t.fail(err.toString());
+  });
+});
+
 test('srcObject set from another object', function(t) {
   var video = document.createElement('video');
   var video2 = document.createElement('video');

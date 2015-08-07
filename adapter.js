@@ -46,7 +46,26 @@ function trace(text) {
   }
 }
 
-if (typeof window === 'undefined' || !window.navigator) {
+// In a browser with support for HTMLMediaElement, define srcObject
+// on the prototype (only once!) for attaching media streams to elements.
+if (typeof window === 'object' && window.HTMLMediaElement &&
+    !window.HTMLMediaElement.prototype.hasOwnProperty('srcObject')) {
+  Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
+    get: function() {
+      return this.mozSrcObject || this._srcObject;
+    },
+    set: function(stream) {
+      if (this.mozSrcObject) {
+        this.mozSrcObject = stream;
+      } else {
+        this._srcObject = stream;
+        this.src = URL.createObjectURL(stream);
+      }
+    }
+  });
+}
+
+if (typeof window !== 'object' || !window.navigator) {
   webrtcUtils.log('This does not appear to be a browser');
   webrtcDetectedBrowser = 'not a browser';
 } else if (navigator.mozGetUserMedia && window.mozRTCPeerConnection) {
@@ -189,14 +208,6 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
   }
 
-  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
-    get: function() {
-      return this.mozSrcObject;
-    },
-    set: function(stream) {
-      this.mozSrcObject = stream;
-    }
-  });
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
     element.srcObject = stream;
@@ -437,16 +448,6 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
   }
 
-  Object.defineProperty(HTMLVideoElement.prototype, 'srcObject', {
-    get: function() {
-      return this._srcObject;
-    },
-    set: function(stream) {
-      this._srcObject = stream;
-      this.src = URL.createObjectURL(stream);
-    }
-  });
-
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
     if (webrtcDetectedVersion >= 43) {
@@ -504,7 +505,7 @@ Object.defineProperty(webrtcTesting, 'version', {
 
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
-  if (typeof window !== 'undefined') {
+  if (typeof window === 'object') {
     RTCPeerConnection = window.RTCPeerConnection;
   }
   module.exports = {
