@@ -48,7 +48,7 @@ function trace(text) {
 
 // In a browser with support for HTMLMediaElement, define srcObject
 // on the prototype (only once!) for attaching media streams to elements
-if (typeof window !== 'undefined' && window.HTMLMediaElement &&
+if (typeof window === 'object' && window.HTMLMediaElement &&
     !window.HTMLMediaElement.prototype.srcObject) {
   Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
     get: function() {
@@ -65,7 +65,7 @@ if (typeof window !== 'undefined' && window.HTMLMediaElement &&
   });
 }
 
-if (typeof window === 'undefined' || !window.navigator) {
+if (typeof window !== 'object' || !window.navigator) {
   webrtcUtils.log('This does not appear to be a browser');
   webrtcDetectedBrowser = 'not a browser';
 } else if (navigator.mozGetUserMedia && window.mozRTCPeerConnection) {
@@ -505,7 +505,7 @@ Object.defineProperty(webrtcTesting, 'version', {
 
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
-  if (typeof window !== 'undefined') {
+  if (typeof window === 'object') {
     RTCPeerConnection = window.RTCPeerConnection;
   }
   module.exports = {
