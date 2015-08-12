@@ -766,3 +766,27 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
     t.fail(err.toString());
   });
 });
+
+// This MUST to be the last test since it loads adapter
+// again which may result in unintended behaviour.
+test('Non-module logging to console still works', function(t) {
+  var logCount = 0;
+  var saveConsole = console.log.bind(console);
+  console.log = function() {
+    logCount++;
+    //saveConsole.apply(saveConsole, arguments);
+  };
+  var script = document.createElement('script');
+  script.src = 'adapter.js';
+  script.type = 'text/javascript';
+  script.async = false;
+  (document.head || document.documentElement).appendChild(script);
+  script.parentNode.removeChild(script);
+
+  // Using setTimeout is easier than prefetching the script.
+  window.setTimeout(function() {
+    console.log = saveConsole;
+    t.ok(logCount > 0, 'A log message appeared on the console.');
+    t.end();
+  }, 500);
+});
