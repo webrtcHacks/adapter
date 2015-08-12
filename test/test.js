@@ -739,6 +739,7 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
     // not implemented yet.
     t.pass('iceTransportPolicy is not implemented by Firefox yet.');
     t.end();
+    return;
   }
   var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
       iceServers: []});
