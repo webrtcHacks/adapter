@@ -775,7 +775,6 @@ test('Non-module logging to console still works', function(t) {
   var saveConsole = console.log.bind(console);
   console.log = function() {
     logCount++;
-    //saveConsole.apply(saveConsole, arguments);
   };
   var script = document.createElement('script');
   script.src = 'adapter.js';
@@ -788,6 +787,21 @@ test('Non-module logging to console still works', function(t) {
   window.setTimeout(function() {
     console.log = saveConsole;
     t.ok(logCount > 0, 'A log message appeared on the console.');
+
+    // Check for existence of variables and functions from public API.
+    t.ok(typeof RTCPeerConnection === 'function',
+        'RTCPeerConnection is a function');
+    t.ok(typeof getUserMedia === 'function',
+        'getUserMedia is a function');
+    t.ok(typeof attachMediaStream === 'function',
+        'attachMediaStream is a function');
+    t.ok(typeof reattachMediaStream === 'function',
+        'reattachMediaSteam is a function');
+    t.ok(typeof trace === 'function', 'trace is a function');
+    t.ok(typeof webrtcDetectedBrowser === 'string',
+        'webrtcDetected browser is a string');
+    t.ok(typeof webrtcMinimumVersion === 'number',
+        'webrtcDetectedVersion is a number');
     t.end();
   }, 500);
 });
