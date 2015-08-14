@@ -739,6 +739,7 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
     // not implemented yet.
     t.pass('iceTransportPolicy is not implemented by Firefox yet.');
     t.end();
+    return;
   }
   var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
       iceServers: []});
@@ -765,4 +766,42 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
   }).catch(function(err) {
     t.fail(err.toString());
   });
+});
+
+// This MUST to be the last test since it loads adapter
+// again which may result in unintended behaviour.
+test('Non-module logging to console still works', function(t) {
+  var logCount = 0;
+  var saveConsole = console.log.bind(console);
+  console.log = function() {
+    logCount++;
+  };
+  var script = document.createElement('script');
+  script.src = 'adapter.js';
+  script.type = 'text/javascript';
+  script.async = false;
+  (document.head || document.documentElement).appendChild(script);
+  script.parentNode.removeChild(script);
+
+  // Using setTimeout is easier than prefetching the script.
+  window.setTimeout(function() {
+    console.log = saveConsole;
+    t.ok(logCount > 0, 'A log message appeared on the console.');
+
+    // Check for existence of variables and functions from public API.
+    t.ok(typeof RTCPeerConnection === 'function',
+        'RTCPeerConnection is a function');
+    t.ok(typeof getUserMedia === 'function',
+        'getUserMedia is a function');
+    t.ok(typeof attachMediaStream === 'function',
+        'attachMediaStream is a function');
+    t.ok(typeof reattachMediaStream === 'function',
+        'reattachMediaSteam is a function');
+    t.ok(typeof trace === 'function', 'trace is a function');
+    t.ok(typeof webrtcDetectedBrowser === 'string',
+        'webrtcDetected browser is a string');
+    t.ok(typeof webrtcMinimumVersion === 'number',
+        'webrtcDetectedVersion is a number');
+    t.end();
+  }, 500);
 });
