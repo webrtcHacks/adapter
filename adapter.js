@@ -291,13 +291,15 @@ if (typeof window === 'undefined' || !window.navigator) {
             standardStats.bytesSent = parseInt(standardStats.bytesSent, 10);
             standardStats.bytesReceived = parseInt(
                 standardStats.bytesReceived, 10);
+            // FIXME: packetsSent is not in spec?
+
             // FIXME: why is this defined as double?
             standardStats.roundTripTime = parseInt(standardStats.googRtt);
             // FIXME: why is this a double if its bits/second?
             standardStats.availableOutgoingBitrate = 0.0;
             standardStats.availableIncomingBitrate = 0.0;
 
-            standardStats.type = 'candidatePair';
+            standardStats.type = 'candidatepair';
             break;
           }
           standardReport[standardStats.id] = standardStats;
