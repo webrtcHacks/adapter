@@ -269,6 +269,14 @@ if (typeof window === 'undefined' || !window.navigator) {
           });
           // Translate to standard types and attribute names.
           switch (report.type) {
+          case 'localCandidate':
+          case 'remoteCandidate':
+            // https://w3c.github.io/webrtc-stats/#icecandidate-dict*
+            standardStats.portNumber = parseInt(standardStats.portNumber, 10);
+            standardStats.priority = parseInt(standardStats.priority, 10);
+            // FIXME: addressSourceUrl?
+            // FIXME: https://github.com/w3c/webrtc-stats/issues/12
+            break;
           case 'googCandidatePair':
             // https://w3c.github.io/webrtc-stats/#candidatepair-dict*
             standardStats.transportId = standardStats.googChannelId;
