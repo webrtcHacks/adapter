@@ -244,7 +244,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     }
 
     var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
-    var origGetStats = pc.getStats.bind(pc);
+    var origGetStats = pc.getStats;
     pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
       var self = this;
       var args = arguments;
@@ -267,6 +267,31 @@ if (typeof window === 'undefined' || !window.navigator) {
           report.names().forEach(function(name) {
             standardStats[name] = report.stat(name);
           });
+          // Translate to standard types and attribute names.
+          switch (report.type) {
+          case 'googCandidatePair':
+            // https://w3c.github.io/webrtc-stats/#candidatepair-dict*
+            standardStats.transportId = standardStats.googChannelId;
+            standardStats.state = 'FIXME'; // enum
+            standardStats.priority = 'FIXME'; // unsigned long long
+            standardStats.nominated = 'FIXME'; // boolean
+            // FIXME: missing from spec
+            standardStats.selected =
+                standardStats.googActiveConnection === 'true';
+            standardStats.writable = standardStats.googWritable === 'true';
+            standardStats.readable = standardStats.googReadable === 'true';
+            standardStats.bytesSent = parseInt(standardStats.bytesSent, 10);
+            standardStats.bytesReceived = parseInt(
+                standardStats.bytesReceived, 10);
+            // FIXME: why is this defined as double?
+            standardStats.roundTripTime = parseInt(standardStats.googRtt);
+            // FIXME: why is this a double if its bits/second?
+            standardStats.availableOutgoingBitrate = 0.0;
+            standardStats.availableIncomingBitrate = 0.0;
+
+            standardStats.type = 'candidatePair';
+            break;
+          }
           standardReport[standardStats.id] = standardStats;
         });
 
