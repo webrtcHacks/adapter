@@ -127,10 +127,14 @@ if (typeof window === 'undefined' || !window.navigator) {
   };
 
   // The RTCSessionDescription object.
-  window.RTCSessionDescription = mozRTCSessionDescription;
+  if (!window.RTCSessionDescription) {
+    window.RTCSessionDescription = mozRTCSessionDescription;
+  }
 
   // The RTCIceCandidate object.
-  window.RTCIceCandidate = mozRTCIceCandidate;
+  if (!window.RTCIceCandidate) {
+    window.RTCIceCandidate = mozRTCIceCandidate;
+  }
 
   // getUserMedia constraints shim.
   getUserMedia = function(constraints, onSuccess, onError) {
