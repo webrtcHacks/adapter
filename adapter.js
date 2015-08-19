@@ -269,6 +269,57 @@ if (typeof window === 'undefined' || !window.navigator) {
           });
           // Translate to standard types and attribute names.
           switch (report.type) {
+          case 'ssrc':
+            // confusing... is this
+            // https://w3c.github.io/webrtc-stats/#msstats-dict*
+            // or
+            // https://w3c.github.io/webrtc-stats/#mststats-dict*
+            // ???
+            standardStats.trackIdentifier = standardStats.googTrackId;
+            // FIXME: not defined in spec, probably whether the track is
+            //  remote?
+            standardStats.remoteSource = report.id.indexOf('recv') !== -1;
+            standardStats.ssrc = parseInt(standardStats.ssrc, 10);
+            // FIXME: not defined either but I assume sequence of ssrcs
+            //  (for FEC)? Or does this contain the ids of the associated
+            //  records?!
+            standardStats.ssrcIds = [standardStats.ssrc];
+
+            // FIXME: 'only makes sense' <=> not set?
+            if (report.googFrameWidthReceived || report.googFrameWidthSent) {
+              report.frameWidth = parseInt(report.googFrameWidthReceived ||
+                  report.googFrameWidthSent);
+            }
+            if (report.googFrameHeightReceived || report.googFrameHeightSent) {
+              report.frameHeight = parseInt(report.googFrameHeightReceived ||
+                  report.googFrameHeightSent, 10);
+            }
+            if (report.googFrameRateInput) {
+              // FIXME (spec): only known at the sender?
+              // FIXME: might be something else not available currently
+              report.framesPerSecond = parseInt(report.googFrameRateInput, 10);
+            }
+
+            /* FIXME unfortunately the current stats (googFrameRateSent,
+             * googFrameRateReceived, googFrameRateDecoded) so we can not
+             * calculate the cumulative amount.
+             * FIXME (spec) Firefox has frameRateMean why is this
+             * not part of the spec?
+             */
+            if (report.googFrameRateSent) {
+              report.framesSent = 0;
+            }
+            if (report.googFrameRateReceived) {
+              report.framesReceived = 0;
+            }
+            if (report.googFrameRateDecoded) {
+              report.framesDecoded = 0;
+            }
+            // FIXME: both on sender and receiver?
+            if (report.mediaType === 'video') {
+              report.framesDropped = 0;
+            }
+            break;
           case 'localCandidate':
           case 'remoteCandidate':
             // https://w3c.github.io/webrtc-stats/#icecandidate-dict*
