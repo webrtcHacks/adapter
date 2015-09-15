@@ -219,7 +219,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     var orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
     navigator.mediaDevices.enumerateDevices = function() {
-      return orgEnumerateDevices().catch(function(e) {
+      return orgEnumerateDevices().then(null, function(e) {
         if (e.name === 'NotFoundError') {
           return [];
         }
