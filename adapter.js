@@ -1187,6 +1187,9 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     // Update the ICE connection state.
+    // FIXME: should be called 'updateConnectionState', also be called for
+    //  DTLS changes and implement
+    //  https://lists.w3.org/Archives/Public/public-webrtc/2015Sep/0033.html
     window.RTCPeerConnection.prototype._updateIceConnectionState =
         function(newState) {
       var self = this;
