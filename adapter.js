@@ -535,9 +535,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           this.iceOptions.gatherPolicy = config.iceTransportPolicy;
           break;
         case 'none':
-          console.warn('can not map iceTransportPolicy none,' +
-              'falling back to "all"');
-          break;
+          // FIXME: remove once implementation and spec have added this.
+          throw new TypeError('iceTransportPolicy "none" not supported');
         }
       }
       if (config && config.iceServers) {
