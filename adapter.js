@@ -545,7 +545,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
 
       // per-track iceGathers etc
-      this.tracks = [];
+      this.mLines = [];
 
       this._iceCandidates = [];
 
@@ -902,7 +902,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         if (!description.ortc) {
           // FIXME: throw?
         } else {
-          this.tracks = description.ortc;
+          this.mLines = description.ortc;
         }
       } else if (description.type === 'answer') {
         var sections = self.remoteDescription.sdp.split('\r\nm=');
@@ -910,16 +910,16 @@ if (typeof window === 'undefined' || !window.navigator) {
         sections.forEach(function(section, sdpMLineIndex) {
           section = 'm=' + section;
 
-          var iceGatherer = self.tracks[sdpMLineIndex].iceGatherer;
-          var iceTransport = self.tracks[sdpMLineIndex].iceTransport;
-          var dtlsTransport = self.tracks[sdpMLineIndex].dtlsTransport;
-          var rtpSender = self.tracks[sdpMLineIndex].rtpSender;
+          var iceGatherer = self.mLines[sdpMLineIndex].iceGatherer;
+          var iceTransport = self.mLines[sdpMLineIndex].iceTransport;
+          var dtlsTransport = self.mLines[sdpMLineIndex].dtlsTransport;
+          var rtpSender = self.mLines[sdpMLineIndex].rtpSender;
           var localCapabilities =
-              self.tracks[sdpMLineIndex].localCapabilities;
+              self.mLines[sdpMLineIndex].localCapabilities;
           var remoteCapabilities =
-              self.tracks[sdpMLineIndex].remoteCapabilities;
-          var sendSSRC = self.tracks[sdpMLineIndex].sendSSRC;
-          var recvSSRC = self.tracks[sdpMLineIndex].recvSSRC;
+              self.mLines[sdpMLineIndex].remoteCapabilities;
+          var sendSSRC = self.mLines[sdpMLineIndex].sendSSRC;
+          var recvSSRC = self.mLines[sdpMLineIndex].recvSSRC;
 
           var remoteIceParameters = self._getIceParameters(section,
               sessionpart);
@@ -1050,7 +1050,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             rtpSender = new RTCRtpSender(localtrack, transports.dtlsTransport);
           }
 
-          self.tracks[sdpMLineIndex] = {
+          self.mLines[sdpMLineIndex] = {
             iceGatherer: transports.iceGatherer,
             iceTransport: transports.iceTransport,
             dtlsTransport: transports.dtlsTransport,
@@ -1064,13 +1064,13 @@ if (typeof window === 'undefined' || !window.navigator) {
             recvSSRC: recvSSRC
           };
         } else {
-          iceGatherer = self.tracks[sdpMLineIndex].iceGatherer;
-          iceTransport = self.tracks[sdpMLineIndex].iceTransport;
-          dtlsTransport = self.tracks[sdpMLineIndex].dtlsTransport;
-          rtpSender = self.tracks[sdpMLineIndex].rtpSender;
-          rtpReceiver = self.tracks[sdpMLineIndex].rtpReceiver;
-          sendSSRC = self.tracks[sdpMLineIndex].sendSSRC;
-          recvSSRC = self.tracks[sdpMLineIndex].recvSSRC;
+          iceGatherer = self.mLines[sdpMLineIndex].iceGatherer;
+          iceTransport = self.mLines[sdpMLineIndex].iceTransport;
+          dtlsTransport = self.mLines[sdpMLineIndex].dtlsTransport;
+          rtpSender = self.mLines[sdpMLineIndex].rtpSender;
+          rtpReceiver = self.mLines[sdpMLineIndex].rtpReceiver;
+          sendSSRC = self.mLines[sdpMLineIndex].sendSSRC;
+          recvSSRC = self.mLines[sdpMLineIndex].recvSSRC;
         }
 
         var remoteIceParameters = self._getIceParameters(section, sessionpart);
@@ -1123,7 +1123,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             };
             rtpReceiver.receive(params, kind);
             stream.addTrack(rtpReceiver.track);
-            self.tracks[sdpMLineIndex].recvSSRC = recvSSRC;
+            self.mLines[sdpMLineIndex].recvSSRC = recvSSRC;
           }
         }
       });
@@ -1154,7 +1154,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     window.RTCPeerConnection.prototype.close = function() {
-      this.tracks.forEach(function(track) {
+      this.mLines.forEach(function(track) {
         /* not yet
         if (track.iceGatherer) {
           track.iceGatherer.close();
@@ -1192,7 +1192,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         function(newState) {
       var self = this;
       if (this.iceConnectionState !== newState) {
-        var agreement = self.tracks.every(function(track) {
+        var agreement = self.mLines.every(function(track) {
           return track.iceTransport.state === newState;
         });
         if (agreement) {
@@ -1388,7 +1388,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           'o=thisisadapterortc 8169639915646943137 2 IN IP4 127.0.0.1\r\n' +
           's=-\r\n' +
           't=0 0\r\n';
-      this.tracks.forEach(function(track/*, sdpMLineIndex*/) {
+      this.mLines.forEach(function(track/*, sdpMLineIndex*/) {
         var iceGatherer = track.iceGatherer;
         //var iceTransport = track.iceTransport;
         var dtlsTransport = track.dtlsTransport;
@@ -1461,7 +1461,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
-      var track = this.tracks[candidate.sdpMLineIndex];
+      var track = this.mLines[candidate.sdpMLineIndex];
       if (track) {
         var cand = Object.keys(candidate.candidate).length > 0 ?
             this._toCandidateJSON(candidate.candidate) : {};
@@ -1486,7 +1486,7 @@ if (typeof window === 'undefined' || !window.navigator) {
 
     window.RTCPeerConnection.prototype.getStats = function() {
       var promises = [];
-      this.tracks.forEach(function(track) {
+      this.mLines.forEach(function(track) {
         ['rtpSender', 'rtpReceiver', 'iceGatherer', 'iceTransport',
             'dtlsTransport'].forEach(function(thing) {
           if (track[thing]) {
