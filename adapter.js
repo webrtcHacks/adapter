@@ -1197,7 +1197,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       this.mLines.forEach(function(mLine) {
         states[mLine.iceTransport.state]++;
       });
-      if (states.new + states.states.closed === this.mLines.length) {
+      if (states.new + states.closed === this.mLines.length) {
         newState = 'new';
       }
       if (states.new + states.checking > 0 && states.failed === 0) {
