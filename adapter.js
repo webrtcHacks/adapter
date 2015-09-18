@@ -1153,23 +1153,23 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     window.RTCPeerConnection.prototype.close = function() {
-      this.mLines.forEach(function(track) {
+      this.mLines.forEach(function(mLine) {
         /* not yet
-        if (track.iceGatherer) {
-          track.iceGatherer.close();
+        if (mLine.iceGatherer) {
+          mLine.iceGatherer.close();
         }
         */
-        if (track.iceTransport) {
-          track.iceTransport.stop();
+        if (mLine.iceTransport) {
+          mLine.iceTransport.stop();
         }
-        if (track.dtlsTransport) {
-          track.dtlsTransport.stop();
+        if (mLine.dtlsTransport) {
+          mLine.dtlsTransport.stop();
         }
-        if (track.rtpSender) {
-          track.rtpSender.stop();
+        if (mLine.rtpSender) {
+          mLine.rtpSender.stop();
         }
-        if (track.rtpReceiver) {
-          track.rtpReceiver.stop();
+        if (mLine.rtpReceiver) {
+          mLine.rtpReceiver.stop();
         }
       });
       // FIXME: clean up tracks, local streams, remote streams, etc
@@ -1194,8 +1194,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         function(newState) {
       var self = this;
       if (this.iceConnectionState !== newState) {
-        var agreement = self.mLines.every(function(track) {
-          return track.iceTransport.state === newState;
+        var agreement = self.mLines.every(function(mLine) {
+          return mLine.iceTransport.state === newState;
         });
         if (agreement) {
           self.iceConnectionState = newState;
@@ -1215,7 +1215,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         offerOptions = arguments[2];
       }
 
-      var mlines = [];
+      var tracks = [];
       var numAudioTracks = 0;
       var numVideoTracks = 0;
       // Default to sendrecv.
@@ -1249,7 +1249,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (this.localStreams.length) {
         // Push local streams.
         this.localStreams[0].getTracks().forEach(function(track) {
-          mlines.push({
+          tracks.push({
             kind: track.kind,
             track: track,
             wantReceive: track.kind === 'audio' ?
@@ -1265,14 +1265,14 @@ if (typeof window === 'undefined' || !window.navigator) {
       // Create M-lines for recvonly streams.
       while (numAudioTracks > 0 || numVideoTracks > 0) {
         if (numAudioTracks > 0) {
-          mlines.push({
+          tracks.push({
             kind: 'audio',
             wantReceive: true
           });
           numAudioTracks--;
         }
         if (numVideoTracks > 0) {
-          mlines.push({
+          tracks.push({
             kind: 'video',
             wantReceive: true
           });
@@ -1284,8 +1284,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           'o=thisisadapterortc 8169639915646943137 2 IN IP4 127.0.0.1\r\n' +
           's=-\r\n' +
           't=0 0\r\n';
-      var tracks = [];
-      mlines.forEach(function(mline, sdpMLineIndex) {
+      var mLines = [];
+      tracks.forEach(function(mline, sdpMLineIndex) {
         // For each track, create an ice gatherer, ice transport, dtls transport,
         // potentially rtpsender and rtpreceiver.
         var track = mline.track;
@@ -1308,7 +1308,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
         }
 
-        tracks[sdpMLineIndex] = {
+        mLines[sdpMLineIndex] = {
           iceGatherer: transports.iceGatherer,
           iceTransport: transports.iceTransport,
           dtlsTransport: transports.dtlsTransport,
@@ -1367,7 +1367,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       var desc = new RTCSessionDescription({
         type: 'offer',
         sdp: sdp,
-        ortc: tracks
+        ortc: mLines
       });
       if (arguments.length && typeof arguments[0] === 'function') {
         window.setTimeout(arguments[0], 0, desc);
@@ -1390,17 +1390,17 @@ if (typeof window === 'undefined' || !window.navigator) {
           'o=thisisadapterortc 8169639915646943137 2 IN IP4 127.0.0.1\r\n' +
           's=-\r\n' +
           't=0 0\r\n';
-      this.mLines.forEach(function(track/*, sdpMLineIndex*/) {
-        var iceGatherer = track.iceGatherer;
-        //var iceTransport = track.iceTransport;
-        var dtlsTransport = track.dtlsTransport;
-        var localCapabilities = track.localCapabilities;
-        var remoteCapabilities = track.remoteCapabilities;
-        var rtpSender = track.rtpSender;
-        var rtpReceiver = track.rtpReceiver;
-        var kind = track.kind;
-        var sendSSRC = track.sendSSRC;
-        //var recvSSRC = track.recvSSRC;
+      this.mLines.forEach(function(mLine/*, sdpMLineIndex*/) {
+        var iceGatherer = mLine.iceGatherer;
+        //var iceTransport = mLine.iceTransport;
+        var dtlsTransport = mLine.dtlsTransport;
+        var localCapabilities = mLine.localCapabilities;
+        var remoteCapabilities = mLine.remoteCapabilities;
+        var rtpSender = mLine.rtpSender;
+        var rtpReceiver = mLine.rtpReceiver;
+        var kind = mLine.kind;
+        var sendSSRC = mLine.sendSSRC;
+        //var recvSSRC = mLine.recvSSRC;
 
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(localCapabilities,
@@ -1423,7 +1423,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += self._dtlsParametersToSDP(dtlsTransport.getLocalParameters(),
             'active');
 
-        sdp += 'a=mid:' + track.mid + '\r\n';
+        sdp += 'a=mid:' + mLine.mid + '\r\n';
 
         if (rtpSender && rtpReceiver) {
           sdp += 'a=sendrecv\r\n';
@@ -1463,8 +1463,9 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
-      var track = this.mLines[candidate.sdpMLineIndex];
-      if (track) {
+      // TODO: lookup by mid
+      var mLine = this.mLines[candidate.sdpMLineIndex];
+      if (mLine) {
         var cand = Object.keys(candidate.candidate).length > 0 ?
             this._toCandidateJSON(candidate.candidate) : {};
         // dirty hack to make simplewebrtc work.
@@ -1476,7 +1477,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         if (cand.protocol === 'tcp' && cand.port === 0) {
           cand = {};
         }
-        track.iceTransport.addRemoteCandidate(cand);
+        mLine.iceTransport.addRemoteCandidate(cand);
       }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
@@ -1488,11 +1489,11 @@ if (typeof window === 'undefined' || !window.navigator) {
 
     window.RTCPeerConnection.prototype.getStats = function() {
       var promises = [];
-      this.mLines.forEach(function(track) {
+      this.mLines.forEach(function(mLine) {
         ['rtpSender', 'rtpReceiver', 'iceGatherer', 'iceTransport',
             'dtlsTransport'].forEach(function(thing) {
-          if (track[thing]) {
-            promises.push(track[thing].getStats());
+          if (mLine[thing]) {
+            promises.push(mLine[thing].getStats());
           }
         });
       });
