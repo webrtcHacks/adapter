@@ -871,7 +871,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         }
       };
       iceTransport.onicestatechange = function() {
-        self._updateIceConnectionState(iceTransport.state);
+        self._updateIceConnectionState();
       };
 
       var dtlsTransport = new RTCDtlsTransport(iceTransport);
