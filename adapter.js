@@ -572,6 +572,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     // SDP helper from sdp-jingle-json with modifications.
+    // https://github.com/otalk/sdp-jingle-json
     window.RTCPeerConnection.prototype._toCandidateJSON = function(line) {
       var parts;
       if (line.indexOf('a=candidate:') === 0) {
@@ -674,7 +675,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           kv = parts[j].split('=');
           parsed[kv[0].trim()] = kv[1];
         }
-        console.log('fmtp', mline[i], parsed);
         return parsed;
       };
       var rtcpFbFilter = function(line) {
