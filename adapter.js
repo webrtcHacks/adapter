@@ -486,8 +486,9 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcDetectedVersion =
     parseInt(navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)[2], 10);
 
-  // the minimum version still supported by adapter.
-  webrtcMinimumVersion = 12;
+  // The minimum version still supported by adapter.
+  // Build number since the major version is 12.
+  webrtcMinimumVersion = 10547;
 
   if (RTCIceGatherer) {
     window.RTCIceCandidate = function(args) {
