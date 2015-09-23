@@ -914,6 +914,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           var iceTransport = self.mLines[sdpMLineIndex].iceTransport;
           var dtlsTransport = self.mLines[sdpMLineIndex].dtlsTransport;
           var rtpSender = self.mLines[sdpMLineIndex].rtpSender;
+          var rtpReceiver = self.mLines[sdpMLineIndex].rtpReceiver;
           var localCapabilities =
               self.mLines[sdpMLineIndex].localCapabilities;
           var remoteCapabilities =
@@ -929,10 +930,10 @@ if (typeof window === 'undefined' || !window.navigator) {
               sessionpart);
           dtlsTransport.start(remoteDtlsParameters);
 
-          if (rtpSender) {
-            // calculate intersection of capabilities
-            var params = self._getCommonCapabilities(localCapabilities,
-                remoteCapabilities);
+          // calculate intersection of capabilities
+          var params = self._getCommonCapabilities(localCapabilities,
+              remoteCapabilities);
+          if (rtpSender && params.codecs.length) {
             params.muxId = sendSSRC;
             params.encodings = [self._getEncodingParameters(sendSSRC)];
             params.rtcp = {
@@ -942,6 +943,17 @@ if (typeof window === 'undefined' || !window.navigator) {
               mux: true
             };
             rtpSender.send(params);
+          }
+          if (rtpReceiver && params.codecs.length) {
+            params.muxId = recvSSRC;
+            params.encodings = [self._getEncodingParameters(recvSSRC)];
+            params.rtcp = {
+              cname: self._cname,
+              reducedSize: false,
+              ssrc: sendSSRC,
+              mux: true
+            };
+            rtpReceiver.receive(params);
           }
         });
       }
@@ -1025,19 +1037,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           }
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
-          // calculate intersection so no unknown caps get passed into the RTPReciver
-          params = self._getCommonCapabilities(localCapabilities,
-              remoteCapabilities);
-
-          params.muxId = recvSSRC;
-          params.encodings = [self._getEncodingParameters(recvSSRC)];
-          params.rtcp = {
-            cname: cname,
-            reducedSize: false,
-            ssrc: sendSSRC,
-            mux: true
-          };
-          rtpReceiver.receive(params);
           // FIXME: not correct when there are multiple streams but that is
           // not currently supported.
           stream.addTrack(rtpReceiver.track);
@@ -1406,6 +1405,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(localCapabilities,
             remoteCapabilities);
+        // FIXME: reject m-line if commonCapabilities.codecs is empty.
 
         // Map things to SDP.
         // Build the mline.
