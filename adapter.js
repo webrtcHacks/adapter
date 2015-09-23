@@ -504,7 +504,7 @@ try {
       webrtcDetectedVersion = version;
     }
   });
-} catch(e) {}
+} catch (e) {}
 
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
