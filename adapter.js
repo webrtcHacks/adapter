@@ -498,11 +498,13 @@ function requestUserMedia(constraints) {
 }
 
 var webrtcTesting = {};
-Object.defineProperty(webrtcTesting, 'version', {
-  set: function(version) {
-    webrtcDetectedVersion = version;
-  }
-});
+try {
+  Object.defineProperty(webrtcTesting, 'version', {
+    set: function(version) {
+      webrtcDetectedVersion = version;
+    }
+  });
+} catch(e) {}
 
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
