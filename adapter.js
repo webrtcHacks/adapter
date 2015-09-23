@@ -1296,14 +1296,15 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         var localCapabilities = RTCRtpSender.getCapabilities(kind);
         var rtpSender;
+        var rtpReceiver;
+
         // generate an ssrc now, to be used later in rtpSender.send
-        var sendSSRC = (2 * sdpMLineIndex + 1) * 1001; //Math.floor(Math.random()*4294967295);
+        var sendSSRC = (2 * sdpMLineIndex + 1) * 1001;
         var recvSSRC; // don't know yet
         if (track) {
           rtpSender = new RTCRtpSender(track, transports.dtlsTransport);
         }
 
-        var rtpReceiver;
         if (mline.wantReceive) {
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
         }
@@ -1440,8 +1441,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
         sdp += self._capabilitiesToSDP(commonCapabilities);
 
+        // Add a=ssrc lines from RTPSender.
         if (rtpSender) {
-          // add a=ssrc lines from RTPSender
           sdp += 'a=msid:' + self.localStreams[0].id + ' ' +
               rtpSender.track.id + '\r\n';
           sdp += 'a=ssrc:' + sendSSRC + ' ' + 'msid:' +
@@ -1453,7 +1454,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       var desc = new RTCSessionDescription({
         type: 'answer',
         sdp: sdp
-        // ortc: tracks -- state is created in SRD already
       });
       if (arguments.length && typeof arguments[0] === 'function') {
         window.setTimeout(arguments[0], 0, desc);
