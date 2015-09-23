@@ -475,7 +475,6 @@ test('basic connection establishment', function(t) {
   var pc2 = new RTCPeerConnection(null);
   var ended = false;
 
-  pc1.createDataChannel('somechannel');
   pc1.oniceconnectionstatechange = function() {
     if (pc1.iceConnectionState === 'connected' ||
         pc1.iceConnectionState === 'completed') {
@@ -507,59 +506,66 @@ test('basic connection establishment', function(t) {
     addCandidate(pc1, event);
   };
 
-  pc1.createOffer(
-    function(offer) {
-      t.pass('pc1.createOffer');
-      pc1.setLocalDescription(offer,
-        function() {
-          t.pass('pc1.setLocalDescription');
+  var constraints = {video: true, fake: true};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    pc1.addStream(stream);
 
-          offer = new RTCSessionDescription(offer);
-          t.pass('created RTCSessionDescription from offer');
-          pc2.setRemoteDescription(offer,
-            function() {
-              t.pass('pc2.setRemoteDescription');
-              pc2.createAnswer(
-                function(answer) {
-                  t.pass('pc2.createAnswer');
-                  pc2.setLocalDescription(answer,
-                    function() {
-                      t.pass('pc2.setLocalDescription');
-                      answer = new RTCSessionDescription(answer);
-                      t.pass('created RTCSessionDescription from answer');
-                      pc1.setRemoteDescription(answer,
-                        function() {
-                          t.pass('pc1.setRemoteDescription');
-                        },
-                        function(err) {
-                          t.fail('pc1.setRemoteDescription ' + err.toString());
-                        }
-                      );
-                    },
-                    function(err) {
-                      t.fail('pc2.setLocalDescription ' + err.toString());
-                    }
-                  );
-                },
-                function(err) {
-                  t.fail('pc2.createAnswer ' + err.toString());
-                }
-              );
-            },
-            function(err) {
-              t.fail('pc2.setRemoteDescription ' + err.toString());
-            }
-          );
-        },
-        function(err) {
-          t.fail('pc1.setLocalDescription ' + err.toString());
-        }
-      );
-    },
-    function(err) {
-      t.fail('pc1 failed to create offer ' + err.toString());
-    }
-  );
+    pc1.createOffer(
+      function(offer) {
+        t.pass('pc1.createOffer');
+        pc1.setLocalDescription(offer,
+          function() {
+            t.pass('pc1.setLocalDescription');
+
+            offer = new RTCSessionDescription(offer);
+            t.pass('created RTCSessionDescription from offer');
+            pc2.setRemoteDescription(offer,
+              function() {
+                t.pass('pc2.setRemoteDescription');
+                pc2.createAnswer(
+                  function(answer) {
+                    t.pass('pc2.createAnswer');
+                    pc2.setLocalDescription(answer,
+                      function() {
+                        t.pass('pc2.setLocalDescription');
+                        answer = new RTCSessionDescription(answer);
+                        t.pass('created RTCSessionDescription from answer');
+                        pc1.setRemoteDescription(answer,
+                          function() {
+                            t.pass('pc1.setRemoteDescription');
+                          },
+                          function(err) {
+                            t.fail('pc1.setRemoteDescription ' +
+                                err.toString());
+                          }
+                        );
+                      },
+                      function(err) {
+                        t.fail('pc2.setLocalDescription ' + err.toString());
+                      }
+                    );
+                  },
+                  function(err) {
+                    t.fail('pc2.createAnswer ' + err.toString());
+                  }
+                );
+              },
+              function(err) {
+                t.fail('pc2.setRemoteDescription ' + err.toString());
+              }
+            );
+          },
+          function(err) {
+            t.fail('pc1.setLocalDescription ' + err.toString());
+          }
+        );
+      },
+      function(err) {
+        t.fail('pc1 failed to create offer ' + err.toString());
+      }
+    );
+  });
 });
 
 test('basic connection establishment with promise', function(t) {
@@ -567,7 +573,6 @@ test('basic connection establishment with promise', function(t) {
   var pc2 = new RTCPeerConnection(null);
   var ended = false;
 
-  pc1.createDataChannel('somechannel');
   pc1.oniceconnectionstatechange = function() {
     if (pc1.iceConnectionState === 'connected' ||
         pc1.iceConnectionState === 'completed') {
@@ -594,6 +599,70 @@ test('basic connection establishment with promise', function(t) {
     addCandidate(pc1, event);
   };
 
+  var constraints = {video: true, fake: true};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    pc1.addStream(stream);
+    pc1.createOffer().then(function(offer) {
+      t.pass('pc1.createOffer');
+      return pc1.setLocalDescription(offer);
+    }).then(function() {
+      t.pass('pc1.setLocalDescription');
+      return pc2.setRemoteDescription(pc1.localDescription);
+    }).then(function() {
+      t.pass('pc2.setRemoteDescription');
+      return pc2.createAnswer();
+    }).then(function(answer) {
+      t.pass('pc2.createAnswer');
+      return pc2.setLocalDescription(answer);
+    }).then(function() {
+      t.pass('pc2.setLocalDescription');
+      return pc1.setRemoteDescription(pc2.localDescription);
+    }).then(function() {
+      t.pass('pc1.setRemoteDescription');
+    }).catch(function(err) {
+      t.fail(err.toString());
+    });
+  });
+});
+
+test('basic connection establishment with datachannel', function(t) {
+  var pc1 = new RTCPeerConnection(null);
+  var pc2 = new RTCPeerConnection(null);
+  var ended = false;
+  if (typeof pc1.createDataChannel !== 'function') {
+    t.pass('datachannel is not supported.');
+    t.end();
+    return;
+  }
+
+  pc1.oniceconnectionstatechange = function() {
+    if (pc1.iceConnectionState === 'connected' ||
+        pc1.iceConnectionState === 'completed') {
+      t.pass('P2P connection established');
+      if (!ended) {
+        ended = true;
+        t.end();
+      }
+    }
+  };
+
+  var addCandidate = function(pc, event) {
+    if (event.candidate) {
+      var cand = new RTCIceCandidate(event.candidate);
+      pc.addIceCandidate(cand).catch(function(err) {
+        t.fail('addIceCandidate ' + err.toString());
+      });
+    }
+  };
+  pc1.onicecandidate = function(event) {
+    addCandidate(pc2, event);
+  };
+  pc2.onicecandidate = function(event) {
+    addCandidate(pc1, event);
+  };
+
+  pc1.createDataChannel('somechannel');
   pc1.createOffer().then(function(offer) {
     t.pass('pc1.createOffer');
     return pc1.setLocalDescription(offer);
@@ -734,10 +803,12 @@ test('getStats promise', function(t) {
   t.ok(typeof q === 'object', 'getStats with a selector returns a Promise');
 });
 
-test('iceTransportPolicy is translated to iceTransports', function(t) {
+test('iceTransportPolicy relay functionality', function(t) {
+  // iceTransportPolicy is renamed to iceTransports in Chrome by
+  // adapter, this tests that when not setting any TURN server,
+  // no candidates are generated.
   if (m.webrtcDetectedBrowser === 'firefox') {
-    // not implemented yet.
-    t.pass('iceTransportPolicy is not implemented by Firefox yet.');
+    t.pass('iceTransportPolicy is not implemented in Firefox yet.');
     t.end();
     return;
   }
@@ -747,11 +818,10 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
   // Since we try to gather only relay candidates without specifying
   // a TURN server, we should not get any candidates.
   var candidates = [];
-  pc1.createDataChannel('somechannel');
   pc1.onicecandidate = function(event) {
     if (!event.candidate) {
       if (candidates.length === 0) {
-        t.pass('iceTransportPolicy was translated to iceTransport');
+        t.pass('no candidates were gathered.');
         t.end();
       } else {
         t.fail('got unexpected candidates. ' + JSON.stringify(candidates));
@@ -761,10 +831,15 @@ test('iceTransportPolicy is translated to iceTransports', function(t) {
     }
   };
 
-  pc1.createOffer().then(function(offer) {
-    return pc1.setLocalDescription(offer);
-  }).catch(function(err) {
-    t.fail(err.toString());
+  var constraints = {video: true, fake: true};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    pc1.addStream(stream);
+    pc1.createOffer().then(function(offer) {
+      return pc1.setLocalDescription(offer);
+    }).catch(function(err) {
+      t.fail(err.toString());
+    });
   });
 });
 
