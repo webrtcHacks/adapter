@@ -219,7 +219,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     var orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
     navigator.mediaDevices.enumerateDevices = function() {
-      return orgEnumerateDevices().catch(function(e) {
+      return orgEnumerateDevices().then(undefined, function(e) {
         if (e.name === 'NotFoundError') {
           return [];
         }
@@ -498,11 +498,13 @@ function requestUserMedia(constraints) {
 }
 
 var webrtcTesting = {};
-Object.defineProperty(webrtcTesting, 'version', {
-  set: function(version) {
-    webrtcDetectedVersion = version;
-  }
-});
+try {
+  Object.defineProperty(webrtcTesting, 'version', {
+    set: function(version) {
+      webrtcDetectedVersion = version;
+    }
+  });
+} catch (e) {}
 
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
