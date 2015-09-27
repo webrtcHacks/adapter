@@ -857,16 +857,29 @@ if (typeof window === 'undefined' || !window.navigator) {
         if (isEndOfCandidates) {
           event.candidate.candidate =
               'candidate:1 1 udp 1 0.0.0.0 9 typ endOfCandidates';
+          if (iceGatherer.state === undefined) { // polyfill
+            iceGatherer.state = 'completed';
+          }
         } else {
           // RTCIceCandidate doesn't have a component, needs to be added
           cand.component = iceTransport.component === 'RTCP' ? 2 : 1;
           event.candidate.candidate = self._toCandidateSDP(cand);
         }
         if (self.onicecandidate !== null) {
+          // Emit null candidate when all gatherers are complete.
+          var complete = self.mLines.every(function(mLine) {
+            return mLine.iceGatherer && mLine.iceGatherer.state === 'completed';
+          });
           if (self.localDescription && self.localDescription.type === '') {
             self._iceCandidates.push(event);
+            if (complete) {
+              self._iceCandidates.push({});
+            }
           } else {
             self.onicecandidate(event);
+            if (complete) {
+              self.onicecandidate({});
+            }
           }
         }
       };
