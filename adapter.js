@@ -1197,23 +1197,22 @@ if (typeof window === 'undefined' || !window.navigator) {
       this.mLines.forEach(function(mLine) {
         states[mLine.iceTransport.state]++;
       });
-      if (states.new + states.closed === this.mLines.length) {
-        newState = 'new';
-      }
-      if (states.new + states.checking > 0 && states.failed === 0) {
-        newState = 'connecting';
-      }
-      if (states.connected + states.completed > 0 &&
-          states.connected + states.completed + states.closed ===
-          this.mLines.length) {
-        newState = 'connected';
-      }
-      if (states.disconnected > 0 && (states.failed === 0 &&
-          states.connecting === 0 && states.checking === 0)) {
-        newState = 'disconnected';
-      }
+      // ICETransport.completed and connecte are the same for this purpose.
+      states.connected += states.completed;
+
+      newState = 'new';
       if (states.failed > 0) {
         newState = 'failed';
+      } else if (states.new + states.closed === this.mLines.length) {
+        newState = 'new';
+      } else if (states.connecting + states.checking > 0) {
+        newState = 'connecting';
+      } else if (states.connected > 0 &&
+          states.connected + states.closed === this.mLines.length) {
+        newState = 'connected';
+      } else if (states.disconnected > 0 &&
+          (states.connecting === 0 && states.checking === 0)) {
+        newState = 'disconnected';
       }
 
       if (newState !== self.iceConnectionState) {
