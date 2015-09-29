@@ -1196,19 +1196,20 @@ if (typeof window === 'undefined' || !window.navigator) {
       };
       this.mLines.forEach(function(mLine) {
         states[mLine.iceTransport.state]++;
+        states[mLine.dtlsTransport.state]++;
       });
-      // ICETransport.completed and connecte are the same for this purpose.
+      // ICETransport.completed and connected are the same for this purpose.
       states.connected += states.completed;
 
       newState = 'new';
       if (states.failed > 0) {
         newState = 'failed';
-      } else if (states.new + states.closed === this.mLines.length) {
+      } else if (states.new + states.closed === 2 * this.mLines.length) {
         newState = 'new';
       } else if (states.connecting + states.checking > 0) {
         newState = 'connecting';
       } else if (states.connected > 0 &&
-          states.connected + states.closed === this.mLines.length) {
+          states.connected + states.closed === 2 * this.mLines.length) {
         newState = 'connected';
       } else if (states.disconnected > 0 &&
           (states.connecting === 0 && states.checking === 0)) {
