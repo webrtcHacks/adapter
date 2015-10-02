@@ -487,7 +487,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     parseInt(navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)[2], 10);
 
   // The minimum version still supported by adapter.
-  // Build number since the major version is 12.
+  // This is the build number for Edge.
   webrtcMinimumVersion = 10547;
 
   if (RTCIceGatherer) {
