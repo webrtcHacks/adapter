@@ -828,17 +828,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       return {
         ssrc: ssrc,
         codecPayloadType: 0,
-        fec: 0,
-        rtx: 0,
-        priority: 1.0,
-        maxBitrate: 2000000.0,
-        minQuality: 0,
-        framerateBias: 0.5,
-        resolutionScale: 1.0,
-        framerateScale: 1.0,
-        active: true,
-        dependencyEncodingId: undefined,
-        encodingId: undefined
+        active: true
       };
     };
 
