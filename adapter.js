@@ -969,6 +969,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       case 'answer':
         this._updateSignalingState('stable');
         break;
+      default:
+        throw new TypeError('unsupported type "' + description.type + '"');
       }
 
       // FIXME: need to _reliably_ execute after args[1] or promise
@@ -1138,6 +1140,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       case 'answer':
         this._updateSignalingState('stable');
         break;
+      default:
+        throw new TypeError('unsupported type "' + description.type + '"');
       }
       window.setTimeout(function() {
         if (self.onaddstream !== null && stream.getTracks().length) {
