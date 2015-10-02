@@ -651,16 +651,16 @@ if (typeof window === 'undefined' || !window.navigator) {
       return parsed;
     };
 
-    // Parses SDP to determine capabilities.
+    // This function parses an SDP media section to determine capabilities.
     window.RTCPeerConnection.prototype._getRemoteCapabilities =
-        function(section) {
+        function(mediaSection) {
       var remoteCapabilities = {
         codecs: [],
         headerExtensions: [],
         fecMechanisms: []
       };
       var i;
-      var lines = section.split('\r\n');
+      var lines = mediaSection.split('\r\n');
       var mline = lines[0].substr(2).split(' ');
       var rtpmapFilter = function(line) {
         return line.indexOf('a=rtpmap:' + mline[i]) === 0;
