@@ -544,7 +544,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         this.iceOptions.iceServers = config.iceServers;
       }
 
-      // per-track iceGathers etc
+      // per-track iceGathers, iceTransports, dtlsTransports, rtpSenders, ...
+      // everything that is needed to describe a SDP m-line.
       this.mLines = [];
 
       this._iceCandidates = [];
@@ -874,19 +875,12 @@ if (typeof window === 'undefined' || !window.navigator) {
         }
       };
       iceTransport.onicestatechange = function() {
-        /*
-        console.log(self._peerConnectionId,
-            'ICE state change', iceTransport.state);
-        */
-        self._updateIceConnectionState(iceTransport.state);
+        self._updateIceConnectionState();
       };
 
       var dtlsTransport = new RTCDtlsTransport(iceTransport);
       dtlsTransport.ondtlsstatechange = function() {
-        /*
-        console.log(self._peerConnectionId, sdpMLineIndex,
-            'dtls state change', dtlsTransport.state);
-        */
+        //self._updateConnectionState();
       };
       dtlsTransport.onerror = function(error) {
         console.error('dtls error', error);
@@ -1194,21 +1188,45 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     // Update the ICE connection state.
-    // FIXME: should be called 'updateConnectionState', also be called for
-    //  DTLS changes and implement
-    //  https://lists.w3.org/Archives/Public/public-webrtc/2015Sep/0033.html
     window.RTCPeerConnection.prototype._updateIceConnectionState =
-        function(newState) {
+        function() {
       var self = this;
-      if (this.iceConnectionState !== newState) {
-        var agreement = self.mLines.every(function(mLine) {
-          return mLine.iceTransport.state === newState;
-        });
-        if (agreement) {
-          self.iceConnectionState = newState;
-          if (this.oniceconnectionstatechange !== null) {
-            this.oniceconnectionstatechange();
-          }
+      var newState;
+      var states = {
+        'new': 0,
+        closed: 0,
+        connecting: 0,
+        checking: 0,
+        connected: 0,
+        completed: 0,
+        failed: 0
+      };
+      this.mLines.forEach(function(mLine) {
+        states[mLine.iceTransport.state]++;
+        states[mLine.dtlsTransport.state]++;
+      });
+      // ICETransport.completed and connected are the same for this purpose.
+      states.connected += states.completed;
+
+      newState = 'new';
+      if (states.failed > 0) {
+        newState = 'failed';
+      } else if (states.new + states.closed === 2 * this.mLines.length) {
+        newState = 'new';
+      } else if (states.connecting + states.checking > 0) {
+        newState = 'connecting';
+      } else if (states.connected > 0 &&
+          states.connected + states.closed === 2 * this.mLines.length) {
+        newState = 'connected';
+      } else if (states.disconnected > 0 &&
+          (states.connecting === 0 && states.checking === 0)) {
+        newState = 'disconnected';
+      }
+
+      if (newState !== self.iceConnectionState) {
+        self.iceConnectionState = newState;
+        if (this.oniceconnectionstatechange !== null) {
+          this.oniceconnectionstatechange();
         }
       }
     };
