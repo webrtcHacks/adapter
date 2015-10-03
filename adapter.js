@@ -491,9 +491,148 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcMinimumVersion = 10547;
 
   if (RTCIceGatherer) {
+    // SDP helpers from https://github.com/otalk/sdp-jingle-json with modifications.
+    // Will be moved into separate module.
+    var SDPUtils = {};
+
+    // Parses an ICE candidate line. Sample input:
+    // candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8 rport 55996"
+    SDPUtils.parseCandidate = function(line) {
+      var parts;
+      // Parse both variants.
+      if (line.indexOf('a=candidate:') === 0) {
+        parts = line.substring(12).split(' ');
+      } else {
+        parts = line.substring(10).split(' ');
+      }
+
+      var candidate = {
+        foundation: parts[0],
+        component: parts[1],
+        protocol: parts[2].toLowerCase(),
+        priority: parseInt(parts[3], 10),
+        ip: parts[4],
+        port: parseInt(parts[5], 10),
+        // skip parts[6] == 'typ'
+        type: parts[7]
+      };
+
+      for (var i = 8; i < parts.length; i += 2) {
+        switch (parts[i]) {
+          case 'raddr':
+            candidate.relatedAddress = parts[i + 1];
+            break;
+          case 'rport':
+            candidate.relatedPort = parseInt(parts[i + 1], 10);
+            break;
+          case 'tcptype':
+            candidate.tcpType = parts[i + 1];
+            break;
+          default: // Unknown extensions are silently ignored.
+            break;
+        }
+      }
+      return candidate;
+    };
+
+    // Translates candidate object into SDP candidate attribute.
+    SDPUtils.writeCandidate = function(candidate) {
+      var sdp = [];
+      sdp.push(candidate.foundation);
+      sdp.push(candidate.component);
+      sdp.push(candidate.protocol.toUpperCase());
+      sdp.push(candidate.priority);
+      sdp.push(candidate.ip);
+      sdp.push(candidate.port);
+
+      var type = candidate.type;
+      sdp.push('typ');
+      sdp.push(type);
+      if (type !== 'host' && candidate.relatedAddress &&
+          candidate.relatedPort) {
+        sdp.push('raddr');
+        sdp.push(candidate.relatedAddress); // was: relAddr
+        sdp.push('rport');
+        sdp.push(candidate.relatedPort); // was: relPort
+      }
+      if (candidate.tcpType && candidate.protocol.toLowerCase() === 'tcp') {
+        sdp.push('tcptype');
+        sdp.push(candidate.tcpType);
+      }
+      return 'candidate:' + sdp.join(' ');
+    };
+
+    // SDP helper from sdp-jingle-json with modifications.
+    // Parses a rtpmap line, returns RTCRtpCoddecParameters. Sample input:
+    // a=rtpmap:111 opus/48000/2
+    SDPUtils.parseRtpMap = function(line) {
+      var parts = line.substr(9).split(' ');
+      var parsed = {
+        payloadType: parseInt(parts.shift(), 10) // was: id
+      };
+
+      parts = parts[0].split('/');
+
+      parsed.name = parts[0];
+      parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
+      parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1; // was: channels
+      return parsed;
+    };
+
+    // Extracts DTLS parameters from SDP section or sessionpart.
+    // FIXME: for consistency with other functions this should only
+    //   get the fingerprint line as input. See also getIceParameters.
+    SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
+      var lines = mediaSection.split('\r\n');
+      lines = lines.concat(sessionpart.split('\r\n')); // Search in session part, too.
+      var fpLine = lines.filter(function(line) {
+        return line.indexOf('a=fingerprint:') === 0;
+      });
+      fpLine = fpLine[0].substr(14);
+      var dtlsParameters = {
+        role: 'auto',
+        fingerprints: [{
+          algorithm: fpLine.split(' ')[0],
+          value: fpLine.split(' ')[1]
+        }]
+      };
+      return dtlsParameters;
+    };
+
+    // Serializes DTLS parameters to SDP.
+    SDPUtils.writeDtlsParameters = function(params, setupType) {
+      var sdp = 'a=setup:' + setupType + '\r\n';
+      params.fingerprints.forEach(function(fp) {
+        sdp += 'a=fingerprint:' + fp.algorithm + ' ' + fp.value + '\r\n';
+      });
+      return sdp;
+    };
+    // Parses ICE information from SDP section or sessionpart.
+    // FIXME: for consistency with other functions this should only
+    //   get the ice-ufrag and ice-pwd lines as input.
+    SDPUtils.getIceParameters = function(mediaSection, sessionpart) {
+      var lines = mediaSection.split('\r\n');
+      lines = lines.concat(sessionpart.split('\r\n')); // Search in session part, too.
+      var iceParameters = {
+        usernameFragment: lines.filter(function(line) {
+          return line.indexOf('a=ice-ufrag:') === 0;
+        })[0].substr(12),
+        password: lines.filter(function(line) {
+          return line.indexOf('a=ice-pwd:') === 0;
+        })[0].substr(10),
+      };
+      return iceParameters;
+    };
+
+    // Serializes ICE parameters to SDP.
+    SDPUtils.writeIceParameters = function(params) {
+      return 'a=ice-ufrag:' + params.usernameFragment + '\r\n' +
+          'a=ice-pwd:' + params.password + '\r\n';
+    };
+
     // ORTC defines an RTCIceCandidate object but no constructor.
     // Not implemented in Edge.
-    if (!RTCIceCandidate) {
+    if (!window.RTCIceCandidate) {
       window.RTCIceCandidate = function(args) {
         return args;
       };
@@ -501,7 +640,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     // ORTC does not have a session description object but
     // other browsers (i.e. Chrome) that will support both PC and ORTC
     // in the future might have this defined already.
-    if (!RTCSessionDescription) {
+    if (!window.RTCSessionDescription) {
       window.RTCSessionDescription = function(args) {
         return args;
       };
@@ -584,85 +723,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
     };
 
-    // SDP helper from sdp-jingle-json with modifications.
-    // https://github.com/otalk/sdp-jingle-json
-    window.RTCPeerConnection.prototype._toCandidateJSON = function(line) {
-      var parts;
-      if (line.indexOf('a=candidate:') === 0) {
-        parts = line.substring(12).split(' ');
-      } else { // no a=candidate
-        parts = line.substring(10).split(' ');
-      }
-
-      var candidate = {
-        foundation: parts[0],
-        component: parts[1],
-        protocol: parts[2].toLowerCase(),
-        priority: parseInt(parts[3], 10),
-        ip: parts[4],
-        port: parseInt(parts[5], 10),
-        // skip parts[6] == 'typ'
-        type: parts[7]
-        //generation: '0'
-      };
-
-      for (var i = 8; i < parts.length; i += 2) {
-        if (parts[i] === 'raddr') {
-          candidate.relatedAddress = parts[i + 1]; // was: relAddr
-        } else if (parts[i] === 'rport') {
-          candidate.relatedPort = parseInt(parts[i + 1], 10); // was: relPort
-        } else if (parts[i] === 'generation') {
-          candidate.generation = parts[i + 1];
-        } else if (parts[i] === 'tcptype') {
-          candidate.tcpType = parts[i + 1];
-        }
-      }
-      return candidate;
-    };
-
-    // SDP helper from sdp-jingle-json with modifications.
-    window.RTCPeerConnection.prototype._toCandidateSDP = function(candidate) {
-      var sdp = [];
-      sdp.push(candidate.foundation);
-      sdp.push(candidate.component);
-      sdp.push(candidate.protocol.toUpperCase());
-      sdp.push(candidate.priority);
-      sdp.push(candidate.ip);
-      sdp.push(candidate.port);
-
-      var type = candidate.type;
-      sdp.push('typ');
-      sdp.push(type);
-      if (type === 'srflx' || type === 'prflx' || type === 'relay') {
-        if (candidate.relatedAddress && candidate.relatedPort) {
-          sdp.push('raddr');
-          sdp.push(candidate.relatedAddress); // was: relAddr
-          sdp.push('rport');
-          sdp.push(candidate.relatedPort); // was: relPort
-        }
-      }
-      if (candidate.tcpType && candidate.protocol.toUpperCase() === 'TCP') {
-        sdp.push('tcptype');
-        sdp.push(candidate.tcpType);
-      }
-      return 'a=candidate:' + sdp.join(' ');
-    };
-
-    // SDP helper from sdp-jingle-json with modifications.
-    window.RTCPeerConnection.prototype._parseRtpMap = function(line) {
-      var parts = line.substr(9).split(' ');
-      var parsed = {
-        payloadType: parseInt(parts.shift(), 10) // was: id
-      };
-
-      parts = parts[0].split('/');
-
-      parsed.name = parts[0];
-      parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
-      parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1; // was: channels
-      return parsed;
-    };
-
     // This function parses an SDP media section to determine capabilities.
     window.RTCPeerConnection.prototype._getRemoteCapabilities =
         function(mediaSection) {
@@ -704,7 +764,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       for (i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
         var line = lines.filter(rtpmapFilter)[0];
         if (line) {
-          var codec = this._parseRtpMap(line);
+          var codec = SDPUtils.parseRtpMap(line);
 
           var fmtp = lines.filter(fmtpFilter);
           codec.parameters = fmtp.length ? parseFmtp(fmtp[0]) : {};
@@ -785,57 +845,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       return commonCapabilities;
     };
 
-    // Parses DTLS parameters from SDP section or sessionpart.
-    window.RTCPeerConnection.prototype._getDtlsParameters =
-        function(section, session) {
-      var lines = section.split('\r\n');
-      lines = lines.concat(session.split('\r\n')); // Search in session part, too.
-      var fpLine = lines.filter(function(line) {
-        return line.indexOf('a=fingerprint:') === 0;
-      });
-      fpLine = fpLine[0].substr(14);
-      var dtlsParameters = {
-        role: 'auto',
-        fingerprints: [{
-          algorithm: fpLine.split(' ')[0],
-          value: fpLine.split(' ')[1]
-        }]
-      };
-      return dtlsParameters;
-    };
-
-    // Serializes DTLS parameters to SDP.
-    window.RTCPeerConnection.prototype._dtlsParametersToSDP =
-        function(params, setupType) {
-      var sdp = 'a=setup:' + setupType + '\r\n';
-      params.fingerprints.forEach(function(fp) {
-        sdp += 'a=fingerprint:' + fp.algorithm + ' ' + fp.value + '\r\n';
-      });
-      return sdp;
-    };
-
-    // Parses ICE information from SDP section or sessionpart.
-    window.RTCPeerConnection.prototype._getIceParameters =
-        function(section, session) {
-      var lines = section.split('\r\n');
-      lines = lines.concat(session.split('\r\n')); // Search in session part, too.
-      var iceParameters = {
-        usernameFragment: lines.filter(function(line) {
-          return line.indexOf('a=ice-ufrag:') === 0;
-        })[0].substr(12),
-        password: lines.filter(function(line) {
-          return line.indexOf('a=ice-pwd:') === 0;
-        })[0].substr(10),
-      };
-      return iceParameters;
-    };
-
-    // Serializes ICE parameters to SDP.
-    window.RTCPeerConnection.prototype._iceParametersToSDP = function(params) {
-      return 'a=ice-ufrag:' + params.usernameFragment + '\r\n' +
-          'a=ice-pwd:' + params.password + '\r\n';
-    };
-
     window.RTCPeerConnection.prototype._getEncodingParameters = function(ssrc) {
       return {
         ssrc: ssrc,
@@ -865,7 +874,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         } else {
           // RTCIceCandidate doesn't have a component, needs to be added
           cand.component = iceTransport.component === 'RTCP' ? 2 : 1;
-          event.candidate.candidate = self._toCandidateSDP(cand);
+          event.candidate.candidate = SDPUtils.writeCandidate(cand);
         }
         if (self.onicecandidate !== null) {
           // Emit null candidate when all gatherers are complete.
@@ -927,14 +936,14 @@ if (typeof window === 'undefined' || !window.navigator) {
               self.mLines[sdpMLineIndex].localCapabilities;
           var remoteCapabilities =
               self.mLines[sdpMLineIndex].remoteCapabilities;
-          var sendSSRC = self.mLines[sdpMLineIndex].sendSSRC;
-          var recvSSRC = self.mLines[sdpMLineIndex].recvSSRC;
+          var sendSsrc = self.mLines[sdpMLineIndex].sendSsrc;
+          var recvSsrc = self.mLines[sdpMLineIndex].recvSsrc;
 
-          var remoteIceParameters = self._getIceParameters(section,
+          var remoteIceParameters = SDPUtils.getIceParameters(section,
               sessionpart);
           iceTransport.start(iceGatherer, remoteIceParameters, 'controlled');
 
-          var remoteDtlsParameters = self._getDtlsParameters(section,
+          var remoteDtlsParameters = SDPUtils.getDtlsParameters(section,
               sessionpart);
           dtlsTransport.start(remoteDtlsParameters);
 
@@ -942,23 +951,23 @@ if (typeof window === 'undefined' || !window.navigator) {
           var params = self._getCommonCapabilities(localCapabilities,
               remoteCapabilities);
           if (rtpSender && params.codecs.length) {
-            params.muxId = sendSSRC;
-            params.encodings = [self._getEncodingParameters(sendSSRC)];
+            params.muxId = sendSsrc;
+            params.encodings = [self._getEncodingParameters(sendSsrc)];
             params.rtcp = {
               cname: self._cname,
               reducedSize: false,
-              ssrc: recvSSRC,
+              ssrc: recvSsrc,
               mux: true
             };
             rtpSender.send(params);
           }
           if (rtpReceiver && params.codecs.length) {
-            params.muxId = recvSSRC;
-            params.encodings = [self._getEncodingParameters(recvSSRC)];
+            params.muxId = recvSsrc;
+            params.encodings = [self._getEncodingParameters(recvSsrc)];
             params.rtcp = {
               cname: self._cname,
               reducedSize: false,
-              ssrc: sendSSRC,
+              ssrc: sendSsrc,
               mux: true
             };
             rtpReceiver.receive(params);
@@ -1017,8 +1026,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         var dtlsTransport;
         var rtpSender;
         var rtpReceiver;
-        var sendSSRC;
-        var recvSSRC;
+        var sendSsrc;
+        var recvSsrc;
 
         var mid = lines.filter(function(line) {
           return line.indexOf('a=mid:') === 0;
@@ -1040,9 +1049,9 @@ if (typeof window === 'undefined' || !window.navigator) {
             return line.indexOf('a=ssrc:') === 0 &&
                 line.split(' ')[1].indexOf('cname:') === 0;
           });
-          sendSSRC = (2 * sdpMLineIndex + 2) * 1001;
+          sendSsrc = (2 * sdpMLineIndex + 2) * 1001;
           if (line) { // FIXME: alot of assumptions here
-            recvSSRC = line[0].split(' ')[0].split(':')[1];
+            recvSsrc = line[0].split(' ')[0].split(':')[1];
             cname = line[0].split(' ')[1].split(':')[1];
           }
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
@@ -1069,8 +1078,8 @@ if (typeof window === 'undefined' || !window.navigator) {
             rtpReceiver: rtpReceiver,
             kind: kind,
             mid: mid,
-            sendSSRC: sendSSRC,
-            recvSSRC: recvSSRC
+            sendSsrc: sendSsrc,
+            recvSsrc: recvSsrc
           };
         } else {
           iceGatherer = self.mLines[sdpMLineIndex].iceGatherer;
@@ -1078,12 +1087,13 @@ if (typeof window === 'undefined' || !window.navigator) {
           dtlsTransport = self.mLines[sdpMLineIndex].dtlsTransport;
           rtpSender = self.mLines[sdpMLineIndex].rtpSender;
           rtpReceiver = self.mLines[sdpMLineIndex].rtpReceiver;
-          sendSSRC = self.mLines[sdpMLineIndex].sendSSRC;
-          recvSSRC = self.mLines[sdpMLineIndex].recvSSRC;
+          sendSsrc = self.mLines[sdpMLineIndex].sendSsrc;
+          recvSsrc = self.mLines[sdpMLineIndex].recvSsrc;
         }
 
-        var remoteIceParameters = self._getIceParameters(section, sessionpart);
-        var remoteDtlsParameters = self._getDtlsParameters(section,
+        var remoteIceParameters = SDPUtils.getIceParameters(section,
+            sessionpart);
+        var remoteDtlsParameters = SDPUtils.getDtlsParameters(section,
             sessionpart);
 
         // for answers we start ice and dtls here, otherwise this is done in SLD
@@ -1097,12 +1107,12 @@ if (typeof window === 'undefined' || !window.navigator) {
 
           if (rtpSender) {
             params = remoteCapabilities;
-            params.muxId = sendSSRC;
-            params.encodings = [self._getEncodingParameters(sendSSRC)];
+            params.muxId = sendSsrc;
+            params.encodings = [self._getEncodingParameters(sendSsrc)];
             params.rtcp = {
               cname: self._cname,
               reducedSize: false,
-              ssrc: recvSSRC,
+              ssrc: recvSsrc,
               mux: true
             };
             rtpSender.send(params);
@@ -1118,21 +1128,21 @@ if (typeof window === 'undefined' || !window.navigator) {
                   line.split(' ')[1].indexOf('cname:') === 0;
             });
             if (line) { // FIXME: alot of assumptions here
-              recvSSRC = line[0].split(' ')[0].split(':')[1];
+              recvSsrc = line[0].split(' ')[0].split(':')[1];
               cname = line[0].split(' ')[1].split(':')[1];
             }
             params = remoteCapabilities;
-            params.muxId = recvSSRC;
-            params.encodings = [self._getEncodingParameters(recvSSRC)];
+            params.muxId = recvSsrc;
+            params.encodings = [self._getEncodingParameters(recvSsrc)];
             params.rtcp = {
               cname: cname,
               reducedSize: false,
-              ssrc: sendSSRC,
+              ssrc: sendSsrc,
               mux: true
             };
             rtpReceiver.receive(params, kind);
             stream.addTrack(rtpReceiver.track);
-            self.mLines[sdpMLineIndex].recvSSRC = recvSSRC;
+            self.mLines[sdpMLineIndex].recvSsrc = recvSsrc;
           }
         }
       });
@@ -1332,8 +1342,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         var rtpReceiver;
 
         // generate an ssrc now, to be used later in rtpSender.send
-        var sendSSRC = (2 * sdpMLineIndex + 1) * 1001;
-        var recvSSRC; // don't know yet
+        var sendSsrc = (2 * sdpMLineIndex + 1) * 1001;
+        var recvSsrc; // don't know yet
         if (track) {
           rtpSender = new RTCRtpSender(track, transports.dtlsTransport);
         }
@@ -1352,8 +1362,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           rtpReceiver: rtpReceiver,
           kind: kind,
           mid: mid,
-          sendSSRC: sendSSRC,
-          recvSSRC: recvSSRC
+          sendSsrc: sendSsrc,
+          recvSsrc: recvSsrc
         };
 
         // Map things to SDP.
@@ -1367,11 +1377,11 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
 
         // Map ICE parameters (ufrag, pwd) to SDP.
-        sdp += self._iceParametersToSDP(
+        sdp += SDPUtils.writeIceParameters(
             transports.iceGatherer.getLocalParameters());
 
         // Map DTLS parameters to SDP.
-        sdp += self._dtlsParametersToSDP(
+        sdp += SDPUtils.writeDtlsParameters(
             transports.dtlsTransport.getLocalParameters(), 'actpass');
 
         sdp += 'a=mid:' + mid + '\r\n';
@@ -1392,10 +1402,10 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         if (track) {
           sdp += 'a=msid:' + self.localStreams[0].id + ' ' + track.id + '\r\n';
-          sdp += 'a=ssrc:' + sendSSRC + ' ' + 'msid:' +
+          sdp += 'a=ssrc:' + sendSsrc + ' ' + 'msid:' +
               self.localStreams[0].id + ' ' + track.id + '\r\n';
         }
-        sdp += 'a=ssrc:' + sendSSRC + ' cname:' + self._cname + '\r\n';
+        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + self._cname + '\r\n';
       });
 
       var desc = new RTCSessionDescription({
@@ -1433,8 +1443,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         var rtpSender = mLine.rtpSender;
         var rtpReceiver = mLine.rtpReceiver;
         var kind = mLine.kind;
-        var sendSSRC = mLine.sendSSRC;
-        //var recvSSRC = mLine.recvSSRC;
+        var sendSsrc = mLine.sendSsrc;
+        //var recvSsrc = mLine.recvSsrc;
 
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(localCapabilities,
@@ -1452,11 +1462,11 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
 
         // Map ICE parameters (ufrag, pwd) to SDP.
-        sdp += self._iceParametersToSDP(iceGatherer.getLocalParameters());
+        sdp += SDPUtils.writeIceParameters(iceGatherer.getLocalParameters());
 
         // Map DTLS parameters to SDP.
-        sdp += self._dtlsParametersToSDP(dtlsTransport.getLocalParameters(),
-            'active');
+        sdp += SDPUtils.writeDtlsParameters(
+            dtlsTransport.getLocalParameters(), 'active');
 
         sdp += 'a=mid:' + mLine.mid + '\r\n';
 
@@ -1478,10 +1488,10 @@ if (typeof window === 'undefined' || !window.navigator) {
         if (rtpSender) {
           sdp += 'a=msid:' + self.localStreams[0].id + ' ' +
               rtpSender.track.id + '\r\n';
-          sdp += 'a=ssrc:' + sendSSRC + ' ' + 'msid:' +
+          sdp += 'a=ssrc:' + sendSsrc + ' ' + 'msid:' +
               self.localStreams[0].id + ' ' + rtpSender.track.id + '\r\n';
         }
-        sdp += 'a=ssrc:' + sendSSRC + ' cname:' + self._cname + '\r\n';
+        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + self._cname + '\r\n';
       });
 
       var desc = new RTCSessionDescription({
@@ -1501,7 +1511,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       var mLine = this.mLines[candidate.sdpMLineIndex];
       if (mLine) {
         var cand = Object.keys(candidate.candidate).length > 0 ?
-            this._toCandidateJSON(candidate.candidate) : {};
+            SDPUtils.parseCandidate(candidate.candidate) : {};
+
         // dirty hack to make simplewebrtc work.
         // FIXME: need another dirty hack to avoid adding candidates after this
         if (cand.type === 'endOfCandidates') {
