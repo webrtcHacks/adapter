@@ -491,6 +491,15 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcMinimumVersion = 10547;
 
   if (RTCIceGatherer) {
+    // Generate an alphanumeric identifier for cname or mids.
+    // TODO: use UUIDs instead? https://gist.github.com/jed/982883
+    var generateIdentifier = function() {
+      return Math.random().toString(36).substr(2, 10);
+    };
+
+    // The RTCP CNAME used by all peerconnections from the same JS.
+    var canonicalName = generateIdentifier();
+
     // SDP helpers from https://github.com/otalk/sdp-jingle-json with modifications.
     // Will be moved into separate module.
     var SDPUtils = {};
@@ -700,12 +709,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       // must not emit candidates until after setLocalDescription we buffer
       // them in this array.
       this._localIceCandidatesBuffer = [];
-
-      this._peerConnectionId = 'PC_' + Math.floor(Math.random() * 65536);
-
-      // FIXME: Should be generated according to spec (guid?)
-      // and be the same for all PCs from the same JS
-      this._cname = Math.random().toString(36).substr(2, 10);
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
@@ -960,7 +963,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             params.muxId = sendSsrc;
             params.encodings = [self._getEncodingParameters(sendSsrc)];
             params.rtcp = {
-              cname: self._cname,
+              cname: canonicalName,
               reducedSize: false,
               ssrc: recvSsrc,
               mux: true
@@ -971,7 +974,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             params.muxId = recvSsrc;
             params.encodings = [self._getEncodingParameters(recvSsrc)];
             params.rtcp = {
-              cname: self._cname,
+              cname: canonicalName,
               reducedSize: false,
               ssrc: sendSsrc,
               mux: true
@@ -1040,7 +1043,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         })[0].substr(6);
 
         var cname;
-
         var remoteCapabilities;
         var params;
 
@@ -1116,7 +1118,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             params.muxId = sendSsrc;
             params.encodings = [self._getEncodingParameters(sendSsrc)];
             params.rtcp = {
-              cname: self._cname,
+              cname: canonicalName,
               reducedSize: false,
               ssrc: recvSsrc,
               mux: true
@@ -1339,7 +1341,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         // potentially rtpsender and rtpreceiver.
         var track = mline.track;
         var kind = mline.kind;
-        var mid = Math.random().toString(36).substr(2, 10);
+        var mid = generateIdentifier();
 
         var transports = self._createIceAndDtlsTransports(mid, sdpMLineIndex);
 
@@ -1411,7 +1413,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           sdp += 'a=ssrc:' + sendSsrc + ' ' + 'msid:' +
               self.localStreams[0].id + ' ' + track.id + '\r\n';
         }
-        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + self._cname + '\r\n';
+        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + canonicalName + '\r\n';
       });
 
       var desc = new RTCSessionDescription({
@@ -1497,7 +1499,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           sdp += 'a=ssrc:' + sendSsrc + ' ' + 'msid:' +
               self.localStreams[0].id + ' ' + rtpSender.track.id + '\r\n';
         }
-        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + self._cname + '\r\n';
+        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + canonicalName + '\r\n';
       });
 
       var desc = new RTCSessionDescription({
