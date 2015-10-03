@@ -531,13 +531,13 @@ if (typeof window === 'undefined' || !window.navigator) {
       };
       if (config && config.iceTransportPolicy) {
         switch (config.iceTransportPolicy) {
-        case 'all':
-        case 'relay':
-          this.iceOptions.gatherPolicy = config.iceTransportPolicy;
-          break;
-        case 'none':
-          // FIXME: remove once implementation and spec have added this.
-          throw new TypeError('iceTransportPolicy "none" not supported');
+          case 'all':
+          case 'relay':
+            this.iceOptions.gatherPolicy = config.iceTransportPolicy;
+            break;
+          case 'none':
+            // FIXME: remove once implementation and spec have added this.
+            throw new TypeError('iceTransportPolicy "none" not supported');
         }
       }
       if (config && config.iceServers) {
@@ -957,14 +957,14 @@ if (typeof window === 'undefined' || !window.navigator) {
 
       this.localDescription = description;
       switch (description.type) {
-      case 'offer':
-        this._updateSignalingState('have-local-offer');
-        break;
-      case 'answer':
-        this._updateSignalingState('stable');
-        break;
-      default:
-        throw new TypeError('unsupported type "' + description.type + '"');
+        case 'offer':
+          this._updateSignalingState('have-local-offer');
+          break;
+        case 'answer':
+          this._updateSignalingState('stable');
+          break;
+        default:
+          throw new TypeError('unsupported type "' + description.type + '"');
       }
 
       // FIXME: need to _reliably_ execute after args[1] or promise
@@ -1128,14 +1128,14 @@ if (typeof window === 'undefined' || !window.navigator) {
 
       this.remoteDescription = description;
       switch (description.type) {
-      case 'offer':
-        this._updateSignalingState('have-remote-offer');
-        break;
-      case 'answer':
-        this._updateSignalingState('stable');
-        break;
-      default:
-        throw new TypeError('unsupported type "' + description.type + '"');
+        case 'offer':
+          this._updateSignalingState('have-remote-offer');
+          break;
+        case 'answer':
+          this._updateSignalingState('stable');
+          break;
+        default:
+          throw new TypeError('unsupported type "' + description.type + '"');
       }
       window.setTimeout(function() {
         if (self.onaddstream !== null && stream.getTracks().length) {
