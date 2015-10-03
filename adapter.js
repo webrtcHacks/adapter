@@ -557,7 +557,10 @@ if (typeof window === 'undefined' || !window.navigator) {
       // everything that is needed to describe a SDP m-line.
       this.mLines = [];
 
-      this._iceCandidates = [];
+      // since the iceGatherer is currently created in createOffer but we
+      // must not emit candidates until after setLocalDescription we buffer
+      // them in this array.
+      this._localIceCandidatesBuffer = [];
 
       this._peerConnectionId = 'PC_' + Math.floor(Math.random() * 65536);
 
@@ -870,9 +873,9 @@ if (typeof window === 'undefined' || !window.navigator) {
             return mLine.iceGatherer && mLine.iceGatherer.state === 'completed';
           });
           if (self.localDescription && self.localDescription.type === '') {
-            self._iceCandidates.push(event);
+            self._localIceCandidatesBuffer.push(event);
             if (complete) {
-              self._iceCandidates.push({});
+              self._localIceCandidatesBuffer.push({});
             }
           } else {
             self.onicecandidate(event);
@@ -978,12 +981,12 @@ if (typeof window === 'undefined' || !window.navigator) {
       // FIXME: need to _reliably_ execute after args[1] or promise
       window.setTimeout(function() {
         // FIXME: need to apply ice candidates in a way which is async but in-order
-        self._iceCandidates.forEach(function(event) {
+        self._localIceCandidatesBuffer.forEach(function(event) {
           if (self.onicecandidate !== null) {
             self.onicecandidate(event);
           }
         });
-        self._iceCandidates = [];
+        self._localIceCandidatesBuffer = [];
       }, 50);
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
