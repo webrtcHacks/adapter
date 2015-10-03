@@ -491,12 +491,21 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcMinimumVersion = 10547;
 
   if (RTCIceGatherer) {
-    window.RTCIceCandidate = function(args) {
-      return args;
-    };
-    window.RTCSessionDescription = function(args) {
-      return args;
-    };
+    // ORTC defines an RTCIceCandidate object but no constructor.
+    // Not implemented in Edge.
+    if (!RTCIceCandidate) {
+      window.RTCIceCandidate = function(args) {
+        return args;
+      };
+    }
+    // ORTC does not have a session description object but
+    // other browsers (i.e. Chrome) that will support both PC and ORTC
+    // in the future might have this defined already.
+    if (!RTCSessionDescription) {
+      window.RTCSessionDescription = function(args) {
+        return args;
+      };
+    }
 
     window.RTCPeerConnection = function(config) {
       var self = this;
