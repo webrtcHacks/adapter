@@ -570,16 +570,15 @@ if (typeof window === 'undefined' || !window.navigator) {
       // clone just in case we're working in a local demo
       // FIXME: seems to be fixed
       this.localStreams.push(stream.clone());
-
-      // FIXME: maybe trigger negotiationneeded?
+      this._maybeFireNegotiationNeeded();
     };
 
     window.RTCPeerConnection.prototype.removeStream = function(stream) {
       var idx = this.localStreams.indexOf(stream);
       if (idx > -1) {
         this.localStreams.splice(idx, 1);
+        this._maybeFireNegotiationNeeded();
       }
-      // FIXME: maybe trigger negotiationneeded?
     };
 
     // SDP helper from sdp-jingle-json with modifications.
@@ -1194,6 +1193,12 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (this.onsignalingstatechange !== null) {
         this.onsignalingstatechange();
       }
+    };
+
+    // Determine whether to fire the negotiationneeded event.
+    window.RTCPeerConnection.prototype._maybeFireNegotiationNeeded =
+        function() {
+      // TODO
     };
 
     // Update the ICE connection state.
