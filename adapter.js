@@ -866,11 +866,17 @@ if (typeof window === 'undefined' || !window.navigator) {
         var cand = evt.candidate;
         var isEndOfCandidates = !(cand && Object.keys(cand).length > 0);
         if (isEndOfCandidates) {
-          event.candidate.candidate =
-              'candidate:1 1 udp 1 0.0.0.0 9 typ endOfCandidates';
-          if (iceGatherer.state === undefined) { // polyfill
+          // polyfill since RTCIceGatherer.state is not implemented in Edge 10547 yet.
+          if (iceGatherer.state === undefined) {
             iceGatherer.state = 'completed';
           }
+
+          // Emit a candidate with type endOfCandidates to make the samples work.
+          // Edge requires addIceCandidate with this empty candidate to start checking.
+          // The real solution is to signal end-of-candidates to the other side when
+          // getting the null candidate but some apps (like the samples) don't do that.
+          event.candidate.candidate =
+              'candidate:1 1 udp 1 0.0.0.0 9 typ endOfCandidates';
         } else {
           // RTCIceCandidate doesn't have a component, needs to be added
           cand.component = iceTransport.component === 'RTCP' ? 2 : 1;
@@ -1513,14 +1519,13 @@ if (typeof window === 'undefined' || !window.navigator) {
         var cand = Object.keys(candidate.candidate).length > 0 ?
             SDPUtils.parseCandidate(candidate.candidate) : {};
 
-        // dirty hack to make simplewebrtc work.
-        // FIXME: need another dirty hack to avoid adding candidates after this
+        // A dirty hack to make samples work.
         if (cand.type === 'endOfCandidates') {
           cand = {};
         }
-        // dirty hack to make chrome work.
+        // Ignore Chrome's invalid candidates since Edge does not like them.
         if (cand.protocol === 'tcp' && cand.port === 0) {
-          cand = {};
+          return;
         }
         mLine.iceTransport.addRemoteCandidate(cand);
       }
