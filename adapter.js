@@ -1259,25 +1259,16 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       // Determine number of audio and video tracks we need to send/recv.
       if (offerOptions) {
-        // Deal with Chrome legacy constraints...
-        if (offerOptions.mandatory) {
-          if (offerOptions.mandatory.OfferToReceiveAudio) {
-            numAudioTracks = 1;
-          } else if (offerOptions.mandatory.OfferToReceiveAudio === false) {
-            numAudioTracks = 0;
-          }
-          if (offerOptions.mandatory.OfferToReceiveVideo) {
-            numVideoTracks = 1;
-          } else if (offerOptions.mandatory.OfferToReceiveVideo === false) {
-            numVideoTracks = 0;
-          }
-        } else {
-          if (offerOptions.offerToReceiveAudio !== undefined) {
-            numAudioTracks = offerOptions.offerToReceiveAudio;
-          }
-          if (offerOptions.offerToReceiveVideo !== undefined) {
-            numVideoTracks = offerOptions.offerToReceiveVideo;
-          }
+        // Reject Chrome legacy constraints.
+        if (offerOptions.mandatory || offerOptions.optional) {
+          throw new TypeError(
+              'Legacy mandatory/optional constraints not supported.');
+        }
+        if (offerOptions.offerToReceiveAudio !== undefined) {
+          numAudioTracks = offerOptions.offerToReceiveAudio;
+        }
+        if (offerOptions.offerToReceiveVideo !== undefined) {
+          numVideoTracks = offerOptions.offerToReceiveVideo;
         }
       }
       if (this.localStreams.length) {
