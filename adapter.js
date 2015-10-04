@@ -744,6 +744,46 @@ if (typeof window === 'undefined' || !window.navigator) {
           'a=ice-pwd:' + params.password + '\r\n';
     };
 
+    // Parses the SDP media section and return RTCRtpParameters.
+    SDPUtils.parseRtpDescription = function(mediaSection) {
+      var description = {
+        codecs: [],
+        headerExtensions: [],
+        fecMechanisms: [],
+        rtcp: []
+      };
+      var lines = SDPUtils.splitLines(mediaSection);
+      var mline = lines[0].substr(2).split(' ');
+      for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
+        var line = SDPUtils.matchPrefix(
+            mediaSection, 'a=rtpmap:' + mline[i] + ' ')[0];
+        if (line) {
+          var codec = SDPUtils.parseRtpMap(line);
+          var fmtp = SDPUtils.matchPrefix(
+              mediaSection, 'a=fmtp:' + mline[i] + ' ');
+          codec.parameters = fmtp.length ? SDPUtils.parseFmtp(fmtp[0]) : {};
+          codec.rtcpFeedback = SDPUtils.matchPrefix(
+              mediaSection, 'a=rtcp-fb:' + mline[i] + ' ')
+            .map(SDPUtils.parseRtcpFb);
+          description.codecs.push(codec);
+        }
+      }
+      // FIXME: parse headerExtensions, fecMechanisms and rtcp.
+      return description;
+    };
+
+    // Generates parts of the SDP media section describing the capabilities / parameters.
+    SDPUtils.writeRtpDescription = function(caps) {
+      var sdp = '';
+      caps.codecs.forEach(function(codec) {
+        sdp += SDPUtils.writeRtpMap(codec);
+        sdp += SDPUtils.writeFtmp(codec);
+        sdp += SDPUtils.writeRtcpFb(codec);
+      });
+      // FIXME: add headerExtensions, fecMechanismş and rtcp.
+      return sdp;
+    };
+
     // ORTC defines an RTCIceCandidate object but no constructor.
     // Not implemented in Edge.
     if (!window.RTCIceCandidate) {
@@ -840,44 +880,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         this.localStreams.splice(idx, 1);
         this._maybeFireNegotiationNeeded();
       }
-    };
-
-    // This function parses an SDP media section to determine capabilities.
-    window.RTCPeerConnection.prototype._getRemoteCapabilities =
-        function(mediaSection) {
-      var remoteCapabilities = {
-        codecs: [],
-        headerExtensions: [],
-        fecMechanisms: []
-      };
-      var lines = SDPUtils.splitLines(mediaSection);
-      var mline = lines[0].substr(2).split(' ');
-      for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
-        var line = SDPUtils.matchPrefix(
-            mediaSection, 'a=rtpmap:' + mline[i] + ' ')[0];
-        if (line) {
-          var codec = SDPUtils.parseRtpMap(line);
-          var fmtp = SDPUtils.matchPrefix(
-              mediaSection, 'a=fmtp:' + mline[i] + ' ');
-          codec.parameters = fmtp.length ? SDPUtils.parseFmtp(fmtp[0]) : {};
-          codec.rtcpFeedback = SDPUtils.matchPrefix(
-              mediaSection, 'a=rtcp-fb:' + mline[i] + ' ')
-            .map(SDPUtils.parseRtcpFb);
-          remoteCapabilities.codecs.push(codec);
-        }
-      }
-      return remoteCapabilities;
-    };
-
-    // Serializes capabilities to SDP.
-    window.RTCPeerConnection.prototype._capabilitiesToSDP = function(caps) {
-      var sdp = '';
-      caps.codecs.forEach(function(codec) {
-        sdp += SDPUtils.writeRtpMap(codec);
-        sdp += SDPUtils.writeFtmp(codec);
-        sdp += SDPUtils.writeRtcpFb(codec);
-      });
-      return sdp;
     };
 
     // Calculates the intersection of local and remote capabilities.
@@ -1108,6 +1110,12 @@ if (typeof window === 'undefined' || !window.navigator) {
         var sendSsrc;
         var recvSsrc;
 
+        var remoteCapabilities = SDPUtils.parseRtpDescription(mediaSection);
+        var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
+            sessionpart);
+        var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
+            sessionpart);
+
         var mid = lines.filter(function(line) {
           return line.indexOf('a=mid:') === 0;
         })[0].substr(6);
@@ -1125,9 +1133,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           recvSsrc = remoteSsrc.ssrc;
           cname = remoteSsrc.value;
         }
-
-        // determine remote caps from SDP
-        var remoteCapabilities = self._getRemoteCapabilities(mediaSection);
 
         if (description.type === 'offer') {
           var transports = self._createIceAndDtlsTransports(mid, sdpMLineIndex);
@@ -1172,11 +1177,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           sendSsrc = transceiver.sendSsrc;
           //recvSsrc = transceiver.recvSsrc;
         }
-
-        var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
-            sessionpart);
-        var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
-            sessionpart);
 
         // for answers we start ice and dtls here, otherwise this is done in SLD
         if (description.type === 'answer') {
@@ -1461,6 +1461,9 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += 'c=IN IP4 0.0.0.0\r\n';
         sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
 
+        // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
+        sdp += SDPUtils.writeRtpDescription(localCapabilities);
+
         // Map ICE parameters (ufrag, pwd) to SDP.
         sdp += SDPUtils.writeIceParameters(
             transports.iceGatherer.getLocalParameters());
@@ -1482,14 +1485,12 @@ if (typeof window === 'undefined' || !window.navigator) {
         }
         sdp += 'a=rtcp-mux\r\n';
 
-        // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
-        sdp += self._capabilitiesToSDP(localCapabilities);
-
         if (track) {
           sdp += 'a=msid:' + self.localStreams[0].id + ' ' + track.id + '\r\n';
           sdp += 'a=ssrc:' + sendSsrc + ' ' + 'msid:' +
               self.localStreams[0].id + ' ' + track.id + '\r\n';
         }
+        // FIXME: this should be written by writeRtpDescription.
         sdp += 'a=ssrc:' + sendSsrc + ' cname:' + canonicalName + '\r\n';
       });
 
@@ -1546,6 +1547,9 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += 'c=IN IP4 0.0.0.0\r\n';
         sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
 
+        // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
+        sdp += SDPUtils.writeRtpDescription(commonCapabilities);
+
         // Map ICE parameters (ufrag, pwd) to SDP.
         sdp += SDPUtils.writeIceParameters(iceGatherer.getLocalParameters());
 
@@ -1566,9 +1570,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         }
         sdp += 'a=rtcp-mux\r\n';
 
-        // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
-        sdp += self._capabilitiesToSDP(commonCapabilities);
-
         // Add a=ssrc lines from RTPSender.
         if (rtpSender) {
           sdp += 'a=msid:' + self.localStreams[0].id + ' ' +
@@ -1576,6 +1577,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           sdp += 'a=ssrc:' + sendSsrc + ' ' + 'msid:' +
               self.localStreams[0].id + ' ' + rtpSender.track.id + '\r\n';
         }
+        // FIXME: this should be written by writeRtpDescription.
         sdp += 'a=ssrc:' + sendSsrc + ' cname:' + canonicalName + '\r\n';
       });
 
