@@ -935,18 +935,16 @@ if (typeof window === 'undefined' || !window.navigator) {
         var sessionpart = sections.shift();
         sections.forEach(function(section, sdpMLineIndex) {
           section = 'm=' + section;
-
-          var iceGatherer = self.mLines[sdpMLineIndex].iceGatherer;
-          var iceTransport = self.mLines[sdpMLineIndex].iceTransport;
-          var dtlsTransport = self.mLines[sdpMLineIndex].dtlsTransport;
-          var rtpSender = self.mLines[sdpMLineIndex].rtpSender;
-          var rtpReceiver = self.mLines[sdpMLineIndex].rtpReceiver;
-          var localCapabilities =
-              self.mLines[sdpMLineIndex].localCapabilities;
-          var remoteCapabilities =
-              self.mLines[sdpMLineIndex].remoteCapabilities;
-          var sendSsrc = self.mLines[sdpMLineIndex].sendSsrc;
-          var recvSsrc = self.mLines[sdpMLineIndex].recvSsrc;
+          var transceiver = self.mLines[sdpMLineIndex];
+          var iceGatherer = transceiver.iceGatherer;
+          var iceTransport = transceiver.iceTransport;
+          var dtlsTransport = transceiver.dtlsTransport;
+          var rtpSender = transceiver.rtpSender;
+          var rtpReceiver = transceiver.rtpReceiver;
+          var localCapabilities = transceiver.localCapabilities;
+          var remoteCapabilities = transceiver.remoteCapabilities;
+          var sendSsrc = transceiver.sendSsrc;
+          var recvSsrc = transceiver.recvSsrc;
 
           var remoteIceParameters = SDPUtils.getIceParameters(section,
               sessionpart);
@@ -1030,6 +1028,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         var kind = mline[0];
         var line;
 
+        var transceiver;
         var iceGatherer;
         var iceTransport;
         var dtlsTransport;
@@ -1090,13 +1089,14 @@ if (typeof window === 'undefined' || !window.navigator) {
             recvSsrc: recvSsrc
           };
         } else {
-          iceGatherer = self.mLines[sdpMLineIndex].iceGatherer;
-          iceTransport = self.mLines[sdpMLineIndex].iceTransport;
-          dtlsTransport = self.mLines[sdpMLineIndex].dtlsTransport;
-          rtpSender = self.mLines[sdpMLineIndex].rtpSender;
-          rtpReceiver = self.mLines[sdpMLineIndex].rtpReceiver;
-          sendSsrc = self.mLines[sdpMLineIndex].sendSsrc;
-          recvSsrc = self.mLines[sdpMLineIndex].recvSsrc;
+          transceiver = self.mLines[sdpMLineIndex];
+          iceGatherer = transceiver.iceGatherer;
+          iceTransport = transceiver.iceTransport;
+          dtlsTransport = transceiver.dtlsTransport;
+          rtpSender = transceiver.rtpSender;
+          rtpReceiver = transceiver.rtpReceiver;
+          sendSsrc = transceiver.sendSsrc;
+          recvSsrc = transceiver.recvSsrc;
         }
 
         var remoteIceParameters = SDPUtils.getIceParameters(section,
