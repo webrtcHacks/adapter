@@ -1049,7 +1049,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           if (rtpSender && params.codecs.length) {
             params.encodings = [{
               ssrc: sendSsrc,
-              codecPayloadType: 0,
               active: true
             }];
             params.rtcp = {
@@ -1061,7 +1060,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           if (rtpReceiver && params.codecs.length) {
             params.encodings = [{
               ssrc: recvSsrc,
-              codecPayloadType: 0,
               active: true
             }];
             params.rtcp = {
@@ -1199,7 +1197,6 @@ if (typeof window === 'undefined' || !window.navigator) {
             params = remoteCapabilities;
             params.encodings = [{
               ssrc: sendSsrc,
-              codecPayloadType: 0,
               active: true
             }];
             params.rtcp = {
@@ -1222,7 +1219,6 @@ if (typeof window === 'undefined' || !window.navigator) {
             params = remoteCapabilities;
             params.encodings = [{
               ssrc: recvSsrc,
-              codecPayloadType: 0,
               active: true
             }];
             params.rtcp = {
