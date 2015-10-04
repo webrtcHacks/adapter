@@ -498,7 +498,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     // The RTCP CNAME used by all peerconnections from the same JS.
-    var canonicalName = generateIdentifier();
+    var localCName = generateIdentifier();
 
     // SDP helpers from https://github.com/otalk/sdp-jingle-json with modifications.
     // Will be moved into separate module.
@@ -798,6 +798,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += SDPUtils.writeRtcpFb(codec);
       });
       // FIXME: add headerExtensions, fecMechanismş and rtcp.
+      sdp += 'a=rtcp-mux\r\n';
       return sdp;
     };
 
@@ -1046,32 +1047,26 @@ if (typeof window === 'undefined' || !window.navigator) {
           var params = self._getCommonCapabilities(localCapabilities,
               remoteCapabilities);
           if (rtpSender && params.codecs.length) {
-            params.muxId = sendSsrc;
             params.encodings = [{
               ssrc: sendSsrc,
               codecPayloadType: 0,
               active: true
             }];
             params.rtcp = {
-              cname: canonicalName,
-              reducedSize: false,
-              ssrc: recvSsrc,
-              mux: true
+              cname: localCName,
+              ssrc: recvSsrc
             };
             rtpSender.send(params);
           }
           if (rtpReceiver && params.codecs.length) {
-            params.muxId = recvSsrc;
             params.encodings = [{
               ssrc: recvSsrc,
               codecPayloadType: 0,
               active: true
             }];
             params.rtcp = {
-              cname: canonicalName,
-              reducedSize: false,
-              ssrc: sendSsrc,
-              mux: true
+              cname: localCName,
+              ssrc: sendSsrc
             };
             rtpReceiver.receive(params);
           }
@@ -1202,17 +1197,14 @@ if (typeof window === 'undefined' || !window.navigator) {
 
           if (rtpSender) {
             params = remoteCapabilities;
-            params.muxId = sendSsrc;
             params.encodings = [{
               ssrc: sendSsrc,
               codecPayloadType: 0,
               active: true
             }];
             params.rtcp = {
-              cname: canonicalName,
-              reducedSize: false,
-              ssrc: recvSsrc,
-              mux: true
+              cname: localCName,
+              ssrc: recvSsrc
             };
             rtpSender.send(params);
           }
@@ -1228,7 +1220,6 @@ if (typeof window === 'undefined' || !window.navigator) {
             }
 
             params = remoteCapabilities;
-            params.muxId = recvSsrc;
             params.encodings = [{
               ssrc: recvSsrc,
               codecPayloadType: 0,
@@ -1236,9 +1227,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             }];
             params.rtcp = {
               cname: cname,
-              reducedSize: false,
-              ssrc: sendSsrc,
-              mux: true
+              ssrc: sendSsrc
             };
             rtpReceiver.receive(params, kind);
             stream.addTrack(rtpReceiver.track);
@@ -1489,7 +1478,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         } else {
           sdp += 'a=inactive\r\n';
         }
-        sdp += 'a=rtcp-mux\r\n';
 
         if (track) {
           sdp += 'a=msid:' + self.localStreams[0].id + ' ' + track.id + '\r\n';
@@ -1497,7 +1485,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               self.localStreams[0].id + ' ' + track.id + '\r\n';
         }
         // FIXME: this should be written by writeRtpDescription.
-        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + canonicalName + '\r\n';
+        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + localCName + '\r\n';
       });
 
       var desc = new RTCSessionDescription({
@@ -1561,7 +1549,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         } else {
           sdp += 'a=inactive\r\n';
         }
-        sdp += 'a=rtcp-mux\r\n';
 
         // Add a=ssrc lines from RTPSender.
         if (rtpSender) {
@@ -1571,7 +1558,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               self.localStreams[0].id + ' ' + rtpSender.track.id + '\r\n';
         }
         // FIXME: this should be written by writeRtpDescription.
-        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + canonicalName + '\r\n';
+        sdp += 'a=ssrc:' + sendSsrc + ' cname:' + localCName + '\r\n';
       });
 
       var desc = new RTCSessionDescription({
