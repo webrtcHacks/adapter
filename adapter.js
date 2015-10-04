@@ -519,6 +519,13 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
     };
 
+    // Returns lines that start with a certain prefix.
+    SDPUtils.matchPrefix = function(blob, prefix) {
+      return SDPUtils.splitLines(blob).filter(function(line) {
+        return line.indexOf(prefix) === 0;
+      });
+    };
+
     // Parses an ICE candidate line. Sample input:
     // candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8 rport 55996"
     SDPUtils.parseCandidate = function(line) {
@@ -612,6 +619,20 @@ if (typeof window === 'undefined' || !window.navigator) {
           (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
     };
 
+    // Parses a ftmp line, returns dictionary. Sample input:
+    // a=fmtp:96 vbr=on;cng=on
+    // Also deals with vbr=on; cng=on
+    SDPUtils.parseFmtp = function(line) {
+      var parsed = {};
+      var kv;
+      var parts = line.substr(line.indexOf(' ') + 1).split(';');
+      for (var j = 0; j < parts.length; j++) {
+        kv = parts[j].trim().split('=');
+        parsed[kv[0].trim()] = kv[1];
+      }
+      return parsed;
+    };
+
     // Generate a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
     SDPUtils.writeFtmp = function(codec) {
       var line = '';
@@ -629,6 +650,15 @@ if (typeof window === 'undefined' || !window.navigator) {
       return line;
     };
 
+    // Parses a rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
+    // a=rtcp-fb:98 nack rpsi
+    SDPUtils.parseRtcpFb = function(line) {
+      var parts = line.substr(line.indexOf(' ') + 1).split(' ');
+      return {
+        type: parts.shift(),
+        parameter: parts.join(' ')
+      };
+    };
     // Generate a=rtcp-fb lines from RTCRtpCodecCapability or RTCRtpCodecParameters.
     SDPUtils.writeRtcpFb = function(codec) {
       var lines = '';
@@ -803,45 +833,19 @@ if (typeof window === 'undefined' || !window.navigator) {
         headerExtensions: [],
         fecMechanisms: []
       };
-      var i;
       var lines = SDPUtils.splitLines(mediaSection);
       var mline = lines[0].substr(2).split(' ');
-      var rtpmapFilter = function(line) {
-        return line.indexOf('a=rtpmap:' + mline[i]) === 0;
-      };
-      var fmtpFilter = function(line) {
-        return line.indexOf('a=fmtp:' + mline[i]) === 0;
-      };
-      var parseFmtp = function(line) {
-        var parsed = {};
-        var kv;
-        var parts = line.substr(('a=fmtp:' + mline[i]).length + 1).split(';');
-        for (var j = 0; j < parts.length; j++) {
-          kv = parts[j].split('=');
-          parsed[kv[0].trim()] = kv[1];
-        }
-        return parsed;
-      };
-      var rtcpFbFilter = function(line) {
-        return line.indexOf('a=rtcp-fb:' + mline[i]) === 0;
-      };
-      var parseRtcpFb = function(line) {
-        var parts = line.substr(('a=rtcp-fb:' + mline[i]).length + 1)
-            .split(' ');
-        return {
-          type: parts.shift(),
-          parameter: parts.join(' ')
-        };
-      };
-      for (i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
-        var line = lines.filter(rtpmapFilter)[0];
+      for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
+        var line = SDPUtils.matchPrefix(
+            mediaSection, 'a=rtpmap:' + mline[i] + ' ')[0];
         if (line) {
           var codec = SDPUtils.parseRtpMap(line);
-
-          var fmtp = lines.filter(fmtpFilter);
-          codec.parameters = fmtp.length ? parseFmtp(fmtp[0]) : {};
-          codec.rtcpFeedback = lines.filter(rtcpFbFilter).map(parseRtcpFb);
-
+          var fmtp = SDPUtils.matchPrefix(
+              mediaSection, 'a=fmtp:' + mline[i] + ' ');
+          codec.parameters = fmtp.length ? SDPUtils.parseFmtp(fmtp[0]) : {};
+          codec.rtcpFeedback = SDPUtils.matchPrefix(
+              mediaSection, 'a=rtcp-fb:' + mline[i] + ' ')
+            .map(SDPUtils.parseRtcpFb);
           remoteCapabilities.codecs.push(codec);
         }
       }
@@ -854,7 +858,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       caps.codecs.forEach(function(codec) {
         sdp += SDPUtils.writeRtpMap(codec);
         sdp += SDPUtils.writeFtmp(codec);
-        //sdp += SDPUtils.writeRtcpFb(codec);
+        sdp += SDPUtils.writeRtcpFb(codec);
       });
       return sdp;
     };
