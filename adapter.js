@@ -586,7 +586,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       return 'candidate:' + sdp.join(' ');
     };
 
-    // SDP helper from sdp-jingle-json with modifications.
     // Parses a rtpmap line, returns RTCRtpCoddecParameters. Sample input:
     // a=rtpmap:111 opus/48000/2
     SDPUtils.parseRtpMap = function(line) {
@@ -601,6 +600,50 @@ if (typeof window === 'undefined' || !window.navigator) {
       parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
       parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1; // was: channels
       return parsed;
+    };
+
+    // Generate a=rtpmap line from RTCRtpCodecCapability or RTCRtpCodecParameters.
+    SDPUtils.writeRtpMap = function(codec) {
+      var pt = codec.payloadType;
+      if (codec.preferredPayloadType !== undefined) {
+        pt = codec.preferredPayloadType;
+      }
+      return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate +
+          (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
+    };
+
+    // Generate a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
+    SDPUtils.writeFtmp = function(codec) {
+      var line = '';
+      var pt = codec.payloadType;
+      if (codec.preferredPayloadType !== undefined) {
+        pt = codec.preferredPayloadType;
+      }
+      if (codec.parameters && codec.parameters.length) {
+        var params = [];
+        Object.keys(codec.parameters).forEach(function(param) {
+          params.push(param + '=' + codec.parameters[param]);
+        });
+        line += 'a=fmtp:' + pt + ' ' + params.join(';') + '\r\n';
+      }
+      return line;
+    };
+
+    // Generate a=rtcp-fb lines from RTCRtpCodecCapability or RTCRtpCodecParameters.
+    SDPUtils.writeRtcpFb = function(codec) {
+      var lines = '';
+      var pt = codec.payloadType;
+      if (codec.preferredPayloadType !== undefined) {
+        pt = codec.preferredPayloadType;
+      }
+      if (codec.rtcpFeedback && codec.rtcpFeedback.length) {
+        // FIXME: special handling for trr-int?
+        codec.rtcpFeedback.forEach(function(fb) {
+          lines += 'a=rtcp-fb:' + pt + ' ' + fb.type + ' ' + fb.parameter +
+              '\r\n';
+        });
+      }
+      return lines;
     };
 
     // Extracts DTLS parameters from SDP media section or sessionpart.
@@ -809,29 +852,9 @@ if (typeof window === 'undefined' || !window.navigator) {
     window.RTCPeerConnection.prototype._capabilitiesToSDP = function(caps) {
       var sdp = '';
       caps.codecs.forEach(function(codec) {
-        var pt = codec.payloadType;
-        if (codec.preferredPayloadType !== undefined) {
-          pt = codec.preferredPayloadType;
-        }
-        sdp += 'a=rtpmap:' + pt +
-            ' ' + codec.name +
-            '/' + codec.clockRate +
-            (codec.numChannels !== 1 ? '/' + codec.numChannels : '') +
-            '\r\n';
-        if (codec.parameters && codec.parameters.length) {
-          sdp += 'a=ftmp:' + pt + ' ';
-          Object.keys(codec.parameters).forEach(function(param) {
-            sdp += param + '=' + codec.parameters[param];
-          });
-          sdp += '\r\n';
-        }
-        if (codec.rtcpFeedback) {
-          // FIXME: special handling for trr-int?
-          codec.rtcpFeedback.forEach(function(fb) {
-            sdp += 'a=rtcp-fb:' + pt + ' ' + fb.type + ' ' +
-                fb.parameter + '\r\n';
-          });
-        }
+        sdp += SDPUtils.writeRtpMap(codec);
+        sdp += SDPUtils.writeFtmp(codec);
+        //sdp += SDPUtils.writeRtcpFb(codec);
       });
       return sdp;
     };
@@ -908,7 +931,10 @@ if (typeof window === 'undefined' || !window.navigator) {
           return transceiver.iceGatherer &&
               transceiver.iceGatherer.state === 'completed';
         });
-        // FIXME: update .localDescription with candidate and (potentially end-of-candidates.
+        // FIXME: update .localDescription with candidate and (potentially) end-of-candidates.
+        //     to make this harder, the gatherer might emit candidates before localdescription
+        //     is set. To make things worse, gather.getLocalCandidates still errors in
+        //     Edge 10547 when no candidates have been gathered yet.
 
         if (self.onicecandidate !== null) {
           // Emit candidate if localDescription is set.
