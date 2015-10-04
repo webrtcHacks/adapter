@@ -1029,6 +1029,35 @@ if (typeof window === 'undefined' || !window.navigator) {
       };
     };
 
+    // Start the RTP Sender and Receiver for a transceiver.
+    window.RTCPeerConnection.prototype._transceive = function(transceiver,
+        send, recv) {
+      var params = this._getCommonCapabilities(transceiver.localCapabilities,
+          transceiver.remoteCapabilities);
+      if (send && transceiver.rtpSender) {
+        params.encodings = [{
+          ssrc: transceiver.sendSsrc,
+          active: true
+        }];
+        params.rtcp = {
+          cname: localCName,
+          ssrc: transceiver.recvSsrc
+        };
+        transceiver.rtpSender.send(params);
+      }
+      if (recv && transceiver.rtpReceiver) {
+        params.encodings = [{
+          ssrc: transceiver.recvSsrc,
+          active: true
+        }];
+        params.rtcp = {
+          cname: transceiver.cname,
+          ssrc: transceiver.sendSsrc
+        };
+        transceiver.rtpReceiver.receive(params);
+      }
+    };
+
     window.RTCPeerConnection.prototype.setLocalDescription =
         function(description) {
       var self = this;
@@ -1046,13 +1075,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           var iceGatherer = transceiver.iceGatherer;
           var iceTransport = transceiver.iceTransport;
           var dtlsTransport = transceiver.dtlsTransport;
-          var rtpSender = transceiver.rtpSender;
-          var rtpReceiver = transceiver.rtpReceiver;
           var localCapabilities = transceiver.localCapabilities;
           var remoteCapabilities = transceiver.remoteCapabilities;
-          var cname = transceiver.cname;
-          var sendSsrc = transceiver.sendSsrc;
-          var recvSsrc = transceiver.recvSsrc;
 
           var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
               sessionpart);
@@ -1062,31 +1086,12 @@ if (typeof window === 'undefined' || !window.navigator) {
               sessionpart);
           dtlsTransport.start(remoteDtlsParameters);
 
-          // calculate intersection of capabilities
+          // Calculate intersection of capabilities.
           var params = self._getCommonCapabilities(localCapabilities,
               remoteCapabilities);
-          if (rtpSender && params.codecs.length) {
-            params.encodings = [{
-              ssrc: sendSsrc,
-              active: true
-            }];
-            params.rtcp = {
-              cname: localCName,
-              ssrc: recvSsrc
-            };
-            rtpSender.send(params);
-          }
-          if (rtpReceiver && params.codecs.length) {
-            params.encodings = [{
-              ssrc: recvSsrc,
-              active: true
-            }];
-            params.rtcp = {
-              cname: cname,
-              ssrc: sendSsrc
-            };
-            rtpReceiver.receive(params);
-          }
+          self._transceive(transceiver,
+              params.codecs.length > 0,
+              params.codecs.length > 0);
         });
       }
 
@@ -1157,7 +1162,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               return obj.attribute === 'cname';
             })[0];
         if (remoteSsrc) {
-          recvSsrc = remoteSsrc.ssrc;
+          recvSsrc = parseInt(remoteSsrc.ssrc, 10);
           cname = remoteSsrc.value;
         }
 
@@ -1214,33 +1219,12 @@ if (typeof window === 'undefined' || !window.navigator) {
           iceTransport.start(iceGatherer, remoteIceParameters, 'controlling');
           dtlsTransport.start(remoteDtlsParameters);
 
-          // calculate intersection of capabilities
-          var params = self._getCommonCapabilities(localCapabilities,
-              remoteCapabilities);
-          if (rtpSender &&
-              (direction === 'sendrecv' || direction === 'recvonly')) {
-            params.encodings = [{
-              ssrc: sendSsrc,
-              active: true
-            }];
-            params.rtcp = {
-              cname: localCName,
-              ssrc: recvSsrc
-            };
-            rtpSender.send(params);
-          }
+          self._transceive(transceiver,
+              direction === 'sendrecv' || direction === 'recvonly',
+              direction === 'sendrecv' || direction === 'sendonly');
 
           if (rtpReceiver &&
               (direction === 'sendrecv' || direction === 'sendonly')) {
-            params.encodings = [{
-              ssrc: recvSsrc,
-              active: true
-            }];
-            params.rtcp = {
-              cname: cname,
-              ssrc: sendSsrc
-            };
-            rtpReceiver.receive(params);
             stream.addTrack(rtpReceiver.track);
           }
         }
@@ -1442,7 +1426,6 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         // generate an ssrc now, to be used later in rtpSender.send
         var sendSsrc = (2 * sdpMLineIndex + 1) * 1001;
-        var recvSsrc; // don't know yet
         if (track) {
           rtpSender = new RTCRtpSender(track, transports.dtlsTransport);
         }
@@ -1462,7 +1445,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           kind: kind,
           mid: mid,
           sendSsrc: sendSsrc,
-          recvSsrc: recvSsrc
+          recvSsrc: null
         };
 
         sdp += SDPUtils.writeRtpDescription(kind, localCapabilities);
@@ -1532,7 +1515,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         var rtpReceiver = transceiver.rtpReceiver;
         var kind = transceiver.kind;
         var sendSsrc = transceiver.sendSsrc;
-        //var recvSsrc = transceiver.recvSsrc;
 
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(localCapabilities,
