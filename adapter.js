@@ -773,8 +773,20 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     // Generates parts of the SDP media section describing the capabilities / parameters.
-    SDPUtils.writeRtpDescription = function(caps) {
+    SDPUtils.writeRtpDescription = function(kind, caps) {
       var sdp = '';
+
+      // Build the mline. FIXME: reject if caps.codecs is empty.
+      sdp += 'm=' + kind + ' 9 UDP/TLS/RTP/SAVPF ';
+      sdp += caps.codecs.map(function(codec) {
+        return codec.preferredPayloadType || codec.payloadType;
+      }).join(' ') + '\r\n';
+
+      // FIXME: those should be IPv6 ::
+      sdp += 'c=IN IP4 0.0.0.0\r\n';
+      sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
+
+      // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
       caps.codecs.forEach(function(codec) {
         sdp += SDPUtils.writeRtpMap(codec);
         sdp += SDPUtils.writeFtmp(codec);
@@ -1451,18 +1463,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           recvSsrc: recvSsrc
         };
 
-        // Map things to SDP.
-        // Build the mline.
-        sdp += 'm=' + kind + ' 9 UDP/TLS/RTP/SAVPF ';
-        sdp += localCapabilities.codecs.map(function(codec) {
-          return codec.preferredPayloadType;
-        }).join(' ') + '\r\n';
-
-        sdp += 'c=IN IP4 0.0.0.0\r\n';
-        sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
-
-        // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
-        sdp += SDPUtils.writeRtpDescription(localCapabilities);
+        sdp += SDPUtils.writeRtpDescription(kind, localCapabilities);
 
         // Map ICE parameters (ufrag, pwd) to SDP.
         sdp += SDPUtils.writeIceParameters(
@@ -1537,18 +1538,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             remoteCapabilities);
         // FIXME: reject m-line if commonCapabilities.codecs is empty.
 
-        // Map things to SDP.
-        // Build the mline.
-        sdp += 'm=' + kind + ' 9 UDP/TLS/RTP/SAVPF ';
-        sdp += commonCapabilities.codecs.map(function(codec) {
-          return codec.payloadType;
-        }).join(' ') + '\r\n';
-
-        sdp += 'c=IN IP4 0.0.0.0\r\n';
-        sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
-
-        // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
-        sdp += SDPUtils.writeRtpDescription(commonCapabilities);
+        sdp += SDPUtils.writeRtpDescription(kind, commonCapabilities);
 
         // Map ICE parameters (ufrag, pwd) to SDP.
         sdp += SDPUtils.writeIceParameters(iceGatherer.getLocalParameters());
