@@ -504,6 +504,21 @@ if (typeof window === 'undefined' || !window.navigator) {
     // Will be moved into separate module.
     var SDPUtils = {};
 
+    // Splits SDP into lines, dealing with both CRLF and LF.
+    SDPUtils.splitLines = function(blob) {
+      return blob.trim().split('\n').map(function(line) {
+        return line.trim();
+      });
+    };
+
+    // Splits SDP into sessionpart and mediasections.
+    SDPUtils.splitSections = function(blob) {
+      var parts = blob.split('\r\nm=');
+      return parts.map(function(part, index) {
+        return index > 0 ? 'm=' + part : part;
+      });
+    };
+
     // Parses an ICE candidate line. Sample input:
     // candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8 rport 55996"
     SDPUtils.parseCandidate = function(line) {
@@ -588,12 +603,12 @@ if (typeof window === 'undefined' || !window.navigator) {
       return parsed;
     };
 
-    // Extracts DTLS parameters from SDP section or sessionpart.
+    // Extracts DTLS parameters from SDP media section or sessionpart.
     // FIXME: for consistency with other functions this should only
     //   get the fingerprint line as input. See also getIceParameters.
     SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
-      var lines = mediaSection.split('\r\n');
-      lines = lines.concat(sessionpart.split('\r\n')); // Search in session part, too.
+      var lines = SDPUtils.splitLines(mediaSection);
+      lines = lines.concat(SDPUtils.splitLines(sessionpart)); // Search in session part, too.
       var fpLine = lines.filter(function(line) {
         return line.indexOf('a=fingerprint:') === 0;
       });
@@ -616,12 +631,12 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
       return sdp;
     };
-    // Parses ICE information from SDP section or sessionpart.
+    // Parses ICE information from SDP media section or sessionpart.
     // FIXME: for consistency with other functions this should only
     //   get the ice-ufrag and ice-pwd lines as input.
     SDPUtils.getIceParameters = function(mediaSection, sessionpart) {
-      var lines = mediaSection.split('\r\n');
-      lines = lines.concat(sessionpart.split('\r\n')); // Search in session part, too.
+      var lines = SDPUtils.splitLines(mediaSection);
+      lines = lines.concat(SDPUtils.splitLines(sessionpart)); // Search in session part, too.
       var iceParameters = {
         usernameFragment: lines.filter(function(line) {
           return line.indexOf('a=ice-ufrag:') === 0;
@@ -735,7 +750,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         fecMechanisms: []
       };
       var i;
-      var lines = mediaSection.split('\r\n');
+      var lines = SDPUtils.splitLines(mediaSection);
       var mline = lines[0].substr(2).split(' ');
       var rtpmapFilter = function(line) {
         return line.indexOf('a=rtpmap:' + mline[i]) === 0;
@@ -867,8 +882,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         event.candidate = {sdpMid: mid, sdpMLineIndex: sdpMLineIndex};
 
         var cand = evt.candidate;
-        var isEndOfCandidates = !(cand && Object.keys(cand).length > 0);
-        if (isEndOfCandidates) {
+        // Edge emits an empty object for RTCIceCandidateComplete‥
+        if (!cand || Object.keys(cand).length === 0) {
           // polyfill since RTCIceGatherer.state is not implemented in Edge 10547 yet.
           if (iceGatherer.state === undefined) {
             iceGatherer.state = 'completed';
@@ -931,10 +946,9 @@ if (typeof window === 'undefined' || !window.navigator) {
           this.mLines = description.ortc;
         }
       } else if (description.type === 'answer') {
-        var sections = self.remoteDescription.sdp.split('\r\nm=');
+        var sections = SDPUtils.splitSections(self.remoteDescription.sdp);
         var sessionpart = sections.shift();
-        sections.forEach(function(section, sdpMLineIndex) {
-          section = 'm=' + section;
+        sections.forEach(function(mediaSection, sdpMLineIndex) {
           var transceiver = self.mLines[sdpMLineIndex];
           var iceGatherer = transceiver.iceGatherer;
           var iceTransport = transceiver.iceTransport;
@@ -946,11 +960,11 @@ if (typeof window === 'undefined' || !window.navigator) {
           var sendSsrc = transceiver.sendSsrc;
           var recvSsrc = transceiver.recvSsrc;
 
-          var remoteIceParameters = SDPUtils.getIceParameters(section,
+          var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
               sessionpart);
           iceTransport.start(iceGatherer, remoteIceParameters, 'controlled');
 
-          var remoteDtlsParameters = SDPUtils.getDtlsParameters(section,
+          var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
               sessionpart);
           dtlsTransport.start(remoteDtlsParameters);
 
@@ -1018,12 +1032,11 @@ if (typeof window === 'undefined' || !window.navigator) {
       //  happen before SLD with type=answer but... we need the stream
       //  here for onaddstream.
       var self = this;
-      var sections = description.sdp.split('\r\nm=');
-      var sessionpart = sections.shift();
       var stream = new MediaStream();
-      sections.forEach(function(section, sdpMLineIndex) {
-        section = 'm=' + section;
-        var lines = section.split('\r\n');
+      var sections = SDPUtils.splitSections(description.sdp);
+      var sessionpart = sections.shift();
+      sections.forEach(function(mediaSection, sdpMLineIndex) {
+        var lines = SDPUtils.splitLines(mediaSection);
         var mline = lines[0].substr(2).split(' ');
         var kind = mline[0];
         var line;
@@ -1050,7 +1063,7 @@ if (typeof window === 'undefined' || !window.navigator) {
 
           var localCapabilities = RTCRtpReceiver.getCapabilities(kind);
           // determine remote caps from SDP
-          remoteCapabilities = self._getRemoteCapabilities(section);
+          remoteCapabilities = self._getRemoteCapabilities(mediaSection);
 
           line = lines.filter(function(line) {
             return line.indexOf('a=ssrc:') === 0 &&
@@ -1099,9 +1112,9 @@ if (typeof window === 'undefined' || !window.navigator) {
           recvSsrc = transceiver.recvSsrc;
         }
 
-        var remoteIceParameters = SDPUtils.getIceParameters(section,
+        var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
             sessionpart);
-        var remoteDtlsParameters = SDPUtils.getDtlsParameters(section,
+        var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
             sessionpart);
 
         // for answers we start ice and dtls here, otherwise this is done in SLD
@@ -1110,7 +1123,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           dtlsTransport.start(remoteDtlsParameters);
 
           // determine remote caps from SDP
-          remoteCapabilities = self._getRemoteCapabilities(section);
+          remoteCapabilities = self._getRemoteCapabilities(mediaSection);
           // FIXME: store remote caps?
 
           if (rtpSender) {
