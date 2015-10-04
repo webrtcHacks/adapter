@@ -807,7 +807,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           self.onicecandidate(event);
         }
       });
-      self._localIceCandidatesBuffer = [];
+      this._localIceCandidatesBuffer = [];
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
@@ -1054,16 +1054,17 @@ if (typeof window === 'undefined' || !window.navigator) {
           throw new TypeError('unsupported type "' + description.type + '"');
       }
 
+      window.setTimeout(this._emitBufferedCandidates.bind(this), 50);
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         var cb = arguments[1];
         window.setTimeout(function() {
           cb();
-          self._emitBufferedCandidates();
+          //self._emitBufferedCandidates();
         }, 0);
       }
       return new Promise(function(resolve) {
         resolve();
-        self._emitBufferedCandidates();
+        //self._emitBufferedCandidates();
       });
     };
 
