@@ -676,6 +676,23 @@ if (typeof window === 'undefined' || !window.navigator) {
       return lines;
     };
 
+    // parses a RFC 5576 ssrc media attribute. Sample input:
+    // a=ssrc:3735928559 cname:something
+    SDPUtils.parseSsrcMedia = function(line) {
+      var sp = line.indexOf(' ');
+      var parts = {
+        ssrc: line.substr(7, sp - 7),
+      };
+      var colon = line.indexOf(':', sp);
+      if (colon > -1) {
+        parts.attribute = line.substr(sp + 1, colon - sp - 1);
+        parts.value = line.substr(colon + 1);
+      } else {
+        parts.attribute = line.substr(sp + 1);
+      }
+      return parts;
+    };
+
     // Extracts DTLS parameters from SDP media section or sessionpart.
     // FIXME: for consistency with other functions this should only
     //   get the fingerprint line as input. See also getIceParameters.
@@ -1081,7 +1098,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         var lines = SDPUtils.splitLines(mediaSection);
         var mline = lines[0].substr(2).split(' ');
         var kind = mline[0];
-        var line;
 
         var transceiver;
         var iceGatherer;
@@ -1097,25 +1113,28 @@ if (typeof window === 'undefined' || !window.navigator) {
         })[0].substr(6);
 
         var cname;
-        var remoteCapabilities;
         var params;
+        var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
+            .map(function(line) {
+              return SDPUtils.parseSsrcMedia(line);
+            })
+            .filter(function(obj) {
+              return obj.attribute === 'cname';
+            })[0];
+        if (remoteSsrc) {
+          recvSsrc = remoteSsrc.ssrc;
+          cname = remoteSsrc.value;
+        }
+
+        // determine remote caps from SDP
+        var remoteCapabilities = self._getRemoteCapabilities(mediaSection);
 
         if (description.type === 'offer') {
           var transports = self._createIceAndDtlsTransports(mid, sdpMLineIndex);
 
           var localCapabilities = RTCRtpReceiver.getCapabilities(kind);
-          // determine remote caps from SDP
-          remoteCapabilities = self._getRemoteCapabilities(mediaSection);
-
-          line = lines.filter(function(line) {
-            return line.indexOf('a=ssrc:') === 0 &&
-                line.split(' ')[1].indexOf('cname:') === 0;
-          });
           sendSsrc = (2 * sdpMLineIndex + 2) * 1001;
-          if (line) { // FIXME: alot of assumptions here
-            recvSsrc = line[0].split(' ')[0].split(':')[1];
-            cname = line[0].split(' ')[1].split(':')[1];
-          }
+
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
           // FIXME: not correct when there are multiple streams but that is
@@ -1151,7 +1170,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           rtpSender = transceiver.rtpSender;
           rtpReceiver = transceiver.rtpReceiver;
           sendSsrc = transceiver.sendSsrc;
-          recvSsrc = transceiver.recvSsrc;
+          //recvSsrc = transceiver.recvSsrc;
         }
 
         var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
@@ -1163,10 +1182,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         if (description.type === 'answer') {
           iceTransport.start(iceGatherer, remoteIceParameters, 'controlling');
           dtlsTransport.start(remoteDtlsParameters);
-
-          // determine remote caps from SDP
-          remoteCapabilities = self._getRemoteCapabilities(mediaSection);
-          // FIXME: store remote caps?
 
           if (rtpSender) {
             params = remoteCapabilities;
@@ -1190,14 +1205,11 @@ if (typeof window === 'undefined' || !window.navigator) {
             return line.indexOf('a=ssrc:') === 0;
           }).length > 0;
           if (rtpReceiver && bidi) {
-            line = lines.filter(function(line) {
-              return line.indexOf('a=ssrc:') === 0 &&
-                  line.split(' ')[1].indexOf('cname:') === 0;
-            });
-            if (line) { // FIXME: alot of assumptions here
-              recvSsrc = line[0].split(' ')[0].split(':')[1];
-              cname = line[0].split(' ')[1].split(':')[1];
+            if (remoteSsrc) {
+              recvSsrc = remoteSsrc.ssrc;
+              cname = remoteSsrc.value;
             }
+
             params = remoteCapabilities;
             params.muxId = recvSsrc;
             params.encodings = [{
@@ -1215,6 +1227,8 @@ if (typeof window === 'undefined' || !window.navigator) {
             stream.addTrack(rtpReceiver.track);
             self.transceivers[sdpMLineIndex].recvSsrc = recvSsrc;
           }
+          self.transceivers[sdpMLineIndex].remoteCapabilities =
+              remoteCapabilities;
         }
       });
 
