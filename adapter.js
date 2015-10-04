@@ -1050,6 +1050,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           var rtpReceiver = transceiver.rtpReceiver;
           var localCapabilities = transceiver.localCapabilities;
           var remoteCapabilities = transceiver.remoteCapabilities;
+          var cname = transceiver.cname;
           var sendSsrc = transceiver.sendSsrc;
           var recvSsrc = transceiver.recvSsrc;
 
@@ -1081,7 +1082,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               active: true
             }];
             params.rtcp = {
-              cname: localCName,
+              cname: cname,
               ssrc: sendSsrc
             };
             rtpReceiver.receive(params);
@@ -1136,6 +1137,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         var sendSsrc;
         var recvSsrc;
         var localCapabilities;
+
         var remoteCapabilities = SDPUtils.parseRtpDescription(mediaSection);
         var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
             sessionpart);
@@ -1147,7 +1149,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         })[0].substr(6);
 
         var cname;
-        var params;
         var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
             .map(function(line) {
               return SDPUtils.parseSsrcMedia(line);
@@ -1190,10 +1191,11 @@ if (typeof window === 'undefined' || !window.navigator) {
             rtpReceiver: rtpReceiver,
             kind: kind,
             mid: mid,
+            cname: cname,
             sendSsrc: sendSsrc,
             recvSsrc: recvSsrc
           };
-        } else {
+        } else if (description.type === 'answer') {
           transceiver = self.transceivers[sdpMLineIndex];
           iceGatherer = transceiver.iceGatherer;
           iceTransport = transceiver.iceTransport;
@@ -1203,14 +1205,17 @@ if (typeof window === 'undefined' || !window.navigator) {
           sendSsrc = transceiver.sendSsrc;
           //recvSsrc = transceiver.recvSsrc;
           localCapabilities = transceiver.localCapabilities;
-        }
 
-        if (description.type === 'answer') {
+          self.transceivers[sdpMLineIndex].recvSsrc = recvSsrc;
+          self.transceivers[sdpMLineIndex].remoteCapabilities =
+              remoteCapabilities;
+          self.transceivers[sdpMLineIndex].cname = cname;
+
           iceTransport.start(iceGatherer, remoteIceParameters, 'controlling');
           dtlsTransport.start(remoteDtlsParameters);
 
           // calculate intersection of capabilities
-          params = self._getCommonCapabilities(localCapabilities,
+          var params = self._getCommonCapabilities(localCapabilities,
               remoteCapabilities);
           if (rtpSender &&
               (direction === 'sendrecv' || direction === 'recvonly')) {
@@ -1235,12 +1240,9 @@ if (typeof window === 'undefined' || !window.navigator) {
               cname: cname,
               ssrc: sendSsrc
             };
-            rtpReceiver.receive(params, kind);
+            rtpReceiver.receive(params);
             stream.addTrack(rtpReceiver.track);
-            self.transceivers[sdpMLineIndex].recvSsrc = recvSsrc;
           }
-          self.transceivers[sdpMLineIndex].remoteCapabilities =
-              remoteCapabilities;
         }
       });
 
