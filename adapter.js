@@ -500,8 +500,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     // The RTCP CNAME used by all peerconnections from the same JS.
     var localCName = generateIdentifier();
 
-    // SDP helpers from https://github.com/otalk/sdp-jingle-json with modifications.
-    // Will be moved into separate module.
+    // SDP helpers - to be moved into separate module.
     var SDPUtils = {};
 
     // Splits SDP into lines, dealing with both CRLF and LF.
@@ -511,11 +510,11 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
     };
 
-    // Splits SDP into sessionpart and mediasections.
+    // Splits SDP into sessionpart and mediasections. Ensures CRLF.
     SDPUtils.splitSections = function(blob) {
       var parts = blob.split('\r\nm=');
       return parts.map(function(part, index) {
-        return index > 0 ? 'm=' + part : part;
+        return (index > 0 ? 'm=' + part : part).trim() + '\r\n';
       });
     };
 
@@ -800,6 +799,25 @@ if (typeof window === 'undefined' || !window.navigator) {
       // FIXME: add headerExtensions, fecMechanismş and rtcp.
       sdp += 'a=rtcp-mux\r\n';
       return sdp;
+    };
+
+    // Gets the direction from the mediaSection or the sessionpart.
+    SDPUtils.getDirection = function(mediaSection, sessionpart) {
+      // Look for sendrecv, sendonly, recvonly, inactive, default to sendrecv.
+      var lines = SDPUtils.splitLines(mediaSection);
+      for (var i = 0; i < lines.length; i++) {
+        switch (lines[i]) {
+          case 'a=sendrecv':
+          case 'a=sendonly':
+          case 'a=recvonly':
+          case 'a=inactive':
+            return lines[i].substr(2);
+        }
+      }
+      if (sessionpart) {
+        return SDPUtils.getDirection(sessionpart);
+      }
+      return 'sendrecv';
     };
 
     // ORTC defines an RTCIceCandidate object but no constructor.
@@ -1099,9 +1117,6 @@ if (typeof window === 'undefined' || !window.navigator) {
 
     window.RTCPeerConnection.prototype.setRemoteDescription =
         function(description) {
-      // FIXME: for type=offer this creates state. which should not
-      //  happen before SLD with type=answer but... we need the stream
-      //  here for onaddstream.
       var self = this;
       var stream = new MediaStream();
       var sections = SDPUtils.splitSections(description.sdp);
@@ -1110,6 +1125,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         var lines = SDPUtils.splitLines(mediaSection);
         var mline = lines[0].substr(2).split(' ');
         var kind = mline[0];
+        var direction = SDPUtils.getDirection(mediaSection, sessionpart);
 
         var transceiver;
         var iceGatherer;
@@ -1119,7 +1135,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         var rtpReceiver;
         var sendSsrc;
         var recvSsrc;
-
+        var localCapabilities;
         var remoteCapabilities = SDPUtils.parseRtpDescription(mediaSection);
         var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
             sessionpart);
@@ -1147,16 +1163,16 @@ if (typeof window === 'undefined' || !window.navigator) {
         if (description.type === 'offer') {
           var transports = self._createIceAndDtlsTransports(mid, sdpMLineIndex);
 
-          var localCapabilities = RTCRtpReceiver.getCapabilities(kind);
+          localCapabilities = RTCRtpReceiver.getCapabilities(kind);
           sendSsrc = (2 * sdpMLineIndex + 2) * 1001;
 
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
           // FIXME: not correct when there are multiple streams but that is
-          // not currently supported.
+          // not currently supported in this shim.
           stream.addTrack(rtpReceiver.track);
 
-          // FIXME: honor a=sendrecv
+          // FIXME: look at direction.
           if (self.localStreams.length > 0 &&
               self.localStreams[0].getTracks().length >= sdpMLineIndex) {
             // FIXME: actually more complicated, needs to match types etc
@@ -1186,15 +1202,18 @@ if (typeof window === 'undefined' || !window.navigator) {
           rtpReceiver = transceiver.rtpReceiver;
           sendSsrc = transceiver.sendSsrc;
           //recvSsrc = transceiver.recvSsrc;
+          localCapabilities = transceiver.localCapabilities;
         }
 
-        // for answers we start ice and dtls here, otherwise this is done in SLD
         if (description.type === 'answer') {
           iceTransport.start(iceGatherer, remoteIceParameters, 'controlling');
           dtlsTransport.start(remoteDtlsParameters);
 
-          if (rtpSender) {
-            params = remoteCapabilities;
+          // calculate intersection of capabilities
+          params = self._getCommonCapabilities(localCapabilities,
+              remoteCapabilities);
+          if (rtpSender &&
+              (direction === 'sendrecv' || direction === 'recvonly')) {
             params.encodings = [{
               ssrc: sendSsrc,
               active: true
@@ -1206,17 +1225,8 @@ if (typeof window === 'undefined' || !window.navigator) {
             rtpSender.send(params);
           }
 
-          // FIXME: only if a=sendrecv
-          var bidi = lines.filter(function(line) {
-            return line.indexOf('a=ssrc:') === 0;
-          }).length > 0;
-          if (rtpReceiver && bidi) {
-            if (remoteSsrc) {
-              recvSsrc = remoteSsrc.ssrc;
-              cname = remoteSsrc.value;
-            }
-
-            params = remoteCapabilities;
+          if (rtpReceiver &&
+              (direction === 'sendrecv' || direction === 'sendonly')) {
             params.encodings = [{
               ssrc: recvSsrc,
               active: true
