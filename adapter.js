@@ -1036,8 +1036,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           transceiver.remoteCapabilities);
       if (send && transceiver.rtpSender) {
         params.encodings = [{
-          ssrc: transceiver.sendSsrc,
-          active: true
+          ssrc: transceiver.sendSsrc
         }];
         params.rtcp = {
           cname: localCName,
@@ -1047,8 +1046,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       if (recv && transceiver.rtpReceiver) {
         params.encodings = [{
-          ssrc: transceiver.recvSsrc,
-          active: true
+          ssrc: transceiver.recvSsrc
         }];
         params.rtcp = {
           cname: transceiver.cname,
