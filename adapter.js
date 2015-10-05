@@ -904,8 +904,8 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
-      // clone just in case we're working in a local demo
-      // FIXME: seems to be fixed
+      // Clone is necessary for local demos mostly, attaching directly
+      // to two different senders does not work (build 10547).
       this.localStreams.push(stream.clone());
       this._maybeFireNegotiationNeeded();
     };
