@@ -1012,16 +1012,19 @@ if (typeof window === 'undefined' || !window.navigator) {
         }
       };
       iceTransport.onicestatechange = function() {
-        self._updateIceConnectionState();
+        self._updateConnectionState();
       };
 
       var dtlsTransport = new RTCDtlsTransport(iceTransport);
       dtlsTransport.ondtlsstatechange = function() {
-        //self._updateConnectionState();
+        self._updateConnectionState();
       };
-      dtlsTransport.onerror = function(error) {
-        console.error('dtls error', error);
+      dtlsTransport.onerror = function() {
+        // onerror does not set state to failed by itself.
+        dtlsTransport.state = 'failed';
+        self._updateConnectionState();
       };
+
       return {
         iceGatherer: iceGatherer,
         iceTransport: iceTransport,
@@ -1277,7 +1280,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
       // FIXME: clean up tracks, local streams, remote streams, etc
       this._updateSignalingState('closed');
-      this._updateIceConnectionState('closed');
     };
 
     // Update the signaling state.
@@ -1295,8 +1297,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       // TODO
     };
 
-    // Update the ICE connection state.
-    window.RTCPeerConnection.prototype._updateIceConnectionState =
+    // Update the connection state.
+    window.RTCPeerConnection.prototype._updateConnectionState =
         function() {
       var self = this;
       var newState;
@@ -1319,16 +1321,14 @@ if (typeof window === 'undefined' || !window.navigator) {
       newState = 'new';
       if (states.failed > 0) {
         newState = 'failed';
-      } else if (states.new + states.closed === 2 * this.transceivers.length) {
-        newState = 'new';
-      } else if (states.connecting + states.checking > 0) {
+      } else if (states.connecting > 0 || states.checking > 0) {
         newState = 'connecting';
-      } else if (states.connected > 0 &&
-          states.connected + states.closed === 2 * this.transceivers.length) {
-        newState = 'connected';
-      } else if (states.disconnected > 0 &&
-          (states.connecting === 0 && states.checking === 0)) {
+      } else if (states.disconnected > 0) {
         newState = 'disconnected';
+      } else if (states.new > 0) {
+        newState = 'new';
+      } else if (states.connecting > 0 || states.completed > 0) {
+        newState = 'connected';
       }
 
       if (newState !== self.iceConnectionState) {
