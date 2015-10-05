@@ -1530,10 +1530,10 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         if (rtpSender && rtpReceiver) {
           sdp += 'a=sendrecv\r\n';
-        } else if (rtpReceiver) {
-          sdp += 'a=recvonly\r\n';
         } else if (rtpSender) {
           sdp += 'a=sendonly\r\n';
+        } else if (rtpReceiver) {
+          sdp += 'a=recvonly\r\n';
         } else {
           sdp += 'a=inactive\r\n';
         }
