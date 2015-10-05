@@ -1468,10 +1468,11 @@ if (typeof window === 'undefined' || !window.navigator) {
           sdp += 'a=inactive\r\n';
         }
 
-        if (track) {
-          sdp += 'a=msid:' + self.localStreams[0].id + ' ' + track.id + '\r\n';
+        if (rtpSender) {
+          sdp += 'a=msid:' + self.localStreams[0].id + ' ' +
+              rtpSender.track.id + '\r\n';
           sdp += 'a=ssrc:' + sendSsrc + ' ' + 'msid:' +
-              self.localStreams[0].id + ' ' + track.id + '\r\n';
+              self.localStreams[0].id + ' ' + rtpSender.track.id + '\r\n';
         }
         // FIXME: this should be written by writeRtpDescription.
         sdp += 'a=ssrc:' + sendSsrc + ' cname:' + localCName + '\r\n';
