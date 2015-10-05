@@ -1063,10 +1063,10 @@ if (typeof window === 'undefined' || !window.navigator) {
         function(description) {
       var self = this;
       if (description.type === 'offer') {
-        if (!description.ortc) {
-          // FIXME: throw?
+        if (!this._pendingOffer) {
         } else {
-          this.transceivers = description.ortc;
+          this.transceivers = this._pendingOffer;
+          delete this._pendingOffer;
         }
       } else if (description.type === 'answer') {
         var sections = SDPUtils.splitSections(self.remoteDescription.sdp);
@@ -1341,6 +1341,9 @@ if (typeof window === 'undefined' || !window.navigator) {
 
     window.RTCPeerConnection.prototype.createOffer = function() {
       var self = this;
+      if (this._pendingOffer) {
+        throw new Error('createOffer called while there is a pending offer.');
+      }
       var offerOptions;
       if (arguments.length === 1 && typeof arguments[0] !== 'function') {
         offerOptions = arguments[0];
@@ -1478,10 +1481,10 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += 'a=ssrc:' + sendSsrc + ' cname:' + localCName + '\r\n';
       });
 
+      this._pendingOffer = transceivers;
       var desc = new RTCSessionDescription({
         type: 'offer',
-        sdp: sdp,
-        ortc: transceivers
+        sdp: sdp
       });
       if (arguments.length && typeof arguments[0] === 'function') {
         window.setTimeout(arguments[0], 0, desc);
