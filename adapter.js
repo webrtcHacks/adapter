@@ -227,14 +227,18 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
     };
   }
-} else if (navigator.webkitGetUserMedia && !!window.chrome) {
+} else if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
   webrtcUtils.log('This appears to be Chrome');
 
   webrtcDetectedBrowser = 'chrome';
 
   // the detected chrome version.
-  webrtcDetectedVersion =
-    parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+  webrtcDetectedVersion = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+  if (webrtcDetectedVersion && webrtcDetectedVersion.length >= 2) {
+    webrtcDetectedVersion = parseInt(webrtcDetectedVersion[2], 10);
+  } else {
+    webrtcDetectedVersion = 0;
+  }
 
   // the minimum chrome version still supported by adapter.
   webrtcMinimumVersion = 38;
