@@ -233,12 +233,10 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcDetectedBrowser = 'chrome';
 
   // the detected chrome version.
-  webrtcDetectedVersion = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
-  if (webrtcDetectedVersion && webrtcDetectedVersion.length >= 2) {
-    webrtcDetectedVersion = parseInt(webrtcDetectedVersion[2], 10);
-  } else {
-    webrtcDetectedVersion = 0;
-  }
+  webrtcDetectedVersion = (function() {
+    var match = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+    return match.length >= 2 && parseInt(match[2]);
+  })();
 
   // the minimum chrome version still supported by adapter.
   webrtcMinimumVersion = 38;
