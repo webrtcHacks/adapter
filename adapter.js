@@ -801,6 +801,43 @@ if (typeof window === 'undefined' || !window.navigator) {
       return sdp;
     };
 
+    SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
+      var sdp = SDPUtils.writeRtpDescription(transceiver.kind, caps);
+
+      // Map ICE parameters (ufrag, pwd) to SDP.
+      sdp += SDPUtils.writeIceParameters(
+          transceiver.iceGatherer.getLocalParameters());
+
+      // Map DTLS parameters to SDP.
+      sdp += SDPUtils.writeDtlsParameters(
+          transceiver.dtlsTransport.getLocalParameters(),
+          type === 'offer' ? 'actpass' : 'active');
+
+      sdp += 'a=mid:' + transceiver.mid + '\r\n';
+
+      if (transceiver.rtpSender && transceiver.rtpReceiver) {
+        sdp += 'a=sendrecv\r\n';
+      } else if (transceiver.rtpSender) {
+        sdp += 'a=sendonly\r\n';
+      } else if (transceiver.rtpReceiver) {
+        sdp += 'a=recvonly\r\n';
+      } else {
+        sdp += 'a=inactive\r\n';
+      }
+
+      if (transceiver.rtpSender) {
+        sdp += 'a=msid:' + stream.id + ' ' +
+            transceiver.rtpSender.track.id + '\r\n';
+        sdp += 'a=ssrc:' + transceiver.sendSsrc + ' ' + 'msid:' +
+            stream.id + ' ' +
+            transceiver.rtpSender.track.id + '\r\n';
+      }
+      // FIXME: this should be written by writeRtpDescription.
+      sdp += 'a=ssrc:' + transceiver.sendSsrc + ' cname:' +
+          localCName + '\r\n';
+      return sdp;
+    };
+
     // Gets the direction from the mediaSection or the sessionpart.
     SDPUtils.getDirection = function(mediaSection, sessionpart) {
       // Look for sendrecv, sendonly, recvonly, inactive, default to sendrecv.
@@ -1449,40 +1486,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           recvSsrc: null
         };
         var transceiver = transceivers[sdpMLineIndex];
-
-        sdp += SDPUtils.writeRtpDescription(transceiver.kind,
-            transceiver.localCapabilities);
-
-        // Map ICE parameters (ufrag, pwd) to SDP.
-        sdp += SDPUtils.writeIceParameters(
-            transceiver.iceGatherer.getLocalParameters());
-
-        // Map DTLS parameters to SDP.
-        sdp += SDPUtils.writeDtlsParameters(
-            transceiver.dtlsTransport.getLocalParameters(), 'actpass');
-
-        sdp += 'a=mid:' + transceiver.mid + '\r\n';
-
-        if (transceiver.rtpSender && transceiver.rtpReceiver) {
-          sdp += 'a=sendrecv\r\n';
-        } else if (transceiver.rtpSender) {
-          sdp += 'a=sendonly\r\n';
-        } else if (transceiver.rtpReceiver) {
-          sdp += 'a=recvonly\r\n';
-        } else {
-          sdp += 'a=inactive\r\n';
-        }
-
-        if (transceiver.rtpSender) {
-          sdp += 'a=msid:' + self.localStreams[0].id + ' ' +
-              transceiver.rtpSender.track.id + '\r\n';
-          sdp += 'a=ssrc:' + transceiver.sendSsrc + ' ' + 'msid:' +
-              self.localStreams[0].id + ' ' +
-              transceiver.rtpSender.track.id + '\r\n';
-        }
-        // FIXME: this should be written by writeRtpDescription.
-        sdp += 'a=ssrc:' + transceiver.sendSsrc + ' cname:' +
-            localCName + '\r\n';
+        sdp += SDPUtils.writeMediaSection(transceiver,
+            transceiver.localCapabilities, 'offer', self.localStreams[0]);
       });
 
       this._pendingOffer = transceivers;
@@ -1511,53 +1516,14 @@ if (typeof window === 'undefined' || !window.navigator) {
           'o=thisisadapterortc 8169639915646943137 2 IN IP4 127.0.0.1\r\n' +
           's=-\r\n' +
           't=0 0\r\n';
-      this.transceivers.forEach(function(transceiver/*, sdpMLineIndex*/) {
-        //var iceGatherer = transceiver.iceGatherer;
-        //var iceTransport = transceiver.iceTransport;
-        //var dtlsTransport = transceiver.dtlsTransport;
-        var localCapabilities = transceiver.localCapabilities;
-        var remoteCapabilities = transceiver.remoteCapabilities;
-        //var rtpSender = transceiver.rtpSender;
-        //var rtpReceiver = transceiver.rtpReceiver;
-        //var kind = transceiver.kind;
-        //var sendSsrc = transceiver.sendSsrc;
-
+      this.transceivers.forEach(function(transceiver) {
         // Calculate intersection of capabilities.
-        var commonCapabilities = self._getCommonCapabilities(localCapabilities,
-            remoteCapabilities);
-        sdp += SDPUtils.writeRtpDescription(transceiver.kind,
-            commonCapabilities);
+        var commonCapabilities = self._getCommonCapabilities(
+            transceiver.localCapabilities,
+            transceiver.remoteCapabilities);
 
-        // Map ICE parameters (ufrag, pwd) to SDP.
-        sdp += SDPUtils.writeIceParameters(
-            transceiver.iceGatherer.getLocalParameters());
-
-        // Map DTLS parameters to SDP.
-        sdp += SDPUtils.writeDtlsParameters(
-            transceiver.dtlsTransport.getLocalParameters(), 'active');
-
-        sdp += 'a=mid:' + transceiver.mid + '\r\n';
-
-        if (transceiver.rtpSender && transceiver.rtpReceiver) {
-          sdp += 'a=sendrecv\r\n';
-        } else if (transceiver.rtpSender) {
-          sdp += 'a=sendonly\r\n';
-        } else if (transceiver.rtpReceiver) {
-          sdp += 'a=recvonly\r\n';
-        } else {
-          sdp += 'a=inactive\r\n';
-        }
-
-        if (transceiver.rtpSender) {
-          sdp += 'a=msid:' + self.localStreams[0].id + ' ' +
-              transceiver.rtpSender.track.id + '\r\n';
-          sdp += 'a=ssrc:' + transceiver.sendSsrc + ' ' + 'msid:' +
-              self.localStreams[0].id + ' ' +
-              transceiver.rtpSender.track.id + '\r\n';
-        }
-        // FIXME: this should be written by writeRtpDescription.
-        sdp += 'a=ssrc:' + transceiver.sendSsrc + ' cname:' +
-            localCName + '\r\n';
+        sdp += SDPUtils.writeMediaSection(transceiver, commonCapabilities,
+            'answer', self.localStreams[0]);
       });
 
       var desc = new RTCSessionDescription({
