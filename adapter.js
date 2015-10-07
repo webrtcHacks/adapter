@@ -801,6 +801,14 @@ if (typeof window === 'undefined' || !window.navigator) {
       return sdp;
     };
 
+    SDPUtils.writeSessionBoilerplate = function() {
+      // FIXME: sess-id should be an NTP timestamp.
+      return 'v=0\r\n' +
+          'o=thisisadapterortc 8169639915646943137 2 IN IP4 127.0.0.1\r\n' +
+          's=-\r\n' +
+          't=0 0\r\n';
+    };
+
     SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
       var sdp = SDPUtils.writeRtpDescription(transceiver.kind, caps);
 
@@ -1444,10 +1452,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         }
       }
 
-      var sdp = 'v=0\r\n' +
-          'o=thisisadapterortc 8169639915646943137 2 IN IP4 127.0.0.1\r\n' +
-          's=-\r\n' +
-          't=0 0\r\n';
+      var sdp = SDPUtils.writeSessionBoilerplate();
       var transceivers = [];
       tracks.forEach(function(mline, sdpMLineIndex) {
         // For each track, create an ice gatherer, ice transport, dtls transport,
@@ -1512,10 +1517,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         answerOptions = arguments[2];
       }
 
-      var sdp = 'v=0\r\n' +
-          'o=thisisadapterortc 8169639915646943137 2 IN IP4 127.0.0.1\r\n' +
-          's=-\r\n' +
-          't=0 0\r\n';
+      var sdp = SDPUtils.writeSessionBoilerplate();
       this.transceivers.forEach(function(transceiver) {
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(
