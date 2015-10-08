@@ -872,7 +872,6 @@ test('Non-module logging to console still works', function(t) {
         'attachMediaStream is a function');
     t.ok(typeof reattachMediaStream === 'function',
         'reattachMediaSteam is a function');
-    t.ok(typeof trace === 'function', 'trace is a function');
     t.ok(typeof webrtcDetectedBrowser === 'string',
         'webrtcDetected browser is a string');
     t.ok(typeof webrtcMinimumVersion === 'number',
