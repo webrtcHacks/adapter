@@ -206,8 +206,10 @@ test('attachMediaStream', function(t) {
   .then(function() {
     t.plan(6);
     t.pass('Page loaded');
-    driver.executeScript(testDefinition);
-    return driver.executeScript('return window.gumError');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.gumError');
+    });
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
@@ -284,8 +286,10 @@ test('reattachMediaStream', function(t) {
   .then(function() {
     t.plan(9);
     t.pass('Page loaded');
-    driver.executeScript(testDefinition);
-    return driver.executeScript('return window.gumError');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.gumError');
+    });
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
