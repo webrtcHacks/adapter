@@ -285,6 +285,21 @@ if (typeof window === 'undefined' || !window.navigator) {
             //  records?!
             standardStats.ssrcIds = [standardStats.ssrc];
 
+            if (!report.mediaType && standardStats.googTrackId) {
+              // look up track kind in local or remote streams.
+              var streams = standardStats.remoteSource ?
+                  pc.getRemoteStreams() : pc.getLocalStreams();
+              for (var i = 0; i < streams.length && !standardStats.mediaType;
+                  i++) {
+                var tracks = streams[i].getTracks();
+                for (var j = 0; j < tracks.length; j++) {
+                  if (tracks[j].id === standardStats.googTrackId) {
+                    standardStats.mediaType = tracks[j].kind;
+                  }
+                }
+              }
+            }
+
             // FIXME: 'only makes sense' <=> not set?
             if (report.googFrameWidthReceived || report.googFrameWidthSent) {
               report.frameWidth = parseInt(report.googFrameWidthReceived ||
