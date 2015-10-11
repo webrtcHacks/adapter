@@ -334,6 +334,10 @@ if (typeof window === 'undefined' || !window.navigator) {
             if (report.mediaType === 'video') {
               report.framesDropped = 0;
             }
+            if (report.audioInputLevel || report.audioOutputLevel) {
+              standardStats.audioLevel = parseInt(report.audioInputLevel ||
+                  report.audioOutputLevel, 10) / 32767.0;
+            }
             break;
           case 'localCandidate':
           case 'remoteCandidate':
