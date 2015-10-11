@@ -338,6 +338,21 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardStats.audioLevel = parseInt(report.audioInputLevel ||
                   report.audioOutputLevel, 10) / 32767.0;
             }
+
+            // these seems to belong into stream stats rather than track stats
+            if (report.googFirsReceived || report.googFirsSent) {
+              standardStats.firCount = parseInt(report.googFirsReceived ||
+                  report.googFirsSent, 10);
+            }
+            if (report.googPlisReceived || report.googPlisSent) {
+              standardStats.nackCount = parseInt(report.googPlisReceived ||
+                  report.googPlisSent, 10);
+            }
+            if (report.googNacksReceived || report.googNacksSent) {
+              standardStats.nackCount = parseInt(report.googNacksReceived ||
+                  report.googNacksSent, 10);
+            }
+            // FIXME: no SLI stats yet?
             break;
           case 'localCandidate':
           case 'remoteCandidate':
