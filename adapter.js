@@ -278,14 +278,15 @@ if (typeof window === 'undefined' || !window.navigator) {
             standardStats.trackIdentifier = standardStats.googTrackId;
             // FIXME: not defined in spec, probably whether the track is
             //  remote?
-            standardStats.remoteSource = report.id.indexOf('recv') !== -1;
+            standardStats.remoteSource =
+                standardStats.id.indexOf('recv') !== -1;
             standardStats.ssrc = parseInt(standardStats.ssrc, 10);
             // FIXME: not defined either but I assume sequence of ssrcs
             //  (for FEC)? Or does this contain the ids of the associated
             //  records?!
             standardStats.ssrcIds = [standardStats.ssrc];
 
-            if (!report.mediaType && standardStats.googTrackId) {
+            if (!standardStats.mediaType && standardStats.googTrackId) {
               // look up track kind in local or remote streams.
               var streams = standardStats.remoteSource ?
                   pc.getRemoteStreams() : pc.getLocalStreams();
@@ -301,18 +302,23 @@ if (typeof window === 'undefined' || !window.navigator) {
             }
 
             // FIXME: 'only makes sense' <=> not set?
-            if (report.googFrameWidthReceived || report.googFrameWidthSent) {
-              report.frameWidth = parseInt(report.googFrameWidthReceived ||
-                  report.googFrameWidthSent);
+            if (standardStats.googFrameWidthReceived ||
+                standardStats.googFrameWidthSent) {
+              standardStats.frameWidth = parseInt(
+                  standardStats.googFrameWidthReceived ||
+                  standardStats.googFrameWidthSent);
             }
-            if (report.googFrameHeightReceived || report.googFrameHeightSent) {
-              report.frameHeight = parseInt(report.googFrameHeightReceived ||
-                  report.googFrameHeightSent, 10);
+            if (standardStats.googFrameHeightReceived ||
+                standardStats.googFrameHeightSent) {
+              standardStats.frameHeight = parseInt(
+                  standardStats.googFrameHeightReceived ||
+                  standardStats.googFrameHeightSent, 10);
             }
-            if (report.googFrameRateInput) {
+            if (standardStats.googFrameRateInput) {
               // FIXME (spec): only known at the sender?
               // FIXME: might be something else not available currently
-              report.framesPerSecond = parseInt(report.googFrameRateInput, 10);
+              standardStats.framesPerSecond = parseInt(
+                  standardStats.googFrameRateInput, 10);
             }
 
             /* FIXME unfortunately the current stats (googFrameRateSent,
@@ -321,36 +327,42 @@ if (typeof window === 'undefined' || !window.navigator) {
              * FIXME (spec) Firefox has frameRateMean why is this
              * not part of the spec?
              */
-            if (report.googFrameRateSent) {
-              report.framesSent = 0;
+            if (standardStats.googFrameRateSent) {
+              standardStats.framesSent = 0;
             }
-            if (report.googFrameRateReceived) {
-              report.framesReceived = 0;
+            if (standardStats.googFrameRateReceived) {
+              standardStats.framesReceived = 0;
             }
-            if (report.googFrameRateDecoded) {
-              report.framesDecoded = 0;
+            if (standardStats.googFrameRateDecoded) {
+              standardStats.framesDecoded = 0;
             }
             // FIXME: both on sender and receiver?
-            if (report.mediaType === 'video') {
-              report.framesDropped = 0;
+            if (standardStats.mediaType === 'video') {
+              standardStats.framesDropped = 0;
             }
-            if (report.audioInputLevel || report.audioOutputLevel) {
-              standardStats.audioLevel = parseInt(report.audioInputLevel ||
-                  report.audioOutputLevel, 10) / 32767.0;
+            if (standardStats.audioInputLevel ||
+                standardStats.audioOutputLevel) {
+              standardStats.audioLevel = parseInt(
+                  standardStats.audioInputLevel ||
+                  standardStats.audioOutputLevel, 10) / 32767.0;
             }
 
             // these seems to belong into stream stats rather than track stats
-            if (report.googFirsReceived || report.googFirsSent) {
-              standardStats.firCount = parseInt(report.googFirsReceived ||
-                  report.googFirsSent, 10);
+            if (standardStats.googFirsReceived || standardStats.googFirsSent) {
+              standardStats.firCount = parseInt(
+                  standardStats.googFirsReceived ||
+                  standardStats.googFirsSent, 10);
             }
-            if (report.googPlisReceived || report.googPlisSent) {
-              standardStats.nackCount = parseInt(report.googPlisReceived ||
-                  report.googPlisSent, 10);
+            if (standardStats.googPlisReceived || standardStats.googPlisSent) {
+              standardStats.nackCount = parseInt(
+                  standardStats.googPlisReceived ||
+                  standardStats.googPlisSent, 10);
             }
-            if (report.googNacksReceived || report.googNacksSent) {
-              standardStats.nackCount = parseInt(report.googNacksReceived ||
-                  report.googNacksSent, 10);
+            if (standardStats.googNacksReceived ||
+                standardStats.googNacksSent) {
+              standardStats.nackCount = parseInt(
+                  standardStats.googNacksReceived ||
+                  standardStats.googNacksSent, 10);
             }
             // FIXME: no SLI stats yet?
             break;
