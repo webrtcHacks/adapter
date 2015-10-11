@@ -252,7 +252,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       // If selector is a function then we are in the old style stats so just
       // pass back the original getStats format to avoid breaking old users.
       if (arguments.length > 0 && typeof selector === 'function') {
-        return origGetStats(selector, successCallback);
+        return origGetStats.apply(pc, [selector, successCallback]);
       }
 
       var fixChromeStats = function(response) {
