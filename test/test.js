@@ -5,23 +5,21 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+ /* jshint node: true */
 
 'use strict';
-// This is a basic test file for use with testling.
-// The test script language comes from tape.
-/* jshint node: true */
-var test = require('tape');
 
+// This is a basic test file for use with testling and webdriver.
+// The test script language comes from tape.
+
+var test = require('tape');
 var webdriver = require('selenium-webdriver');
 var seleniumHelpers = require('./selenium-lib');
-var driver = seleniumHelpers.buildDriver();
-
-// Global test page.
-var getTestPage = driver.get('file://' + process.cwd() + '/test/testpage.html');
 
 // Start of tests.
 
 test('Log suppression', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Define test.
   var testDefinition = function() {
     // adapter.js is not supposed to spill console.log
@@ -39,7 +37,7 @@ test('Log suppression', function(t) {
   };
 
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.pass('Page loaded');
     return driver.executeScript(testDefinition);
@@ -55,8 +53,9 @@ test('Log suppression', function(t) {
 });
 
 test('Browser identified', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(4);
     t.pass('Page loaded');
@@ -83,8 +82,9 @@ test('Browser identified', function(t) {
 });
 
 test('Browser supported by adapter.js', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(2);
     t.pass('Page loaded');
@@ -105,8 +105,9 @@ test('Browser supported by adapter.js', function(t) {
 });
 
 test('getUserMedia shim', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
@@ -130,8 +131,9 @@ test('getUserMedia shim', function(t) {
 });
 
 test('RTCPeerConnection shim', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(4);
     t.pass('Page loaded');
@@ -159,8 +161,9 @@ test('RTCPeerConnection shim', function(t) {
 });
 
 test('Create RTCPeerConnection', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(2);
     t.pass('Page loaded');
@@ -179,6 +182,7 @@ test('Create RTCPeerConnection', function(t) {
 });
 
 test('attachMediaStream', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Define test.
   var testDefinition = function() {
     var constraints = {video: true, fake: false};
@@ -202,7 +206,7 @@ test('attachMediaStream', function(t) {
   };
 
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(6);
     t.pass('Page loaded');
@@ -253,6 +257,7 @@ test('attachMediaStream', function(t) {
 });
 
 test('reattachMediaStream', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Define test.
   var testDefinition = function() {
     var constraints = {video: true, fake: false};
@@ -282,7 +287,7 @@ test('reattachMediaStream', function(t) {
   };
 
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(9);
     t.pass('Page loaded');
@@ -350,6 +355,7 @@ test('reattachMediaStream', function(t) {
 });
 
 test('video srcObject getter/setter test', function(t) {
+  var driver = seleniumHelpers.buildDriver();
   // Define test.
   var testDefinition = function() {
     var constraints = {video: true, fake: false};
@@ -373,7 +379,7 @@ test('video srcObject getter/setter test', function(t) {
   };
 
   // Run test.
-  getTestPage
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
