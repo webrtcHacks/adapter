@@ -20,6 +20,7 @@ var seleniumHelpers = require('./selenium-lib');
 
 test('Log suppression', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Define test.
   var testDefinition = function() {
     // adapter.js is not supposed to spill console.log
@@ -54,6 +55,7 @@ test('Log suppression', function(t) {
 
 test('Browser identified', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
@@ -83,6 +85,7 @@ test('Browser identified', function(t) {
 
 test('Browser supported by adapter.js', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
@@ -106,6 +109,7 @@ test('Browser supported by adapter.js', function(t) {
 
 test('getUserMedia shim', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
@@ -132,6 +136,7 @@ test('getUserMedia shim', function(t) {
 
 test('RTCPeerConnection shim', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
@@ -162,6 +167,7 @@ test('RTCPeerConnection shim', function(t) {
 
 test('Create RTCPeerConnection', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
@@ -183,12 +189,14 @@ test('Create RTCPeerConnection', function(t) {
 
 test('attachMediaStream', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Define test.
   var testDefinition = function() {
-    var constraints = {video: true, fake: false};
+    var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
+
       var video = document.createElement('video');
       video.setAttribute('id', 'video');
       // If attachMediaStream works, we should get a video
@@ -198,6 +206,7 @@ test('attachMediaStream', function(t) {
       video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
       });
+
       attachMediaStream(video, stream);
     })
     .catch(function(err) {
@@ -218,6 +227,10 @@ test('attachMediaStream', function(t) {
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'Test definition executed with ' + errorMessage);
+    // Make sure the stream has some time go get started.
+    driver.wait(function() {
+      return driver.executeScript('return typeof window.stream !== \'undefined\'') 
+    }, 5000);
     return driver.executeScript(
       // Firefox and Chrome have different constructor names.
       'return window.stream.constructor.name.match(\'MediaStream\') !== null');
@@ -243,11 +256,6 @@ test('attachMediaStream', function(t) {
     });
   })
   .then(function() {
-    // Cleanup.
-    driver.executeScript(
-      'window.stream.getTracks().forEach(function(track) { track.stop(); });' +
-      'window.stream = null;' +
-      'document.body.removeChild(document.getElementById(\'video\'))');
     t.end();
   })
   .then(null, function(err) {
@@ -258,12 +266,14 @@ test('attachMediaStream', function(t) {
 
 test('reattachMediaStream', function(t) {
   var driver = seleniumHelpers.buildDriver();
+
   // Define test.
   var testDefinition = function() {
-    var constraints = {video: true, fake: false};
+    var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
+
       var video = document.createElement('video');
       var video2 = document.createElement('video');
       video.setAttribute('id', 'video');
@@ -279,10 +289,11 @@ test('reattachMediaStream', function(t) {
       video2.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video2);
       });
+
       attachMediaStream(video, stream);
     })
     .catch(function(err) {
-      window.gumError = err.message;
+      window.gumError = err.name;
     });
   };
 
@@ -331,21 +342,16 @@ test('reattachMediaStream', function(t) {
     t.pass('attachMediaStream succesfully re-attached stream to video element');
     videoElement2.getAttribute('videoWidth')
     .then(function(width) {
-      t.ok(width > 2, 'Video width is: ' + width);
+      t.ok(width > 2, 'Video2 width is: ' + width);
     })
     .then(function() {
       videoElement2.getAttribute('videoHeight')
       .then(function(height) {
-        t.ok(height > 2, 'Video height is: ' + height);
+        t.ok(height > 2, 'Video2 height is: ' + height);
       });
     });
   })
   .then(function() {
-    // Cleanup.
-    driver.executeScript(
-      'window.stream.getTracks().forEach(function(track) { track.stop(); });' +
-      'window.stream = null;' +
-      'document.body.removeChild(document.getElementById(\'video\'))');
     t.end();
   })
   .then(null, function(err) {
@@ -354,11 +360,11 @@ test('reattachMediaStream', function(t) {
   });
 });
 
-test('video srcObject getter/setter test', function(t) {
+test('Video srcObject getter/setter test', function(t) {
   var driver = seleniumHelpers.buildDriver();
   // Define test.
   var testDefinition = function() {
-    var constraints = {video: true, fake: false};
+    var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
@@ -374,7 +380,7 @@ test('video srcObject getter/setter test', function(t) {
       });
     })
     .catch(function(err) {
-      window.gumError = err.message;
+      window.gumError = err.name;
     });
   };
 
@@ -409,11 +415,6 @@ test('video srcObject getter/setter test', function(t) {
     });
   })
   .then(function() {
-    // Cleanup.
-    driver.executeScript(
-      'window.stream.getTracks().forEach(function(track) { track.stop(); });' +
-      'window.stream = null;' +
-      'document.body.removeChild(document.getElementById(\'video\'))');
     t.end();
   })
   .then(null, function(err) {
@@ -422,131 +423,374 @@ test('video srcObject getter/setter test', function(t) {
   });
 });
 
-// test('audio srcObject getter/setter test', function(t) {
-//   t.plan(3);
-//   var audio = document.createElement('audio');
+test('Audio srcObject getter/setter test', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+  // Define test.
+  var testDefinition = function() {
+    var constraints = {video: false, audio: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      window.stream = stream;
 
-//   var constraints = {video: false, audio: true, fake: true};
-//   navigator.mediaDevices.getUserMedia(constraints)
-//   .then(function(stream) {
-//     t.pass('got stream');
-//     audio.srcObject = stream;
-//     t.pass('srcObject set');
-//     t.ok(audio.srcObject.id === stream.id,
-//         'srcObject getter returns stream object');
-//     stream.getTracks().forEach(function(track) { track.stop(); });
-//   })
-//   .catch(function(err) {
-//     t.fail(err.toString());
-//   });
-// });
+      var audio = document.createElement('audio');
+      audio.setAttribute('id', 'audio');
+      audio.srcObject = stream;
 
-// test('srcObject set from another object', function(t) {
-//   var video = document.createElement('video');
-//   var video2 = document.createElement('video');
+      // If attachMediaStream works, we should get a video
+      // at some point. This will trigger onloadedmetadata.
+      audio.addEventListener('loadedmetadata', function() {
+        document.body.appendChild(audio);
+      });
+    })
+    .catch(function(err) {
+      window.gumError = err.name;
+    });
+  };
 
-//   var constraints = {video: true, fake: true};
-//   navigator.mediaDevices.getUserMedia(constraints)
-//   .then(function(stream) {
-//     t.pass('got stream.');
-//     video.srcObject = stream;
-//     video2.srcObject = video.srcObject;
-//     t.ok(video.srcObject.id === video2.srcObject.id,
-//         'stream ids from srcObjects match');
-//     stream.getTracks().forEach(function(track) { track.stop(); });
-//     t.end();
-//   })
-//   .catch(function(err) {
-//     t.fail(err.toString());
-//   });
-// });
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(3);
+    t.pass('Page loaded');
+    driver.executeScript(testDefinition);
+    return driver.executeScript('return window.gumError');
+  })
+  .then(function(error) {
+    var errorMessage = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    // Wait until loadedmetadata event has fired and appended video element.
+    // 5 second timeout in case the event does not fire for some reason.
+    return driver.wait(webdriver.until.elementLocated(
+      webdriver.By.id('audio')), 5000);
+  })
+  .then(function() {
+    return driver.executeScript(
+        'return document.getElementById(\'audio\').srcObject.id')
+    .then(function(srcObjectId) {
+      return srcObjectId;
+    })
+    .then(function(srcObjectId) {
+      driver.executeScript('return window.stream.id')
+      .then(function(streamId) {
+        t.ok(srcObjectId === streamId,
+            'srcObject getter returns stream object');
+      });
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
 
-// test('attach mediaStream directly', function(t) {
-//   // onloadedmetadata had issues in Firefox < 38.
-//   t.plan((m.webrtcDetectedBrowser === 'firefox' &&
-//           m.webrtcDetectedVersion < 38) ? 2 : 3);
-//   var video = document.createElement('video');
-//   var constraints = {video: true, fake: true};
-//   navigator.mediaDevices.getUserMedia(constraints)
-//   .then(function(stream) {
-//     t.pass('got stream.');
-//     video.srcObject = stream;
-//     t.pass('attachMediaStream returned');
+test('srcObject set from another object', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-//     // If attachMediaStream works, we should get a video
-//     // at some point. This will trigger onloadedmetadata.
-//     video.onloadedmetadata = function() {
-//       t.pass('got stream with w=' + video.videoWidth +
-//              ',h=' + video.videoHeight);
-//       stream.getTracks().forEach(function(track) { track.stop(); });
-//     };
-//   })
-//   .catch(function(err) {
-//     t.fail(err.toString());
-//   });
-// });
+  // Define test.
+  var testDefinition = function() {
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      window.stream = stream;
 
-// test('reattaching mediaStream directly', function(t) {
-//   // onloadedmetadata had issues in Firefox < 38.
-//   t.plan((m.webrtcDetectedBrowser === 'firefox' &&
-//           m.webrtcDetectedVersion < 38) ? 2 : 4);
-//   var video = document.createElement('video');
-//   var constraints = {video: true, fake: true};
-//   navigator.mediaDevices.getUserMedia(constraints)
-//   .then(function(stream) {
-//     t.pass('got stream.');
-//     video.srcObject = stream;
-//     t.pass('srcObject set');
+      var video = document.createElement('video');
+      var video2 = document.createElement('video2');
+      video.setAttribute('id', 'video');
+      video2.setAttribute('id', 'video2');
+      video.srcObject = stream;
+      video2.srcObject = video.srcObject;
 
-//     // If attachMediaStream works, we should get a video
-//     // at some point. This will trigger onloadedmetadata.
-//     // This reattaches to the second video which will trigger
-//     // onloadedmetadata there.
-//     video.onloadedmetadata = function() {
-//       t.pass('got stream on first video with w=' + video.videoWidth +
-//              ',h=' + video.videoHeight);
-//       video2.srcObject = video.srcObject;
-//     };
+      // If attachMediaStream works, we should get a video
+      // at some point. This will trigger onloadedmetadata.
+      video.addEventListener('loadedmetadata', function() {
+        document.body.appendChild(video);
+        document.body.appendChild(video2);
+      });
+    })
+    .catch(function(err) {
+      window.gumError = err.name;
+    });
+  };
 
-//     var video2 = document.createElement('video');
-//     video2.onloadedmetadata = function() {
-//       t.pass('got stream on second video with w=' + video.videoWidth +
-//              ',h=' + video.videoHeight);
-//     };
-//   })
-//   .catch(function(err) {
-//     t.fail(err.toString());
-//   });
-// });
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(3);
+    t.pass('Page loaded');
+    driver.executeScript(testDefinition);
+    return driver.executeScript('return window.error');
+  })
+  .then(function(error) {
+    var errorMessage = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    // Wait until loadedmetadata event has fired and appended video element.
+    // 5 second timeout in case the event does not fire for some reason.
+    return driver.wait(webdriver.until.elementLocated(
+      webdriver.By.id('video2')), 5000);
+  })
+  .then(function() {
+    return driver.executeScript(
+        'return document.getElementById(\'video\').srcObject.id')
+    .then(function(srcObjectId) {
+      return srcObjectId;
+    })
+    .then(function(srcObjectId) {
+      driver.executeScript('return document.getElementById(\'video2\').srcObject.id')
+      .then(function(srcObjectId2) {
+        t.ok(srcObjectId === srcObjectId2,
+            'Stream ids from srcObjects match.');
+      });
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
 
-// test('call getUserMedia with constraints', function(t) {
-//   t.plan(1);
-//   var impossibleConstraints = {
-//     video: {
-//       width: 1280,
-//       height: {min: 200, ideal: 720, max: 1080},
-//       frameRate: {exact: 0} // to fail
-//     },
-//   };
-//   if (m.webrtcDetectedBrowser === 'firefox') {
-//     if (m.webrtcDetectedVersion < 42) {
-//       t.skip('getUserMedia(impossibleConstraints) must fail ' +
-//              '(firefox <42 cannot turn off fake devices)');
-//       return;
-//     }
-//     impossibleConstraints.fake = false; // override
-//   }
-//   new Promise(function(resolve, reject) {
-//     navigator.getUserMedia(impossibleConstraints, resolve, reject);
-//   })
-//   .then(function() {
-//     t.fail('getUserMedia(impossibleConstraints) must fail');
-//   })
-//   .catch(function(err) {
-//     t.ok(err.name.indexOf('Error') >= 0,
-//          'getUserMedia(impossibleConstraints) must fail');
-//   });
-// });
+test('Attach mediaStream directly', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Define test.
+  var testDefinition = function() {
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      window.stream = stream;
+
+      var video = document.createElement('video');
+      video.setAttribute('id', 'video');
+      // If attachMediaStream works, we should get a video
+      // at some point. This will trigger onloadedmetadata.
+      // Firefox < 38 had issues with this, workaround removed
+      // due to 38 being stable now.
+      video.addEventListener('loadedmetadata', function() {
+        document.body.appendChild(video);
+      });
+
+      video.srcObject = stream;
+    })
+    .catch(function(err) {
+      window.gumError = err.name;
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(6);
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.gumError');
+    });
+  })
+  .then(function(error) {
+    var errorMessage = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    // Make sure the stream has some time go get started.
+    driver.wait(function() {
+      return driver.executeScript('return typeof window.stream !== \'undefined\'') 
+    }, 5000);
+    return driver.executeScript(
+      // Firefox and Chrome have different constructor names.
+      'return window.stream.constructor.name.match(\'MediaStream\') !== null');
+  })
+  .then(function(isMediaStream) {
+    t.ok(isMediaStream, 'Stream is a MediaStream');
+    // Wait until loadedmetadata event has fired and appended video element.
+    // 5 second timeout in case the event does not fire for some reason.
+    return driver.wait(webdriver.until.elementLocated(
+      webdriver.By.id('video')), 5000);
+  })
+  .then(function(videoElement) {
+    t.pass('Stream attached directly succesfully to a video element');
+    videoElement.getAttribute('videoWidth')
+    .then(function(width) {
+      t.ok(width > 2, 'Video width is: ' + width);
+    })
+    .then(function() {
+      videoElement.getAttribute('videoHeight')
+      .then(function(height) {
+        t.ok(height > 2, 'Video height is: ' + height);
+      });
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
+
+test('Re-attaching mediaStream directly', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Define test.
+  var testDefinition = function() {
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      window.stream = stream;
+
+      var video = document.createElement('video');
+      var video2 = document.createElement('video');
+      video.setAttribute('id', 'video');
+      video2.setAttribute('id', 'video2');
+      // If attachMediaStream works, we should get a video
+      // at some point. This will trigger onloadedmetadata.
+      // This reattaches to the second video which will trigger
+      // onloadedmetadata there.
+      video.addEventListener('loadedmetadata', function() {
+        document.body.appendChild(video);
+        video2.srcObject = video.srcObject;
+      });
+      video2.addEventListener('loadedmetadata', function() {
+        document.body.appendChild(video2);
+      });
+
+      video.srcObject = stream;
+    })
+    .catch(function(err) {
+      window.gumError = err.name;
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(9);
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.gumError');
+    });
+  })
+  .then(function(error) {
+    var errorMessage = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    return driver.wait(function() {
+      return driver.executeScript('return typeof window.stream !== \'undefined\'');
+    })
+    .then(function() {
+      return driver.executeScript(
+      // Firefox and Chrome have different constructor names.
+      'return window.stream.constructor.name.match(\'MediaStream\') !== null');
+    })
+  })
+  .then(function(isMediaStream) {
+    t.ok(isMediaStream, 'Stream is a MediaStream');
+    // Wait until loadedmetadata event has fired and appended video element.
+    // 5 second timeout in case the event does not fire for some reason.
+    return driver.wait(webdriver.until.elementLocated(
+      webdriver.By.id('video')), 5000);
+  })
+  .then(function(videoElement) {
+    t.pass('Stream attached directly succesfully to a video element');
+    videoElement.getAttribute('videoWidth')
+    .then(function(width) {
+      t.ok(width > 2, 'Video width is: ' + width);
+    })
+    .then(function() {
+      videoElement.getAttribute('videoHeight')
+      .then(function(height) {
+        t.ok(height > 2, 'Video height is: ' + height);
+      });
+    });
+    // Wait until loadedmetadata event has fired and appended video element.
+    // 5 second timeout in case the event does not fire for some reason.
+    return driver.wait(webdriver.until.elementLocated(
+      webdriver.By.id('video2')), 5000);
+  })
+  .then(function(videoElement2) {
+    t.pass('Stream re-attached directly succesfully to a video element');
+    videoElement2.getAttribute('videoWidth')
+    .then(function(width) {
+      t.ok(width > 2, 'Video2 width is: ' + width);
+    })
+    .then(function() {
+      videoElement2.getAttribute('videoHeight')
+      .then(function(height) {
+        t.ok(height > 2, 'Video2 height is: ' + height);
+      });
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
+
+test('Call getUserMedia with impossible constraints', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Define test.
+  var testDefinition = function() {
+    var impossibleConstraints = {
+      video: {
+        width: 1280,
+        height: {min: 200, ideal: 720, max: 1080},
+        frameRate: {exact: 0} // to fail
+      }
+    };
+    // TODO: Remove when firefox 42+ accepts impossible constraints
+    // on fake devices.
+    if (webrtcDetectedBrowser === 'firefox') {
+      impossibleConstraints.fake = false;
+    }
+    navigator.mediaDevices.getUserMedia(impossibleConstraints)
+    .then(function(stream) {
+      window.stream = stream;
+    })
+    .catch(function(err) {
+      window.gumError = err;
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(2);
+    t.pass('Page loaded');
+    return driver.executeScript(
+      'return webrtcDetectedBrowser === \'firefox\' '+
+      '&& webrtcDetectedVersion < 42')
+  })
+  .then(function(isFirefoxAndVersionLessThan42) {
+    if (isFirefoxAndVersionLessThan42) {
+      t.skip('getUserMedia(impossibleConstraints) must fail');  
+    } else {
+      return driver.executeScript(testDefinition)
+      .then(function() {
+        return driver.wait(function() {
+          return driver.executeScript('return window.gumError');
+        }, 5000);
+      })
+      .then(function(error) {
+        t.ok(error, 'getUserMedia(impossibleConstraints) must fail');
+      });
+    }
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
+
 
 // test('check getUserMedia legacy constraints converter', function(t) {
 //   function testBeforeAfterPairs(gum, pairs) {
