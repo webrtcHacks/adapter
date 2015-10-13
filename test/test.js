@@ -113,6 +113,50 @@ test('Browser supported by adapter.js', function(t) {
   });
 });
 
+// Test that getUserMedia is shimmed properly.
+test('navigator.mediaDevices.getUserMedia', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+  var testDefinition = function() {
+    navigator.mediaDevices.getUserMedia({video: true, fake: true})
+    .then(function(stream) {
+      window.stream = stream;
+    })
+    .catch(function(err) {
+      window.error = err.name;
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.gumError');
+    });
+  })
+  .then(function(error) {
+    var errorMessage = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    return driver.wait(function() {
+      return driver.executeScript(
+        'return window.stream.getVideoTracks().length > 0');
+    });
+  })
+  .then(function(greaterThanZeroVideoTracks) {
+    t.ok(greaterThanZeroVideoTracks, 'Got stream with video tracks.');
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
 test('getUserMedia shim', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
@@ -135,6 +179,43 @@ test('getUserMedia shim', function(t) {
     t.end();
   })
  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+// Test that adding and removing an eventlistener on navigator.mediaDevices
+// is possible. The usecase for this is the devicechanged event.
+// This does not test whether devicechanged is actually called.
+test('navigator.mediaDevices eventlisteners', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(3);
+    t.pass('Page loaded');
+    return driver.executeScript(
+      'return typeof(navigator.mediaDevices.addEventListener) === ' +
+          '\'function\'');
+  })
+  .then(function(isAddEventListenerFunction) {
+    t.ok(isAddEventListenerFunction,
+        'navigator.mediaDevices.addEventListener is a function');
+    return driver.executeScript(
+    'return typeof(navigator.mediaDevices.removeEventListener) === ' +
+         '\'function\'');
+  })
+  .then(function(isRemoveEventListenerFunction) {
+    t.ok(isRemoveEventListenerFunction,
+      'navigator.mediaDevices.removeEventListener is a function');
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
     if (err !== 'skip-test') {
       t.fail(err);
     }
@@ -1463,7 +1544,6 @@ test('call enumerateDevices', function(t) {
     })
     .catch(function(err) {
       window.error = err.name;
-      t.end();
     });
   };
 
@@ -1503,56 +1583,6 @@ test('call enumerateDevices', function(t) {
     t.end();
   });
 });
-
-// Test that adding and removing an eventlistener on navigator.mediaDevices
-// is possible. The usecase for this is the devicechanged event.
-// This does not test whether devicechanged is actually called.
-test('navigator.mediaDevices eventlisteners', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
-  .then(function() {
-    t.plan(3);
-    t.pass('Page loaded');
-    return driver.executeScript(
-      'return typeof(navigator.mediaDevices.addEventListener) === ' +
-          '\'function\'');
-  })
-  .then(function(isAddEventListenerFunction) {
-    t.ok(isAddEventListenerFunction,
-        'navigator.mediaDevices.addEventListener is a function');
-    return driver.executeScript(
-    'return typeof(navigator.mediaDevices.removeEventListener) === ' +
-         '\'function\'');
-  })
-  .then(function(isRemoveEventListenerFunction) {
-    t.ok(isRemoveEventListenerFunction,
-      'navigator.mediaDevices.removeEventListener is a function');
-  })
-  .then(function() {
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
-// // Test that getUserMedia is shimmed properly.
-// test('navigator.mediaDevices.getUserMedia', function(t) {
-//   navigator.mediaDevices.getUserMedia({video: true, fake: true})
-//   .then(function(stream) {
-//     t.ok(stream.getVideoTracks().length > 0, 'Got stream with video tracks.');
-//     t.end();
-//   })
-//   .catch(function(err) {
-//     t.fail('getUserMedia failed with error: ' + err.toString());
-//     t.end();
-//   });
-// });
 
 // // Test Chrome polyfill for getStats.
 // test('getStats', function(t) {
