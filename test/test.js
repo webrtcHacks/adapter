@@ -122,7 +122,7 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
       window.stream = stream;
     })
     .catch(function(err) {
-      window.error = err.name;
+      window.gumError = err.name;
     });
   };
 
@@ -136,8 +136,8 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
     });
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     return driver.wait(function() {
       return driver.executeScript(
         'return window.stream.getVideoTracks().length > 0');
@@ -316,8 +316,8 @@ test('attachMediaStream', function(t) {
     });
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Make sure the stream has some time go get started.
     driver.wait(function() {
       return driver.executeScript(
@@ -402,8 +402,8 @@ test('reattachMediaStream', function(t) {
     });
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     return driver.executeScript(
       // Firefox and Chrome have different constructor names.
       'return window.stream.constructor.name.match(\'MediaStream\') !== null');
@@ -489,8 +489,8 @@ test('Video srcObject getter/setter test', function(t) {
     return driver.executeScript('return window.gumError');
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
@@ -554,8 +554,8 @@ test('Audio srcObject getter/setter test', function(t) {
     return driver.executeScript('return window.gumError');
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
@@ -621,11 +621,11 @@ test('srcObject set from another object', function(t) {
     t.plan(3);
     t.pass('Page loaded');
     driver.executeScript(testDefinition);
-    return driver.executeScript('return window.error');
+    return driver.executeScript('return window.gumError');
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
@@ -695,8 +695,8 @@ test('Attach mediaStream directly', function(t) {
     });
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Make sure the stream has some time go get started.
     driver.wait(function() {
       return driver.executeScript(
@@ -781,8 +781,8 @@ test('Re-attaching mediaStream directly', function(t) {
     });
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
     return driver.wait(function() {
       return driver.executeScript(
         'return typeof window.stream !== \'undefined\'');
@@ -1543,7 +1543,7 @@ test('call enumerateDevices', function(t) {
       window.devices = devices;
     })
     .catch(function(err) {
-      window.error = err.name;
+      window.enumError = err.name;
     });
   };
 
@@ -1553,12 +1553,12 @@ test('call enumerateDevices', function(t) {
     t.pass('Page loaded');
     return driver.executeScript(testDefinition)
     .then(function() {
-      return driver.executeScript('return window.gumError');
+      return driver.executeScript('return window.enumError');
     });
   })
   .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    var enumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'Enumerate devices result:  ' + enumResult);
     return driver.wait(function() {
       return driver.executeScript('return window.devices');
     });
