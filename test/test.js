@@ -229,7 +229,8 @@ test('attachMediaStream', function(t) {
     t.ok(!error, 'Test definition executed with ' + errorMessage);
     // Make sure the stream has some time go get started.
     driver.wait(function() {
-      return driver.executeScript('return typeof window.stream !== \'undefined\'') 
+      return driver.executeScript(
+        'return typeof window.stream !== \'undefined\'');
     }, 5000);
     return driver.executeScript(
       // Firefox and Chrome have different constructor names.
@@ -538,7 +539,8 @@ test('srcObject set from another object', function(t) {
       return srcObjectId;
     })
     .then(function(srcObjectId) {
-      driver.executeScript('return document.getElementById(\'video2\').srcObject.id')
+      driver.executeScript(
+        'return document.getElementById(\'video2\').srcObject.id')
       .then(function(srcObjectId2) {
         t.ok(srcObjectId === srcObjectId2,
             'Stream ids from srcObjects match.');
@@ -596,7 +598,8 @@ test('Attach mediaStream directly', function(t) {
     t.ok(!error, 'Test definition executed with ' + errorMessage);
     // Make sure the stream has some time go get started.
     driver.wait(function() {
-      return driver.executeScript('return typeof window.stream !== \'undefined\'') 
+      return driver.executeScript(
+        'return typeof window.stream !== \'undefined\'');
     }, 5000);
     return driver.executeScript(
       // Firefox and Chrome have different constructor names.
@@ -678,13 +681,14 @@ test('Re-attaching mediaStream directly', function(t) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'Test definition executed with ' + errorMessage);
     return driver.wait(function() {
-      return driver.executeScript('return typeof window.stream !== \'undefined\'');
+      return driver.executeScript(
+        'return typeof window.stream !== \'undefined\'');
     })
     .then(function() {
       return driver.executeScript(
       // Firefox and Chrome have different constructor names.
       'return window.stream.constructor.name.match(\'MediaStream\') !== null');
-    })
+    });
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
@@ -764,12 +768,12 @@ test('Call getUserMedia with impossible constraints', function(t) {
     t.plan(2);
     t.pass('Page loaded');
     return driver.executeScript(
-      'return webrtcDetectedBrowser === \'firefox\' '+
-      '&& webrtcDetectedVersion < 42')
+      'return webrtcDetectedBrowser === \'firefox\' ' +
+      '&& webrtcDetectedVersion < 42');
   })
   .then(function(isFirefoxAndVersionLessThan42) {
     if (isFirefoxAndVersionLessThan42) {
-      t.skip('getUserMedia(impossibleConstraints) must fail');  
+      t.skip('getUserMedia(impossibleConstraints) must fail');
     } else {
       return driver.executeScript(testDefinition)
       .then(function() {
@@ -791,284 +795,405 @@ test('Call getUserMedia with impossible constraints', function(t) {
   });
 });
 
+test('Check getUserMedia legacy constraints converter', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-// test('check getUserMedia legacy constraints converter', function(t) {
-//   function testBeforeAfterPairs(gum, pairs) {
-//     pairs.forEach(function(beforeAfter, i) {
-//       var constraints = interceptGumForConstraints(gum, function() {
-//         navigator.getUserMedia(beforeAfter[0], function() {}, function() {});
-//       });
-//       t.deepEqual(constraints, beforeAfter[1],
-//                   'Constraints ' + (i + 1) + ' back-converted to ' + gum);
-//     });
-//   }
+  var testDefinition = function() {
+    // Used to collect the result of test.
+    window.constraintsArray = [];
+    // Helpers to test adapter's legacy constraints-manipulation.
+    function pretendVersion(version, func) {
+      var realVersion = webrtcDetectedVersion;
+      window.webrtcTesting.version = version;
+      func();
+      window.webrtcTesting.version = realVersion;
+    }
 
-//   if (m.webrtcDetectedBrowser === 'firefox') {
-//     pretendVersion(m, 37, function() {
-//       testBeforeAfterPairs('mozGetUserMedia', [
-//         // Test that spec constraints get back-converted on FF37.
-//         [
-//          {
-//            video: {
-//              mediaSource: 'screen',
-//              width: 1280,
-//              height: {min: 200, ideal: 720, max: 1080},
-//              facingMode: 'user',
-//              frameRate: {exact: 50}
-//            }
-//          },
-//          {
-//            video: {
-//              mediaSource: 'screen',
-//              height: {min: 200, max: 1080},
-//              frameRate: {max: 50, min: 50},
-//              advanced: [
-//                {width: {min: 1280, max: 1280}},
-//                {height: {min: 720, max: 720}},
-//                {facingMode: 'user'}
-//              ],
-//              require: ['height', 'frameRate']
-//            }
-//          }
-//         ],
-//         // Test that legacy constraints pass through unharmed on FF37.
-//         [
-//          {
-//            video: {
-//              height: {min: 200, max: 1080},
-//              frameRate: {max: 50, min: 50},
-//              advanced: [
-//                {width: {min: 1280, max: 1280}},
-//                {height: {min: 720, max: 720}},
-//                {facingMode: 'user'}
-//              ],
-//              require: ['height', 'frameRate']
-//            }
-//          },
-//          {
-//            video: {
-//              height: {min: 200, max: 1080},
-//              frameRate: {max: 50, min: 50},
-//              advanced: [
-//                {width: {min: 1280, max: 1280}},
-//                {height: {min: 720, max: 720}},
-//                {facingMode: 'user'}
-//              ],
-//              require: ['height', 'frameRate']
-//            }
-//          }
-//         ],
-//       ]);
-//     });
-//     pretendVersion(m, 38, function() {
-//       testBeforeAfterPairs('mozGetUserMedia', [
-//         // Test that spec constraints pass through unharmed on FF38+.
-//         [
-//          {
-//            video: {
-//              mediaSource: 'screen',
-//              width: 1280,
-//              height: {min: 200, ideal: 720, max: 1080},
-//              facingMode: 'user',
-//              frameRate: {exact: 50}
-//            }
-//          },
-//          {
-//            video: {
-//              mediaSource: 'screen',
-//              width: 1280,
-//              height: {min: 200, ideal: 720, max: 1080},
-//              facingMode: 'user',
-//              frameRate: {exact: 50}
-//            }
-//          },
-//         ],
-//       ]);
-//     });
-//   } else if (m.webrtcDetectedBrowser === 'chrome') {
-//     testBeforeAfterPairs('webkitGetUserMedia', [
-//       // Test that spec constraints get back-converted on Chrome.
-//       [
-//        {
-//          video: {
-//            width: 1280,
-//            height: {min: 200, ideal: 720, max: 1080},
-//            frameRate: {exact: 50}
-//          }
-//        },
-//        {
-//          video: {
-//            mandatory: {
-//              maxFrameRate: 50,
-//              maxHeight: 1080,
-//              minHeight: 200,
-//              minFrameRate: 50
-//            },
-//            optional: [
-//              {minWidth: 1280},
-//              {maxWidth: 1280},
-//              {minHeight: 720},
-//              {maxHeight: 720},
-//            ]
-//          }
-//        }
-//       ],
-//       // Test that legacy constraints pass through unharmed on Chrome.
-//       [
-//        {
-//          video: {
-//            mandatory: {
-//              maxFrameRate: 50,
-//              maxHeight: 1080,
-//              minHeight: 200,
-//              minFrameRate: 50
-//            },
-//            optional: [
-//              {minWidth: 1280},
-//              {maxWidth: 1280},
-//              {minHeight: 720},
-//              {maxHeight: 720},
-//            ]
-//          }
-//        },
-//        {
-//          video: {
-//            mandatory: {
-//              maxFrameRate: 50,
-//              maxHeight: 1080,
-//              minHeight: 200,
-//              minFrameRate: 50
-//            },
-//            optional: [
-//              {minWidth: 1280},
-//              {maxWidth: 1280},
-//              {minHeight: 720},
-//              {maxHeight: 720},
-//            ]
-//          }
-//        }
-//       ],
-//       // Test code protecting Chrome from choking on common unknown constraints.
-//       [
-//        {
-//          video: {
-//            mediaSource: 'screen',
-//            advanced: [
-//              {facingMode: 'user'}
-//            ],
-//            require: ['height', 'frameRate']
-//          }
-//        },
-//        {
-//          video: {
-//            optional: [
-//              {facingMode: 'user'}
-//            ]
-//          }
-//        }
-//       ]
-//     ]);
-//   }
-//   t.end();
-// });
+    function interceptGumForConstraints(gum, func) {
+      var origGum = navigator[gum].bind(navigator);
+      var netConstraints;
+      navigator[gum] = function(constraints) {
+        netConstraints = constraints;
+      };
+      func();
+      navigator[gum] = origGum;
+      return netConstraints;
+    }
 
-// test('basic connection establishment', function(t) {
-//   var pc1 = new RTCPeerConnection(null);
-//   var pc2 = new RTCPeerConnection(null);
-//   var ended = false;
+    function testBeforeAfterPairs(gum, pairs) {
+      pairs.forEach(function(beforeAfter, counter) {
+        var constraints = interceptGumForConstraints(gum, function() {
+          navigator.getUserMedia(beforeAfter[0], function() {}, function() {});
+        });
+        window.constraintsArray.push([constraints, beforeAfter[1], gum,
+            counter + 1]);
+      });
+    }
 
-//   pc1.oniceconnectionstatechange = function() {
-//     if (pc1.iceConnectionState === 'connected' ||
-//         pc1.iceConnectionState === 'completed') {
-//       t.pass('P2P connection established');
-//       if (!ended) {
-//         ended = true;
-//         t.end();
-//       }
-//     }
-//   };
+    var testFirefox = function() {
+      pretendVersion(37, function() {
+        testBeforeAfterPairs('mozGetUserMedia', [
+          // Test that spec constraints get back-converted on FF37.
+          [
+           {
+             video: {
+               mediaSource: 'screen',
+               width: 1280,
+               height: {min: 200, ideal: 720, max: 1080},
+               facingMode: 'user',
+               frameRate: {exact: 50}
+             }
+           },
+           {
+             video: {
+               mediaSource: 'screen',
+               height: {min: 200, max: 1080},
+               frameRate: {max: 50, min: 50},
+               advanced: [
+                 {width: {min: 1280, max: 1280}},
+                 {height: {min: 720, max: 720}},
+                 {facingMode: 'user'}
+               ],
+               require: ['height', 'frameRate']
+             }
+           }
+          ],
+          // Test that legacy constraints pass through unharmed on FF37.
+          [
+           {
+             video: {
+               height: {min: 200, max: 1080},
+               frameRate: {max: 50, min: 50},
+               advanced: [
+                 {width: {min: 1280, max: 1280}},
+                 {height: {min: 720, max: 720}},
+                 {facingMode: 'user'}
+               ],
+               require: ['height', 'frameRate']
+             }
+           },
+           {
+             video: {
+               height: {min: 200, max: 1080},
+               frameRate: {max: 50, min: 50},
+               advanced: [
+                 {width: {min: 1280, max: 1280}},
+                 {height: {min: 720, max: 720}},
+                 {facingMode: 'user'}
+               ],
+               require: ['height', 'frameRate']
+             }
+           }
+          ],
+        ]);
+      });
+      pretendVersion(38, function() {
+        testBeforeAfterPairs('mozGetUserMedia', [
+          // Test that spec constraints pass through unharmed on FF38+.
+          [
+           {
+             video: {
+               mediaSource: 'screen',
+               width: 1280,
+               height: {min: 200, ideal: 720, max: 1080},
+               facingMode: 'user',
+               frameRate: {exact: 50}
+             }
+           },
+           {
+             video: {
+               mediaSource: 'screen',
+               width: 1280,
+               height: {min: 200, ideal: 720, max: 1080},
+               facingMode: 'user',
+               frameRate: {exact: 50}
+             }
+           },
+          ],
+        ]);
+      });
+    };
 
-//   var addCandidate = function(pc, event) {
-//     if (event.candidate) {
-//       var cand = new RTCIceCandidate(event.candidate);
-//       pc.addIceCandidate(cand,
-//         function() {
-//           t.pass('addIceCandidate');
-//         },
-//         function(err) {
-//           t.fail('addIceCandidate ' + err.toString());
-//         }
-//       );
-//     }
-//   };
-//   pc1.onicecandidate = function(event) {
-//     addCandidate(pc2, event);
-//   };
-//   pc2.onicecandidate = function(event) {
-//     addCandidate(pc1, event);
-//   };
+    var testChrome = function() {
+      testBeforeAfterPairs('webkitGetUserMedia', [
+        // Test that spec constraints get back-converted on Chrome.
+        [
+         {
+           video: {
+             width: 1280,
+             height: {min: 200, ideal: 720, max: 1080},
+             frameRate: {exact: 50}
+           }
+         },
+         {
+           video: {
+             mandatory: {
+               maxFrameRate: 50,
+               maxHeight: 1080,
+               minHeight: 200,
+               minFrameRate: 50
+             },
+             optional: [
+               {minWidth: 1280},
+               {maxWidth: 1280},
+               {minHeight: 720},
+               {maxHeight: 720},
+             ]
+           }
+         }
+        ],
+        // Test that legacy constraints pass through unharmed on Chrome.
+        [
+         {
+           video: {
+             mandatory: {
+               maxFrameRate: 50,
+               maxHeight: 1080,
+               minHeight: 200,
+               minFrameRate: 50
+             },
+             optional: [
+               {minWidth: 1280},
+               {maxWidth: 1280},
+               {minHeight: 720},
+               {maxHeight: 720},
+             ]
+           }
+         },
+         {
+           video: {
+             mandatory: {
+               maxFrameRate: 50,
+               maxHeight: 1080,
+               minHeight: 200,
+               minFrameRate: 50
+             },
+             optional: [
+               {minWidth: 1280},
+               {maxWidth: 1280},
+               {minHeight: 720},
+               {maxHeight: 720},
+             ]
+           }
+         }
+        ],
+        // Test code protecting Chrome from choking on common unknown constraints.
+        [
+         {
+           video: {
+             mediaSource: 'screen',
+             advanced: [
+               {facingMode: 'user'}
+             ],
+             require: ['height', 'frameRate']
+           }
+         },
+         {
+           video: {
+             optional: [
+               {facingMode: 'user'}
+             ]
+           }
+         }
+        ]
+      ]);
+    };
 
-//   var constraints = {video: true, fake: true};
-//   navigator.mediaDevices.getUserMedia(constraints)
-//   .then(function(stream) {
-//     pc1.addStream(stream);
+    if (webrtcDetectedBrowser === 'chrome') {
+      testChrome();
+    } else if (webrtcDetectedBrowser === 'firefox') {
+      testFirefox();
+    } else {
+      return window.constraintsArray.push('Unsupported browser');
+    }
+  };
 
-//     pc1.createOffer(
-//       function(offer) {
-//         t.pass('pc1.createOffer');
-//         pc1.setLocalDescription(offer,
-//           function() {
-//             t.pass('pc1.setLocalDescription');
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    // t.plan(2);
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.constraintsArray');
+    });
+  })
+  .then(function(constraintsArray) {
+    if (constraintsArray[0] === 'Unsupported browser') {
+      // Skipping if the browser is not supported.
+      t.skip(constraintsArray);
+      return;
+    }
+    // constraintsArray[constr][0] = Constraints to adapter.js.
+    // constraintsArray[constr][1] = Constraints from adapter.js.
+    // constraintsArray[constr][2] = Constraint pair counter.
+    // constraintsArray[constr][3] = getUserMedia API called.
+    for (var constr = 0; constr < constraintsArray.length; constr++) {
+      t.deepEqual(constraintsArray[constr][0], constraintsArray[constr][1],
+          'Constraints ' + constraintsArray[constr][3] +
+          ' back-converted to: ' + constraintsArray[constr][2]);
+    }
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
 
-//             offer = new RTCSessionDescription(offer);
-//             t.pass('created RTCSessionDescription from offer');
-//             pc2.setRemoteDescription(offer,
-//               function() {
-//                 t.pass('pc2.setRemoteDescription');
-//                 pc2.createAnswer(
-//                   function(answer) {
-//                     t.pass('pc2.createAnswer');
-//                     pc2.setLocalDescription(answer,
-//                       function() {
-//                         t.pass('pc2.setLocalDescription');
-//                         answer = new RTCSessionDescription(answer);
-//                         t.pass('created RTCSessionDescription from answer');
-//                         pc1.setRemoteDescription(answer,
-//                           function() {
-//                             t.pass('pc1.setRemoteDescription');
-//                           },
-//                           function(err) {
-//                             t.fail('pc1.setRemoteDescription ' +
-//                                 err.toString());
-//                           }
-//                         );
-//                       },
-//                       function(err) {
-//                         t.fail('pc2.setLocalDescription ' + err.toString());
-//                       }
-//                     );
-//                   },
-//                   function(err) {
-//                     t.fail('pc2.createAnswer ' + err.toString());
-//                   }
-//                 );
-//               },
-//               function(err) {
-//                 t.fail('pc2.setRemoteDescription ' + err.toString());
-//               }
-//             );
-//           },
-//           function(err) {
-//             t.fail('pc1.setLocalDescription ' + err.toString());
-//           }
-//         );
-//       },
-//       function(err) {
-//         t.fail('pc1 failed to create offer ' + err.toString());
-//       }
-//     );
-//   });
-// });
+test('basic connection establishment', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    var counter = 1;
+    window.testPassed = [];
+    window.testFailed = [];
+    window.pc1 = new RTCPeerConnection(null);
+    window.pc2 = new RTCPeerConnection(null);
+    window.ended = false;
+
+    window.pc1.oniceconnectionstatechange = function() {
+      if (window.pc1.iceConnectionState === 'connected' ||
+          window.pc1.iceConnectionState === 'completed') {
+        window.pc1.connectionStatus = window.pc1.iceConnectionState;
+        if (!window.ended) {
+          window.ended = true;
+        }
+      }
+    };
+
+    var addCandidate = function(pc, event) {
+      if (event.candidate) {
+        var cand = new RTCIceCandidate(event.candidate);
+        pc.addIceCandidate(cand,
+          function() {
+            window.testPassed.push('addIceCandidate ' + counter++);
+          },
+          function(err) {
+            window.testFailed.push('addIceCandidate ' + err.toString());
+          }
+        );
+      }
+    };
+    window.pc1.onicecandidate = function(event) {
+      addCandidate(window.pc2, event);
+    };
+    window.pc2.onicecandidate = function(event) {
+      addCandidate(window.pc1, event);
+    };
+
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      window.pc1.addStream(stream);
+
+      window.pc1.createOffer(
+        function(offer) {
+          window.testPassed.push('pc1.createOffer');
+          window.pc1.setLocalDescription(offer,
+            function() {
+              window.testPassed.push('pc1.setLocalDescription');
+
+              offer = new RTCSessionDescription(offer);
+              window.testPassed.push(
+                'created RTCSessionDescription from offer');
+              window.pc2.setRemoteDescription(offer,
+                function() {
+                  window.testPassed.push('pc2.setRemoteDescription');
+                  window.pc2.createAnswer(
+                    function(answer) {
+                      window.testPassed.push('pc2.createAnswer');
+                      window.pc2.setLocalDescription(answer,
+                        function() {
+                          window.testPassed.push('pc2.setLocalDescription');
+                          answer = new RTCSessionDescription(answer);
+                          window.testPassed.push(
+                            'created RTCSessionDescription from answer');
+                          window.pc1.setRemoteDescription(answer,
+                            function() {
+                              window.testPassed.push(
+                                'pc1.setRemoteDescription');
+                            },
+                            function(err) {
+                              window.testFailed.push(
+                                'pc1.setRemoteDescription ' + err.toString());
+                            }
+                          );
+                        },
+                        function(err) {
+                          window.testFailed.push(
+                            'pc2.setLocalDescription ' + err.toString());
+                        }
+                      );
+                    },
+                    function(err) {
+                      window.testFailed.push(
+                        'pc2.createAnswer ' + err.toString());
+                    }
+                  );
+                },
+                function(err) {
+                  window.testFailed.push(
+                    'pc2.setRemoteDescription ' + err.toString());
+                }
+              );
+            },
+            function(err) {
+              window.testFailed.push(
+                'pc1.setLocalDescription ' + err.toString());
+            }
+          );
+        },
+        function(err) {
+          window.testFailed.push(
+            'pc1 failed to create offer ' + err.toString());
+        }
+      );
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.wait(function() {
+        return driver.executeScript('return window.pc1.connectionStatus === ' +
+            '\'completed\' || \'connected\'');
+      });
+    });
+  })
+  .then(function(pc1ConnectionStatus) {
+    t.ok(pc1ConnectionStatus, 'P2P connection established');
+    return driver.wait(function() {
+      return driver.executeScript('return window.ended');
+    });
+  })
+  .then(function() {
+    return driver.executeScript('return window.testPassed');
+  })
+  .then(function(testPassed) {
+    return driver.executeScript('return window.testFailed')
+    .then(function(testFailed) {
+      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+        t.pass(testPassed[testPass]);
+      }
+      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+        t.fail(testFailed[testFail]);
+      }
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
 
 // test('basic connection establishment with promise', function(t) {
 //   var pc1 = new RTCPeerConnection(null);
