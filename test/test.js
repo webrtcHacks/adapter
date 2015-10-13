@@ -48,7 +48,9 @@ test('Log suppression', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -78,7 +80,9 @@ test('Browser identified', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -102,7 +106,9 @@ test('Browser supported by adapter.js', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -129,7 +135,9 @@ test('getUserMedia shim', function(t) {
     t.end();
   })
  .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -182,7 +190,9 @@ test('Create RTCPeerConnection', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -226,7 +236,7 @@ test('attachMediaStream', function(t) {
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
     // Make sure the stream has some time go get started.
     driver.wait(function() {
       return driver.executeScript(
@@ -260,7 +270,9 @@ test('attachMediaStream', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -310,7 +322,7 @@ test('reattachMediaStream', function(t) {
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
     return driver.executeScript(
       // Firefox and Chrome have different constructor names.
       'return window.stream.constructor.name.match(\'MediaStream\') !== null');
@@ -356,7 +368,9 @@ test('reattachMediaStream', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -395,7 +409,7 @@ test('Video srcObject getter/setter test', function(t) {
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
@@ -419,7 +433,9 @@ test('Video srcObject getter/setter test', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -458,7 +474,7 @@ test('Audio srcObject getter/setter test', function(t) {
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
@@ -482,7 +498,9 @@ test('Audio srcObject getter/setter test', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -526,7 +544,7 @@ test('srcObject set from another object', function(t) {
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
@@ -551,7 +569,9 @@ test('srcObject set from another object', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -595,7 +615,7 @@ test('Attach mediaStream directly', function(t) {
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
     // Make sure the stream has some time go get started.
     driver.wait(function() {
       return driver.executeScript(
@@ -629,7 +649,9 @@ test('Attach mediaStream directly', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -679,7 +701,7 @@ test('Re-attaching mediaStream directly', function(t) {
   })
   .then(function(error) {
     var errorMessage = (error) ? 'error: ' + error : 'no errors';
-    t.ok(!error, 'Test definition executed with ' + errorMessage);
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
     return driver.wait(function() {
       return driver.executeScript(
         'return typeof window.stream !== \'undefined\'');
@@ -731,7 +753,9 @@ test('Re-attaching mediaStream directly', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -774,23 +798,25 @@ test('Call getUserMedia with impossible constraints', function(t) {
   .then(function(isFirefoxAndVersionLessThan42) {
     if (isFirefoxAndVersionLessThan42) {
       t.skip('getUserMedia(impossibleConstraints) must fail');
-    } else {
-      return driver.executeScript(testDefinition)
-      .then(function() {
-        return driver.wait(function() {
-          return driver.executeScript('return window.gumError');
-        }, 5000);
-      })
-      .then(function(error) {
-        t.ok(error, 'getUserMedia(impossibleConstraints) must fail');
-      });
+      throw 'skip-test';
     }
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.wait(function() {
+        return driver.executeScript('return window.gumError');
+      }, 5000);
+    })
+    .then(function(error) {
+      t.ok(error, 'getUserMedia(impossibleConstraints) must fail');
+    });
   })
   .then(function() {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
@@ -1038,12 +1064,14 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
 
-test('basic connection establishment', function(t) {
+test('Basic connection establishment', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   var testDefinition = function() {
@@ -1069,6 +1097,8 @@ test('basic connection establishment', function(t) {
         var cand = new RTCIceCandidate(event.candidate);
         pc.addIceCandidate(cand,
           function() {
+            // TODO: Decide if we are intereted in adding all candidates
+            // as passed tests.
             window.testPassed.push('addIceCandidate ' + counter++);
           },
           function(err) {
@@ -1163,7 +1193,7 @@ test('basic connection establishment', function(t) {
       return driver.wait(function() {
         return driver.executeScript('return window.pc1.connectionStatus === ' +
             '\'completed\' || \'connected\'');
-      });
+      }, 5000);
     });
   })
   .then(function(pc1ConnectionStatus) {
@@ -1190,161 +1220,326 @@ test('basic connection establishment', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    t.fail(err);
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
     t.end();
   });
 });
 
-// test('basic connection establishment with promise', function(t) {
-//   var pc1 = new RTCPeerConnection(null);
-//   var pc2 = new RTCPeerConnection(null);
-//   var ended = false;
+test('Basic connection establishment with promise', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-//   pc1.oniceconnectionstatechange = function() {
-//     if (pc1.iceConnectionState === 'connected' ||
-//         pc1.iceConnectionState === 'completed') {
-//       t.pass('P2P connection established');
-//       if (!ended) {
-//         ended = true;
-//         t.end();
-//       }
-//     }
-//   };
+  var testDefinition = function() {
+    var counter = 1;
+    window.testPassed = [];
+    window.testFailed = [];
+    window.pc1 = new RTCPeerConnection(null);
+    window.pc2 = new RTCPeerConnection(null);
+    window.ended = false;
 
-//   var addCandidate = function(pc, event) {
-//     if (event.candidate) {
-//       var cand = new RTCIceCandidate(event.candidate);
-//       pc.addIceCandidate(cand).catch(function(err) {
-//         t.fail('addIceCandidate ' + err.toString());
-//       });
-//     }
-//   };
-//   pc1.onicecandidate = function(event) {
-//     addCandidate(pc2, event);
-//   };
-//   pc2.onicecandidate = function(event) {
-//     addCandidate(pc1, event);
-//   };
+    window.pc1.oniceconnectionstatechange = function() {
+      if (window.pc1.iceConnectionState === 'connected' ||
+          window.pc1.iceConnectionState === 'completed') {
+        window.testPassed.push('P2P connection established');
+        if (!window.ended) {
+          window.ended = true;
+        }
+      }
+    };
 
-//   var constraints = {video: true, fake: true};
-//   navigator.mediaDevices.getUserMedia(constraints)
-//   .then(function(stream) {
-//     pc1.addStream(stream);
-//     pc1.createOffer().then(function(offer) {
-//       t.pass('pc1.createOffer');
-//       return pc1.setLocalDescription(offer);
-//     }).then(function() {
-//       t.pass('pc1.setLocalDescription');
-//       return pc2.setRemoteDescription(pc1.localDescription);
-//     }).then(function() {
-//       t.pass('pc2.setRemoteDescription');
-//       return pc2.createAnswer();
-//     }).then(function(answer) {
-//       t.pass('pc2.createAnswer');
-//       return pc2.setLocalDescription(answer);
-//     }).then(function() {
-//       t.pass('pc2.setLocalDescription');
-//       return pc1.setRemoteDescription(pc2.localDescription);
-//     }).then(function() {
-//       t.pass('pc1.setRemoteDescription');
-//     }).catch(function(err) {
-//       t.fail(err.toString());
-//     });
-//   });
-// });
+    var addCandidate = function(pc, event) {
+      if (event.candidate) {
+        var cand = new RTCIceCandidate(event.candidate);
+        pc.addIceCandidate(cand).then(function() {
+          // TODO: Decide if we are intereted in adding all candidates
+          // as passed tests.
+          window.testPassed.push('addIceCandidate ' + counter++);
+        })
+        .catch(function(err) {
+          window.testFailed.push('addIceCandidate ' + err.toString());
+        });
+      }
+    };
+    window.pc1.onicecandidate = function(event) {
+      addCandidate(window.pc2, event);
+    };
+    window.pc2.onicecandidate = function(event) {
+      addCandidate(window.pc1, event);
+    };
 
-// test('basic connection establishment with datachannel', function(t) {
-//   var pc1 = new RTCPeerConnection(null);
-//   var pc2 = new RTCPeerConnection(null);
-//   var ended = false;
-//   if (typeof pc1.createDataChannel !== 'function') {
-//     t.pass('datachannel is not supported.');
-//     t.end();
-//     return;
-//   }
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      window.pc1.addStream(stream);
+      window.pc1.createOffer().then(function(offer) {
+        window.testPassed.push('pc1.createOffer');
+        return window.pc1.setLocalDescription(offer);
+      }).then(function() {
+        window.testPassed.push('pc1.setLocalDescription');
+        return window.pc2.setRemoteDescription(window.pc1.localDescription);
+      }).then(function() {
+        window.testPassed.push('pc2.setRemoteDescription');
+        return window.pc2.createAnswer();
+      }).then(function(answer) {
+        window.testPassed.push('pc2.createAnswer');
+        return window.pc2.setLocalDescription(answer);
+      }).then(function() {
+        window.testPassed.push('pc2.setLocalDescription');
+        return window.pc1.setRemoteDescription(window.pc2.localDescription);
+      }).then(function() {
+        window.testPassed.push('pc1.setRemoteDescription');
+      }).catch(function(err) {
+        window.testfailed.push(err.toString());
+      });
+    });
+  };
 
-//   pc1.oniceconnectionstatechange = function() {
-//     if (pc1.iceConnectionState === 'connected' ||
-//         pc1.iceConnectionState === 'completed') {
-//       t.pass('P2P connection established');
-//       if (!ended) {
-//         ended = true;
-//         t.end();
-//       }
-//     }
-//   };
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.wait(function() {
+        return driver.executeScript('return window.pc1.connectionStatus === ' +
+            '\'completed\' || \'connected\'');
+      });
+    });
+  })
+  .then(function(pc1ConnectionStatus) {
+    t.ok(pc1ConnectionStatus, 'P2P connection established');
+    return driver.wait(function() {
+      return driver.executeScript('return window.ended');
+    }, 5000);
+  })
+  .then(function() {
+    return driver.executeScript('return window.testPassed');
+  })
+  .then(function(testPassed) {
+    return driver.executeScript('return window.testFailed')
+    .then(function(testFailed) {
+      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+        t.pass(testPassed[testPass]);
+      }
+      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+        t.fail(testFailed[testFail]);
+      }
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
 
-//   var addCandidate = function(pc, event) {
-//     if (event.candidate) {
-//       var cand = new RTCIceCandidate(event.candidate);
-//       pc.addIceCandidate(cand).catch(function(err) {
-//         t.fail('addIceCandidate ' + err.toString());
-//       });
-//     }
-//   };
-//   pc1.onicecandidate = function(event) {
-//     addCandidate(pc2, event);
-//   };
-//   pc2.onicecandidate = function(event) {
-//     addCandidate(pc1, event);
-//   };
+test('Basic connection establishment with datachannel', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-//   pc1.createDataChannel('somechannel');
-//   pc1.createOffer().then(function(offer) {
-//     t.pass('pc1.createOffer');
-//     return pc1.setLocalDescription(offer);
-//   }).then(function() {
-//     t.pass('pc1.setLocalDescription');
-//     return pc2.setRemoteDescription(pc1.localDescription);
-//   }).then(function() {
-//     t.pass('pc2.setRemoteDescription');
-//     return pc2.createAnswer();
-//   }).then(function(answer) {
-//     t.pass('pc2.createAnswer');
-//     return pc2.setLocalDescription(answer);
-//   }).then(function() {
-//     t.pass('pc2.setLocalDescription');
-//     return pc1.setRemoteDescription(pc2.localDescription);
-//   }).then(function() {
-//     t.pass('pc1.setRemoteDescription');
-//   }).catch(function(err) {
-//     t.fail(err.toString());
-//   });
-// });
+  var testDefinition = function() {
+    var counter = 1;
+    window.testPassed = [];
+    window.testFailed = [];
+    window.pc1 = new RTCPeerConnection(null);
+    window.pc2 = new RTCPeerConnection(null);
+    window.ended = false;
 
-// test('call enumerateDevices', function(t) {
-//   var step = 'enumerateDevices() must succeed';
-//   navigator.mediaDevices.enumerateDevices()
-//   .then(function(devices) {
-//     t.pass(step);
-//     step = 'valid enumerateDevices output: ' + JSON.stringify(devices);
-//     t.ok(typeof devices.length === 'number', 'Produced a devices array');
-//     devices.forEach(function(d) {
-//       t.ok(d.kind === 'videoinput' ||
-//            d.kind === 'audioinput' ||
-//            d.kind === 'audiooutput', 'Known device kind');
-//       t.ok(d.deviceId.length !== undefined, 'device id present');
-//       t.ok(d.label.length !== undefined, 'device label present');
-//     });
-//     t.pass(step);
-//     t.end();
-//   })
-//   .catch(function(err) {
-//     t.fail(step + ' - ' + err.toString());
-//     t.end();
-//   });
-// });
+    window.pc1.oniceconnectionstatechange = function() {
+      if (window.pc1.iceConnectionState === 'connected' ||
+          window.pc1.iceConnectionState === 'completed') {
+        window.testPassed.push('P2P connection established');
+        if (!window.ended) {
+          window.ended = true;
+        }
+      }
+    };
 
-// // Test that adding and removing an eventlistener on navigator.mediaDevices
-// // is possible. The usecase for this is the devicechanged event.
-// // This does not test whether devicechanged is actually called.
-// test('navigator.mediaDevices eventlisteners', function(t) {
-//   t.plan(2);
-//   t.ok(typeof(navigator.mediaDevices.addEventListener) === 'function',
-//       'navigator.mediaDevices.addEventListener is a function');
-//   t.ok(typeof(navigator.mediaDevices.removeEventListener) === 'function',
-//       'navigator.mediaDevices.removeEventListener is a function');
-// });
+    var addCandidate = function(pc, event) {
+      if (event.candidate) {
+        var cand = new RTCIceCandidate(event.candidate);
+        pc.addIceCandidate(cand).then(function() {
+          // TODO: Decide if we are intereted in adding all candidates
+          // as passed tests.
+          window.testPassed.push('addIceCandidate ' + counter++);
+        })
+        .catch(function(err) {
+          window.testFailed.push('addIceCandidate ' + err.toString());
+        });
+      }
+    };
+    window.pc1.onicecandidate = function(event) {
+      addCandidate(window.pc2, event);
+    };
+    window.pc2.onicecandidate = function(event) {
+      addCandidate(window.pc1, event);
+    };
+
+    window.pc1.createDataChannel('somechannel');
+    window.pc1.createOffer().then(function(offer) {
+      window.testPassed.push('pc1.createOffer');
+      return window.pc1.setLocalDescription(offer);
+    }).then(function() {
+      window.testPassed.push('pc1.setLocalDescription');
+      return window.pc2.setRemoteDescription(window.pc1.localDescription);
+    }).then(function() {
+      window.testPassed.push('pc2.setRemoteDescription');
+      return window.pc2.createAnswer();
+    }).then(function(answer) {
+      window.testPassed.push('pc2.createAnswer');
+      return window.pc2.setLocalDescription(answer);
+    }).then(function() {
+      window.testPassed.push('pc2.setLocalDescription');
+      return window.pc1.setRemoteDescription(window.pc2.localDescription);
+    }).then(function() {
+      window.testPassed.push('pc1.setRemoteDescription');
+    }).catch(function(err) {
+      window.testFailed.push(err.toString());
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript(
+        'return typeof window.pc1.createDataChannel === \'function\'');
+    });
+  })
+  .then(function(isDataChannelSupported) {
+    if (!isDataChannelSupported) {
+      t.skip('Data channel is not supported.');
+      throw 'skip-test';
+    }
+    return driver.wait(function() {
+      return driver.executeScript('return window.pc1.connectionStatus === ' +
+          '\'completed\' || \'connected\'');
+    });
+  })
+  .then(function(pc1ConnectionStatus) {
+    t.ok(pc1ConnectionStatus, 'P2P connection established');
+    return driver.wait(function() {
+      return driver.executeScript('return window.ended');
+    });
+  })
+  .then(function() {
+    return driver.executeScript('return window.testPassed');
+  })
+  .then(function(testPassed) {
+    return driver.executeScript('return window.testFailed')
+    .then(function(testFailed) {
+      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+        t.pass(testPassed[testPass]);
+      }
+      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+        t.fail(testFailed[testFail]);
+      }
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+test('call enumerateDevices', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    navigator.mediaDevices.enumerateDevices()
+    .then(function(devices) {
+      window.devices = devices;
+    })
+    .catch(function(err) {
+      window.error = err.name;
+      t.end();
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.gumError');
+    });
+  })
+  .then(function(error) {
+    var errorMessage = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + errorMessage);
+    return driver.wait(function() {
+      return driver.executeScript('return window.devices');
+    });
+  })
+  .then(function(devices) {
+    t.ok(typeof devices.length === 'number', 'Produced a devices array');
+    devices.forEach(function(device) {
+      t.ok(device.kind === 'videoinput' ||
+           device.kind === 'audioinput' ||
+           device.kind === 'audiooutput', 'Known device kind');
+      t.ok(device.deviceId.length !== undefined, 'Device id present');
+      t.ok(device.label.length !== undefined, 'Device label present');
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+// Test that adding and removing an eventlistener on navigator.mediaDevices
+// is possible. The usecase for this is the devicechanged event.
+// This does not test whether devicechanged is actually called.
+test('navigator.mediaDevices eventlisteners', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(3);
+    t.pass('Page loaded');
+    return driver.executeScript(
+      'return typeof(navigator.mediaDevices.addEventListener) === ' +
+          '\'function\'');
+  })
+  .then(function(isAddEventListenerFunction) {
+    t.ok(isAddEventListenerFunction,
+        'navigator.mediaDevices.addEventListener is a function');
+    return driver.executeScript(
+    'return typeof(navigator.mediaDevices.removeEventListener) === ' +
+         '\'function\'');
+  })
+  .then(function(isRemoveEventListenerFunction) {
+    t.ok(isRemoveEventListenerFunction,
+      'navigator.mediaDevices.removeEventListener is a function');
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
 
 // // Test that getUserMedia is shimmed properly.
 // test('navigator.mediaDevices.getUserMedia', function(t) {
