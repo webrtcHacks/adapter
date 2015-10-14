@@ -402,6 +402,14 @@ if (typeof window === 'undefined' || !window.navigator) {
             // additional RTCTransportStats created later since we
             // want the normalized fields and complete snowball.
             break;
+          case 'googCertificate':
+            standardStats.type = 'certificate'; // FIXME spec: undefined in spec.
+            standardStats.fingerprint = standardStats.googFingerprint;
+            standardStats.fingerprintAlgorithm =
+                standardStats.googFingerprintAlgorithm;
+            standardStats.base64Certificate = standardStats.googDerBase64;
+            standardStats.issuerCertificateId = null; // FIXME spec: undefined what 'no issuer' is.
+            break;
           }
           standardReport[standardStats.id] = standardStats;
         });
