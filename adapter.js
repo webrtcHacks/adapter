@@ -398,8 +398,34 @@ if (typeof window === 'undefined' || !window.navigator) {
 
             standardStats.type = 'candidatepair';
             break;
+          case 'googComponent':
+            // additional RTCTransportStats created later since we
+            // want the normalized fields and complete snowball.
+            break;
           }
           standardReport[standardStats.id] = standardStats;
+        });
+        Object.keys(standardReport).forEach(function(id) {
+          var report = standardReport[id];
+          var other;
+          switch (report.type) {
+          case 'googComponent':
+            // create a new report since we don't carry over all fields.
+            other = standardReport[report.selectedCandidatePairId];
+            standardReport['transport_' + report.id] = {
+              type: 'transport',
+              timestamp: report.timestamp,
+              id: 'transport_' + report.id,
+              bytesSent: other && other.bytesSent || 0,
+              bytesReceived: other && other.bytesReceived || 0,
+              // FIXME (spec): rtpcpTransportStatsId: rtcp-mux is required so...
+              activeConnection: other && other.selected,
+              selectedCandidatePairId: report.selectedCandidatePairId,
+              localCertificateId: report.localCertificateId,
+              remoteCertificateId: report.remoteCertificateId
+            };
+            break;
+          }
         });
 
         return standardReport;
