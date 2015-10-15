@@ -519,7 +519,8 @@ if (typeof module !== 'undefined') {
     webrtcDetectedBrowser: webrtcDetectedBrowser,
     webrtcDetectedVersion: webrtcDetectedVersion,
     webrtcMinimumVersion: webrtcMinimumVersion,
-    webrtcTesting: webrtcTesting
+    webrtcTesting: webrtcTesting,
+    webrtcUtils: webrtcUtils
     //requestUserMedia: not exposed on purpose.
     //trace: not exposed on purpose.
   };
@@ -534,7 +535,8 @@ if (typeof module !== 'undefined') {
       webrtcDetectedBrowser: webrtcDetectedBrowser,
       webrtcDetectedVersion: webrtcDetectedVersion,
       webrtcMinimumVersion: webrtcMinimumVersion,
-      webrtcTesting: webrtcTesting
+      webrtcTesting: webrtcTesting,
+      webrtcUtils: webrtcUtils
       //requestUserMedia: not exposed on purpose.
       //trace: not exposed on purpose.
     };

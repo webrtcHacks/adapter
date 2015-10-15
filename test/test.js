@@ -30,6 +30,7 @@ test('Log suppression', function(t) {
   };
 
   var m = require('../adapter.js');
+  m.webrtcUtils.log('test');
   console.log = saveConsole;
   t.ok(typeof m.webrtcDetectedBrowser !== 'undefined', 'adapter.js loaded ' +
       'as a module');
