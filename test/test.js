@@ -99,13 +99,16 @@ test('Browser supported by adapter.js', function(t) {
 // Test that getUserMedia is shimmed properly.
 test('navigator.mediaDevices.getUserMedia', function(t) {
   var driver = seleniumHelpers.buildDriver();
+  driver.manage().timeouts().setScriptTimeout(1000);
   var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
     navigator.mediaDevices.getUserMedia({video: true, fake: true})
     .then(function(stream) {
       window.stream = stream;
+      callback(null);
     })
     .catch(function(err) {
-      window.gumError = err.name;
+      callback(err.name);
     });
   };
 
@@ -113,10 +116,7 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.pass('Page loaded');
-    return driver.executeScript(testDefinition)
-    .then(function() {
-      return driver.executeScript('return window.gumError');
-    });
+    return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
