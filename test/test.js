@@ -19,41 +19,22 @@ var seleniumHelpers = require('./selenium-lib');
 
 // Start of tests.
 
+// Due to requiring loading adapter.js as a module, there is no need to use
+// webdriver for this test.
 test('Log suppression', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Define test.
-  var testDefinition = function() {
-    // adapter.js is not supposed to spill console.log
-    // when used as a module. This temporarily overloads
-    // console.log so we can assert this.
-    var logCount = 0;
-    var saveConsole = console.log.bind(console);
-    console.log = function() {
-      logCount++;
-      saveConsole.apply(saveConsole, arguments);
-    };
-    console.log = saveConsole;
-    console.log('TryToIncreaseLogCount');
-    return logCount;
+  var logCount = 0;
+  var saveConsole = console.log.bind(console);
+  console.log = function() {
+    logCount++;
+    saveConsole.apply(saveConsole, arguments);
   };
 
-  // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
-  .then(function() {
-    t.pass('Page loaded');
-    return driver.executeScript(testDefinition);
-  })
-  .then(function(logCount) {
-    t.ok(logCount === 0, 'adapter.js does not use console.log');
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
+  var m = require('../adapter.js');
+  console.log = saveConsole;
+  t.ok(typeof m.webrtcDetectedBrowser !== 'undefined', 'adapter.js loaded ' +
+      'as a module');
+  t.ok(logCount === 0, 'adapter.js does not use console.log');
+  t.end();
 });
 
 test('Browser identified', function(t) {
@@ -1865,6 +1846,7 @@ test('iceTransportPolicy relay functionality', function(t) {
     });
   };
 
+  // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.pass('Page loaded');
@@ -1907,40 +1889,69 @@ test('iceTransportPolicy relay functionality', function(t) {
   });
 });
 
-// // This MUST to be the last test since it loads adapter
-// // again which may result in unintended behaviour.
-// test('Non-module logging to console still works', function(t) {
-//   var logCount = 0;
-//   var saveConsole = console.log.bind(console);
-//   console.log = function() {
-//     logCount++;
-//   };
-//   var script = document.createElement('script');
-//   script.src = 'adapter.js';
-//   script.type = 'text/javascript';
-//   script.async = false;
-//   (document.head || document.documentElement).appendChild(script);
-//   script.parentNode.removeChild(script);
+// This MUST to be the last test since it loads adapter
+// again which may result in unintended behaviour.
+test('Non-module logging to console still works', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-//   // Using setTimeout is easier than prefetching the script.
-//   window.setTimeout(function() {
-//     console.log = saveConsole;
-//     t.ok(logCount > 0, 'A log message appeared on the console.');
+  var testDefinition = function() {
+    window.testsEqualArray = [];
+    window.logCount = 0;
+    var saveConsole = console.log.bind(console);
+    console.log = function() {
+      window.logCount++;
+    };
 
-//     // Check for existence of variables and functions from public API.
-//     t.ok(typeof RTCPeerConnection === 'function',
-//         'RTCPeerConnection is a function');
-//     t.ok(typeof getUserMedia === 'function',
-//         'getUserMedia is a function');
-//     t.ok(typeof attachMediaStream === 'function',
-//         'attachMediaStream is a function');
-//     t.ok(typeof reattachMediaStream === 'function',
-//         'reattachMediaSteam is a function');
-//     t.ok(typeof trace === 'function', 'trace is a function');
-//     t.ok(typeof webrtcDetectedBrowser === 'string',
-//         'webrtcDetected browser is a string');
-//     t.ok(typeof webrtcMinimumVersion === 'number',
-//         'webrtcDetectedVersion is a number');
-//     t.end();
-//   }, 500);
-// });
+    console.log('log me');
+    console.log = saveConsole;
+
+    // Check for existence of variables and functions from public API.
+    window.testsEqualArray.push([typeof RTCPeerConnection,'function',
+        'RTCPeerConnection is a function']);
+    window.testsEqualArray.push([typeof getUserMedia, 'function',
+        'getUserMedia is a function']);
+    window.testsEqualArray.push([typeof attachMediaStream, 'function',
+        'attachMediaStream is a function']);
+    window.testsEqualArray.push([typeof reattachMediaStream,'function',
+        'reattachMediaSteam is a function']);
+    window.testsEqualArray.push([typeof trace, 'function',
+        'trace is a function']);
+    window.testsEqualArray.push([typeof webrtcDetectedBrowser, 'string',
+        'webrtcDetected browser is a string']);
+    window.testsEqualArray.push([typeof webrtcMinimumVersion, 'number',
+        'webrtcDetectedVersion is a number']);
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition);
+  })
+  .then(function() {
+    return driver.executeScript('return window.testsEqualArray');
+  })
+  .then(function(testsEqualArray) {
+    testsEqualArray.forEach(function(resultEq) {
+      // resultEq contains an array of test data,
+      // test condition that should be equal and a success message.
+      // resultEq[0] = typeof report.
+      // resultEq[1] = test condition.
+      // resultEq[0] = Success message.
+      t.equal(resultEq[0], resultEq[1], resultEq[2]);
+    });
+  })
+  .then(function() {
+    return driver.executeScript('return window.logCount');
+  })
+  .then(function(logCount) {
+    t.ok(logCount > 0, 'A log message appeared on the console.');
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
