@@ -6,6 +6,7 @@
  *  tree.
  */
  /* jshint node: true */
+ /* global Promise */
 
 'use strict';
 
@@ -138,6 +139,13 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
+    // Make sure we get a stream before continuing.
+    driver.wait(function() {
+      return driver.executeScript(
+        'return typeof window.stream !== \'undefined\'');
+    }, 5000);
+  })
+  .then(function() {
     return driver.wait(function() {
       return driver.executeScript(
         'return window.stream.getVideoTracks().length > 0');
@@ -404,6 +412,10 @@ test('reattachMediaStream', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
+    driver.wait(function() {
+      return driver.executeScript(
+        'return typeof window.stream !== \'undefined\'');
+    }, 5000);
     return driver.executeScript(
       // Firefox and Chrome have different constructor names.
       'return window.stream.constructor.name.match(\'MediaStream\') !== null');
@@ -1120,6 +1132,7 @@ test('Check getUserMedia legacy constraints converter', function(t) {
   .then(function() {
     // t.plan(2);
     t.pass('Page loaded');
+
     return driver.executeScript(testDefinition)
     .then(function() {
       return driver.executeScript('return window.constraintsArray');
@@ -1129,7 +1142,7 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     if (constraintsArray[0] === 'Unsupported browser') {
       // Skipping if the browser is not supported.
       t.skip(constraintsArray);
-      return;
+      throw 'skip-test';
     }
     // constraintsArray[constr][0] = Constraints to adapter.js.
     // constraintsArray[constr][1] = Constraints from adapter.js.
@@ -1584,116 +1597,315 @@ test('call enumerateDevices', function(t) {
   });
 });
 
-// // Test Chrome polyfill for getStats.
-// test('getStats', function(t) {
-//   var pc1 = new RTCPeerConnection(null);
+// Test Chrome polyfill for getStats.
+test('getStats', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-//   // Test expected new behavior.
-//   new Promise(function(resolve, reject) {
-//     pc1.getStats(null, resolve, reject);
-//   })
-//   .then(function(report) {
-//     t.equal(typeof(report), 'object', 'report is an object.');
-//     for (var key in report) {
-//       // This avoids problems with Firefox
-//       if (typeof(report[key]) === 'function') {
-//         continue;
-//       }
-//       t.equal(report[key].id, key, 'report key matches stats id.');
-//     }
-//     t.end();
-//   })
-//   .catch(function(err) {
-//     t.fail('getStats() should never fail with error: ' + err.toString());
-//     t.end();
-//   });
-// });
+  var testDefinition = function() {
+    window.testsEqualArray = [];
+    var pc1 = new RTCPeerConnection(null);
 
-// // Test that polyfill for Chrome getStats falls back to builtin functionality
-// // when the old getStats function signature is used; when the callback is passed
-// // as the first argument.
-// test('originalChromeGetStats', function(t) {
-//   var pc1 = new RTCPeerConnection(null);
+    // Test expected new behavior.
+    new Promise(function(resolve, reject) {
+      pc1.getStats(null, resolve, reject);
+    })
+    .then(function(report) {
+      window.testsEqualArray.push([typeof(report), 'object',
+          'report is an object.']);
+      for (var key in report) {
+        // This avoids problems with Firefox
+        if (typeof(report[key]) === 'function') {
+          continue;
+        }
+        window.testsEqualArray.push([report[key].id, key,
+            'report key matches stats id.']);
+      }
+    })
+    .catch(function(err) {
+      window.getStatsError = 'getStats() should never fail with error: ' +
+          err.toString();
+    });
+  };
 
-//   if (m.webrtcDetectedBrowser === 'chrome') {
-//     new Promise(function(resolve, reject) {  // jshint ignore: line
-//       pc1.getStats(resolve, null);
-//     })
-//     .then(function(response) {
-//       var reports = response.result();
-//       reports.forEach(function(report) {
-//         t.equal(typeof(report), 'object');
-//         t.equal(typeof(report.id), 'string');
-//         t.equal(typeof(report.type), 'string');
-//         t.equal(typeof(report.timestamp), 'object');
-//         report.names().forEach(function(name) {
-//           t.notEqual(report.stat(name), null,
-//               'stat ' +
-//               name + ' not equal to null');
-//         });
-//       });
-//       t.end();
-//     })
-//     .catch(function(err) {
-//       t.fail('getStats() should never fail with error: ' + err.toString());
-//       t.end();
-//     });
-//   } else {
-//     // All other browsers.
-//     t.end();
-//   }
-// });
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.getStatsError');
+    });
+  })
+  .then(function(error) {
+    var getStatsResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'GetStats result:  ' + getStatsResult);
+    return driver.wait(function() {
+      return driver.executeScript('return window.testsEqualArray');
+    });
+  })
+  .then(function(testsEqualArray) {
+    testsEqualArray.forEach(function(resultEq) {
+      // resultEq contains an array of test data,
+      // test condition that should be equal and a success message.
+      // resultEq[0] = typeof report.
+      // resultEq[1] = test condition.
+      // resultEq[0] = Success message.
+      t.equal(resultEq[0], resultEq[1], resultEq[2]);
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
 
-// test('getStats promise', function(t) {
-//   t.plan(2);
-//   var pc1 = new m.RTCPeerConnection(null);
+// Test that polyfill for Chrome getStats falls back to builtin functionality
+// when the old getStats function signature is used; when the callback is passed
+// as the first argument.
+test('originalChromeGetStats', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-//   var p = pc1.getStats();
-//   t.ok(typeof p === 'object', 'getStats with no arguments returns a Promise');
+  var testDefinition = function() {
+    window.testsEqualArray = [];
+    window.testsNotEqualArray = [];
+    window.pc1 = new RTCPeerConnection(null);
 
-//   var q = pc1.getStats(null);
-//   t.ok(typeof q === 'object', 'getStats with a selector returns a Promise');
-// });
+    new Promise(function(resolve, reject) {  // jshint ignore: line
+      window.pc1.getStats(resolve, null);
+    })
+    .then(function(response) {
+      var reports = response.result();
+      // TODO: Figure out a way to get inheritance to work properly in
+      // webdriver. report.names() is just an empty object when returned to
+      // webdriver.
+      reports.forEach(function(report) {
+        window.testsEqualArray.push([typeof report, 'object',
+            'report is an object']);
+        window.testsEqualArray.push([typeof report.id, 'string',
+            'report.id is a string']);
+        window.testsEqualArray.push([typeof report.type, 'string',
+            'report.type is a string']);
+        window.testsEqualArray.push([typeof report.timestamp, 'object',
+            'report.timestamp is an object']);
+        report.names().forEach(function(name) {
+          window.testsNotEqualArray.push([report.stat(name), null,
+            'stat ' + name + ' not equal to null']);
+        });
+      });
+    })
+    .catch(function(err) {
+      window.getStatsError = 'getStats() should never fail with error: ' +
+          err.toString();
+    });
+  };
 
-// test('iceTransportPolicy relay functionality', function(t) {
-//   // iceTransportPolicy is renamed to iceTransports in Chrome by
-//   // adapter, this tests that when not setting any TURN server,
-//   // no candidates are generated.
-//   if (m.webrtcDetectedBrowser === 'firefox') {
-//     t.pass('iceTransportPolicy is not implemented in Firefox yet.');
-//     t.end();
-//     return;
-//   }
-//   var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
-//       iceServers: []});
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript('return webrtcDetectedBrowser')
+    .then(function(browser) {
+      if (browser !== 'chrome') {
+        t.skip('Non-chrome browser detected.');
+        throw 'skip-test';
+      }
+    });
+  })
+  .then(function() {
+    return driver.executeScript(testDefinition)
+    .then(function() {
+      return driver.executeScript('return window.getStatsError');
+    });
+  })
+  .then(function(error) {
+    var getStatsResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'GetStats result:  ' + getStatsResult);
+    return driver.wait(function() {
+      return driver.executeScript('return window.testsEqualArray');
+    });
+  })
+  .then(function(testsEqualArray) {
+    driver.executeScript('return window.testsNotEqualArray')
+    .then(function(testsNotEqualArray) {
+      testsEqualArray.forEach(function(resultEq) {
+        // resultEq contains an array of test data,
+        // test condition that should be equal and a success message.
+        // resultEq[0] = typeof report.
+        // resultEq[1] = test condition.
+        // resultEq[0] = Success message.
+        t.equal(resultEq[0], resultEq[1], resultEq[2]);
+      });
+      testsNotEqualArray.forEach(function(resultNoEq) {
+        // resultNoEq contains an array of test data,
+        // test condition that should not be equal and a success message.
+        // resultNoEq[0] = typeof report.
+        // resultNoEq[1] = test condition.
+        // resultNoEq[0] = Success message.
+        t.notEqual(resultNoEq[0], resultNoEq[1], resultNoEq[2]);
+      });
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
 
-//   // Since we try to gather only relay candidates without specifying
-//   // a TURN server, we should not get any candidates.
-//   var candidates = [];
-//   pc1.onicecandidate = function(event) {
-//     if (!event.candidate) {
-//       if (candidates.length === 0) {
-//         t.pass('no candidates were gathered.');
-//         t.end();
-//       } else {
-//         t.fail('got unexpected candidates. ' + JSON.stringify(candidates));
-//       }
-//     } else {
-//       candidates.push(event.candidate);
-//     }
-//   };
+test('getStats promise', function(t) {
+  var driver = seleniumHelpers.buildDriver();
 
-//   var constraints = {video: true, fake: true};
-//   navigator.mediaDevices.getUserMedia(constraints)
-//   .then(function(stream) {
-//     pc1.addStream(stream);
-//     pc1.createOffer().then(function(offer) {
-//       return pc1.setLocalDescription(offer);
-//     }).catch(function(err) {
-//       t.fail(err.toString());
-//     });
-//   });
-// });
+  var testDefinition = function() {
+    window.testsEqualArray = [];
+    window.getStatsErrorArray = [];
+    var pc1 = new RTCPeerConnection(null);
+
+    pc1.getStats(null)
+    .then(function(report) {
+      window.testsEqualArray.push([typeof report, 'object',
+          'getStats with no selector returns a Promise']);
+    })
+    .catch(function(err) {
+      window.getStatsErrorArray.push(
+        ['getStats() should never fail with error: ' + err.toString()]);
+    });
+
+    // FIXME: Firefox throws a type error for this. Disabling for now.
+    if (webrtcDetectedBrowser !== 'firefox') {
+      pc1.getStats()
+      .then(function(report) {
+        window.testsEqualArray.push([typeof report, 'object',
+            'getStats with no arguments returns a Promise']);
+      })
+      .catch(function(err) {
+        window.getStatsErrorArray.push(
+          ['getStats() should never fail with error: ' + err.toString()]);
+      });
+    }
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(testDefinition);
+  })
+  .then(function() {
+    return driver.wait(function() {
+      return driver.executeScript('return window.testsEqualArray.length > 0');
+    }, 5000)
+    .then(function() {
+      return driver.executeScript('return window.testsEqualArray');
+    });
+  })
+  .then(function(testsEqualArray) {
+    testsEqualArray.forEach(function(resultEq) {
+      // resultEq contains an array of test data,
+      // test condition that should be equal and a success message.
+      // resultEq[0] = typeof report.
+      // resultEq[1] = test condition.
+      // resultEq[0] = Success message.
+      t.equal(resultEq[0], resultEq[1], resultEq[2]);
+    });
+    return driver.executeScript('return window.getStatsErrorArray');
+  })
+  .then(function(errors) {
+    errors.forEach(function(error) {
+      var errorMessage = error || 'no errors';
+      t.fail('Check for getStats errors: ' + errorMessage);
+    });
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+// iceTransportPolicy is renamed to iceTransports in Chrome by
+// adapter, this tests that when not setting any TURN server,
+// no candidates are generated.
+test('iceTransportPolicy relay functionality', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    window.candidates = [];
+    window.errorArray = [];
+
+    var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
+        iceServers: []});
+
+    // Since we try to gather only relay candidates without specifying
+    // a TURN server, we should not get any candidates.
+    pc1.onicecandidate = function(event) {
+      window.candidates.push([event.candidate]);
+    };
+
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      pc1.addStream(stream);
+      pc1.createOffer().then(function(offer) {
+        return pc1.setLocalDescription(offer);
+      })
+      .catch(function(err) {
+        window.errorArray.push(err.toString());
+      });
+    });
+  };
+
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript('return webrtcDetectedBrowser === \'firefox\'');
+  })
+  .then(function(isFirefox) {
+    if (isFirefox) {
+      // TODO: Remove once supported in firefox.
+      t.skip('iceTransportPolicy is not implemented in Firefox yet.');
+      throw 'skip-test';
+    }
+
+    driver.executeScript(testDefinition);
+  })
+  .then(function() {
+    return driver.executeScript('return window.candidates');
+  })
+  .then(function(candidates) {
+    if (candidates.length === 0) {
+      t.pass('No candidates generated');
+    } else {
+      candidates.forEach(function(candidate) {
+        t.fail('Candidate found: ' + candidate);
+      });
+    }
+    return driver.executeScript('return window.errorArray');
+  })
+  .then(function(errors) {
+    errors.forEach(function(error) {
+      var errorMessage = error || 'no errors';
+      t.fail('Check for errors: ' + errorMessage);
+    });
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
 
 // // This MUST to be the last test since it loads adapter
 // // again which may result in unintended behaviour.
