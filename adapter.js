@@ -1272,6 +1272,9 @@ if (typeof window === 'undefined' || !window.navigator) {
           if (rtpReceiver &&
               (direction === 'sendrecv' || direction === 'sendonly')) {
             stream.addTrack(rtpReceiver.track);
+          } else {
+            // FIXME: actually the rtpReceiver should be created later.
+            delete transceiver.rtpReceiver;
           }
         }
       });
