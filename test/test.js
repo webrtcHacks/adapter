@@ -59,6 +59,57 @@ test('Browser supported by adapter.js', function(t) {
       'Browser version supported by adapter.js');
 });
 
+// Fiddle with the UA string to test the extraction does not throw errors.
+test('Browser version extraction helper', function(t) {
+  // Chrome and Chromium.
+  var ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
+      'Gecko) Chrome/45.0.2454.101 Safari/537.36';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
+      'version extraction');
+
+  ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
+      'Gecko) Ubuntu Chromium/45.0.2454.85 Chrome/45.0.2454.85 Safari/537.36';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
+      'version extraction');
+
+  // Various UA strings from device simulator, not matching.
+  ua = 'Mozilla/5.0 (Linux; Android 4.3; Nexus 10 Build/JSS15Q) ' +
+      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2307.2 Safari/537.36';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 42,
+      'version extraction');
+
+  ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) ' +
+      'AppleWebKit/600.1.3 (KHTML, like Gecko) Version/8.0 Mobile/12A4345d ' +
+      'Safari/600.1.4';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), null,
+      'version extraction');
+
+  ua = 'Mozilla/5.0 (Linux; U; en-us; KFAPWI Build/JDQ39) AppleWebKit/535.19' +
+      '(KHTML, like Gecko) Silk/3.13 Safari/535.19 Silk-Accelerated=true';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), null,
+      'version extraction');
+
+  // Opera, should match chrome/webrtc version 45.0 not Opera 32.0.
+  ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like ' +
+      'Gecko) Chrome/45.0.2454.85 Safari/537.36 OPR/32.0.1948.44';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
+      'version extraction');
+
+  // Edge, extract build number.
+  ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, ' +
+      'like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10547';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Edge\/(\d+).(\d+)$/, 2), 10547,
+      'version extraction');
+
+  // Firefox.
+  ua = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) Gecko/20100101 ' +
+      'Firefox/44.0';
+  t.equal(m.webrtcUtils.extractVersion(ua, /Firefox\/([0-9]+)\./, 1), 44,
+      'version extraction');
+
+  t.end();
+});
+
 test('getUserMedia shim', function(t) {
   t.ok(typeof navigator.getUserMedia !== 'undefined',
        'navigator.getUserMedia is defined');
