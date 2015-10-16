@@ -347,6 +347,12 @@ if (typeof window === 'undefined' || !window.navigator) {
                   standardStats.audioOutputLevel, 10) / 32767.0;
             }
 
+            if (standardStats.googJitterReceived) {
+              standardStats.jitter = 1.0 * parseInt(
+                  standardStats.googJitterReceived);
+            }
+            // FIXME: fractionLost
+
             // these seems to belong into stream stats rather than track stats
             if (standardStats.googFirsReceived || standardStats.googFirsSent) {
               standardStats.firCount = parseInt(
@@ -365,6 +371,13 @@ if (typeof window === 'undefined' || !window.navigator) {
                   standardStats.googNacksSent, 10);
             }
             // FIXME: no SLI stats yet?
+
+            if (standardStats.googEchoCancellationReturnLoss) {
+              standardStats.echoReturnLoss = 1.0 * parseInt(
+                  standardStats.googEchoCancellationReturnLoss, 10);
+              standardStats.echoReturnLossEnhancement = 1.0 * parseInt(
+                  standardStats.googEchoCancellationReturnLossEnhancement, 10);
+            }
             break;
           case 'localCandidate':
           case 'remoteCandidate':
@@ -416,14 +429,16 @@ if (typeof window === 'undefined' || !window.navigator) {
         Object.keys(standardReport).forEach(function(id) {
           var report = standardReport[id];
           var other;
+          var newId;
           switch (report.type) {
           case 'googComponent':
             // create a new report since we don't carry over all fields.
             other = standardReport[report.selectedCandidatePairId];
-            standardReport['transport_' + report.id] = {
+            newId = 'transport_' + report.id;
+            standardReport[newId] = {
               type: 'transport',
               timestamp: report.timestamp,
-              id: 'transport_' + report.id,
+              id: newId,
               bytesSent: other && other.bytesSent || 0,
               bytesReceived: other && other.bytesReceived || 0,
               // FIXME (spec): rtpcpTransportStatsId: rtcp-mux is required so...
@@ -432,6 +447,60 @@ if (typeof window === 'undefined' || !window.navigator) {
               localCertificateId: report.localCertificateId,
               remoteCertificateId: report.remoteCertificateId
             };
+            break;
+          case 'ssrc':
+            newId = 'rtpstream_' + report.id;
+            standardReport[newId] = {
+              //type: 'notastandalonething',
+              timestamp: report.timestamp,
+              id: newId,
+              ssrc: report.ssrc,
+              //associateStatsId: FIXME
+              isRemote: report.isRemote,
+              mediaTrackId: 'mediatrack_' + report.id,
+              transportId: report.transportId,
+              //codecId: FIXME
+              firCount: report.firCount,
+              pliCount: report.pliCount,
+              nackCount: report.nackCount,
+              sliCount: report.sliCount // undefined yet
+            };
+            if (report.id.indexOf('recv') !== -1) {
+              standardReport[newId].type = 'inboundrtp';
+              standardReport[newId].packetsReceived = report.packetsReceived;
+              standardReport[newId].bytesReceived = report.bytesReceived;
+              standardReport[newId].packetsLost = report.packetsLost;
+              standardReport[newId].jitter = report.jitter;
+              //standardReport[newId].fractionLost = report.fractionLost;
+            } else {
+              standardReport[newId].type = 'outboundrtp';
+              standardReport[newId].packetsSent = report.packetsSent;
+              standardReport[newId].bytesReceived = report.bytesSent;
+              // TODO: targetBitrate + roundTripTime
+            }
+
+            newId = 'mediatrack_' + report.id;
+            standardReport[newId] = {
+              type: 'track',
+              timestamp: report.timestamp,
+              id: newId,
+              trackIdentifier: report.trackIdentifier,
+              //remoteSource
+              ssrcIds: ['rtpstream_' + report.id],
+              frameWidth: report.frameWidth,
+              frameHeight: report.frameHeight,
+              framesPerSecond: report.framesPerSecond,
+              framesSent: report.framesSent,
+              framesReceived: report.framesReceived,
+              framesDecoded: report.framesDecoded,
+              framesDropped: report.framesDropped,
+              framesCorrupted: report.framesCorrupted,
+              audioLevel: report.audioLevel,
+              echoReturnLoss: report.echoReturnLoss,
+              echoReturnLossEnhancement: report.echoReturnLossEnhancement
+            };
+
+            // FIXME: add codec object
             break;
           }
         });
