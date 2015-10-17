@@ -1137,7 +1137,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               remoteCapabilities);
           self._transceive(transceiver,
               params.codecs.length > 0,
-              params.codecs.length > 0);
+              false);
         });
       }
 
@@ -1246,6 +1246,9 @@ if (typeof window === 'undefined' || !window.navigator) {
             sendSsrc: sendSsrc,
             recvSsrc: recvSsrc
           };
+          self._transceive(self.transceivers[sdpMLineIndex],
+              false,
+              direction === 'sendrecv' || direction === 'sendonly');
         } else if (description.type === 'answer') {
           transceiver = self.transceivers[sdpMLineIndex];
           iceGatherer = transceiver.iceGatherer;
@@ -1273,7 +1276,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               (direction === 'sendrecv' || direction === 'sendonly')) {
             stream.addTrack(rtpReceiver.track);
           } else {
-            // FIXME: actually the rtpReceiver should be created later.
+            // FIXME: actually the receiver should be created later.
             delete transceiver.rtpReceiver;
           }
         }
