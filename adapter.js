@@ -266,7 +266,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           report.names().forEach(function(name) {
             standardStats[name] = report.stat(name);
           });
-          // Translate to standard types and attribute names.
+          // Step 1: translate to standard types and attribute names.
           switch (report.type) {
           case 'ssrc':
             // confusing... is this
@@ -388,27 +388,32 @@ if (typeof window === 'undefined' || !window.navigator) {
             break;
           case 'googCandidatePair':
             // https://w3c.github.io/webrtc-stats/#candidatepair-dict*
+            standardStats.type = 'candidatepair';
             standardStats.transportId = standardStats.googChannelId;
-            standardStats.state = 'FIXME'; // enum
-            standardStats.priority = 'FIXME'; // unsigned long long
-            standardStats.nominated = 'FIXME'; // boolean
+            // FIXME: maybe set depending on iceconnectionstate and read/write?
+            //standardStats.state = 'FIXME'; // enum
+
+            // FIXME: could be calculated from candidate priorities and role.
+            //standardStats.priority = 'FIXME'; // unsigned long long
+            standardStats.writable = standardStats.googWritable === 'true';
+            standardStats.readable = standardStats.googReadable === 'true';
+            // assumption: nominated is readable and writeable.
+            standardStats.nominated = standardStats.readable &&
+                standardStats.writable;
             // FIXME: missing from spec
             standardStats.selected =
                 standardStats.googActiveConnection === 'true';
-            standardStats.writable = standardStats.googWritable === 'true';
-            standardStats.readable = standardStats.googReadable === 'true';
             standardStats.bytesSent = parseInt(standardStats.bytesSent, 10);
             standardStats.bytesReceived = parseInt(
                 standardStats.bytesReceived, 10);
             // FIXME: packetsSent is not in spec?
 
-            // FIXME: why is this defined as double?
             standardStats.roundTripTime = parseInt(standardStats.googRtt);
-            // FIXME: why is this a double if its bits/second?
+
+            // backfilled later from videoBWE.
             standardStats.availableOutgoingBitrate = 0.0;
             standardStats.availableIncomingBitrate = 0.0;
 
-            standardStats.type = 'candidatepair';
             break;
           case 'googComponent':
             // additional RTCTransportStats created later since we
@@ -425,6 +430,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           }
           standardReport[standardStats.id] = standardStats;
         });
+        // Step 2: fix names and types.
         Object.keys(standardReport).forEach(function(id) {
           var report = standardReport[id];
           var other;
@@ -449,7 +455,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             break;
           case 'ssrc':
             newId = 'rtpstream_' + report.id;
-            // Workaround for https://code.google.com/p/webrtc/issues/detail?id=4808
+            // Workaround for https://code.google.com/p/webrtc/issues/detail?id=4808 (fixed in M46)
             if (!report.googCodecName) {
               report.googCodecName = 'VP8';
             }
@@ -534,11 +540,33 @@ if (typeof window === 'undefined' || !window.navigator) {
                     channels: parseInt(match[3] || '1', 10),
                     parameters: ''
                   };
-                } else {
-                  console.log('no match', report.googCodecName);
                 }
               }
             }
+            break;
+          }
+        });
+        // Step 3: fiddle the transport in between transport and rtp stream
+        Object.keys(standardReport).forEach(function(id) {
+          var report = standardReport[id];
+          var other;
+          switch (report.type) {
+          case 'transport':
+            // RTCTransport has a pointer to the selectedCandidatePair...
+            other = standardReport[report.selectedCandidatePairId];
+            if (other) {
+              other.transportId = report.id;
+            }
+            // but no pointers to the rtpstreams running over it?!
+            // instead, we rely on having added 'transport_'
+            Object.keys(standardReport).forEach(function(otherid) {
+              other = standardReport[otherid];
+              if ((other.type === 'inboundrtp' ||
+                  other.type === 'outboundrtp') &&
+                  report.id === 'transport_' + other.transportId) {
+                other.transportId = report.id;
+              }
+            });
             break;
           }
         });
