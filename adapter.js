@@ -269,11 +269,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           // Step 1: translate to standard types and attribute names.
           switch (report.type) {
           case 'ssrc':
-            // confusing... is this
-            // https://w3c.github.io/webrtc-stats/#msstats-dict*
-            // or
-            // https://w3c.github.io/webrtc-stats/#mststats-dict*
-            // ???
             standardStats.trackIdentifier = standardStats.googTrackId;
             // FIXME: not defined in spec, probably whether the track is
             //  remote?
@@ -413,7 +408,6 @@ if (typeof window === 'undefined' || !window.navigator) {
             // backfilled later from videoBWE.
             standardStats.availableOutgoingBitrate = 0.0;
             standardStats.availableIncomingBitrate = 0.0;
-
             break;
           case 'googComponent':
             // additional RTCTransportStats created later since we
@@ -427,15 +421,30 @@ if (typeof window === 'undefined' || !window.navigator) {
             standardStats.base64Certificate = standardStats.googDerBase64;
             standardStats.issuerCertificateId = null; // FIXME spec: undefined what 'no issuer' is.
             break;
+          case 'VideoBwe':
+            standardStats.availableOutgoingBitrate = 1.0 *
+                parseInt(standardStats.googAvailableSendBandwidth, 10);
+            standardStats.availableIncomingBitrate = 1.0 *
+                parseInt(standardStats.googAvailableReceiveBandwidth, 10);
+            break;
           }
           standardReport[standardStats.id] = standardStats;
         });
-        // Step 2: fix names and types.
+        // Step 2: fix things spanning multiple reports.
         Object.keys(standardReport).forEach(function(id) {
           var report = standardReport[id];
           var other;
           var newId;
           switch (report.type) {
+          case 'candidatepair':
+            if (standardReport.bweforvideo) {
+              report.availableOutgoingBitrate =
+                  standardReport.bweforvideo.availableOutgoingBitrate;
+              report.availableIncomingBitrate =
+                  standardReport.bweforvideo.availableIncomingBitrate;
+              standardReport[report.id] = report;
+            }
+            break;
           case 'googComponent':
             // create a new report since we don't carry over all fields.
             other = standardReport[report.selectedCandidatePairId];
