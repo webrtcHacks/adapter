@@ -246,7 +246,6 @@ if (typeof window === 'undefined' || !window.navigator) {
     var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
     var origGetStats = pc.getStats;
     pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
-      var self = this;
       var args = arguments;
 
       // If selector is a function then we are in the old style stats so just
@@ -450,6 +449,10 @@ if (typeof window === 'undefined' || !window.navigator) {
             break;
           case 'ssrc':
             newId = 'rtpstream_' + report.id;
+            // Workaround for https://code.google.com/p/webrtc/issues/detail?id=4808
+            if (!report.googCodecName) {
+              report.googCodecName = 'VP8';
+            }
             standardReport[newId] = {
               //type: 'notastandalonething',
               timestamp: report.timestamp,
@@ -459,7 +462,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               isRemote: report.isRemote,
               mediaTrackId: 'mediatrack_' + report.id,
               transportId: report.transportId,
-              //codecId: FIXME
+              codecId: 'codec_' + report.googCodecName,
               firCount: report.firCount,
               pliCount: report.pliCount,
               nackCount: report.nackCount,
@@ -500,7 +503,42 @@ if (typeof window === 'undefined' || !window.navigator) {
               echoReturnLossEnhancement: report.echoReturnLossEnhancement
             };
 
-            // FIXME: add codec object
+            // We have one codec item per codec name.
+            // This might be wrong (in theory) since with unified plan
+            // we can have multiple m-lines and codecs and different
+            // payload types/parameters but unified is not supported yet.
+            if (!standardReport['codec_' + report.googCodecName]) {
+              var sdp;
+              // determine payload type (from offer) and negotiated (?spec)
+              // parameters (from answer). (parameters not negotiated yet)
+              if (pc.localDescription &&
+                  pc.localDescription.type === 'offer') {
+                sdp = pc.localDescription.sdp;
+              } else if (pc.remoteDescription &&
+                  pc.remoteDescription.type === 'offer') {
+                sdp = pc.remoteDescription.sdp;
+              }
+              if (sdp) {
+                // TODO: use a SDP library instead of this regexp-stringsoup approach.
+                var match = sdp.match(new RegExp('a=rtpmap:(\\d+) ' +
+                    report.googCodecName + '\\/(\\d+)(?:\\/(\\d+))?'));
+                if (match) {
+                  newId = 'codec_' + report.id;
+                  standardReport[newId] = {
+                    type: 'codec', // FIXME (spec)
+                    timestamp: report.timestamp,
+                    id: newId,
+                    codec: report.googCodecName,
+                    payloadType: parseInt(match[1], 10),
+                    clockRate: parseInt(match[2], 10),
+                    channels: parseInt(match[3] || '1', 10),
+                    parameters: ''
+                  };
+                } else {
+                  console.log('no match', report.googCodecName);
+                }
+              }
+            }
             break;
           }
         });
@@ -519,12 +557,12 @@ if (typeof window === 'undefined' || !window.navigator) {
       // promise-support
       return new Promise(function(resolve, reject) {
         if (args.length === 1 && selector === null) {
-          origGetStats.apply(self, [
+          origGetStats.apply(pc, [
               function(response) {
                 resolve.apply(null, [fixChromeStats(response)]);
               }, reject]);
         } else {
-          origGetStats.apply(self, [resolve, reject]);
+          origGetStats.apply(pc, [resolve, reject]);
         }
       });
     };
