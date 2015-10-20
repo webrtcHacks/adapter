@@ -545,14 +545,16 @@ if (typeof window === 'undefined' || !window.navigator) {
               timestamp: report.timestamp,
               id: newId,
               trackIdentifier: report.trackIdentifier,
-              //remoteSource
-              ssrcIds: ['rtpstream_' + report.id],
+              remoteSource: report.remoteSource,
+              ssrcIds: ['rtpstream_' + report.id, 'rtcpstream_' + report.id],
             };
             if (report.mediaType === 'audio') {
               standardReport[newId].audioLevel = report.audioLevel;
-              standardReport[newId].echoReturnLoss = report.echoReturnLoss;
-              standardReport[newId].echoReturnLossEnhancement =
-                  report.echoReturnLossEnhancement;
+              if (report.id.indexOf('send') !== -1) {
+                standardReport[newId].echoReturnLoss = report.echoReturnLoss;
+                standardReport[newId].echoReturnLossEnhancement =
+                    report.echoReturnLossEnhancement;
+              }
             } else if (report.mediaType === 'video') {
               standardReport[newId].frameWidth = report.frameWidth;
               standardReport[newId].frameHeight = report.frameHeight;
