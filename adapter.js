@@ -260,7 +260,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         reports.forEach(function(report) {
           var standardStats = {
             id: report.id,
-            timestamp: report.timestamp,
+            timestamp: report.timestamp.getTime(),
             type: report.type
           };
           report.names().forEach(function(name) {
