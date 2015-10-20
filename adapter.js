@@ -308,11 +308,12 @@ if (typeof window === 'undefined' || !window.navigator) {
                   standardStats.googFrameHeightReceived ||
                   standardStats.googFrameHeightSent, 10);
             }
-            if (standardStats.googFrameRateInput) {
-              // FIXME (spec): only known at the sender?
+            if (standardStats.googFrameRateInput ||
+                standardStats.googFrameRateReceived) {
               // FIXME: might be something else not available currently
               standardStats.framesPerSecond = parseInt(
-                  standardStats.googFrameRateInput, 10);
+                  standardStats.googFrameRateInput ||
+                  standardStats.googFrameRateReceived, 10);
             }
 
             /* FIXME unfortunately the current stats (googFrameRateSent,
@@ -500,7 +501,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardReport[newId].nackCount = report.nackCount;
               standardReport[newId].sliCount = report.sliCount; // undefined yet
             }
-            if (report.id.indexOf('recv') !== -1) {
+            if (report.remoteSource) {
               standardReport[newId].type = 'inboundrtp';
               standardReport[newId].packetsReceived = report.packetsReceived;
               standardReport[newId].bytesReceived = report.bytesReceived;
@@ -526,7 +527,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               transportId: report.transportId,
               codecId: 'codec_' + report.googCodecName,
             };
-            if (report.id.indexOf('recv') !== -1) {
+            if (report.remoteSource) {
               standardReport[newId].type = 'outboundrtp';
             } else {
               standardReport[newId].type = 'inboundrtp';
@@ -559,7 +560,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardReport[newId].frameWidth = report.frameWidth;
               standardReport[newId].frameHeight = report.frameHeight;
               standardReport[newId].framesPerSecond = report.framesPerSecond;
-              if (report.id.indexOf('recv') !== -1) {
+              if (report.remoteSource) {
                 standardReport[newId].framesReceived = report.framesReceived;
                 standardReport[newId].framesDecoded = report.framesDecoded;
                 standardReport[newId].framesDropped = report.framesDropped;
