@@ -347,14 +347,13 @@ if (typeof window === 'undefined' || !window.navigator) {
             }
             // FIXME: fractionLost
 
-            // these seems to belong into stream stats rather than track stats
             if (standardStats.googFirsReceived || standardStats.googFirsSent) {
               standardStats.firCount = parseInt(
                   standardStats.googFirsReceived ||
                   standardStats.googFirsSent, 10);
             }
             if (standardStats.googPlisReceived || standardStats.googPlisSent) {
-              standardStats.nackCount = parseInt(
+              standardStats.pliCount = parseInt(
                   standardStats.googPlisReceived ||
                   standardStats.googPlisSent, 10);
             }
@@ -366,6 +365,21 @@ if (typeof window === 'undefined' || !window.navigator) {
             }
             // FIXME: no SLI stats yet?
 
+            if (standardStats.bytesSent) {
+              standardStats.bytesSent = parseInt(standardStats.bytesSent, 10);
+            }
+            if (standardStats.bytesReceived) {
+              standardStats.bytesReceived = parseInt(
+                  standardStats.bytesReceived, 10);
+            }
+            if (standardStats.packetsSent) {
+              standardStats.packetsSent = parseInt(
+                  standardStats.packetsSent, 10);
+            }
+            if (standardStats.packetsReceived) {
+              standardStats.packetsReceived = parseInt(
+                  standardStats.packetsReceived, 10);
+            }
             if (standardStats.googEchoCancellationReturnLoss) {
               standardStats.echoReturnLoss = 1.0 * parseInt(
                   standardStats.googEchoCancellationReturnLoss, 10);
@@ -473,28 +487,56 @@ if (typeof window === 'undefined' || !window.navigator) {
               timestamp: report.timestamp,
               id: newId,
               ssrc: report.ssrc,
-              //associateStatsId: FIXME
-              isRemote: report.isRemote,
+              mediaType: report.mediaType,
+              associateStatsId: 'rtcpstream_' + report.id, //FIXME spec: remoteId?
+              isRemote: false,
               mediaTrackId: 'mediatrack_' + report.id,
               transportId: report.transportId,
               codecId: 'codec_' + report.googCodecName,
-              firCount: report.firCount,
-              pliCount: report.pliCount,
-              nackCount: report.nackCount,
-              sliCount: report.sliCount // undefined yet
             };
+            if (report.mediaType === 'video') {
+              standardReport[newId].firCount = report.firCount;
+              standardReport[newId].pliCount = report.pliCount;
+              standardReport[newId].nackCount = report.nackCount;
+              standardReport[newId].sliCount = report.sliCount; // undefined yet
+            }
             if (report.id.indexOf('recv') !== -1) {
               standardReport[newId].type = 'inboundrtp';
               standardReport[newId].packetsReceived = report.packetsReceived;
               standardReport[newId].bytesReceived = report.bytesReceived;
-              standardReport[newId].packetsLost = report.packetsLost;
-              standardReport[newId].jitter = report.jitter;
-              //standardReport[newId].fractionLost = report.fractionLost;
             } else {
               standardReport[newId].type = 'outboundrtp';
               standardReport[newId].packetsSent = report.packetsSent;
               standardReport[newId].bytesReceived = report.bytesSent;
               // TODO: targetBitrate + roundTripTime
+            }
+
+            // FIXME: this is slightly more complicated. inboundrtp can have packetlost
+            // but so can outboundrtp via rtcp (isRemote = true)
+            // need to unmux with opposite type and put loss into remote report.
+            newId = 'rtcpstream_' + report.id;
+            standardReport[newId] = {
+              //type: 'notastandalonething',
+              timestamp: report.timestamp,
+              id: newId,
+              ssrc: report.ssrc,
+              associateStatsId: 'rtpstream_' + report.id, //FIXME spec: remoteId?
+              isRemote: true,
+              mediaTrackId: 'mediatrack_' + report.id,
+              transportId: report.transportId,
+              codecId: 'codec_' + report.googCodecName,
+            };
+            if (report.id.indexOf('recv') !== -1) {
+              standardReport[newId].type = 'outboundrtp';
+            } else {
+              standardReport[newId].type = 'inboundrtp';
+            }
+            if (report.packetsLost) {
+              standardReport[newId].packetsLost = report.packetsLost;
+            }
+            // FIXME: one of these is not set?
+            if (report.jitter) {
+              standardReport[newId].jitter = report.jitter;
             }
 
             newId = 'mediatrack_' + report.id;
@@ -505,18 +547,25 @@ if (typeof window === 'undefined' || !window.navigator) {
               trackIdentifier: report.trackIdentifier,
               //remoteSource
               ssrcIds: ['rtpstream_' + report.id],
-              frameWidth: report.frameWidth,
-              frameHeight: report.frameHeight,
-              framesPerSecond: report.framesPerSecond,
-              framesSent: report.framesSent,
-              framesReceived: report.framesReceived,
-              framesDecoded: report.framesDecoded,
-              framesDropped: report.framesDropped,
-              framesCorrupted: report.framesCorrupted,
-              audioLevel: report.audioLevel,
-              echoReturnLoss: report.echoReturnLoss,
-              echoReturnLossEnhancement: report.echoReturnLossEnhancement
             };
+            if (report.mediaType === 'audio') {
+              standardReport[newId].audioLevel = report.audioLevel;
+              standardReport[newId].echoReturnLoss = report.echoReturnLoss;
+              standardReport[newId].echoReturnLossEnhancement =
+                  report.echoReturnLossEnhancement;
+            } else if (report.mediaType === 'video') {
+              standardReport[newId].frameWidth = report.frameWidth;
+              standardReport[newId].frameHeight = report.frameHeight;
+              standardReport[newId].framesPerSecond = report.framesPerSecond;
+              if (report.id.indexOf('recv') !== -1) {
+                standardReport[newId].framesReceived = report.framesReceived;
+                standardReport[newId].framesDecoded = report.framesDecoded;
+                standardReport[newId].framesDropped = report.framesDropped;
+                standardReport[newId].framesCorrupted = report.framesCorrupted;
+              } else {
+                standardReport[newId].framesSent = report.framesSent;
+              }
+            }
 
             // We have one codec item per codec name.
             // This might be wrong (in theory) since with unified plan
