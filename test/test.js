@@ -734,6 +734,81 @@ test('getStats promise', function(t) {
   t.ok(typeof q === 'object', 'getStats with a selector returns a Promise');
 });
 
+test('getStats example', function(t) {
+  var pc1 = new RTCPeerConnection();
+  var pc2 = new RTCPeerConnection();
+  var connected = false;
+  var currentReport;
+  // Heavily modified version of the W3C stats spec example.
+  var processStats = function() {
+    for (var i in currentReport) {
+      var now = currentReport[i];
+      if (now.type !== 'outboundrtp') {
+        continue;
+      }
+      var remoteNow = currentReport[now.associateStatsId];
+
+      t.ok(typeof(now.packetSent) === 'number',
+          'packetsSent is a number');
+      t.ok(typeof(remoteNow.packetLost) === 'number',
+          'packetsLostis a number');
+      //var fractionLost = packetsLost / packetsSent;
+    }
+    t.end();
+  };
+
+  pc1.oniceconnectionstatechange = function() {
+    if (pc1.iceConnectionState === 'connected' ||
+        pc1.iceConnectionState === 'completed') {
+      t.pass('P2P connection established');
+      if (!connected) {
+        connected = true;
+        window.setTimeout(function() {
+          pc1.getStats(null).then(function(report) {
+            currentReport = report;
+            processStats();
+          });
+        }, 3000);
+      }
+    }
+  };
+
+  var addCandidate = function(pc, event) {
+    if (event.candidate) {
+      var cand = new RTCIceCandidate(event.candidate);
+      pc.addIceCandidate(cand).catch(function(err) {
+        t.fail('addIceCandidate ' + err.toString());
+      });
+    }
+  };
+  pc1.onicecandidate = function(event) {
+    addCandidate(pc2, event);
+  };
+  pc2.onicecandidate = function(event) {
+    addCandidate(pc1, event);
+  };
+
+  var constraints = {video: true, fake: true};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream) {
+    pc1.addStream(stream);
+    pc1.createOffer().then(function(offer) {
+      return pc1.setLocalDescription(offer);
+    }).then(function() {
+      return pc2.setRemoteDescription(pc1.localDescription);
+    }).then(function() {
+      return pc2.createAnswer();
+    }).then(function(answer) {
+      return pc2.setLocalDescription(answer);
+    }).then(function() {
+      return pc1.setRemoteDescription(pc2.localDescription);
+    }).then(function() {
+    }).catch(function(err) {
+      t.fail(err.toString());
+    });
+  });
+});
+
 test('iceTransportPolicy is translated to iceTransports', function(t) {
   if (m.webrtcDetectedBrowser === 'firefox') {
     // not implemented yet.

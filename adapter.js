@@ -381,6 +381,10 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardStats.packetsReceived = parseInt(
                   standardStats.packetsReceived, 10);
             }
+            if (standardStats.packetsLost) {
+              standardStats.packetsLost = parseInt(
+                  standardStats.packetsLost, 10);
+            }
             if (standardStats.googEchoCancellationReturnLoss) {
               standardStats.echoReturnLoss = 1.0 * parseInt(
                   standardStats.googEchoCancellationReturnLoss, 10);
@@ -505,6 +509,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardReport[newId].type = 'inboundrtp';
               standardReport[newId].packetsReceived = report.packetsReceived;
               standardReport[newId].bytesReceived = report.bytesReceived;
+              standardReport[newId].packetsLost = report.packetsLost;
             } else {
               standardReport[newId].type = 'outboundrtp';
               standardReport[newId].packetsSent = report.packetsSent;
@@ -529,10 +534,12 @@ if (typeof window === 'undefined' || !window.navigator) {
             };
             if (report.remoteSource) {
               standardReport[newId].type = 'outboundrtp';
+              standardReport[newId].packetsSent = report.packetsSent;
+              standardReport[newId].bytesSent = report.bytesSent;
             } else {
               standardReport[newId].type = 'inboundrtp';
-            }
-            if (report.packetsLost) {
+              standardReport[newId].packetsReceived = report.packetsReceived;
+              standardReport[newId].bytesReceived = report.bytesReceived;
               standardReport[newId].packetsLost = report.packetsLost;
             }
             // FIXME: one of these is not set?
