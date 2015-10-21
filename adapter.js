@@ -974,7 +974,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       localCapabilities.codecs.forEach(function(lCodec) {
         for (var i = 0; i < remoteCapabilities.codecs.length; i++) {
           var rCodec = remoteCapabilities.codecs[i];
-          if (lCodec.name === rCodec.name &&
+          if (lCodec.name.toLowerCase() === rCodec.name.toLowerCase() &&
               lCodec.clockRate === rCodec.clockRate &&
               lCodec.numChannels === rCodec.numChannels) {
             // push rCodec so we reply with offerer payload type
