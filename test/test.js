@@ -15,7 +15,7 @@ console.log = function() {
   saveConsole.apply(saveConsole, arguments);
 };
 
-var m = require('../adapter-core.js');
+var m = require('../adapter.js');
 console.log = saveConsole;
 
 test('log suppression', function(t) {
@@ -894,7 +894,6 @@ test('iceTransportPolicy relay functionality', function(t) {
   });
 });
 
-/*
 // This MUST to be the last test since it loads adapter
 // again which may result in unintended behaviour.
 test('Non-module logging to console still works', function(t) {
@@ -932,4 +931,3 @@ test('Non-module logging to console still works', function(t) {
     t.end();
   }, 500);
 });
-*/
