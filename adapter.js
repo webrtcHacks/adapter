@@ -518,7 +518,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             } else {
               standardReport[newId].type = 'outboundrtp';
               standardReport[newId].packetsSent = report.packetsSent;
-              standardReport[newId].bytesReceived = report.bytesSent;
+              standardReport[newId].bytesSent = report.bytesSent;
               // TODO: targetBitrate + roundTripTime
             }
 
