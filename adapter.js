@@ -392,8 +392,8 @@ if (typeof window === 'undefined' || !window.navigator) {
                   standardStats.googEchoCancellationReturnLossEnhancement, 10);
             }
             break;
-          case 'localCandidate':
-          case 'remoteCandidate':
+          case 'localcandidate':
+          case 'remotecandidate':
             // https://w3c.github.io/webrtc-stats/#icecandidate-dict*
             standardStats.portNumber = parseInt(standardStats.portNumber, 10);
             standardStats.priority = parseInt(standardStats.priority, 10);
@@ -402,7 +402,6 @@ if (typeof window === 'undefined' || !window.navigator) {
             break;
           case 'googCandidatePair':
             // https://w3c.github.io/webrtc-stats/#candidatepair-dict*
-            standardStats.type = 'candidatepair';
             standardStats.transportId = standardStats.googChannelId;
             // FIXME: maybe set depending on iceconnectionstate and read/write?
             //standardStats.state = 'FIXME'; // enum
@@ -421,6 +420,11 @@ if (typeof window === 'undefined' || !window.navigator) {
             standardStats.bytesReceived = parseInt(
                 standardStats.bytesReceived, 10);
             // FIXME: packetsSent is not in spec?
+            // FIXME: no packetsReceived?
+            standardStats.packetsSent = parseInt(
+                standardStats.packetsSent, 10);
+            standardStats.packetsDiscardedOnSend = parseInt(
+                standardStats.packetsDiscardedOnSend, 10);
 
             standardStats.roundTripTime = parseInt(standardStats.googRtt);
 
@@ -455,7 +459,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           var other;
           var newId;
           switch (report.type) {
-          case 'candidatepair':
+          case 'googCandidatePair':
+            report.type = 'candidatepair';
             if (standardReport.bweforvideo) {
               report.availableOutgoingBitrate =
                   standardReport.bweforvideo.availableOutgoingBitrate;
@@ -639,6 +644,25 @@ if (typeof window === 'undefined' || !window.navigator) {
           }
         });
 
+        /*
+        // Step x: filter nonstandard goog* types + and ssrc
+        // also remove any goog attributes.
+        // TODO: too aggressive and removes interesting stats.
+        Object.keys(standardReport).forEach(function(id) {
+          if (standardReport[id].type.indexOf('goog') === 0
+              || standardReport[id].type === 'ssrc') {
+            delete standardReport[id];
+            return;
+          }
+          var report = standardReport[id];
+          Object.keys(report).forEach(function(name) {
+            if (name.indexOf('goog') === 0) {
+              delete report[name];
+            }
+          });
+          standardReport[id] = report;
+        });
+        */
         return standardReport;
       };
 
