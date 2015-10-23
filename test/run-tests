@@ -13,4 +13,4 @@ fi
 echo "Starting browser"
 PATH=$PATH:./node_modules/.bin
 
-testling -x start-${BROWSER}
+node test/run-tests.js
