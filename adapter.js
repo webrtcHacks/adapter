@@ -498,7 +498,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               id: newId,
               ssrc: report.ssrc,
               mediaType: report.mediaType,
-              associateStatsId: 'rtcpstream_' + report.id, //FIXME spec: remoteId?
+              associateStatsId: 'rtcpstream_' + report.id,
               isRemote: false,
               mediaTrackId: 'mediatrack_' + report.id,
               transportId: report.transportId,
@@ -531,7 +531,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               timestamp: report.timestamp,
               id: newId,
               ssrc: report.ssrc,
-              associateStatsId: 'rtpstream_' + report.id, //FIXME spec: remoteId?
+              associateStatsId: 'rtpstream_' + report.id,
               isRemote: true,
               mediaTrackId: 'mediatrack_' + report.id,
               transportId: report.transportId,
