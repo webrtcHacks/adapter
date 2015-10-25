@@ -1408,7 +1408,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       // Default to sendrecv.
       if (this.localStreams.length) {
         numAudioTracks = this.localStreams[0].getAudioTracks().length;
-        numVideoTracks = this.localStreams[0].getAudioTracks().length;
+        numVideoTracks = this.localStreams[0].getVideoTracks().length;
       }
       // Determine number of audio and video tracks we need to send/recv.
       if (offerOptions) {
