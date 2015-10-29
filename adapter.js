@@ -391,6 +391,10 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardStats.echoReturnLossEnhancement = 1.0 * parseInt(
                   standardStats.googEchoCancellationReturnLossEnhancement, 10);
             }
+            if (standardStats.googRtt) {
+              // This is the RTCP RTT.
+              standardStats.roundTripTime = parseInt(standardStats.googRtt);
+            }
             break;
           case 'localcandidate':
           case 'remotecandidate':
@@ -426,6 +430,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             standardStats.packetsDiscardedOnSend = parseInt(
                 standardStats.packetsDiscardedOnSend, 10);
 
+            // This is the STUN RTT.
             standardStats.roundTripTime = parseInt(standardStats.googRtt);
 
             // backfilled later from videoBWE.
@@ -519,7 +524,8 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardReport[newId].type = 'outboundrtp';
               standardReport[newId].packetsSent = report.packetsSent;
               standardReport[newId].bytesSent = report.bytesSent;
-              // TODO: targetBitrate + roundTripTime
+              standardReport[newId].roundTripTime = report.roundTripTime;
+              // TODO: targetBitrate
             }
 
             // FIXME: this is slightly more complicated. inboundrtp can have packetlost
@@ -541,6 +547,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               standardReport[newId].type = 'outboundrtp';
               standardReport[newId].packetsSent = report.packetsSent;
               standardReport[newId].bytesSent = report.bytesSent;
+              standardReport[newId].roundTripTime = report.roundTripTime;
             } else {
               standardReport[newId].type = 'inboundrtp';
               standardReport[newId].packetsReceived = report.packetsReceived;
