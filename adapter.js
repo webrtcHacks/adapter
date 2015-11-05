@@ -517,6 +517,8 @@ if (typeof module !== 'undefined') {
   }
   module.exports = {
     RTCPeerConnection: RTCPeerConnection,
+    RTCIceCandidate: RTCIceCandidate,
+    RTCSessionDescription: RTCSessionDescription,
     getUserMedia: getUserMedia,
     attachMediaStream: attachMediaStream,
     reattachMediaStream: reattachMediaStream,
@@ -533,6 +535,8 @@ if (typeof module !== 'undefined') {
   define([], function() {
     return {
       RTCPeerConnection: window.RTCPeerConnection,
+      RTCIceCandidate: RTCIceCandidate,
+      RTCSessionDescription: RTCSessionDescription,
       getUserMedia: getUserMedia,
       attachMediaStream: attachMediaStream,
       reattachMediaStream: reattachMediaStream,
