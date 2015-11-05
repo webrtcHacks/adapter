@@ -511,9 +511,11 @@ try {
 } catch (e) {}
 
 if (typeof module !== 'undefined') {
-  var RTCPeerConnection;
+  var RTCPeerConnection, RTCIceCandidate, RTCSessionDescription;
   if (typeof window !== 'undefined') {
     RTCPeerConnection = window.RTCPeerConnection;
+    RTCIceCandidate = window.RTCIceCandidate;
+    RTCSessionDescription = window.RTCSessionDescription;
   }
   module.exports = {
     RTCPeerConnection: RTCPeerConnection,
@@ -535,8 +537,8 @@ if (typeof module !== 'undefined') {
   define([], function() {
     return {
       RTCPeerConnection: window.RTCPeerConnection,
-      RTCIceCandidate: RTCIceCandidate,
-      RTCSessionDescription: RTCSessionDescription,
+      RTCIceCandidate: window.RTCIceCandidate,
+      RTCSessionDescription: window.RTCSessionDescription,
       getUserMedia: getUserMedia,
       attachMediaStream: attachMediaStream,
       reattachMediaStream: reattachMediaStream,
