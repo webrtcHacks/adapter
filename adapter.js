@@ -511,7 +511,9 @@ try {
 } catch (e) {}
 
 if (typeof module !== 'undefined') {
-  var RTCPeerConnection, RTCIceCandidate, RTCSessionDescription;
+  var RTCPeerConnection;
+  var RTCIceCandidate;
+  var RTCSessionDescription;
   if (typeof window !== 'undefined') {
     RTCPeerConnection = window.RTCPeerConnection;
     RTCIceCandidate = window.RTCIceCandidate;
