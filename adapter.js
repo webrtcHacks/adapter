@@ -565,7 +565,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       return candidate;
     };
 
-    // Translates candidate object into SDP candidate attribute.
+    // Translates a candidate object into SDP candidate attribute.
     SDPUtils.writeCandidate = function(candidate) {
       var sdp = [];
       sdp.push(candidate.foundation);
@@ -592,7 +592,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       return 'candidate:' + sdp.join(' ');
     };
 
-    // Parses a rtpmap line, returns RTCRtpCoddecParameters. Sample input:
+    // Parses an rtpmap line, returns RTCRtpCoddecParameters. Sample input:
     // a=rtpmap:111 opus/48000/2
     SDPUtils.parseRtpMap = function(line) {
       var parts = line.substr(9).split(' ');
@@ -608,7 +608,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       return parsed;
     };
 
-    // Generate a=rtpmap line from RTCRtpCodecCapability or RTCRtpCodecParameters.
+    // Generate an a=rtpmap line from RTCRtpCodecCapability or RTCRtpCodecParameters.
     SDPUtils.writeRtpMap = function(codec) {
       var pt = codec.payloadType;
       if (codec.preferredPayloadType !== undefined) {
@@ -618,7 +618,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
     };
 
-    // Parses a ftmp line, returns dictionary. Sample input:
+    // Parses an ftmp line, returns dictionary. Sample input:
     // a=fmtp:96 vbr=on;cng=on
     // Also deals with vbr=on; cng=on
     SDPUtils.parseFmtp = function(line) {
@@ -632,7 +632,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       return parsed;
     };
 
-    // Generate a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
+    // Generates an a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
     SDPUtils.writeFtmp = function(codec) {
       var line = '';
       var pt = codec.payloadType;
@@ -649,7 +649,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       return line;
     };
 
-    // Parses a rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
+    // Parses an rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
     // a=rtcp-fb:98 nack rpsi
     SDPUtils.parseRtcpFb = function(line) {
       var parts = line.substr(line.indexOf(' ') + 1).split(' ');
@@ -675,7 +675,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       return lines;
     };
 
-    // parses a RFC 5576 ssrc media attribute. Sample input:
+    // Parses an RFC 5576 ssrc media attribute. Sample input:
     // a=ssrc:3735928559 cname:something
     SDPUtils.parseSsrcMedia = function(line) {
       var sp = line.indexOf(' ');
@@ -700,8 +700,8 @@ if (typeof window === 'undefined' || !window.navigator) {
       lines = lines.concat(SDPUtils.splitLines(sessionpart)); // Search in session part, too.
       var fpLine = lines.filter(function(line) {
         return line.indexOf('a=fingerprint:') === 0;
-      });
-      fpLine = fpLine[0].substr(14);
+      })[0].substr(14);
+      // Note: a=setup line is ignored since we use the 'auto' role.
       var dtlsParameters = {
         role: 'auto',
         fingerprints: [{
@@ -732,7 +732,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         })[0].substr(12),
         password: lines.filter(function(line) {
           return line.indexOf('a=ice-pwd:') === 0;
-        })[0].substr(10),
+        })[0].substr(10)
       };
       return iceParameters;
     };
@@ -743,8 +743,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           'a=ice-pwd:' + params.password + '\r\n';
     };
 
-    // Parses the SDP media section and return RTCRtpParameters.
-    SDPUtils.parseRtpDescription = function(mediaSection) {
+    // Parses the SDP media section and returns RTCRtpParameters.
+    SDPUtils.parseRtpParameters = function(mediaSection) {
       var description = {
         codecs: [],
         headerExtensions: [],
@@ -752,17 +752,19 @@ if (typeof window === 'undefined' || !window.navigator) {
         rtcp: []
       };
       var lines = SDPUtils.splitLines(mediaSection);
-      var mline = lines[0].substr(2).split(' ');
+      var mline = lines[0].split(' ');
       for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
-        var line = SDPUtils.matchPrefix(
-            mediaSection, 'a=rtpmap:' + mline[i] + ' ')[0];
-        if (line) {
-          var codec = SDPUtils.parseRtpMap(line);
-          var fmtp = SDPUtils.matchPrefix(
-              mediaSection, 'a=fmtp:' + mline[i] + ' ');
-          codec.parameters = fmtp.length ? SDPUtils.parseFmtp(fmtp[0]) : {};
+        var pt = mline[i];
+        var rtpmapline = SDPUtils.matchPrefix(
+            mediaSection, 'a=rtpmap:' + pt + ' ')[0];
+        if (rtpmapline) {
+          var codec = SDPUtils.parseRtpMap(rtpmapline);
+          var fmtps = SDPUtils.matchPrefix(
+              mediaSection, 'a=fmtp:' + pt + ' ');
+          // Only the first a=fmtp:<pt> is considered.
+          codec.parameters = fmtps.length ? SDPUtils.parseFmtp(fmtps[0]) : {};
           codec.rtcpFeedback = SDPUtils.matchPrefix(
-              mediaSection, 'a=rtcp-fb:' + mline[i] + ' ')
+              mediaSection, 'a=rtcp-fb:' + pt + ' ')
             .map(SDPUtils.parseRtcpFb);
           description.codecs.push(codec);
         }
@@ -786,7 +788,6 @@ if (typeof window === 'undefined' || !window.navigator) {
         return codec.payloadType;
       }).join(' ') + '\r\n';
 
-      // FIXME: those should be IPv6 ::
       sdp += 'c=IN IP4 0.0.0.0\r\n';
       sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
 
@@ -833,12 +834,12 @@ if (typeof window === 'undefined' || !window.navigator) {
         sdp += 'a=inactive\r\n';
       }
 
+      // FIXME: for RTX there might be multiple SSRCs. Not implemented in Edge yet.
       if (transceiver.rtpSender) {
-        sdp += 'a=msid:' + stream.id + ' ' +
+        var msid = 'msid:' + stream.id + ' ' +
             transceiver.rtpSender.track.id + '\r\n';
-        sdp += 'a=ssrc:' + transceiver.sendSsrc + ' ' + 'msid:' +
-            stream.id + ' ' +
-            transceiver.rtpSender.track.id + '\r\n';
+        sdp += 'a=' + msid;
+        sdp += 'a=ssrc:' + transceiver.sendSsrc + ' ' + msid;
       }
       // FIXME: this should be written by writeRtpDescription.
       sdp += 'a=ssrc:' + transceiver.sendSsrc + ' cname:' +
@@ -1100,6 +1101,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           cname: transceiver.cname,
           ssrc: transceiver.sendSsrc
         };
+        console.log('transceiver', params);
         transceiver.rtpReceiver.receive(params);
       }
     };
@@ -1135,6 +1137,9 @@ if (typeof window === 'undefined' || !window.navigator) {
           // Calculate intersection of capabilities.
           var params = self._getCommonCapabilities(localCapabilities,
               remoteCapabilities);
+
+          // Start the RTCRtpSender. The RTCRtpReceiver for this transceiver
+          // has already been started in setRemoteDescription.
           self._transceive(transceiver,
               params.codecs.length > 0,
               false);
@@ -1189,15 +1194,13 @@ if (typeof window === 'undefined' || !window.navigator) {
         var recvSsrc;
         var localCapabilities;
 
-        var remoteCapabilities = SDPUtils.parseRtpDescription(mediaSection);
+        // FIXME: ensure the mediaSection has rtcp-mux set.
+        var remoteCapabilities = SDPUtils.parseRtpParameters(mediaSection);
         var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
             sessionpart);
         var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
             sessionpart);
-
-        var mid = lines.filter(function(line) {
-          return line.indexOf('a=mid:') === 0;
-        })[0].substr(6);
+        var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0].substr(6);
 
         var cname;
         var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
@@ -1246,6 +1249,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             sendSsrc: sendSsrc,
             recvSsrc: recvSsrc
           };
+          // Start the RTCRtpReceiver now. The RTPSender is start in setLocalDescription.
           self._transceive(self.transceivers[sdpMLineIndex],
               false,
               direction === 'sendrecv' || direction === 'sendonly');
@@ -1345,7 +1349,10 @@ if (typeof window === 'undefined' || !window.navigator) {
     // Determine whether to fire the negotiationneeded event.
     window.RTCPeerConnection.prototype._maybeFireNegotiationNeeded =
         function() {
-      // TODO
+      // Fire away (for now).
+      if (this.onnegotiationneeded !== null) {
+        this.onnegotiationneeded();
+      }
     };
 
     // Update the connection state.
