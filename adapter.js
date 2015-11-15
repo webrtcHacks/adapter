@@ -1158,17 +1158,22 @@ if (typeof window === 'undefined' || !window.navigator) {
           throw new TypeError('unsupported type "' + description.type + '"');
       }
 
-      window.setTimeout(this._emitBufferedCandidates.bind(this), 50);
-      if (arguments.length > 1 && typeof arguments[1] === 'function') {
+      // If a success callback was provided, emit ICE candidates after it has been
+      // executed. Otherwise, emit callback after the Promise is resolved.
+      var hasCallback = arguments.length > 1 &&
+        typeof arguments[1] === 'function';
+      if (hasCallback) {
         var cb = arguments[1];
         window.setTimeout(function() {
           cb();
-          //self._emitBufferedCandidates();
+          self._emitBufferedCandidates();
         }, 0);
       }
       return new Promise(function(resolve) {
         resolve();
-        //self._emitBufferedCandidates();
+        if (!hasCallback) {
+          self._emitBufferedCandidates();
+        }
       });
     };
 
