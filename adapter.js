@@ -968,7 +968,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
     };
 
-    // Calculates the intersection of local and remote capabilities.
+    // Determines the intersection of local and remote capabilities.
     window.RTCPeerConnection.prototype._getCommonCapabilities =
         function(localCapabilities, remoteCapabilities) {
       var commonCapabilities = {
@@ -985,7 +985,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             // push rCodec so we reply with offerer payload type
             commonCapabilities.codecs.push(rCodec);
 
-            // FIXME: also need to calculate intersection between
+            // FIXME: also need to determine intersection between
             // .rtcpFeedback and .parameters
             break;
           }
@@ -1041,7 +1041,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               transceiver.iceGatherer.state === 'completed';
         });
         // FIXME: update .localDescription with candidate and (potentially) end-of-candidates.
-        //     to make this harder, the gatherer might emit candidates before localdescription
+        //     To make this harder, the gatherer might emit candidates before localdescription
         //     is set. To make things worse, gather.getLocalCandidates still errors in
         //     Edge 10547 when no candidates have been gathered yet.
 
@@ -1105,7 +1105,6 @@ if (typeof window === 'undefined' || !window.navigator) {
           cname: transceiver.cname,
           ssrc: transceiver.sendSsrc
         };
-        console.log('transceiver', params);
         transceiver.rtpReceiver.receive(params);
       }
     };
@@ -1221,6 +1220,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0].substr(6);
 
         var cname;
+        // Gets the first SSRC. Note that with RTX there might be multiple SSRCs.
         var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
             .map(function(line) {
               return SDPUtils.parseSsrcMedia(line);
