@@ -1129,24 +1129,28 @@ if (typeof window === 'undefined' || !window.navigator) {
           var dtlsTransport = transceiver.dtlsTransport;
           var localCapabilities = transceiver.localCapabilities;
           var remoteCapabilities = transceiver.remoteCapabilities;
+          var rejected = mediaSection.split('\n', 1)
+              .split(' ')[0].split(' ', 2)[1] === '9';
 
-          var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
+          if (!rejected) {
+            var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
+                sessionpart);
+            iceTransport.start(iceGatherer, remoteIceParameters, 'controlled');
+
+            var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
               sessionpart);
-          iceTransport.start(iceGatherer, remoteIceParameters, 'controlled');
+            dtlsTransport.start(remoteDtlsParameters);
 
-          var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
-              sessionpart);
-          dtlsTransport.start(remoteDtlsParameters);
+            // Calculate intersection of capabilities.
+            var params = self._getCommonCapabilities(localCapabilities,
+                remoteCapabilities);
 
-          // Calculate intersection of capabilities.
-          var params = self._getCommonCapabilities(localCapabilities,
-              remoteCapabilities);
-
-          // Start the RTCRtpSender. The RTCRtpReceiver for this transceiver
-          // has already been started in setRemoteDescription.
-          self._transceive(transceiver,
-              params.codecs.length > 0,
-              false);
+            // Start the RTCRtpSender. The RTCRtpReceiver for this transceiver
+            // has already been started in setRemoteDescription.
+            self._transceive(transceiver,
+                params.codecs.length > 0,
+                false);
+          }
         });
       }
 
@@ -1191,6 +1195,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         var lines = SDPUtils.splitLines(mediaSection);
         var mline = lines[0].substr(2).split(' ');
         var kind = mline[0];
+        var rejected = mline[1] === '0';
         var direction = SDPUtils.getDirection(mediaSection, sessionpart);
 
         var transceiver;
@@ -1205,10 +1210,14 @@ if (typeof window === 'undefined' || !window.navigator) {
 
         // FIXME: ensure the mediaSection has rtcp-mux set.
         var remoteCapabilities = SDPUtils.parseRtpParameters(mediaSection);
-        var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
-            sessionpart);
-        var remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
-            sessionpart);
+        var remoteIceParameters;
+        var remoteDtlsParameters;
+        if (!rejected) {
+          remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
+              sessionpart);
+          remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
+              sessionpart);
+        }
         var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0].substr(6);
 
         var cname;
@@ -1258,11 +1267,11 @@ if (typeof window === 'undefined' || !window.navigator) {
             sendSsrc: sendSsrc,
             recvSsrc: recvSsrc
           };
-          // Start the RTCRtpReceiver now. The RTPSender is start in setLocalDescription.
+          // Start the RTCRtpReceiver now. The RTPSender is started in setLocalDescription.
           self._transceive(self.transceivers[sdpMLineIndex],
               false,
               direction === 'sendrecv' || direction === 'sendonly');
-        } else if (description.type === 'answer') {
+        } else if (description.type === 'answer' && !rejected) {
           transceiver = self.transceivers[sdpMLineIndex];
           iceGatherer = transceiver.iceGatherer;
           iceTransport = transceiver.iceTransport;
