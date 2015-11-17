@@ -33,7 +33,7 @@ var webrtcUtils = {
   },
   extractVersion: function(uastring, expr, pos) {
     var match = uastring.match(expr);
-    return match && match.length >= pos && parseInt(match[pos]);
+    return match && match.length >= pos && parseInt(match[pos], 10);
   }
 };
 
