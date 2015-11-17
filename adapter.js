@@ -512,11 +512,17 @@ try {
 
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
+  var RTCIceCandidate;
+  var RTCSessionDescription;
   if (typeof window !== 'undefined') {
     RTCPeerConnection = window.RTCPeerConnection;
+    RTCIceCandidate = window.RTCIceCandidate;
+    RTCSessionDescription = window.RTCSessionDescription;
   }
   module.exports = {
     RTCPeerConnection: RTCPeerConnection,
+    RTCIceCandidate: RTCIceCandidate,
+    RTCSessionDescription: RTCSessionDescription,
     getUserMedia: getUserMedia,
     attachMediaStream: attachMediaStream,
     reattachMediaStream: reattachMediaStream,
@@ -533,6 +539,8 @@ if (typeof module !== 'undefined') {
   define([], function() {
     return {
       RTCPeerConnection: window.RTCPeerConnection,
+      RTCIceCandidate: window.RTCIceCandidate,
+      RTCSessionDescription: window.RTCSessionDescription,
       getUserMedia: getUserMedia,
       attachMediaStream: attachMediaStream,
       reattachMediaStream: reattachMediaStream,
