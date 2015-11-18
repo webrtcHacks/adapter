@@ -1128,7 +1128,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           var dtlsTransport = transceiver.dtlsTransport;
           var localCapabilities = transceiver.localCapabilities;
           var remoteCapabilities = transceiver.remoteCapabilities;
-          var rejected = mediaSection.split('\n', 1)
+          var rejected = mediaSection.split('\n', 1)[0]
               .split(' ')[0].split(' ', 2)[1] === '9';
 
           if (!rejected) {
