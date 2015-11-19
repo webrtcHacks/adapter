@@ -27,6 +27,6 @@
     "selenium-webdriver": "^2.48.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
-    "travis-multirunner": "^2.7.2"
+    "travis-multirunner": "^3.0.0"
   }
 }
