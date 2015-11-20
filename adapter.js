@@ -1177,9 +1177,10 @@ if (typeof window === 'undefined' || !window.navigator) {
         }, 0);
       }
       return new Promise(function(resolve) {
-        resolve();
+        resolve(); // note that resolve is async.
         if (!hasCallback) {
-          self._emitBufferedCandidates();
+          // FIXME: setTimeout-0 should work but executes before promise is resolved.
+          window.setTimeout(self._emitBufferedCandidates.bind(self), 50);
         }
       });
     };
