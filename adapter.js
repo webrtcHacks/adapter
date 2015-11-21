@@ -1176,13 +1176,15 @@ if (typeof window === 'undefined' || !window.navigator) {
           self._emitBufferedCandidates();
         }, 0);
       }
-      return new Promise(function(resolve) {
-        resolve(); // note that resolve is async.
+      var p = new Promise(function(resolve) {
+        resolve();
+      });
+      p.then(function() {
         if (!hasCallback) {
-          // FIXME: setTimeout-0 should work but executes before promise is resolved.
-          window.setTimeout(self._emitBufferedCandidates.bind(self), 50);
+          window.setTimeout(self._emitBufferedCandidates.bind(self), 0);
         }
       });
+      return p;
     };
 
     window.RTCPeerConnection.prototype.setRemoteDescription =
