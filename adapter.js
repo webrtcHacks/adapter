@@ -1176,9 +1176,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           self._emitBufferedCandidates();
         }, 0);
       }
-      var p = new Promise(function(resolve) {
-        resolve();
-      });
+      var p = Promise.resolve();
       p.then(function() {
         if (!hasCallback) {
           window.setTimeout(self._emitBufferedCandidates.bind(self), 0);
@@ -1329,9 +1327,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
       }
-      return new Promise(function(resolve) {
-        resolve();
-      });
+      return Promise.resolve();
     };
 
     window.RTCPeerConnection.prototype.close = function() {
@@ -1537,9 +1533,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (arguments.length && typeof arguments[0] === 'function') {
         window.setTimeout(arguments[0], 0, desc);
       }
-      return new Promise(function(resolve) {
-        resolve(desc);
-      });
+      return Promise.resolve();
     };
 
     window.RTCPeerConnection.prototype.createAnswer = function() {
@@ -1569,9 +1563,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (arguments.length && typeof arguments[0] === 'function') {
         window.setTimeout(arguments[0], 0, desc);
       }
-      return new Promise(function(resolve) {
-        resolve(desc);
-      });
+      return Promise.resolve(desc);
     };
 
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
@@ -1594,9 +1586,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
       }
-      return new Promise(function(resolve) {
-        resolve();
-      });
+      return Promise.resolve();
     };
 
     window.RTCPeerConnection.prototype.getStats = function() {
