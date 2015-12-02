@@ -1567,8 +1567,16 @@ if (typeof window === 'undefined' || !window.navigator) {
     };
 
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
-      // TODO: lookup by mid
-      var transceiver = this.transceivers[candidate.sdpMLineIndex];
+      var mLineIndex = candidate.sdpMLineIndex;
+      if (candidate.sdpMid) {
+        for (var i = 0; i < this.transceiver.length; i++) {
+          if (this.transceivers[i].mid === candidate.sdpMid) {
+            mLineIndex = i;
+            break;
+          }
+        }
+      }
+      var transceiver = this.transceivers[mLineIndex];
       if (transceiver) {
         var cand = Object.keys(candidate.candidate).length > 0 ?
             SDPUtils.parseCandidate(candidate.candidate) : {};
