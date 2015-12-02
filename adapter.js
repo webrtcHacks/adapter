@@ -1569,7 +1569,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
       var mLineIndex = candidate.sdpMLineIndex;
       if (candidate.sdpMid) {
-        for (var i = 0; i < this.transceiver.length; i++) {
+        for (var i = 0; i < this.transceivers.length; i++) {
           if (this.transceivers[i].mid === candidate.sdpMid) {
             mLineIndex = i;
             break;
