@@ -1129,7 +1129,7 @@ if (typeof window === 'undefined' || !window.navigator) {
           var localCapabilities = transceiver.localCapabilities;
           var remoteCapabilities = transceiver.remoteCapabilities;
           var rejected = mediaSection.split('\n', 1)[0]
-              .split(' ')[0].split(' ', 2)[1] === '9';
+              .split(' ', 2)[1] === '0';
 
           if (!rejected) {
             var remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
