@@ -1589,6 +1589,10 @@ if (typeof window === 'undefined' || !window.navigator) {
         if (cand.protocol === 'tcp' && cand.port === 0) {
           return;
         }
+        // Ignore RTCP candidates, we assume RTCP-MUX.
+        if (cand.component !== '1') {
+          return;
+        }
         transceiver.iceTransport.addRemoteCandidate(cand);
       }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
