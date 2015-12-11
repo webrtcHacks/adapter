@@ -1,7 +1,7 @@
 sudo: false
 language: node_js
 node_js:
-- 0.10
+- 4.1
 
 env:
   matrix:
@@ -10,7 +10,7 @@ env:
     - BROWSER=chrome  BVER=unstable
     - BROWSER=firefox BVER=stable
     - BROWSER=firefox BVER=beta
-    - BROWSER=firefox BVER=unstable
+    - BROWSER=firefox BVER=nightly
     - BROWSER=firefox BVER=esr
 
 matrix:
@@ -18,7 +18,8 @@ matrix:
 
   allow_failures:
     - env: BROWSER=chrome  BVER=unstable
-    - env: BROWSER=firefox BVER=unstable
+    - env: BROWSER=firefox BVER=beta
+    - env: BROWSER=firefox BVER=nightly
 
 before_script:
   - ./node_modules/travis-multirunner/setup.sh

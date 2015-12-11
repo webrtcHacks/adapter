@@ -30,6 +30,10 @@ var webrtcUtils = {
       return;
     }
     console.log.apply(console, arguments);
+  },
+  extractVersion: function(uastring, expr, pos) {
+    var match = uastring.match(expr);
+    return match && match.length >= pos && parseInt(match[pos], 10);
   }
 };
 
@@ -90,8 +94,8 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcDetectedBrowser = 'firefox';
 
   // the detected firefox version.
-  webrtcDetectedVersion =
-    parseInt(navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1], 10);
+  webrtcDetectedVersion = webrtcUtils.extractVersion(navigator.userAgent,
+      /Firefox\/([0-9]+)\./, 1);
 
   // the minimum firefox version still supported by adapter.
   webrtcMinimumVersion = 31;
@@ -127,10 +131,14 @@ if (typeof window === 'undefined' || !window.navigator) {
   };
 
   // The RTCSessionDescription object.
-  window.RTCSessionDescription = mozRTCSessionDescription;
+  if (!window.RTCSessionDescription) {
+    window.RTCSessionDescription = mozRTCSessionDescription;
+  }
 
   // The RTCIceCandidate object.
-  window.RTCIceCandidate = mozRTCIceCandidate;
+  if (!window.RTCIceCandidate) {
+    window.RTCIceCandidate = mozRTCIceCandidate;
+  }
 
   // getUserMedia constraints shim.
   getUserMedia = function(constraints, onSuccess, onError) {
@@ -215,7 +223,7 @@ if (typeof window === 'undefined' || !window.navigator) {
     var orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
     navigator.mediaDevices.enumerateDevices = function() {
-      return orgEnumerateDevices().catch(function(e) {
+      return orgEnumerateDevices().then(undefined, function(e) {
         if (e.name === 'NotFoundError') {
           return [];
         }
@@ -223,14 +231,14 @@ if (typeof window === 'undefined' || !window.navigator) {
       });
     };
   }
-} else if (navigator.webkitGetUserMedia && !!window.chrome) {
+} else if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
   webrtcUtils.log('This appears to be Chrome');
 
   webrtcDetectedBrowser = 'chrome';
 
   // the detected chrome version.
-  webrtcDetectedVersion =
-    parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
+  webrtcDetectedVersion = webrtcUtils.extractVersion(navigator.userAgent,
+      /Chrom(e|ium)\/([0-9]+)\./, 2);
 
   // the minimum chrome version still supported by adapter.
   webrtcMinimumVersion = 38;
@@ -877,8 +885,8 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcUtils.log('This appears to be Edge');
   webrtcDetectedBrowser = 'edge';
 
-  webrtcDetectedVersion =
-    parseInt(navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)[2], 10);
+  webrtcDetectedVersion = webrtcUtils.extractVersion(navigator.userAgent,
+      /Edge\/(\d+).(\d+)$/, 2);
 
   // the minimum version still supported by adapter.
   webrtcMinimumVersion = 12;
@@ -894,26 +902,35 @@ function requestUserMedia(constraints) {
 }
 
 var webrtcTesting = {};
-Object.defineProperty(webrtcTesting, 'version', {
-  set: function(version) {
-    webrtcDetectedVersion = version;
-  }
-});
+try {
+  Object.defineProperty(webrtcTesting, 'version', {
+    set: function(version) {
+      webrtcDetectedVersion = version;
+    }
+  });
+} catch (e) {}
 
 if (typeof module !== 'undefined') {
   var RTCPeerConnection;
+  var RTCIceCandidate;
+  var RTCSessionDescription;
   if (typeof window !== 'undefined') {
     RTCPeerConnection = window.RTCPeerConnection;
+    RTCIceCandidate = window.RTCIceCandidate;
+    RTCSessionDescription = window.RTCSessionDescription;
   }
   module.exports = {
     RTCPeerConnection: RTCPeerConnection,
+    RTCIceCandidate: RTCIceCandidate,
+    RTCSessionDescription: RTCSessionDescription,
     getUserMedia: getUserMedia,
     attachMediaStream: attachMediaStream,
     reattachMediaStream: reattachMediaStream,
     webrtcDetectedBrowser: webrtcDetectedBrowser,
     webrtcDetectedVersion: webrtcDetectedVersion,
     webrtcMinimumVersion: webrtcMinimumVersion,
-    webrtcTesting: webrtcTesting
+    webrtcTesting: webrtcTesting,
+    webrtcUtils: webrtcUtils
     //requestUserMedia: not exposed on purpose.
     //trace: not exposed on purpose.
   };
@@ -922,13 +939,16 @@ if (typeof module !== 'undefined') {
   define([], function() {
     return {
       RTCPeerConnection: window.RTCPeerConnection,
+      RTCIceCandidate: window.RTCIceCandidate,
+      RTCSessionDescription: window.RTCSessionDescription,
       getUserMedia: getUserMedia,
       attachMediaStream: attachMediaStream,
       reattachMediaStream: reattachMediaStream,
       webrtcDetectedBrowser: webrtcDetectedBrowser,
       webrtcDetectedVersion: webrtcDetectedVersion,
       webrtcMinimumVersion: webrtcMinimumVersion,
-      webrtcTesting: webrtcTesting
+      webrtcTesting: webrtcTesting,
+      webrtcUtils: webrtcUtils
       //requestUserMedia: not exposed on purpose.
       //trace: not exposed on purpose.
     };
