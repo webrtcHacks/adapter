@@ -1863,6 +1863,102 @@ test('getStats promise', function(t) {
   });
 });
 
+test('getStats mangling', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Define test.
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    var pc1 = new RTCPeerConnection();
+    var pc2 = new RTCPeerConnection();
+    var connected = false;
+    var currentReport;
+    // Heavily modified version of the W3C stats spec example.
+    var processStats = function() {
+      var testsEqualArray = [];
+      for (var i in currentReport) {
+        var now = currentReport[i];
+        if (now.type !== 'outboundrtp') {
+          continue;
+        }
+        var remoteNow = currentReport[now.associateStatsId];
+
+        testsEqualArray.push([typeof now.packetsSent, 'number',
+            'packetsSent is a number']);
+        testsEqualArray.push([typeof remoteNow.packetsLost, 'number',
+            'packetsLost is a number']);
+        //var fractionLost = packetsLost / packetsSent;
+      }
+      callback(testsEqualArray);
+    };
+
+    pc1.oniceconnectionstatechange = function() {
+      if (pc1.iceConnectionState === 'connected' ||
+          pc1.iceConnectionState === 'completed') {
+        if (!connected) {
+          connected = true;
+          window.setTimeout(function() {
+            pc1.getStats(null).then(function(report) {
+              currentReport = report;
+              processStats();
+            });
+          }, 1000);
+        }
+      }
+    };
+
+    var addCandidate = function(pc, event) {
+      if (event.candidate) {
+        var cand = new RTCIceCandidate(event.candidate);
+        pc.addIceCandidate(cand);
+      }
+    };
+    pc1.onicecandidate = function(event) {
+      addCandidate(pc2, event);
+    };
+    pc2.onicecandidate = function(event) {
+      addCandidate(pc1, event);
+    };
+
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      pc1.addStream(stream);
+      pc1.createOffer().then(function(offer) {
+        return pc1.setLocalDescription(offer);
+      }).then(function() {
+        return pc2.setRemoteDescription(pc1.localDescription);
+      }).then(function() {
+        return pc2.createAnswer();
+      }).then(function(answer) {
+        return pc2.setLocalDescription(answer);
+      }).then(function() {
+        return pc1.setRemoteDescription(pc2.localDescription);
+      });
+    });
+  };
+
+  driver.manage().timeouts().setScriptTimeout(3000);
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(function(testsEqualArray) {
+    testsEqualArray.forEach(function(resultEq) {
+      // resultEq contains an array of test data,
+      // test condition that should be equal and a success message.
+      // resultEq[0] = typeof report.
+      // resultEq[1] = test condition.
+      // resultEq[0] = Success message.
+      t.equal(resultEq[0], resultEq[1], resultEq[2]);
+    });
+    t.end();
+  });
+});
+
 // iceTransportPolicy is renamed to iceTransports in Chrome by
 // adapter, this tests that when not setting any TURN server,
 // no candidates are generated.
