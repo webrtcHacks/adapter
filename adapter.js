@@ -305,6 +305,20 @@ if (typeof window === 'undefined' || !window.navigator) {
     return pc;
   };
 
+  // wrap static methods. Currently just generateCertificate.
+  if (webkitRTCPeerConnection.generateCertificate) {
+    Object.defineProperty(RTCPeerConnection, 'generateCertificate', {
+      get: function() {
+        if (arguments.length) {
+          return webkitRTCPeerConnection.generateCertificate.apply(null,
+              arguments);
+        } else {
+          return webkitRTCPeerConnection.generateCertificate;
+        }
+      }
+    });
+  }
+
   // add promise support
   ['createOffer', 'createAnswer'].forEach(function(method) {
     var nativeMethod = webkitRTCPeerConnection.prototype[method];
