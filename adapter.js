@@ -1533,7 +1533,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (arguments.length && typeof arguments[0] === 'function') {
         window.setTimeout(arguments[0], 0, desc);
       }
-      return Promise.resolve();
+      return Promise.resolve(desc);
     };
 
     window.RTCPeerConnection.prototype.createAnswer = function() {
