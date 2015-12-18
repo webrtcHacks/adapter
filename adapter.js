@@ -932,8 +932,10 @@ if (typeof window === 'undefined' || !window.navigator) {
         // Edge does not like
         // 1) stun:
         // 2) turn: that does not have all of turn:host:port?transport=udp
+        // 3) (TODO: verify) edge does not like arrays for urls?
+        // TODO: do the right thing here
         this.iceOptions.iceServers = config.iceServers.filter(function(server) {
-          if (server && server.urls) {
+          if (server && server.urls && typeof(server.urls) === 'object') {
             server.urls = server.urls.filter(function(url) {
               return url.indexOf('transport=udp') !== -1;
             })[0];
