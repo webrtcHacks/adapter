@@ -1946,6 +1946,42 @@ test('iceTransportPolicy relay functionality', function(t) {
   });
 });
 
+test('static generateCertificate method', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(2);
+    t.pass('Page loaded');
+  })
+  .then(function() {
+    return driver.executeScript(
+      'return webrtcDetectedBrowser === \'chrome\'');
+  })
+  .then(function(isChrome) {
+    if (isChrome) {
+      t.skip('generateCertificate not supported on < Chrome 49');
+      throw 'skip-test';
+    }
+    return driver.executeScript(
+      'return typeof RTCPeerConnection.generateCertificate === \'function\'');
+  })
+  .then(function(hasGenerateCertificateMethod) {
+    t.ok(hasGenerateCertificateMethod,
+        'RTCPeerConnection has generateCertificate method');
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
 // This MUST to be the last test since it loads adapter
 // again which may result in unintended behaviour.
 test('Non-module logging to console still works', function(t) {

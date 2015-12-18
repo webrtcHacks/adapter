@@ -130,6 +130,20 @@ if (typeof window === 'undefined' || !window.navigator) {
     return new mozRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
   };
 
+  // wrap static methods. Currently just generateCertificate.
+  if (mozRTCPeerConnection.generateCertificate) {
+    Object.defineProperty(RTCPeerConnection, 'generateCertificate', {
+      get: function() {
+        if (arguments.length) {
+          return mozRTCPeerConnection.generateCertificate.apply(null,
+              arguments);
+        } else {
+          return mozRTCPeerConnection.generateCertificate;
+        }
+      }
+    });
+  }
+
   // The RTCSessionDescription object.
   if (!window.RTCSessionDescription) {
     window.RTCSessionDescription = mozRTCSessionDescription;
