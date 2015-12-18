@@ -929,7 +929,17 @@ if (typeof window === 'undefined' || !window.navigator) {
         }
       }
       if (config && config.iceServers) {
-        this.iceOptions.iceServers = config.iceServers;
+        // Edge does not like
+        // 1) stun:
+        // 2) turn: that does not have all of turn:host:port?transport=udp
+        this.iceOptions.iceServers = config.iceServers.filter(function(server) {
+          if (server && server.urls) {
+            server.urls.forEach(function(url) {
+              return url.indexOf('transport=udp') !== -1;
+            });
+          }
+          return false;
+        });
       }
 
       // per-track iceGathers, iceTransports, dtlsTransports, rtpSenders, ...
