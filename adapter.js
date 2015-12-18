@@ -934,7 +934,7 @@ if (typeof window === 'undefined' || !window.navigator) {
         // 2) turn: that does not have all of turn:host:port?transport=udp
         this.iceOptions.iceServers = config.iceServers.filter(function(server) {
           if (server && server.urls) {
-            server.urls.forEach(function(url) {
+            server.urls = server.urls.forEach(function(url) {
               return url.indexOf('transport=udp') !== -1;
             });
             return server.urls.length > 0;
