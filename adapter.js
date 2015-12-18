@@ -937,6 +937,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             server.urls.forEach(function(url) {
               return url.indexOf('transport=udp') !== -1;
             });
+            return server.urls.length > 0;
           }
           return false;
         });
