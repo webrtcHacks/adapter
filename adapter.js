@@ -1580,11 +1580,6 @@ if (typeof window === 'undefined' || !window.navigator) {
       if (transceiver) {
         var cand = Object.keys(candidate.candidate).length > 0 ?
             SDPUtils.parseCandidate(candidate.candidate) : {};
-
-        // A dirty hack to make samples work.
-        if (cand.type === 'endOfCandidates') {
-          cand = {};
-        }
         // Ignore Chrome's invalid candidates since Edge does not like them.
         if (cand.protocol === 'tcp' && cand.port === 0) {
           return;
@@ -1592,6 +1587,10 @@ if (typeof window === 'undefined' || !window.navigator) {
         // Ignore RTCP candidates, we assume RTCP-MUX.
         if (cand.component !== '1') {
           return;
+        }
+        // A dirty hack to make samples work.
+        if (cand.type === 'endOfCandidates') {
+          cand = {};
         }
         transceiver.iceTransport.addRemoteCandidate(cand);
       }
