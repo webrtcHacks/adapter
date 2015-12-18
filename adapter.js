@@ -936,8 +936,8 @@ if (typeof window === 'undefined' || !window.navigator) {
           if (server && server.urls) {
             server.urls = server.urls.filter(function(url) {
               return url.indexOf('transport=udp') !== -1;
-            });
-            return server.urls.length > 0;
+            })[0];
+            return true;
           }
           return false;
         });
