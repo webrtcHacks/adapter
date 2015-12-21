@@ -1956,11 +1956,15 @@ test('static generateCertificate method', function(t) {
     t.pass('Page loaded');
   })
   .then(function() {
-    return driver.executeScript(
-      'return webrtcDetectedBrowser === \'chrome\'');
+    return driver.executeScript(function() {
+      return (webrtcDetectedBrowser === 'chrome' &&
+          webrtcDetectedVersion >= 49) ||
+          (webrtcDetectedBrowser === 'firefox' &&
+          webrtcDetectedVersion > 38);
+    });
   })
-  .then(function(isChrome) {
-    if (isChrome) {
+  .then(function(isSupported) {
+    if (!isSupported) {
       t.skip('generateCertificate not supported on < Chrome 49');
       throw 'skip-test';
     }
