@@ -308,7 +308,7 @@ if (typeof window === 'undefined' || !window.navigator) {
                 standardStats.googFrameWidthSent) {
               standardStats.frameWidth = parseInt(
                   standardStats.googFrameWidthReceived ||
-                  standardStats.googFrameWidthSent);
+                  standardStats.googFrameWidthSent, 10);
             }
             if (standardStats.googFrameHeightReceived ||
                 standardStats.googFrameHeightSent) {
@@ -352,7 +352,7 @@ if (typeof window === 'undefined' || !window.navigator) {
 
             if (standardStats.googJitterReceived) {
               standardStats.jitter = 1.0 * parseInt(
-                  standardStats.googJitterReceived);
+                  standardStats.googJitterReceived, 10);
             }
             // FIXME: fractionLost
 
@@ -401,7 +401,7 @@ if (typeof window === 'undefined' || !window.navigator) {
             }
             if (standardStats.googRtt) {
               // This is the RTCP RTT.
-              standardStats.roundTripTime = parseInt(standardStats.googRtt);
+              standardStats.roundTripTime = parseInt(standardStats.googRtt, 10);
             }
             break;
           case 'localcandidate':
@@ -439,7 +439,7 @@ if (typeof window === 'undefined' || !window.navigator) {
                 standardStats.packetsDiscardedOnSend, 10);
 
             // This is the STUN RTT.
-            standardStats.roundTripTime = parseInt(standardStats.googRtt);
+            standardStats.roundTripTime = parseInt(standardStats.googRtt, 10);
 
             // backfilled later from videoBWE.
             standardStats.availableOutgoingBitrate = 0.0;
@@ -515,7 +515,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               isRemote: false,
               mediaTrackId: 'mediatrack_' + report.id,
               transportId: report.transportId,
-              codecId: 'codec_' + report.googCodecName,
+              codecId: 'codec_' + report.googCodecName
             };
             if (report.mediaType === 'video') {
               standardReport[newId].firCount = report.firCount;
@@ -549,7 +549,7 @@ if (typeof window === 'undefined' || !window.navigator) {
               isRemote: true,
               mediaTrackId: 'mediatrack_' + report.id,
               transportId: report.transportId,
-              codecId: 'codec_' + report.googCodecName,
+              codecId: 'codec_' + report.googCodecName
             };
             if (report.remoteSource) {
               standardReport[newId].type = 'outboundrtp';
