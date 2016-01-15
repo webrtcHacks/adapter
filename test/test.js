@@ -29,14 +29,14 @@ test('Log suppression', function(t) {
     logCount++;
     saveConsole.apply(saveConsole, arguments);
   };
+  var adapter = require('../adapter.js');
+  var utils = require('../src/js/utils.js').utils;
 
-  var m = require('../adapter.js');
-  m.webrtcUtils.log('test');
+  utils.log('test');
   console.log = saveConsole;
 
   // Run test.
-  t.ok(typeof m.webrtcDetectedBrowser !== 'undefined', 'adapter.js loaded ' +
-      'as a module');
+  t.ok(adapter, 'adapter.js loaded as a module');
   t.ok(logCount === 0, 'adapter.js does not use console.log');
   t.end();
 });
@@ -44,52 +44,52 @@ test('Log suppression', function(t) {
 // Fiddle with the UA string to test the extraction does not throw errors.
 // No need for webdriver in this test.
 test('Browser version extraction helper', function(t) {
-  var m = require('../adapter.js');
+  var utils = require('../src/js/utils.js').utils;
 
   // Chrome and Chromium.
   var ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
       'Gecko) Chrome/45.0.2454.101 Safari/537.36';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
+  t.equal(utils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
       'version extraction');
 
   ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
       'Gecko) Ubuntu Chromium/45.0.2454.85 Chrome/45.0.2454.85 Safari/537.36';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
+  t.equal(utils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
       'version extraction');
 
   // Various UA strings from device simulator, not matching.
   ua = 'Mozilla/5.0 (Linux; Android 4.3; Nexus 10 Build/JSS15Q) ' +
       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2307.2 Safari/537.36';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 42,
+  t.equal(utils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 42,
       'version extraction');
 
   ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) ' +
       'AppleWebKit/600.1.3 (KHTML, like Gecko) Version/8.0 Mobile/12A4345d ' +
       'Safari/600.1.4';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), null,
+  t.equal(utils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), null,
       'version extraction');
 
   ua = 'Mozilla/5.0 (Linux; U; en-us; KFAPWI Build/JDQ39) AppleWebKit/535.19' +
       '(KHTML, like Gecko) Silk/3.13 Safari/535.19 Silk-Accelerated=true';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), null,
+  t.equal(utils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), null,
       'version extraction');
 
   // Opera, should match chrome/webrtc version 45.0 not Opera 32.0.
   ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like ' +
       'Gecko) Chrome/45.0.2454.85 Safari/537.36 OPR/32.0.1948.44';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
+  t.equal(utils.extractVersion(ua, /Chrom(e|ium)\/([0-9]+)\./, 2), 45,
       'version extraction');
 
   // Edge, extract build number.
   ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, ' +
       'like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10547';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Edge\/(\d+).(\d+)$/, 2), 10547,
+  t.equal(utils.extractVersion(ua, /Edge\/(\d+).(\d+)$/, 2), 10547,
       'version extraction');
 
   // Firefox.
   ua = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) Gecko/20100101 ' +
       'Firefox/44.0';
-  t.equal(m.webrtcUtils.extractVersion(ua, /Firefox\/([0-9]+)\./, 1), 44,
+  t.equal(utils.extractVersion(ua, /Firefox\/([0-9]+)\./, 1), 44,
       'version extraction');
 
   t.end();
@@ -103,16 +103,16 @@ test('Browser identified', function(t) {
   .then(function() {
     t.plan(4);
     t.pass('Page loaded');
-    return driver.executeScript('return webrtcDetectedBrowser');
+    return driver.executeScript('return adapter.browserShim.version');
   })
   .then(function(webrtcDetectedBrowser) {
     t.ok(webrtcDetectedBrowser, 'Browser detected: ' + webrtcDetectedBrowser);
-    return driver.executeScript('return webrtcDetectedVersion');
+    return driver.executeScript('return adapter.browserShim.version');
   })
   .then(function(webrtcDetectVersion) {
     t.ok(webrtcDetectVersion, 'Browser version detected: ' +
         webrtcDetectVersion);
-    return driver.executeScript('return webrtcMinimumVersion');
+    return driver.executeScript('return adapter.browserShim.minVersion');
   })
   .then(function(webrtcMinimumVersion) {
     t.ok(webrtcMinimumVersion, 'Minimum Browser version detected: ' +
@@ -138,7 +138,8 @@ test('Browser supported by adapter.js', function(t) {
   })
   .then(function() {
     return driver.executeScript(
-      'return webrtcDetectedVersion >= webrtcMinimumVersion');
+      'return adapter.browserShim.version ' +
+          '>= adapter.browserShim.minVersion');
   })
   .then(function(webrtcVersionIsGreaterOrEqual) {
     t.ok(webrtcVersionIsGreaterOrEqual,
@@ -348,7 +349,7 @@ test('attachMediaStream', function(t) {
         document.body.appendChild(video);
       });
 
-      attachMediaStream(video, stream);
+      window.adapter.browserShim.attachMediaStream(video, stream);
       callback(null);
     })
     .catch(function(err) {
@@ -428,13 +429,13 @@ test('reattachMediaStream', function(t) {
       // onloadedmetadata there.
       video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
-        reattachMediaStream(video2, video);
+        window.adapter.browserShim.reattachMediaStream(video2, video);
       });
       video2.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video2);
       });
 
-      attachMediaStream(video, stream);
+      window.adapter.browserShim.attachMediaStream(video, stream);
       callback(null);
     })
     .catch(function(err) {
@@ -908,7 +909,7 @@ test('Call getUserMedia with impossible constraints', function(t) {
     };
     // TODO: Remove when firefox 42+ accepts impossible constraints
     // on fake devices.
-    if (webrtcDetectedBrowser === 'firefox') {
+    if (window.adapter.browserShim.browser === 'firefox') {
       impossibleConstraints.fake = false;
     }
     navigator.mediaDevices.getUserMedia(impossibleConstraints)
@@ -927,8 +928,8 @@ test('Call getUserMedia with impossible constraints', function(t) {
     t.plan(2);
     t.pass('Page loaded');
     return driver.executeScript(
-      'return webrtcDetectedBrowser === \'firefox\' ' +
-      '&& webrtcDetectedVersion < 42');
+      'return adapter.browserShim.browser === \'firefox\' ' +
+      '&& adapter.browserShim.version < 42');
   })
   .then(function(isFirefoxAndVersionLessThan42) {
     if (isFirefoxAndVersionLessThan42) {
@@ -960,7 +961,7 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     window.constraintsArray = [];
     // Helpers to test adapter's legacy constraints-manipulation.
     function pretendVersion(version, func) {
-      var realVersion = webrtcDetectedVersion;
+      var realVersion = window.adapter.browserShim.version;
       window.webrtcTesting.version = version;
       func();
       window.webrtcTesting.version = realVersion;
@@ -1160,9 +1161,9 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     // decision if the test should be run or not is in the Test definition
     // rather than the preferred Run test section (Webdriver).
     // FIXME: Move the decision to // Run test.
-    if (webrtcDetectedBrowser === 'chrome') {
+    if (window.adapter.browserShim.browser === 'chrome') {
       testChrome();
-    } else if (webrtcDetectedBrowser === 'firefox') {
+    } else if (window.adapter.browserShim.browser === 'firefox') {
       testFirefox();
     } else {
       return window.constraintsArray.push('Unsupported browser');
@@ -1732,7 +1733,7 @@ test('originalChromeGetStats', function(t) {
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.pass('Page loaded');
-    return driver.executeScript('return webrtcDetectedBrowser')
+    return driver.executeScript('return adapter.browserShim.browser')
     .then(function(browser) {
       if (browser !== 'chrome') {
         t.skip('Non-chrome browser detected.');
@@ -1800,7 +1801,7 @@ test('getStats promise', function(t) {
       // the callback before the next getStats call.
       // FIXME: Remove this if ever supported by Firefox, also remove the t.skip
       // section towards the end of the // Run test section.
-      if (webrtcDetectedBrowser === 'firefox') {
+      if (window.adapter.browserShim.browser === 'firefox') {
         callback(testsEqualArray);
         return;
       }
@@ -1845,7 +1846,7 @@ test('getStats promise', function(t) {
     // FIXME: Remove if supported by firefox. Also remove browser check in
     // the testDefinition function.
     return driver.executeScript(
-      'return webrtcDetectedBrowser === \'firefox\'')
+      'return adapter.browserShim.browser === \'firefox\'')
       .then(function(isFirefox) {
         if (isFirefox) {
           t.skip('Firefox does not support getStats without arguments.');
@@ -1908,7 +1909,8 @@ test('iceTransportPolicy relay functionality', function(t) {
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.pass('Page loaded');
-    return driver.executeScript('return webrtcDetectedBrowser === \'firefox\'');
+    return driver.executeScript(
+      'return adapter.browserShim.browser === \'firefox\'');
   })
   .then(function(isFirefox) {
     if (isFirefox) {
@@ -1965,18 +1967,18 @@ test('Non-module logging to console still works', function(t) {
     // Check for existence of variables and functions from public API.
     window.testsEqualArray.push([typeof RTCPeerConnection,'function',
         'RTCPeerConnection is a function']);
-    window.testsEqualArray.push([typeof getUserMedia, 'function',
+    window.testsEqualArray.push([typeof navigator.getUserMedia, 'function',
         'getUserMedia is a function']);
-    window.testsEqualArray.push([typeof attachMediaStream, 'function',
+    window.testsEqualArray.push(
+      [typeof window.adapter.browserShim.attachMediaStream, 'function',
         'attachMediaStream is a function']);
-    window.testsEqualArray.push([typeof reattachMediaStream,'function',
+    window.testsEqualArray.push(
+      [typeof window.adapter.browserShim.reattachMediaStream,'function',
         'reattachMediaSteam is a function']);
-    window.testsEqualArray.push([typeof trace, 'function',
-        'trace is a function']);
-    window.testsEqualArray.push([typeof webrtcDetectedBrowser, 'string',
-        'webrtcDetected browser is a string']);
-    window.testsEqualArray.push([typeof webrtcMinimumVersion, 'number',
-        'webrtcDetectedVersion is a number']);
+    window.testsEqualArray.push([typeof window.adapter.browserShim.browser,
+        'string', 'wbrowserShim.browser browser is a string']);
+    window.testsEqualArray.push([typeof window.adapter.browserShim.version,
+        'number', 'browserShim.version is a number']);
   };
 
   // Run test.

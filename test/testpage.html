@@ -12,8 +12,8 @@ The browser version is: <span id="browserversion"></span>
 <script>
   var browser_display = document.getElementById('browser');
   var version_display = document.getElementById('browserversion');
-  browser_display.innerHTML = webrtcDetectedBrowser;
-  version_display.innerHTML = webrtcDetectedVersion;
+  browser_display.innerHTML = adapter.browserShim.browser;
+  version_display.innerHTML = adapter.browserShim.version;
 </script>
 </body>
 </html>
