@@ -340,6 +340,7 @@ test('attachMediaStream', function(t) {
 
       var video = document.createElement('video');
       video.setAttribute('id', 'video');
+      video.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
       // at some point. This will trigger onloadedmetadata.
       // Firefox < 38 had issues with this, workaround removed
@@ -380,7 +381,7 @@ test('attachMediaStream', function(t) {
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
-      webdriver.By.id('video')), 3000);
+      webdriver.By.id('video')));
   })
   .then(function(videoElement) {
     t.pass('attachMediaStream succesfully attached stream to video element');
@@ -421,7 +422,9 @@ test('reattachMediaStream', function(t) {
       var video = document.createElement('video');
       var video2 = document.createElement('video');
       video.setAttribute('id', 'video');
+      video.setAttribute('autoplay', 'true');
       video2.setAttribute('id', 'video2');
+      video2.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
       // at some point. This will trigger onloadedmetadata.
       // This reattaches to the second video which will trigger
@@ -521,6 +524,7 @@ test('Video srcObject getter/setter test', function(t) {
 
       var video = document.createElement('video');
       video.setAttribute('id', 'video');
+      video.setAttribute('autoplay', 'true');
       video.srcObject = stream;
       // If attachMediaStream works, we should get a video
       // at some point. This will trigger onloadedmetadata.
@@ -652,7 +656,9 @@ test('srcObject set from another object', function(t) {
       var video = document.createElement('video');
       var video2 = document.createElement('video2');
       video.setAttribute('id', 'video');
+      video.setAttribute('autoplay', 'true');
       video2.setAttribute('id', 'video2');
+      video2.setAttribute('autoplay', 'true');
       video.srcObject = stream;
       video2.srcObject = video.srcObject;
 
@@ -721,6 +727,7 @@ test('Attach mediaStream directly', function(t) {
 
       var video = document.createElement('video');
       video.setAttribute('id', 'video');
+      video.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
       // at some point. This will trigger onloadedmetadata.
       // Firefox < 38 had issues with this, workaround removed
@@ -802,7 +809,9 @@ test('Re-attaching mediaStream directly', function(t) {
       var video = document.createElement('video');
       var video2 = document.createElement('video');
       video.setAttribute('id', 'video');
+      video.setAttribute('autoplay', 'true');
       video2.setAttribute('id', 'video2');
+      video2.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
       // at some point. This will trigger onloadedmetadata.
       // This reattaches to the second video which will trigger
