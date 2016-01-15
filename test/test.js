@@ -381,7 +381,7 @@ test('attachMediaStream', function(t) {
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
-      webdriver.By.id('video')));
+      webdriver.By.id('video')), 3000);
   })
   .then(function(videoElement) {
     t.pass('attachMediaStream succesfully attached stream to video element');
