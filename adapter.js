@@ -132,6 +132,20 @@ if (typeof window === 'undefined' || !window.navigator) {
     return new mozRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
   };
 
+  // wrap static methods. Currently just generateCertificate.
+  if (mozRTCPeerConnection.generateCertificate) {
+    Object.defineProperty(RTCPeerConnection, 'generateCertificate', {
+      get: function() {
+        if (arguments.length) {
+          return mozRTCPeerConnection.generateCertificate.apply(null,
+              arguments);
+        } else {
+          return mozRTCPeerConnection.generateCertificate;
+        }
+      }
+    });
+  }
+
   // The RTCSessionDescription object.
   if (!window.RTCSessionDescription) {
     window.RTCSessionDescription = mozRTCSessionDescription;
@@ -306,6 +320,20 @@ if (typeof window === 'undefined' || !window.navigator) {
 
     return pc;
   };
+
+  // wrap static methods. Currently just generateCertificate.
+  if (webkitRTCPeerConnection.generateCertificate) {
+    Object.defineProperty(RTCPeerConnection, 'generateCertificate', {
+      get: function() {
+        if (arguments.length) {
+          return webkitRTCPeerConnection.generateCertificate.apply(null,
+              arguments);
+        } else {
+          return webkitRTCPeerConnection.generateCertificate;
+        }
+      }
+    });
+  }
 
   // add promise support
   ['createOffer', 'createAnswer'].forEach(function(method) {
@@ -932,14 +960,23 @@ if (typeof window === 'undefined' || !window.navigator) {
         // Edge does not like
         // 1) stun:
         // 2) turn: that does not have all of turn:host:port?transport=udp
-        this.iceOptions.iceServers = config.iceServers.filter(function(server) {
-          if (server && server.urls) {
-            server.urls = server.urls.filter(function(url) {
-              return url.indexOf('transport=udp') !== -1;
-            })[0];
-            return true;
+        // 3) an array of urls
+        config.iceServers.forEach(function(server) {
+          if (server.urls) {
+            var url;
+            if (typeof(server.urls) === 'string') {
+              url = server.urls;
+            } else {
+              url = server.urls[0];
+            }
+            if (url.indexOf('transport=udp') !== -1) {
+              self.iceServers.push({
+                username: server.username,
+                credential: server.credential,
+                urls: url
+              });
+            }
           }
-          return false;
         });
       }
 
