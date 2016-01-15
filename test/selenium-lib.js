@@ -13,8 +13,36 @@
 var webdriver = require('selenium-webdriver');
 var chrome = require('selenium-webdriver/chrome');
 var firefox = require('selenium-webdriver/firefox');
+var fs = require('fs');
 
 var sharedDriver = null;
+
+function getBrowserVersion() {
+  var browser = process.env.BROWSER;
+  var browserChannel = process.env.BVER;
+  var symlink = './browsers/bin/' + browser + '-' + browserChannel + '/';
+  var path = fs.readlink(symlink);
+
+  // Browser reg expressions and position to look for the milestone version.
+  var chromeExp = '/Chrom(e|ium)\/([0-9]+)\./';
+  var firefoxExp = '/Firefox\/([0-9]+)\./';
+  var chromePos = 2;
+  var firefoxPos = 1;
+
+  var browserVersion = function(path, expr, pos) {
+    var match = path.match(expr);
+    return match && match.length >= pos && parseInt(match[pos], 10);
+  };
+
+  switch (browser) {
+    case 'chrome':
+      return browserVersion(path, chromeExp, chromePos);
+    case 'firefox':
+      return browserVersion(path, firefoxExp, firefoxPos);
+    default:
+      return 'non supported browser.';
+  }
+}
 
 function buildDriver() {
   if (sharedDriver) {
@@ -44,6 +72,11 @@ function buildDriver() {
       .addArguments('allow-file-access-from-files')
       .addArguments('use-fake-device-for-media-stream')
       .addArguments('use-fake-ui-for-media-stream');
+
+  // Only enable this for Chrome >= 49.
+  if (getBrowserVersion >= '49') {
+    chromeOptions.addArguments('--enable-experimental-web-platform-features');
+  }
 
   sharedDriver = new webdriver.Builder()
       .forBrowser(process.env.BROWSER)
