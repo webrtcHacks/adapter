@@ -342,10 +342,10 @@ test('attachMediaStream', function(t) {
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onloadedmetadata.
+      // at some point. This will trigger onresize.
       // Firefox < 38 had issues with this, workaround removed
       // due to 38 being stable now.
-      video.addEventListener('loadedmetadata', function() {
+      video.addEventListener('resize', function() {
         document.body.appendChild(video);
       });
 
@@ -378,7 +378,7 @@ test('attachMediaStream', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
@@ -426,14 +426,14 @@ test('reattachMediaStream', function(t) {
       video2.setAttribute('id', 'video2');
       video2.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onloadedmetadata.
+      // at some point. This will trigger onresize.
       // This reattaches to the second video which will trigger
-      // onloadedmetadata there.
-      video.addEventListener('loadedmetadata', function() {
+      // onresize there.
+      video.addEventListener('resize', function() {
         document.body.appendChild(video);
         reattachMediaStream(video2, video);
       });
-      video2.addEventListener('loadedmetadata', function() {
+      video2.addEventListener('resize', function() {
         document.body.appendChild(video2);
       });
 
@@ -466,7 +466,7 @@ test('reattachMediaStream', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
   })
@@ -482,7 +482,7 @@ test('reattachMediaStream', function(t) {
         t.ok(height > 2, 'Video height is: ' + height);
       });
     });
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video2')), 3000);
   })
@@ -527,8 +527,8 @@ test('Video srcObject getter/setter test', function(t) {
       video.setAttribute('autoplay', 'true');
       video.srcObject = stream;
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onloadedmetadata.
-      video.addEventListener('loadedmetadata', function() {
+      // at some point. This will trigger onresize.
+      video.addEventListener('resize', function() {
         document.body.appendChild(video);
       });
       callback(null);
@@ -548,7 +548,7 @@ test('Video srcObject getter/setter test', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
   })
@@ -593,7 +593,7 @@ test('Audio srcObject getter/setter test', function(t) {
       audio.setAttribute('id', 'audio');
       audio.srcObject = stream;
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onloadedmetadata.
+      // at some point. This will trigger onresize.
       audio.addEventListener('loadedmetadata', function() {
         document.body.appendChild(audio);
       });
@@ -614,7 +614,7 @@ test('Audio srcObject getter/setter test', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('audio')), 3000);
@@ -663,8 +663,8 @@ test('srcObject set from another object', function(t) {
       video2.srcObject = video.srcObject;
 
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onloadedmetadata.
-      video.addEventListener('loadedmetadata', function() {
+      // at some point. This will trigger onresize.
+      video.addEventListener('resize', function() {
         document.body.appendChild(video);
         document.body.appendChild(video2);
       });
@@ -685,7 +685,7 @@ test('srcObject set from another object', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video2')), 3000);
@@ -729,10 +729,10 @@ test('Attach mediaStream directly', function(t) {
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onloadedmetadata.
+      // at some point. This will trigger onresize.
       // Firefox < 38 had issues with this, workaround removed
       // due to 38 being stable now.
-      video.addEventListener('loadedmetadata', function() {
+      video.addEventListener('resize', function() {
         document.body.appendChild(video);
       });
 
@@ -765,7 +765,7 @@ test('Attach mediaStream directly', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
@@ -813,14 +813,14 @@ test('Re-attaching mediaStream directly', function(t) {
       video2.setAttribute('id', 'video2');
       video2.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onloadedmetadata.
+      // at some point. This will trigger onresize.
       // This reattaches to the second video which will trigger
-      // onloadedmetadata there.
-      video.addEventListener('loadedmetadata', function() {
+      // onresize there.
+      video.addEventListener('resize', function() {
         document.body.appendChild(video);
         video2.srcObject = video.srcObject;
       });
-      video2.addEventListener('loadedmetadata', function() {
+      video2.addEventListener('resize', function() {
         document.body.appendChild(video2);
       });
 
@@ -855,7 +855,7 @@ test('Re-attaching mediaStream directly', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
@@ -872,7 +872,7 @@ test('Re-attaching mediaStream directly', function(t) {
         t.ok(height > 2, 'Video height is: ' + height);
       });
     });
-    // Wait until loadedmetadata event has fired and appended video element.
+    // Wait until resize event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video2')), 3000);
