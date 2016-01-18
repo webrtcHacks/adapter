@@ -74,7 +74,7 @@ function buildDriver() {
       .addArguments('use-fake-ui-for-media-stream');
 
   // Only enable this for Chrome >= 49.
-  if (getBrowserVersion >= '49') {
+  if (process.env.BROWSER === 'chrome' && getBrowserVersion >= '49') {
     chromeOptions.addArguments('--enable-experimental-web-platform-features');
   }
 
