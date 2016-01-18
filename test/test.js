@@ -384,7 +384,7 @@ test('attachMediaStream', function(t) {
       webdriver.By.id('video')), 3000);
   })
   .then(function(videoElement) {
-    t.pass('attachMediaStream succesfully attached stream to video element');
+    t.pass('attachMediaStream successfully attached stream to video element');
     videoElement.getAttribute('videoWidth')
     .then(function(width) {
       videoElement.getAttribute('videoHeight')
@@ -471,7 +471,7 @@ test('reattachMediaStream', function(t) {
       webdriver.By.id('video')), 3000);
   })
   .then(function(videoElement) {
-    t.pass('attachMediaStream succesfully attached stream to video element');
+    t.pass('attachMediaStream successfully attached stream to video element');
     videoElement.getAttribute('videoWidth')
     .then(function(width) {
       videoElement.getAttribute('videoHeight')
