@@ -134,7 +134,7 @@ if (typeof window === 'undefined' || !window.navigator) {
 
   // wrap static methods. Currently just generateCertificate.
   if (mozRTCPeerConnection.generateCertificate) {
-    Object.defineProperty(RTCPeerConnection, 'generateCertificate', {
+    Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
       get: function() {
         if (arguments.length) {
           return mozRTCPeerConnection.generateCertificate.apply(null,
@@ -323,7 +323,7 @@ if (typeof window === 'undefined' || !window.navigator) {
 
   // wrap static methods. Currently just generateCertificate.
   if (webkitRTCPeerConnection.generateCertificate) {
-    Object.defineProperty(RTCPeerConnection, 'generateCertificate', {
+    Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
       get: function() {
         if (arguments.length) {
           return webkitRTCPeerConnection.generateCertificate.apply(null,
