@@ -21,23 +21,6 @@ var utils = function() {
 
 var edge = {
   shimSourceObject: function() {
-    if (typeof window === 'object') {
-      if (window.HTMLMediaElement &&
-        !('srcObject' in window.HTMLMediaElement.prototype)) {
-        // Shim the srcObject property, once, when HTMLMediaElement is found.
-        Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-          get: function() {
-            return this._srcObject;
-          },
-          set: function(stream) {
-            // Use _srcObject as a private property for this shim
-            this._srcObject = stream;
-            // TODO: revokeObjectUrl(this.src) when !stream to release resources?
-            this.src = URL.createObjectURL(stream);
-          }
-        });
-      }
-    }
   },
 
   shimPeerConnection: function() {
