@@ -1968,10 +1968,10 @@ test('static generateCertificate method', function(t) {
   })
   .then(function() {
     return driver.executeScript(function() {
-      return (webrtcDetectedBrowser === 'chrome' &&
-          webrtcDetectedVersion >= 49) ||
-          (webrtcDetectedBrowser === 'firefox' &&
-          webrtcDetectedVersion > 38);
+      return (window.adapter.browserShim.browser === 'chrome' &&
+          window.adapter.browserShim.version >= 49) ||
+          (window.adapter.browserShim.browser === 'firefox' &&
+          window.adapter.browserShim.version > 38);
     });
   })
   .then(function(isSupported) {
