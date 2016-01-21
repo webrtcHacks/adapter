@@ -90,7 +90,7 @@ reattachMediaStream = function(to, from) {
 if (typeof window === 'undefined' || !window.navigator) {
   webrtcUtils.log('This does not appear to be a browser');
   webrtcDetectedBrowser = 'not a browser';
-} else if (navigator.mozGetUserMedia && window.mozRTCPeerConnection) {
+} else if (navigator.mozGetUserMedia) {
   webrtcUtils.log('This appears to be Firefox');
 
   webrtcDetectedBrowser = 'firefox';
@@ -102,57 +102,52 @@ if (typeof window === 'undefined' || !window.navigator) {
   // the minimum firefox version still supported by adapter.
   webrtcMinimumVersion = 31;
 
-  // The RTCPeerConnection object.
-  window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-    if (webrtcDetectedVersion < 38) {
-      // .urls is not supported in FF < 38.
-      // create RTCIceServers with a single url.
-      if (pcConfig && pcConfig.iceServers) {
-        var newIceServers = [];
-        for (var i = 0; i < pcConfig.iceServers.length; i++) {
-          var server = pcConfig.iceServers[i];
-          if (server.hasOwnProperty('urls')) {
-            for (var j = 0; j < server.urls.length; j++) {
-              var newServer = {
-                url: server.urls[j]
-              };
-              if (server.urls[j].indexOf('turn') === 0) {
-                newServer.username = server.username;
-                newServer.credential = server.credential;
+  // Shim for RTCPeerConnection on older versions.
+  if (!window.RTCPeerConnection) {
+    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
+      if (webrtcDetectedVersion < 38) {
+        // .urls is not supported in FF < 38.
+        // create RTCIceServers with a single url.
+        if (pcConfig && pcConfig.iceServers) {
+          var newIceServers = [];
+          for (var i = 0; i < pcConfig.iceServers.length; i++) {
+            var server = pcConfig.iceServers[i];
+            if (server.hasOwnProperty('urls')) {
+              for (var j = 0; j < server.urls.length; j++) {
+                var newServer = {
+                  url: server.urls[j]
+                };
+                if (server.urls[j].indexOf('turn') === 0) {
+                  newServer.username = server.username;
+                  newServer.credential = server.credential;
+                }
+                newIceServers.push(newServer);
               }
-              newIceServers.push(newServer);
+            } else {
+              newIceServers.push(pcConfig.iceServers[i]);
             }
+          }
+          pcConfig.iceServers = newIceServers;
+        }
+      }
+      return new mozRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
+    };
+
+    // wrap static methods. Currently just generateCertificate.
+    if (mozRTCPeerConnection.generateCertificate) {
+      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
+        get: function() {
+          if (arguments.length) {
+            return mozRTCPeerConnection.generateCertificate.apply(null,
+                arguments);
           } else {
-            newIceServers.push(pcConfig.iceServers[i]);
+            return mozRTCPeerConnection.generateCertificate;
           }
         }
-        pcConfig.iceServers = newIceServers;
-      }
+      });
     }
-    return new mozRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
-  };
 
-  // wrap static methods. Currently just generateCertificate.
-  if (mozRTCPeerConnection.generateCertificate) {
-    Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-      get: function() {
-        if (arguments.length) {
-          return mozRTCPeerConnection.generateCertificate.apply(null,
-              arguments);
-        } else {
-          return mozRTCPeerConnection.generateCertificate;
-        }
-      }
-    });
-  }
-
-  // The RTCSessionDescription object.
-  if (!window.RTCSessionDescription) {
     window.RTCSessionDescription = mozRTCSessionDescription;
-  }
-
-  // The RTCIceCandidate object.
-  if (!window.RTCIceCandidate) {
     window.RTCIceCandidate = mozRTCIceCandidate;
   }
 
