@@ -7,23 +7,11 @@
  */
 'use strict';
 
-var SDPUtils = require('./sdp');
-// Instantiate utility functions.
-var utils = function() {
-  var utils = require('./utils.js').utils;
-  var utilsObject = {
-    log: utils.log || console.log,
-    browser: utils.detectBrowser().browser,
-    version: utils.detectBrowser().version,
-    minVersion: utils.detectBrowser().minVersion
-  };
-  return utilsObject;
-};
+var SDPUtils = require('./edge_sdp');
+var logging = require('../utils').log;
+var browserDetails = require('../utils').browserDetails;
 
-var edge = {
-  shimSourceObject: function() {
-  },
-
+var edgeShim = {
   shimPeerConnection: function() {
     if (RTCIceGatherer) {
       // Generate an alphanumeric identifier for cname or mids.
@@ -809,11 +797,8 @@ var edge = {
 
 // Expose public methods.
 module.exports = {
-  browser: utils().browser,
-  version: utils().version,
-  minVersion: utils().minVersion,
-  shimSourceObject: edge.shimSourceObject,
-  shimPeerConnection: edge.shimPeerConnection,
-  setUtilsObject: edge.setUtilsObject,
+  shimSourceObject: edgeShim.shimSourceObject,
+  shimPeerConnection: edgeShim.shimPeerConnection,
+  setUtilsObject: edgeShim.setUtilsObject,
 }
 

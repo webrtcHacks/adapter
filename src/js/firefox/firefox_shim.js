@@ -7,19 +7,10 @@
  */
 'use strict';
 
-// Instantiate utility functions.
-var utils = function() {
-  var utils = require('./utils.js').utils;
-  var utilsObject = {
-    log: utils.log || console.log,
-    browser: utils.detectBrowser().browser,
-    version: utils.detectBrowser().version,
-    minVersion: utils.detectBrowser().minVersion
-  };
-  return utilsObject;
-};
+var logging = require('../utils').log;
+var browserDetails = require('../utils').browserDetails;
 
-var firefox = {
+var firefoxShim = {
   shimSourceObject: function() {
     if (typeof window === 'object') {
       if (window.HTMLMediaElement &&
@@ -49,7 +40,7 @@ var firefox = {
   shimPeerConnection: function() {
     // The RTCPeerConnection object.
     window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-      if (utils().version < 38) {
+      if (browserDetails.version < 38) {
         // .urls is not supported in FF < 38.
         // create RTCIceServers with a single url.
         if (pcConfig && pcConfig.iceServers) {
@@ -134,15 +125,15 @@ var firefox = {
         }
         return c;
       };
-      if (utils().version < 38) {
-        utils().log('spec: ' + JSON.stringify(constraints));
+      if (browserDetails.version < 38) {
+        logging('spec: ' + JSON.stringify(constraints));
         if (constraints.audio) {
           constraints.audio = constraintsToFF37_(constraints.audio);
         }
         if (constraints.video) {
           constraints.video = constraintsToFF37_(constraints.video);
         }
-        utils().log('ff37: ' + JSON.stringify(constraints));
+        logging('ff37: ' + JSON.stringify(constraints));
       }
       return navigator.mozGetUserMedia(constraints, onSuccess, onError);
     };
@@ -174,7 +165,7 @@ var firefox = {
       });
     };
 
-    if (utils().version < 41) {
+    if (browserDetails.version < 41) {
       // Work around http://bugzil.la/1169665
       var orgEnumerateDevices =
           navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
@@ -191,19 +182,19 @@ var firefox = {
 
   // Attach a media stream to an element.
   attachMediaStream: function(element, stream) {
-    utils().log('DEPRECATED, attachMediaStream will soon be removed.');
-    if (utils().version >= 43) {
+    logging('DEPRECATED, attachMediaStream will soon be removed.');
+    if (browserDetails.version >= 43) {
       element.srcObject = stream;
     } else if (typeof element.src !== 'undefined') {
       element.src = URL.createObjectURL(stream);
     } else {
-      utils().log('Error attaching stream to element.');
+      logging('Error attaching stream to element.');
     }
   },
 
   reattachMediaStream: function(to, from) {
-    utils().log('DEPRECATED, reattachMediaStream will soon be removed.');
-    if (utils().version >= 43) {
+    logging('DEPRECATED, reattachMediaStream will soon be removed.');
+    if (browserDetails >= 43) {
       to.srcObject = from.srcObject;
     } else {
       to.src = from.src;
@@ -213,12 +204,9 @@ var firefox = {
 
 // Expose public methods.
 module.exports = {
-  browser: utils().browser,
-  version: utils().version,
-  minVersion: utils().minVersion,
-  shimSourceObject: firefox.shimSourceObject,
-  shimPeerConnection: firefox.shimPeerConnection,
-  shimGetUserMedia: firefox.shimGetUserMedia,
-  attachMediaStream: firefox.attachMediaStream,
-  reattachMediaStream: firefox.reattachMediaStream
+  shimSourceObject: firefoxShim.shimSourceObject,
+  shimPeerConnection: firefoxShim.shimPeerConnection,
+  shimGetUserMedia: firefoxShim.shimGetUserMedia,
+  attachMediaStream: firefoxShim.attachMediaStream,
+  reattachMediaStream: firefoxShim.reattachMediaStream
 }

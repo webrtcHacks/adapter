@@ -371,5 +371,6 @@ SDPUtils.getDirection = function(mediaSection, sessionpart) {
   }
   return 'sendrecv';
 };
+
 // Expose public methods.
 module.exports = SDPUtils;

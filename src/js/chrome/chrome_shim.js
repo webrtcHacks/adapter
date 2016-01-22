@@ -6,20 +6,10 @@
  *  tree.
  */
 'use strict';
+var logging = require('../utils.js').log;
+var browserDetails = require('../utils.js').browserDetails;
 
-// Instantiate utility functions.
-var utils = function() {
-  var utils = require('./utils.js').utils;
-  var utilsObject = {
-    log: utils.log || console.log,
-    browser: utils.detectBrowser().browser,
-    version: utils.detectBrowser().version,
-    minVersion: utils.detectBrowser().minVersion
-  };
-  return utilsObject;
-};
-
-var chrome = {
+var chromeShim = {
   shimSourceObject: function() {
     if (typeof window === 'object') {
       if (window.HTMLMediaElement &&
@@ -45,7 +35,7 @@ var chrome = {
     window.RTCPeerConnection = function(pcConfig, pcConstraints) {
       // Translate iceTransportPolicy to iceTransports,
       // see https://code.google.com/p/webrtc/issues/detail?id=4869
-      utils().log('PeerConnection');
+      logging('PeerConnection');
       if (pcConfig && pcConfig.iceTransportPolicy) {
         pcConfig.iceTransports = pcConfig.iceTransportPolicy;
       }
@@ -206,7 +196,7 @@ var chrome = {
       if (constraints.video) {
         constraints.video = constraintsToChrome_(constraints.video);
       }
-      utils().log('chrome: ' + JSON.stringify(constraints));
+      logging('chrome: ' + JSON.stringify(constraints));
       return navigator.webkitGetUserMedia(constraints, onSuccess, onError);
     };
     navigator.getUserMedia = getUserMedia_;
@@ -249,10 +239,10 @@ var chrome = {
           bind(navigator.mediaDevices);
       navigator.mediaDevices.getUserMedia = function(c) {
         if (c) {
-          utils().log('spec:   ' + JSON.stringify(c)); // whitespace for alignment
+          logging('spec:   ' + JSON.stringify(c)); // whitespace for alignment
           c.audio = constraintsToChrome_(c.audio);
           c.video = constraintsToChrome_(c.video);
-          utils().log('chrome: ' + JSON.stringify(c));
+          logging('chrome: ' + JSON.stringify(c));
         }
         return origGetUserMedia(c);
       }.bind(this);
@@ -262,31 +252,31 @@ var chrome = {
     // TODO(KaptenJansson) remove once implemented in Chrome stable.
     if (typeof navigator.mediaDevices.addEventListener === 'undefined') {
       navigator.mediaDevices.addEventListener = function() {
-        utils().log('Dummy mediaDevices.addEventListener called.');
+        logging('Dummy mediaDevices.addEventListener called.');
       };
     }
     if (typeof navigator.mediaDevices.removeEventListener === 'undefined') {
       navigator.mediaDevices.removeEventListener = function() {
-        utils().log('Dummy mediaDevices.removeEventListener called.');
+        logging('Dummy mediaDevices.removeEventListener called.');
       };
     }
   },
 
   // Attach a media stream to an element.
   attachMediaStream: function(element, stream) {
-    utils().log('DEPRECATED, attachMediaStream will soon be removed.');
-    if (utils().version >= 43) {
+    logging('DEPRECATED, attachMediaStream will soon be removed.');
+    if (browserDetails.version >= 43) {
       element.srcObject = stream;
     } else if (typeof element.src !== 'undefined') {
       element.src = URL.createObjectURL(stream);
     } else {
-      utils().log('Error attaching stream to element.');
+      logging('Error attaching stream to element.');
     }
   },
 
   reattachMediaStream: function(to, from) {
-    utils().log('DEPRECATED, reattachMediaStream will soon be removed.');
-    if (utils().version >= 43) {
+    logging('DEPRECATED, reattachMediaStream will soon be removed.');
+    if (browserDetails.version >= 43) {
       to.srcObject = from.srcObject;
     } else {
       to.src = from.src;
@@ -296,12 +286,9 @@ var chrome = {
 
 // Expose public methods.
 module.exports = {
-  browser: utils().browser,
-  version: utils().version,
-  minVersion: utils().minVersion,
-  shimSourceObject: chrome.shimSourceObject,
-  shimPeerConnection: chrome.shimPeerConnection,
-  shimGetUserMedia: chrome.shimGetUserMedia,
-  attachMediaStream: chrome.attachMediaStream,
-  reattachMediaStream: chrome.reattachMediaStream
-}
+  shimSourceObject: chromeShim.shimSourceObject,
+  shimPeerConnection: chromeShim.shimPeerConnection,
+  shimGetUserMedia: chromeShim.shimGetUserMedia,
+  attachMediaStream: chromeShim.attachMediaStream,
+  reattachMediaStream: chromeShim.reattachMediaStream
+};

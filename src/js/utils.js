@@ -9,23 +9,23 @@
 
 // Utility methods.
 var utils = {
-  //TODO Fix logging as it's always included as a module. Maybe make it
+  //TODO Fix logging as it's now always included as a module. Maybe make it
   //toggle-able?
   log: function() {
-  // suppress console.log output when being included as a module.
-  // if (typeof module !== 'undefined' ||
-  //     typeof require === 'function' && typeof define === 'function') {
-  //   return;
-  // }
-  console.log.apply(console, arguments);
+    // Suppress console.log output when being included as a module.
+    if (typeof module !== 'undefined' ||
+        typeof require === 'function' && typeof define === 'function') {
+      return;
+    }
+    console.log.apply(console, arguments);
   },
 
-  /**
+   /**
    * Extract browser version out of the provided user agent string.
    * @param {!string} uastring userAgent string.
    * @param {!string} expr Regular expression used as match criteria.
-   * @param {!int} pos position in the version string that should be returned.
-   * @return {!string} browser version.
+   * @param {!number} pos position in the version string to be returned.
+   * @return {!number} browser version.
    */
   extractVersion: function(uastring, expr, pos) {
     var match = uastring.match(expr);
@@ -38,14 +38,6 @@ var utils = {
    *     properties.
    */
   detectBrowser: function() {
-    /**
-     * Extract browser version out of the provided user agent string.
-     * @param {!string} uastring userAgent string.
-     * @param {!string} expr Regular expression used as match criteria.
-     * @param {!number} pos position in the version string to be returned.
-     * @return {!number} browser version.
-     */
-
     // Returned result object.
     var result = {};
     result.browser = null;
@@ -89,4 +81,8 @@ var utils = {
 };
 
 // Export.
-module.exports.utils = utils;
+module.exports = {
+  log: utils.log,
+  browserDetails: utils.detectBrowser(),
+  extractVersion: utils.extractVersion
+};

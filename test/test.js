@@ -29,8 +29,8 @@ test('Log suppression', function(t) {
     logCount++;
     saveConsole.apply(saveConsole, arguments);
   };
-  var adapter = require('../adapter.js');
-  var utils = require('../src/js/utils.js').utils;
+  var adapter = require('../out/adapter.js');
+  var utils = require('../src/js/utils.js');
 
   utils.log('test');
   console.log = saveConsole;
@@ -44,7 +44,7 @@ test('Log suppression', function(t) {
 // Fiddle with the UA string to test the extraction does not throw errors.
 // No need for webdriver in this test.
 test('Browser version extraction helper', function(t) {
-  var utils = require('../src/js/utils.js').utils;
+  var utils = require('../src/js/utils.js');
 
   // Chrome and Chromium.
   var ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
@@ -103,16 +103,16 @@ test('Browser identified', function(t) {
   .then(function() {
     t.plan(4);
     t.pass('Page loaded');
-    return driver.executeScript('return adapter.browserShim.version');
+    return driver.executeScript('return adapter.browserDetails.version');
   })
   .then(function(webrtcDetectedBrowser) {
     t.ok(webrtcDetectedBrowser, 'Browser detected: ' + webrtcDetectedBrowser);
-    return driver.executeScript('return adapter.browserShim.version');
+    return driver.executeScript('return adapter.browserDetails.version');
   })
   .then(function(webrtcDetectVersion) {
     t.ok(webrtcDetectVersion, 'Browser version detected: ' +
         webrtcDetectVersion);
-    return driver.executeScript('return adapter.browserShim.minVersion');
+    return driver.executeScript('return adapter.browserDetails.minVersion');
   })
   .then(function(webrtcMinimumVersion) {
     t.ok(webrtcMinimumVersion, 'Minimum Browser version detected: ' +
@@ -138,8 +138,8 @@ test('Browser supported by adapter.js', function(t) {
   })
   .then(function() {
     return driver.executeScript(
-      'return adapter.browserShim.version ' +
-          '>= adapter.browserShim.minVersion');
+      'return adapter.browserDetails.version ' +
+          '>= adapter.browserDetails.minVersion');
   })
   .then(function(webrtcVersionIsGreaterOrEqual) {
     t.ok(webrtcVersionIsGreaterOrEqual,
@@ -918,7 +918,7 @@ test('Call getUserMedia with impossible constraints', function(t) {
     };
     // TODO: Remove when firefox 42+ accepts impossible constraints
     // on fake devices.
-    if (window.adapter.browserShim.browser === 'firefox') {
+    if (window.adapter.browserDetails.browser === 'firefox') {
       impossibleConstraints.fake = false;
     }
     navigator.mediaDevices.getUserMedia(impossibleConstraints)
@@ -937,8 +937,8 @@ test('Call getUserMedia with impossible constraints', function(t) {
     t.plan(2);
     t.pass('Page loaded');
     return driver.executeScript(
-      'return adapter.browserShim.browser === \'firefox\' ' +
-      '&& adapter.browserShim.version < 42');
+      'return adapter.browserDetails.browser === \'firefox\' ' +
+      '&& adapter.browserDetails.version < 42');
   })
   .then(function(isFirefoxAndVersionLessThan42) {
     if (isFirefoxAndVersionLessThan42) {
@@ -970,7 +970,7 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     window.constraintsArray = [];
     // Helpers to test adapter's legacy constraints-manipulation.
     function pretendVersion(version, func) {
-      var realVersion = window.adapter.browserShim.version;
+      var realVersion = window.adapter.browserDetails.version;
       window.webrtcTesting.version = version;
       func();
       window.webrtcTesting.version = realVersion;
@@ -1170,9 +1170,9 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     // decision if the test should be run or not is in the Test definition
     // rather than the preferred Run test section (Webdriver).
     // FIXME: Move the decision to // Run test.
-    if (window.adapter.browserShim.browser === 'chrome') {
+    if (window.adapter.browserDetails.browser === 'chrome') {
       testChrome();
-    } else if (window.adapter.browserShim.browser === 'firefox') {
+    } else if (window.adapter.browserDetails.browser === 'firefox') {
       testFirefox();
     } else {
       return window.constraintsArray.push('Unsupported browser');
@@ -1742,7 +1742,7 @@ test('originalChromeGetStats', function(t) {
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.pass('Page loaded');
-    return driver.executeScript('return adapter.browserShim.browser')
+    return driver.executeScript('return adapter.browserDetails.browser')
     .then(function(browser) {
       if (browser !== 'chrome') {
         t.skip('Non-chrome browser detected.');
@@ -1810,7 +1810,7 @@ test('getStats promise', function(t) {
       // the callback before the next getStats call.
       // FIXME: Remove this if ever supported by Firefox, also remove the t.skip
       // section towards the end of the // Run test section.
-      if (window.adapter.browserShim.browser === 'firefox') {
+      if (window.adapter.browserDetails.browser === 'firefox') {
         callback(testsEqualArray);
         return;
       }
@@ -1855,7 +1855,7 @@ test('getStats promise', function(t) {
     // FIXME: Remove if supported by firefox. Also remove browser check in
     // the testDefinition function.
     return driver.executeScript(
-      'return adapter.browserShim.browser === \'firefox\'')
+      'return adapter.browserDetails.browser === \'firefox\'')
       .then(function(isFirefox) {
         if (isFirefox) {
           t.skip('Firefox does not support getStats without arguments.');
@@ -1919,7 +1919,7 @@ test('iceTransportPolicy relay functionality', function(t) {
   .then(function() {
     t.pass('Page loaded');
     return driver.executeScript(
-      'return adapter.browserShim.browser === \'firefox\'');
+      'return adapter.browserDetails.browser === \'firefox\'');
   })
   .then(function(isFirefox) {
     if (isFirefox) {
@@ -1968,10 +1968,10 @@ test('static generateCertificate method', function(t) {
   })
   .then(function() {
     return driver.executeScript(function() {
-      return (window.adapter.browserShim.browser === 'chrome' &&
-          window.adapter.browserShim.version >= 49) ||
-          (window.adapter.browserShim.browser === 'firefox' &&
-          window.adapter.browserShim.version > 38);
+      return (window.adapter.browserDetails.browser === 'chrome' &&
+          window.adapter.browserDetails.version >= 49) ||
+          (window.adapter.browserDetails.browser === 'firefox' &&
+          window.adapter.browserDetails.version > 38);
     });
   })
   .then(function(isSupported) {
@@ -2024,10 +2024,10 @@ test('Non-module logging to console still works', function(t) {
     window.testsEqualArray.push(
       [typeof window.adapter.browserShim.reattachMediaStream,'function',
         'reattachMediaSteam is a function']);
-    window.testsEqualArray.push([typeof window.adapter.browserShim.browser,
-        'string', 'wbrowserShim.browser browser is a string']);
-    window.testsEqualArray.push([typeof window.adapter.browserShim.version,
-        'number', 'browserShim.version is a number']);
+    window.testsEqualArray.push([typeof window.adapter.browserDetails.browser,
+        'string', 'wbrowserDetails.browser browser is a string']);
+    window.testsEqualArray.push([typeof window.adapter.browserDetails.version,
+        'number', 'browserDetails.version is a number']);
   };
 
   // Run test.
