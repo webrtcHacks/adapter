@@ -11,13 +11,6 @@ module.exports = function(grunt) {
         src: ['src/js/adapter_core.js'],
         dest: 'out/adapter.js',
         options: {
-          // alias: {
-          //   'chrome_shim': './src/js/chrome/chrome_shim.js',
-          //   // 'edge_shim': './src/js/edge/edge_shim.js',
-          //   // 'edge_sdp': './src/js/edge/edge_sdp.js',
-          //   // 'firefox_shim': './src/js/firefox/firefox_shim.js',
-          //   'utils': './src/js/utils.js'
-          // },
           browserifyOptions: {
             // Exposes shim methods in a global object to the browser.
             // The tests require this.
@@ -31,16 +24,7 @@ module.exports = function(grunt) {
       // scope.
       adapterAndNoGlobalObject: {
         src: ['src/js/adapter_core.js'],
-        dest: 'out/adapter_no_global.js',
-        options: {
-          alias: {
-            'utils': './src/js/utils.js',
-            'chrome_shim': './src/js/chrome/chrome_shim.js',
-            'edge_shim': './src/js/edge/edge_shim.js',
-            'edge_sdp': './src/js/edge/edge_sdp.js',
-            'firefox_shim': './src/js/firefox/firefox_shim.js'
-          }
-        }
+        dest: 'out/adapter_no_global.js'
       },
       // Use this if you do not want MS edge shim to be included.
       adapterNoEdge: {
