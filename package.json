@@ -1,13 +1,16 @@
 {
-  "name": "webrtc-adapter-test",
-  "version": "0.2.7",
-  "description": "Hide browser differences in WebRTC APIs (test package name)",
+  "name": "webrtc-adapter",
+  "version": "1.0.0",
+  "description": "A shim to insulate apps from WebRTC spec changes and browser prefix differences",
   "license": "BSD-3-Clause",
-  "main": "adapter-core.js",
+  "main": "out/adapter.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/webrtc/adapter.git"
   },
+  "authors": [
+    "The WebRTC project authors (https://www.webrtc.org/)"
+  ],
   "scripts": {
     "test": "grunt && test/run-tests"
   },
@@ -15,7 +18,6 @@
     "files": "test/test.js"
   },
   "devDependencies": {
-    "browserify": "^10.2.1",
     "chromedriver": "^2.16.0",
     "grunt": "^0.4.5",
     "grunt-browserify": "^4.0.1",
