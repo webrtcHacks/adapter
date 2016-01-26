@@ -2010,6 +2010,9 @@ test('Non-module logging to console still works', function(t) {
       window.logCount++;
     };
 
+    console.log('log me');
+    console.log = saveConsole;
+
     // Check for existence of variables and functions from public API.
     window.testsEqualArray.push([typeof RTCPeerConnection,'function',
         'RTCPeerConnection is a function']);
