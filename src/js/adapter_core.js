@@ -12,14 +12,16 @@
   // Utils.
   var logging = require('./utils').log;
   var browserDetails = require('./utils').browserDetails;
-  // Export to the adapter global object visible in the browser
+  // Export to the adapter global object visible in the browser.
   module.exports.browserDetails = browserDetails;
   module.exports.extractVersion = require('./utils').extractVersion;
+  module.exports.disableLog = require('./utils').disableLog;
 
-  // Browser shims.
-  var chromeShim = require('./chrome/chrome_shim') || null ;
-  var edgeShim = require('./edge/edge_shim') || null;
-  var firefoxShim = require('./firefox/firefox_shim') || null;
+  // Uncomment if you do not want any logging at all including the switch
+  // statement below. Can also be turned off in the browser via
+  // adapter.disableLog(true) but then logging from the switch statement below
+  // will still appear.
+  //require('./utils').disableLog(true);
 
   // Bail if version is not supported regardless of browser.
   if (browserDetails.version < browserDetails.minVersion) {
@@ -28,6 +30,11 @@
         browserDetails.minVersion + '\n aborting!');
     return;
   }
+
+  // Browser shims.
+  var chromeShim = require('./chrome/chrome_shim') || null;
+  var edgeShim = require('./edge/edge_shim') || null;
+  var firefoxShim = require('./firefox/firefox_shim') || null;
 
   // Shim browser if found.
   switch(browserDetails.browser) {

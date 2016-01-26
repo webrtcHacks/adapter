@@ -971,9 +971,9 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     // Helpers to test adapter's legacy constraints-manipulation.
     function pretendVersion(version, func) {
       var realVersion = window.adapter.browserDetails.version;
-      window.webrtcTesting.version = version;
+      window.adapter.browserDetails.version = version;
       func();
-      window.webrtcTesting.version = realVersion;
+      window.adapter.browserDetails.version = realVersion;
     }
 
     function interceptGumForConstraints(gum, func) {
@@ -2009,9 +2009,6 @@ test('Non-module logging to console still works', function(t) {
     console.log = function() {
       window.logCount++;
     };
-
-    console.log('log me');
-    console.log = saveConsole;
 
     // Check for existence of variables and functions from public API.
     window.testsEqualArray.push([typeof RTCPeerConnection,'function',

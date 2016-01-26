@@ -7,17 +7,27 @@
  */
 'use strict';
 
+var logDisabled_ = false;
+
 // Utility methods.
 var utils = {
-  //TODO Fix logging as it's now always included as a module. Maybe make it
-  //toggle-able?
-  log: function() {
-    // Suppress console.log output when being included as a module.
-    if (typeof module !== 'undefined' ||
-        typeof require === 'function' && typeof define === 'function') {
-      return;
+  disableLog: function(bool) {
+    if (typeof bool !== 'boolean') {
+      return new Error('Argument type: ' + typeof bool +
+          '. Please use a boolean.');
     }
-    console.log.apply(console, arguments);
+    logDisabled_ = bool;
+    return (bool) ? 'adapter.js logging disabled' :
+        'adapter.js logging enabled';
+  },
+
+  log: function() {
+    if (typeof window === 'object') {
+      if (logDisabled_) {
+        return;
+      }
+      console.log.apply(console, arguments);
+    }
   },
 
    /**
@@ -83,6 +93,7 @@ var utils = {
 // Export.
 module.exports = {
   log: utils.log,
+  disableLog: utils.disableLog,
   browserDetails: utils.detectBrowser(),
   extractVersion: utils.extractVersion
 };
