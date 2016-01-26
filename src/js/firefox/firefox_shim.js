@@ -208,7 +208,7 @@ var firefoxShim = {
 
   reattachMediaStream: function(to, from) {
     logging('DEPRECATED, reattachMediaStream will soon be removed.');
-    if (browserDetails >= 43) {
+    if (browserDetails.version >= 43) {
       to.srcObject = from.srcObject;
     } else {
       to.src = from.src;
