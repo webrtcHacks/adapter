@@ -1256,7 +1256,7 @@ test('Basic connection establishment', function(t) {
     pc2.onicecandidate = function(event) {
       addCandidate(pc1, event);
     };
-    pc2.ontrack = e => {
+    pc2.ontrack = function(e) {
       window.trackEvent = e;
       window.receivers = pc2.getReceivers();
     };
@@ -1353,19 +1353,26 @@ test('Basic connection establishment', function(t) {
       }
     });
   })
-  .then(() => driver.executeScript('return window.trackEvent').then(e =>
-    driver.executeScript('return window.receivers').then(receivers => {
+  .then(function() {
+    return driver.executeScript('return window.trackEvent');
+  })
+  .then(function(e) {
+    return driver.executeScript('return window.receivers')
+    .then(function(receivers) {
       t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
       t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is an object');
       t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
       t.equal(e.streams.length, 1, 'trackEvent.streams has one stream');
-      t.ok(e.streams[0].getTracks().some(track => track === e.track),
+      let isEventTrack = function(track) { return track === e.track; };
+      t.ok(e.streams[0].getTracks().some(isEventTrack),
            'trackEvent.track is in stream');
       if (receivers) {
-        t.ok(receivers.some(receiver => receiver == e.receiver),
+        let isEventReceiver = function(r) { return r == e.receiver; };
+        t.ok(receivers.some(isEventReceiver),
              'trackEvent.receiver matches a known receiver');
       }
-  })))
+    });
+  })
   .then(function() {
     t.end();
   })
