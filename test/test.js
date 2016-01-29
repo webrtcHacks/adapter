@@ -1225,6 +1225,8 @@ test('Basic connection establishment', function(t) {
     var counter = 1;
     window.testPassed = [];
     window.testFailed = [];
+    window.trackEvent = null;
+    window.receivers = null;
     var pc1 = new RTCPeerConnection(null);
     var pc2 = new RTCPeerConnection(null);
 
@@ -1257,6 +1259,7 @@ test('Basic connection establishment', function(t) {
       addCandidate(pc1, event);
     };
     pc2.ontrack = function(e) {
+      window.testPassed.push('pc2.ontrack');
       window.trackEvent = e;
       window.receivers = pc2.getReceivers();
     };
