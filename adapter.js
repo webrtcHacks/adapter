@@ -517,7 +517,7 @@ if (typeof window === 'undefined' || !window.navigator) {
   // This is the build number for Edge.
   webrtcMinimumVersion = 10547;
 
-  if (RTCIceGatherer) {
+  if (window.RTCIceGatherer) {
     // Generate an alphanumeric identifier for cname or mids.
     // TODO: use UUIDs instead? https://gist.github.com/jed/982883
     var generateIdentifier = function() {
