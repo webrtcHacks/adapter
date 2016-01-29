@@ -1675,6 +1675,29 @@ if (typeof window === 'undefined' || !window.navigator) {
   webrtcUtils.log('Browser does not appear to be WebRTC-capable');
 }
 
+// Polyfill ontrack on browsers that don't yet have it
+if (typeof window === 'object' && !('ontrack' in window.RTCPeerConnection)) {
+  Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
+    get: function() { return this._ontrack; },
+    set: function(f) {
+      if (this._ontrack) {
+        this.removeEventListener('track', this._ontrack);
+        this.removeEventListener('addstream', this._ontrackpoly);
+      }
+      this.addEventListener('track', this._ontrack = f);
+      this.addEventListener('addstream', this._ontrackpoly = function(e) {
+        e.stream.getTracks().forEach(function(track) {
+          var event = new Event('track');
+          event.track = track;
+          event.receiver = {track: track};
+          event.streams = [e.stream];
+          this.dispatchEvent(event);
+        });
+      });
+    }
+  });
+}
+
 // Returns the result of getUserMedia as a Promise.
 function requestUserMedia(constraints) {
   return new Promise(function(resolve, reject) {
