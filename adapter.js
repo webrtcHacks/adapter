@@ -1692,8 +1692,8 @@ if (typeof window === 'object' && !('ontrack' in window.RTCPeerConnection)) {
           event.receiver = {track: track};
           event.streams = [e.stream];
           this.dispatchEvent(event);
-        });
-      });
+        }.bind(this));
+      }.bind(this));
     }
   });
 }
