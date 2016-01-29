@@ -1363,11 +1363,11 @@ test('Basic connection establishment', function(t) {
       t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is an object');
       t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
       t.equal(e.streams.length, 1, 'trackEvent.streams has one stream');
-      let isEventTrack = function(track) { return track === e.track; };
+      var isEventTrack = function(track) { return track === e.track; };
       t.ok(e.streams[0].getTracks().some(isEventTrack),
            'trackEvent.track is in stream');
       if (receivers) {
-        let isEventReceiver = function(r) { return r == e.receiver; };
+        var isEventReceiver = function(r) { return r == e.receiver; };
         t.ok(receivers.some(isEventReceiver),
              'trackEvent.receiver matches a known receiver');
       }
