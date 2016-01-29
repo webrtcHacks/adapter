@@ -1261,6 +1261,7 @@ test('Basic connection establishment', function(t) {
     pc2.ontrack = function(e) {
       window.testPassed.push('pc2.ontrack');
       window.trackEvent = e;
+      window.tracks = e.streams.length ? e.streams[0].getTracks() : [];
       window.receivers = pc2.getReceivers();
     };
 
@@ -1360,20 +1361,21 @@ test('Basic connection establishment', function(t) {
     return driver.executeScript('return window.trackEvent');
   })
   .then(function(e) {
-    return driver.executeScript('return window.receivers')
-    .then(function(receivers) {
-      t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
-      t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is an object');
-      t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
-      t.equal(e.streams.length, 1, 'trackEvent.streams has one stream');
-      var isEventTrack = function(track) { return track === e.track; };
-      t.ok(e.streams[0].getTracks().some(isEventTrack),
-           'trackEvent.track is in stream');
-      if (receivers) {
-        var isEventReceiver = function(r) { return r === e.receiver; };
-        t.ok(receivers.some(isEventReceiver),
-             'trackEvent.receiver matches a known receiver');
-      }
+    return driver.executeScript('return window.tracks')
+    .then(function(tracks) {
+      return driver.executeScript('return window.receivers')
+      .then(function(receivers) {
+        t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
+        t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is an object');
+        t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
+        t.equal(e.streams.length, 1, 'trackEvent.streams has one stream');
+        t.ok(tracks.indexOf(e.track) != -1, 'trackEvent.track is in stream');
+        if (receivers) {
+          var isEventReceiver = function(r) { return r === e.receiver; };
+          t.ok(receivers.some(isEventReceiver),
+               'trackEvent.receiver matches a known receiver');
+        }
+      });
     });
   })
   .then(function() {
