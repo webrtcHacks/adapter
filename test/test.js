@@ -1367,7 +1367,7 @@ test('Basic connection establishment', function(t) {
       t.ok(e.streams[0].getTracks().some(isEventTrack),
            'trackEvent.track is in stream');
       if (receivers) {
-        var isEventReceiver = function(r) { return r == e.receiver; };
+        var isEventReceiver = function(r) { return r === e.receiver; };
         t.ok(receivers.some(isEventReceiver),
              'trackEvent.receiver matches a known receiver');
       }
