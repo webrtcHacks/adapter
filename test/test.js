@@ -1225,6 +1225,14 @@ test('Basic connection establishment', function(t) {
     var counter = 1;
     window.testPassed = [];
     window.testFailed = [];
+    var t = {
+      ok: function(ok, msg) {
+        window[ok ? 'testPassed' : 'testFailed'].push(msg);
+      },
+      is: function(a, b, msg) {
+        this.ok((a === b), msg + ' - got ' + b);
+      }
+    };
     var pc1 = new RTCPeerConnection(null);
     var pc2 = new RTCPeerConnection(null);
 
@@ -1255,6 +1263,19 @@ test('Basic connection establishment', function(t) {
     };
     pc2.onicecandidate = function(event) {
       addCandidate(pc1, event);
+    };
+    pc2.ontrack = function(e) {
+      t.ok(true, 'pc2.ontrack');
+      t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
+      t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is object');
+      t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
+      t.is(e.streams.length, 1, 'trackEvent.streams has one stream');
+      t.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
+           'trackEvent.track is in stream');
+      if (pc2.getReceivers()) {
+        t.ok(pc2.getReceivers().indexOf(e.receiver) !== -1,
+             'trackEvent.receiver matches a known receiver');
+      }
     };
 
     var constraints = {video: true, fake: true};
