@@ -383,8 +383,8 @@ if (typeof window === 'undefined' || !window.navigator) {
         return;
       }
       var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
-      if (r.exact !== undefined && typeof r.exact === 'number') {
-        r.min = r.max = r.exact;
+      if (r.exact !== undefined) {
+        r.min = r.max = r.exact = parseInt(r.exact, 10);
       }
       var oldname = function(prefix, name) {
         if (prefix) {
