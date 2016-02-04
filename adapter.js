@@ -1678,7 +1678,8 @@ if (typeof window === 'undefined' || !window.navigator) {
 }
 
 // Polyfill ontrack on browsers that don't yet have it
-if (typeof window === 'object' && !('ontrack' in window.RTCPeerConnection)) {
+if (typeof window === 'object' && !('ontrack' in
+    window.RTCPeerConnection.prototype)) {
   Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
     get: function() { return this._ontrack; },
     set: function(f) {
