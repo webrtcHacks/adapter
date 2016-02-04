@@ -132,6 +132,7 @@ if (typeof window === 'undefined' || !window.navigator) {
       }
       return new mozRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
     };
+    window.RTCPeerConnection.prototype = mozRTCPeerConnection.prototype;
 
     // wrap static methods. Currently just generateCertificate.
     if (mozRTCPeerConnection.generateCertificate) {
@@ -315,6 +316,7 @@ if (typeof window === 'undefined' || !window.navigator) {
 
     return pc;
   };
+  window.RTCPeerConnection.prototype = webkitRTCPeerConnection.prototype;
 
   // wrap static methods. Currently just generateCertificate.
   if (webkitRTCPeerConnection.generateCertificate) {
