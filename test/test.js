@@ -1233,11 +1233,11 @@ test('Basic connection establishment', function(t) {
         this.ok((a === b), msg + ' - got ' + b);
       },
       pass: function(msg) {
-        window.testPassed.push(msg);
+        this.ok(true, msg);
       },
       fail: function(msg) {
-        window.testFailed.push(msg);
-      },
+        this.ok(false, msg);
+      }
     };
     var pc1 = new RTCPeerConnection(null);
     var pc2 = new RTCPeerConnection(null);
@@ -1396,11 +1396,11 @@ test('Basic connection establishment with promise', function(t) {
         this.ok((a === b), msg + ' - got ' + b);
       },
       pass: function(msg) {
-        window.testPassed.push(msg);
+        this.ok(true, msg);
       },
       fail: function(msg) {
-        window.testFailed.push(msg);
-      },
+        this.ok(false, msg);
+      }
     };
     var pc1 = new RTCPeerConnection(null);
     var pc2 = new RTCPeerConnection(null);
@@ -1520,11 +1520,11 @@ test('Basic connection establishment with datachannel', function(t) {
         this.ok((a === b), msg + ' - got ' + b);
       },
       pass: function(msg) {
-        window.testPassed.push(msg);
+        this.ok(true, msg);
       },
       fail: function(msg) {
-        window.testFailed.push(msg);
-      },
+        this.ok(false, msg);
+      }
     };
     var pc1 = new RTCPeerConnection(null);
     var pc2 = new RTCPeerConnection(null);
