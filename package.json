@@ -12,10 +12,20 @@
     "The WebRTC project authors (https://www.webrtc.org/)"
   ],
   "scripts": {
+    "prepublish": "grunt build",
     "test": "grunt && test/run-tests"
   },
-  "testling": {
-    "files": "test/test.js"
+  "bin": [
+    "out/adapter.js",
+    "out/adapter_no_edge.js",
+    "out/adapter_no_edge_no_global.js",
+    "out/adapter_no_global.js"
+  ]
+  ,
+  "dependencies": {
+    "grunt": "^0.4.5",
+    "grunt-browserify": "^4.0.1",
+    "grunt-cli": ">=0.1.9"
   },
   "devDependencies": {
     "chromedriver": "^2.16.0",
@@ -23,12 +33,10 @@
     "grunt-browserify": "^4.0.1",
     "grunt-cli": ">=0.1.9",
     "grunt-contrib-jshint": "^0.11.2",
-    "grunt-contrib-nodeunit": "~0.4.1",
     "grunt-githooks": "^0.3.1",
     "grunt-jscs": "^2.0.0",
     "selenium-webdriver": "^2.48.0",
     "tape": "^4.0.0",
-    "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0"
   }
 }

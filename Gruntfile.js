@@ -8,8 +8,8 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     browserify: {
       adapterGlobalObject: {
-        src: ['src/js/adapter_core.js'],
-        dest: 'out/adapter.js',
+        src: ['./src/js/adapter_core.js'],
+        dest: './out/adapter.js',
         options: {
           browserifyOptions: {
             // Exposes shim methods in a global object to the browser.
@@ -23,13 +23,13 @@ module.exports = function(grunt) {
       // Use this if you do not want adapter to expose anything to the global
       // scope.
       adapterAndNoGlobalObject: {
-        src: ['src/js/adapter_core.js'],
-        dest: 'out/adapter_no_global.js'
+        src: ['./src/js/adapter_core.js'],
+        dest: './out/adapter_no_global.js'
       },
       // Use this if you do not want MS edge shim to be included.
       adapterNoEdge: {
-        src: ['src/js/adapter_core.js'],
-        dest: 'out/adapter_no_edge.js',
+        src: ['./src/js/adapter_core.js'],
+        dest: './out/adapter_no_edge.js',
         options: {
           // These files will be skipped.
           ignore: [
@@ -48,8 +48,8 @@ module.exports = function(grunt) {
       // Use this if you do not want MS edge shim to be included and do not
       // want adapter to expose anything to the global scope.
       adapterNoEdgeAndNoGlobalObject: {
-        src: ['src/js/adapter_core.js'],
-        dest: 'out/adapter_no_edge_no_global.js',
+        src: ['./src/js/adapter_core.js'],
+        dest: './out/adapter_no_edge_no_global.js',
         options: {
           ignore: [
             './src/js/edge/edge_shim.js',
@@ -76,9 +76,6 @@ module.exports = function(grunt) {
         'excludeFiles': [
         ]
       }
-    },
-    testling: {
-      files: 'test/test.js'
     }
   });
 
@@ -87,4 +84,5 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-githooks');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.registerTask('default', ['jshint', 'jscs', 'browserify']);
+  grunt.registerTask('build', ['browserify']);
 };
