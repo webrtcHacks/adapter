@@ -1291,30 +1291,30 @@ test('Basic connection establishment', function(t) {
 
       pc1.createOffer(
         function(offer) {
-          t.ok('pc1.createOffer');
+          t.pass('pc1.createOffer');
           pc1.setLocalDescription(offer,
             function() {
-              t.ok('pc1.setLocalDescription');
+              t.pass('pc1.setLocalDescription');
 
               offer = new RTCSessionDescription(offer);
-              t.ok('created RTCSessionDescription from offer');
+              t.pass('created RTCSessionDescription from offer');
               pc2.setRemoteDescription(offer,
                 function() {
-                  t.ok('pc2.setRemoteDescription');
+                  t.pass('pc2.setRemoteDescription');
                   pc2.createAnswer(
                     function(answer) {
-                      t.ok('pc2.createAnswer');
+                      t.pass('pc2.createAnswer');
                       pc2.setLocalDescription(answer,
                         function() {
-                          t.ok('pc2.setLocalDescription');
+                          t.pass('pc2.setLocalDescription');
                           answer = new RTCSessionDescription(answer);
-                          t.ok('created RTCSessionDescription from answer');
+                          t.pass('created RTCSessionDescription from answer');
                           pc1.setRemoteDescription(answer,
                             function() {
-                              t.ok('pc1.setRemoteDescription');
+                              t.pass('pc1.setRemoteDescription');
                             },
                             function(err) {
-                              t.ok('pc1.setRemoteDescription ' +
+                              t.pass('pc1.setRemoteDescription ' +
                                   err.toString());
                             }
                           );
@@ -1418,7 +1418,7 @@ test('Basic connection establishment with promise', function(t) {
         pc.addIceCandidate(cand).then(function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
-          t.ok('addIceCandidate ' + counter++);
+          t.pass('addIceCandidate ' + counter++);
         })
         .catch(function(err) {
           t.fail('addIceCandidate ' + err.toString());
@@ -1437,22 +1437,22 @@ test('Basic connection establishment with promise', function(t) {
     .then(function(stream) {
       pc1.addStream(stream);
       pc1.createOffer().then(function(offer) {
-        t.ok('pc1.createOffer');
+        t.pass('pc1.createOffer');
         return pc1.setLocalDescription(offer);
       }).then(function() {
-        t.ok('pc1.setLocalDescription');
+        t.pass('pc1.setLocalDescription');
         return pc2.setRemoteDescription(pc1.localDescription);
       }).then(function() {
-        t.ok('pc2.setRemoteDescription');
+        t.pass('pc2.setRemoteDescription');
         return pc2.createAnswer();
       }).then(function(answer) {
-        t.ok('pc2.createAnswer');
+        t.pass('pc2.createAnswer');
         return pc2.setLocalDescription(answer);
       }).then(function() {
-        t.ok('pc2.setLocalDescription');
+        t.pass('pc2.setLocalDescription');
         return pc1.setRemoteDescription(pc2.localDescription);
       }).then(function() {
-        t.ok('pc1.setRemoteDescription');
+        t.pass('pc1.setRemoteDescription');
       }).catch(function(err) {
         window.testfailed.push(err.toString());
       });
@@ -1547,7 +1547,7 @@ test('Basic connection establishment with datachannel', function(t) {
         pc.addIceCandidate(cand).then(function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
-          t.ok('addIceCandidate ' + counter++);
+          t.pass('addIceCandidate ' + counter++);
         })
         .catch(function(err) {
           t.fail('addIceCandidate ' + err.toString());
@@ -1563,22 +1563,22 @@ test('Basic connection establishment with datachannel', function(t) {
 
     pc1.createDataChannel('somechannel');
     pc1.createOffer().then(function(offer) {
-      t.ok('pc1.createOffer');
+      t.pass('pc1.createOffer');
       return pc1.setLocalDescription(offer);
     }).then(function() {
-      t.ok('pc1.setLocalDescription');
+      t.pass('pc1.setLocalDescription');
       return pc2.setRemoteDescription(pc1.localDescription);
     }).then(function() {
-      t.ok('pc2.setRemoteDescription');
+      t.pass('pc2.setRemoteDescription');
       return pc2.createAnswer();
     }).then(function(answer) {
-      t.ok('pc2.createAnswer');
+      t.pass('pc2.createAnswer');
       return pc2.setLocalDescription(answer);
     }).then(function() {
-      t.ok('pc2.setLocalDescription');
+      t.pass('pc2.setLocalDescription');
       return pc1.setRemoteDescription(pc2.localDescription);
     }).then(function() {
-      t.ok('pc1.setRemoteDescription');
+      t.pass('pc1.setRemoteDescription');
     }).catch(function(err) {
       t.fail(err.name);
     });
