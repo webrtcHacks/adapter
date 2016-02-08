@@ -1701,7 +1701,7 @@ if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
       this.addEventListener('addstream', this._ontrackpoly = function(e) {
         if (webrtcDetectedBrowser === 'chrome') {
           // onaddstream does not fire when a track is added to an existing stream.
-          // but stream.onaddtrack is implemented so we use thたt
+          // but stream.onaddtrack is implemented so we use that
           e.stream.addEventListener('addtrack', function(te) {
             var event = new Event('track');
             event.track = te.track;
