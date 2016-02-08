@@ -52,6 +52,7 @@ function trace(text) {
   }
 }
 
+// Shim srcObject in browsers which don't have it yet.
 if (typeof window === 'object') {
   if (window.HTMLMediaElement &&
     !('srcObject' in window.HTMLMediaElement.prototype)) {
@@ -63,6 +64,7 @@ if (typeof window === 'object') {
         return 'mozSrcObject' in this ? this.mozSrcObject : this._srcObject;
       },
       set: function(stream) {
+        var self = this;
         if ('mozSrcObject' in this) {
           this.mozSrcObject = stream;
         } else {
@@ -70,6 +72,13 @@ if (typeof window === 'object') {
           this._srcObject = stream;
           // TODO: revokeObjectUrl(this.src) when !stream to release resources?
           this.src = URL.createObjectURL(stream);
+          // We need to recreate the blob url when a track is added or removed
+          stream.addEventListener('addtrack', function() {
+            self.src = URL.createObjectURL(stream);
+          });
+          stream.addEventListener('removetrack', function() {
+            self.src = URL.createObjectURL(stream);
+          });
         }
       }
     });
@@ -1711,6 +1720,18 @@ if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
       }.bind(this));
     }
   });
+}
+
+if (typeof window === 'object' && window.RTCPeerConnection && !('addTrack' in
+    window.RTCPeerConnection.prototype)) {
+  RTCPeerConnection.prototype.addTrack = function(track, stream) {
+    var streams = this.getLocalStreams();
+    if (streams.indexOf(stream) !== -1) {
+      streams[streams.indexOf(stream)].addTrack(track);
+    } else {
+      this.addStream(stream);
+    }
+  };
 }
 
 // Returns the result of getUserMedia as a Promise.
