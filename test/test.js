@@ -1272,8 +1272,10 @@ test('Basic connection establishment', function(t) {
       t.is(e.streams.length, 1, 'trackEvent.streams has one stream');
       t.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
            'trackEvent.track is in stream');
-      if (pc2.getReceivers()) {
-        t.ok(pc2.getReceivers().indexOf(e.receiver) !== -1,
+
+      var receivers = pc2.getReceivers();
+      if (receivers && receivers.length) {
+        t.ok(receivers.indexOf(e.receiver) !== -1,
              'trackEvent.receiver matches a known receiver');
       }
     };
