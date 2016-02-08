@@ -1724,7 +1724,7 @@ if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
 
 if (typeof window === 'object' && window.RTCPeerConnection && !('addTrack' in
     window.RTCPeerConnection.prototype)) {
-  RTCPeerConnection.prototype.addTrack = function(track, stream) {
+  window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
     var streams = this.getLocalStreams();
     if (streams.indexOf(stream) !== -1) {
       streams[streams.indexOf(stream)].addTrack(track);
