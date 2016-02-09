@@ -1231,6 +1231,12 @@ test('Basic connection establishment', function(t) {
       },
       is: function(a, b, msg) {
         this.ok((a === b), msg + ' - got ' + b);
+      },
+      pass: function(msg) {
+        this.ok(true, msg);
+      },
+      fail: function(msg) {
+        this.ok(false, msg);
       }
     };
     var pc1 = new RTCPeerConnection(null);
@@ -1250,10 +1256,10 @@ test('Basic connection establishment', function(t) {
           function() {
             // TODO: Decide if we are intereted in adding all candidates
             // as passed tests.
-            window.testPassed.push('addIceCandidate ' + counter++);
+            t.pass('addIceCandidate ' + counter++);
           },
           function(err) {
-            window.testFailed.push('addIceCandidate ' + err.toString());
+            t.fail('addIceCandidate ' + err.toString());
           }
         );
       }
@@ -1287,64 +1293,56 @@ test('Basic connection establishment', function(t) {
 
       pc1.createOffer(
         function(offer) {
-          window.testPassed.push('pc1.createOffer');
+          t.pass('pc1.createOffer');
           pc1.setLocalDescription(offer,
             function() {
-              window.testPassed.push('pc1.setLocalDescription');
+              t.pass('pc1.setLocalDescription');
 
               offer = new RTCSessionDescription(offer);
-              window.testPassed.push(
-                'created RTCSessionDescription from offer');
+              t.pass('created RTCSessionDescription from offer');
               pc2.setRemoteDescription(offer,
                 function() {
-                  window.testPassed.push('pc2.setRemoteDescription');
+                  t.pass('pc2.setRemoteDescription');
                   pc2.createAnswer(
                     function(answer) {
-                      window.testPassed.push('pc2.createAnswer');
+                      t.pass('pc2.createAnswer');
                       pc2.setLocalDescription(answer,
                         function() {
-                          window.testPassed.push('pc2.setLocalDescription');
+                          t.pass('pc2.setLocalDescription');
                           answer = new RTCSessionDescription(answer);
-                          window.testPassed.push(
-                            'created RTCSessionDescription from answer');
+                          t.pass('created RTCSessionDescription from answer');
                           pc1.setRemoteDescription(answer,
                             function() {
-                              window.testPassed.push(
-                                'pc1.setRemoteDescription');
+                              t.pass('pc1.setRemoteDescription');
                             },
                             function(err) {
-                              window.testFailed.push(
-                                'pc1.setRemoteDescription ' + err.toString());
+                              t.pass('pc1.setRemoteDescription ' +
+                                  err.toString());
                             }
                           );
                         },
                         function(err) {
-                          window.testFailed.push(
-                            'pc2.setLocalDescription ' + err.toString());
+                          t.fail('pc2.setLocalDescription ' + err.toString());
                         }
                       );
                     },
                     function(err) {
-                      window.testFailed.push(
-                        'pc2.createAnswer ' + err.toString());
+                      t.fail('pc2.createAnswer ' + err.toString());
                     }
                   );
                 },
                 function(err) {
-                  window.testFailed.push(
-                    'pc2.setRemoteDescription ' + err.toString());
+                  t.fail('pc2.setRemoteDescription ' + err.toString());
                 }
               );
             },
             function(err) {
-              window.testFailed.push(
-                'pc1.setLocalDescription ' + err.toString());
+              t.fail('pc1.setLocalDescription ' + err.toString());
             }
           );
         },
         function(err) {
-          window.testFailed.push(
-            'pc1 failed to create offer ' + err.toString());
+          t.fail('pc1 failed to create offer ' + err.toString());
         }
       );
     });
@@ -1392,6 +1390,20 @@ test('Basic connection establishment with promise', function(t) {
     var counter = 1;
     window.testPassed = [];
     window.testFailed = [];
+    var t = {
+      ok: function(ok, msg) {
+        window[ok ? 'testPassed' : 'testFailed'].push(msg);
+      },
+      is: function(a, b, msg) {
+        this.ok((a === b), msg + ' - got ' + b);
+      },
+      pass: function(msg) {
+        this.ok(true, msg);
+      },
+      fail: function(msg) {
+        this.ok(false, msg);
+      }
+    };
     var pc1 = new RTCPeerConnection(null);
     var pc2 = new RTCPeerConnection(null);
 
@@ -1408,10 +1420,10 @@ test('Basic connection establishment with promise', function(t) {
         pc.addIceCandidate(cand).then(function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
-          window.testPassed.push('addIceCandidate ' + counter++);
+          t.pass('addIceCandidate ' + counter++);
         })
         .catch(function(err) {
-          window.testFailed.push('addIceCandidate ' + err.toString());
+          t.fail('addIceCandidate ' + err.toString());
         });
       }
     };
@@ -1427,22 +1439,22 @@ test('Basic connection establishment with promise', function(t) {
     .then(function(stream) {
       pc1.addStream(stream);
       pc1.createOffer().then(function(offer) {
-        window.testPassed.push('pc1.createOffer');
+        t.pass('pc1.createOffer');
         return pc1.setLocalDescription(offer);
       }).then(function() {
-        window.testPassed.push('pc1.setLocalDescription');
+        t.pass('pc1.setLocalDescription');
         return pc2.setRemoteDescription(pc1.localDescription);
       }).then(function() {
-        window.testPassed.push('pc2.setRemoteDescription');
+        t.pass('pc2.setRemoteDescription');
         return pc2.createAnswer();
       }).then(function(answer) {
-        window.testPassed.push('pc2.createAnswer');
+        t.pass('pc2.createAnswer');
         return pc2.setLocalDescription(answer);
       }).then(function() {
-        window.testPassed.push('pc2.setLocalDescription');
+        t.pass('pc2.setLocalDescription');
         return pc1.setRemoteDescription(pc2.localDescription);
       }).then(function() {
-        window.testPassed.push('pc1.setRemoteDescription');
+        t.pass('pc1.setRemoteDescription');
       }).catch(function(err) {
         window.testfailed.push(err.toString());
       });
@@ -1502,6 +1514,20 @@ test('Basic connection establishment with datachannel', function(t) {
     var counter = 1;
     window.testPassed = [];
     window.testFailed = [];
+    var t = {
+      ok: function(ok, msg) {
+        window[ok ? 'testPassed' : 'testFailed'].push(msg);
+      },
+      is: function(a, b, msg) {
+        this.ok((a === b), msg + ' - got ' + b);
+      },
+      pass: function(msg) {
+        this.ok(true, msg);
+      },
+      fail: function(msg) {
+        this.ok(false, msg);
+      }
+    };
     var pc1 = new RTCPeerConnection(null);
     var pc2 = new RTCPeerConnection(null);
 
@@ -1521,12 +1547,12 @@ test('Basic connection establishment with datachannel', function(t) {
       if (event.candidate) {
         var cand = new RTCIceCandidate(event.candidate);
         pc.addIceCandidate(cand).then(function() {
-          // TODO: Decide if we are intereted in adding all candidates
+          // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
-          window.testPassed.push('addIceCandidate ' + counter++);
+          t.pass('addIceCandidate ' + counter++);
         })
         .catch(function(err) {
-          window.testFailed.push('addIceCandidate ' + err.toString());
+          t.fail('addIceCandidate ' + err.toString());
         });
       }
     };
@@ -1539,24 +1565,24 @@ test('Basic connection establishment with datachannel', function(t) {
 
     pc1.createDataChannel('somechannel');
     pc1.createOffer().then(function(offer) {
-      window.testPassed.push('pc1.createOffer');
+      t.pass('pc1.createOffer');
       return pc1.setLocalDescription(offer);
     }).then(function() {
-      window.testPassed.push('pc1.setLocalDescription');
+      t.pass('pc1.setLocalDescription');
       return pc2.setRemoteDescription(pc1.localDescription);
     }).then(function() {
-      window.testPassed.push('pc2.setRemoteDescription');
+      t.pass('pc2.setRemoteDescription');
       return pc2.createAnswer();
     }).then(function(answer) {
-      window.testPassed.push('pc2.createAnswer');
+      t.pass('pc2.createAnswer');
       return pc2.setLocalDescription(answer);
     }).then(function() {
-      window.testPassed.push('pc2.setLocalDescription');
+      t.pass('pc2.setLocalDescription');
       return pc1.setRemoteDescription(pc2.localDescription);
     }).then(function() {
-      window.testPassed.push('pc1.setRemoteDescription');
+      t.pass('pc1.setRemoteDescription');
     }).catch(function(err) {
-      window.testFailed.push(err.name);
+      t.fail(err.name);
     });
   };
 
