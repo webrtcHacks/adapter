@@ -24,6 +24,7 @@
   //require('./utils').disableLog(true);
 
   // Warn if version is not supported regardless of browser.
+  // Min version can be set per browser in utils.js
   if (browserDetails.version < browserDetails.minVersion) {
     logging('Browser: ' + browserDetails.browser + ' Version: ' +
         browserDetails.version + ' <' + ' minimum supported version: ' +
@@ -36,7 +37,7 @@
   var firefoxShim = require('./firefox/firefox_shim') || null;
 
   // Shim browser if found.
-  switch(browserDetails.browser) {
+  switch (browserDetails.browser) {
     case 'chrome':
       if (!chromeShim) {
         logging('Chrome shim is not included in this adapter release.');
@@ -46,9 +47,10 @@
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = chromeShim;
 
+      chromeShim.shimGetUserMedia();
+      chromeShim.shimOnTrack();
       chromeShim.shimSourceObject();
       chromeShim.shimPeerConnection();
-      chromeShim.shimGetUserMedia();
       break;
     case 'edge':
       if (!edgeShim) {
@@ -70,9 +72,10 @@
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = firefoxShim;
 
+      firefoxShim.shimGetUserMedia();
+      firefoxShim.shimOnTrack();
       firefoxShim.shimSourceObject();
       firefoxShim.shimPeerConnection();
-      firefoxShim.shimGetUserMedia();
       break;
     default:
       logging('Unsupported browser!');

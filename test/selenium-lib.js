@@ -86,7 +86,7 @@ function buildDriver() {
 
   // Set global executeAsyncScript() timeout (default is 0) to allow async
   // callbacks to be caught in tests.
-  sharedDriver.manage().timeouts().setScriptTimeout(2000);
+  sharedDriver.manage().timeouts().setScriptTimeout(5000);
 
   return sharedDriver;
 }

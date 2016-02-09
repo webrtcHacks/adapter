@@ -13,7 +13,7 @@ var browserDetails = require('../utils').browserDetails;
 
 var edgeShim = {
   shimPeerConnection: function() {
-    if (RTCIceGatherer) {
+    if (window.RTCIceGatherer) {
       // Generate an alphanumeric identifier for cname or mids.
       // TODO: use UUIDs instead? https://gist.github.com/jed/982883
       var generateIdentifier_ = function() {

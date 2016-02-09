@@ -61,7 +61,7 @@ var utils = {
     }
 
     // Firefox.
-    if (navigator.mozGetUserMedia && window.mozRTCPeerConnection) {
+    if (navigator.mozGetUserMedia) {
       result.browser = 'firefox';
       result.version = this.extractVersion(navigator.userAgent,
           /Firefox\/([0-9]+)\./, 1);
