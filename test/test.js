@@ -1271,6 +1271,21 @@ test('Basic connection establishment', function(t) {
     pc2.onicecandidate = function(event) {
       addCandidate(pc1, event);
     };
+    pc2.ontrack = function(e) {
+      t.ok(true, 'pc2.ontrack');
+      t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
+      t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is object');
+      t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
+      t.is(e.streams.length, 1, 'trackEvent.streams has one stream');
+      t.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
+           'trackEvent.track is in stream');
+
+      var receivers = pc2.getReceivers();
+      if (receivers && receivers.length) {
+        t.ok(receivers.indexOf(e.receiver) !== -1,
+             'trackEvent.receiver matches a known receiver');
+      }
+    };
 
     var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
@@ -1283,10 +1298,8 @@ test('Basic connection establishment', function(t) {
           pc1.setLocalDescription(offer,
             function() {
               t.pass('pc1.setLocalDescription');
-
               offer = new RTCSessionDescription(offer);
-              t.pass(
-                'created RTCSessionDescription from offer');
+              t.pass('created RTCSessionDescription from offer');
               pc2.setRemoteDescription(offer,
                 function() {
                   t.pass('pc2.setRemoteDescription');
@@ -1297,46 +1310,39 @@ test('Basic connection establishment', function(t) {
                         function() {
                           t.pass('pc2.setLocalDescription');
                           answer = new RTCSessionDescription(answer);
-                          t.pass(
-                            'created RTCSessionDescription from answer');
+                          t.pass('created RTCSessionDescription from answer');
                           pc1.setRemoteDescription(answer,
                             function() {
-                              t.pass(
-                                'pc1.setRemoteDescription');
+                              t.pass('pc1.setRemoteDescription');
                             },
                             function(err) {
-                              t.fail(
-                                'pc1.setRemoteDescription ' + err.toString());
+                              t.pass('pc1.setRemoteDescription ' +
+                                  err.toString());
                             }
                           );
                         },
                         function(err) {
-                          t.fail(
-                            'pc2.setLocalDescription ' + err.toString());
+                          t.fail('pc2.setLocalDescription ' + err.toString());
                         }
                       );
                     },
                     function(err) {
-                      t.fail(
-                        'pc2.createAnswer ' + err.toString());
+                      t.fail('pc2.createAnswer ' + err.toString());
                     }
                   );
                 },
                 function(err) {
-                  t.fail(
-                    'pc2.setRemoteDescription ' + err.toString());
+                  t.fail('pc2.setRemoteDescription ' + err.toString());
                 }
               );
             },
             function(err) {
-              t.fail(
-                'pc1.setLocalDescription ' + err.toString());
+              t.fail('pc1.setLocalDescription ' + err.toString());
             }
           );
         },
         function(err) {
-          t.fail(
-            'pc1 failed to create offer ' + err.toString());
+          t.fail('pc1 failed to create offer ' + err.toString());
         }
       );
     });
@@ -1556,7 +1562,7 @@ test('Basic connection establishment with datachannel', function(t) {
       if (event.candidate) {
         var cand = new RTCIceCandidate(event.candidate);
         pc.addIceCandidate(cand).then(function() {
-          // TODO: Decide if we are intereted in adding all candidates
+          // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
           t.pass('addIceCandidate ' + counter++);
         })
