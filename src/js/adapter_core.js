@@ -23,12 +23,11 @@
   // will still appear.
   //require('./utils').disableLog(true);
 
-  // Bail if version is not supported regardless of browser.
+  // Warn if version is not supported regardless of browser.
   if (browserDetails.version < browserDetails.minVersion) {
     logging('Browser: ' + browserDetails.browser + ' Version: ' +
         browserDetails.version + ' <' + ' minimum supported version: ' +
-        browserDetails.minVersion + '\n aborting!');
-    return;
+        browserDetails.minVersion + '\n some things might not work!');
   }
 
   // Browser shims.
@@ -50,7 +49,6 @@
       chromeShim.shimSourceObject();
       chromeShim.shimPeerConnection();
       chromeShim.shimGetUserMedia();
-
       break;
     case 'edge':
       if (!edgeShim) {

@@ -1,6 +1,6 @@
 {
-  "name": "webrtc-adapter",
-  "version": "1.0.0",
+  "name": "webrtc",
+  "version": "0.0.1",
   "description": "A shim to insulate apps from WebRTC spec changes and browser prefix differences",
   "license": "BSD-3-Clause",
   "main": "out/adapter.js",
@@ -15,13 +15,6 @@
     "prepublish": "grunt build",
     "test": "grunt && test/run-tests"
   },
-  "bin": [
-    "out/adapter.js",
-    "out/adapter_no_edge.js",
-    "out/adapter_no_edge_no_global.js",
-    "out/adapter_no_global.js"
-  ]
-  ,
   "dependencies": {
     "grunt": "^0.4.5",
     "grunt-browserify": "^4.0.1",

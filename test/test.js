@@ -2025,7 +2025,7 @@ test('Non-module logging to console still works', function(t) {
       [typeof window.adapter.browserShim.reattachMediaStream,'function',
         'reattachMediaSteam is a function']);
     window.testsEqualArray.push([typeof window.adapter.browserDetails.browser,
-        'string', 'wbrowserDetails.browser browser is a string']);
+        'string', 'browserDetails.browser browser is a string']);
     window.testsEqualArray.push([typeof window.adapter.browserDetails.version,
         'number', 'browserDetails.version is a number']);
   };
