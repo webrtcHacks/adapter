@@ -9,7 +9,7 @@
     "url": "https://github.com/webrtc/adapter.git"
   },
   "scripts": {
-    "test": "grunt && test/run-tests"
+    "test": "grunt && test/run-tests | faucet"
   },
   "testling": {
     "files": "test/test.js"
@@ -27,6 +27,7 @@
     "selenium-webdriver": "^2.48.0",
     "tape": "^4.0.0",
     "testling": "^1.7.1",
-    "travis-multirunner": "^3.0.0"
+    "travis-multirunner": "^3.0.0",
+    "faucet": "0.0.1"
   }
 }
