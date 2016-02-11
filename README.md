@@ -21,7 +21,7 @@ npm install webrtc-adapter
 In node_modules/webrtc-adapter/out/ folder you will find 4 files:
 * adapter.js - includes all the shims and is visible in the browser under the global `adapter` object (window.adapter).
 * adapter_no_edge.js - same as above but does not include the Microsoft Edge (ORTC) shim.
-* adapter_no_edge_no_global.js same as above but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
+* adapter_no_edge_no_global.js - same as above but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
 * adapter.js_no_global.js - same as adapter.js but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
 
 Include the file that suits your need in your project.
