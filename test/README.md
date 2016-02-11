@@ -18,6 +18,17 @@ git clone https://github.com/webrtc/adapter.git
 npm install
 ```
 
+#### Build
+In order to get a usable file, you need to build it.
+```bash
+grunt build
+```
+This will result in 4 files in the out/ folder:
+* adapter.js - includes all the shims and is visible in the browser under the global `adapter` object (window.adapter).
+* adapter_no_edge.js - same as above but does not include the Microsoft Edge (ORTC) shim.
+* adapter_no_edge_no_global.js same as above but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
+* adapter.js_no_global.js - same as adapter.js but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
+
 #### Run tests
 Runs grunt and tests in test/tests.js. Change the browser to your choice, more details [here](#changeBrowser)
 ```bash
