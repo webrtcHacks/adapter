@@ -6,21 +6,30 @@
 ## Install ##
 
 #### Bower
+TODO: Might need to point to the gh-pages branch instead so that the prebuilt versions can be accessed.
 ```bash
 bower install webrtc-adapter
 ```
 
 #### NPM
 ```bash
-npm install webrtc-adapter-test
+npm install webrtc-adapter
 ```
 
-## Inclusion on Browser ##
+## Usage ##
+#### NPM
+In node_modules/webrtc-adapter/out/ folder you will find 4 files:
+* adapter.js - includes all the shims and is visible in the browser under the global `adapter` object (window.adapter).
+* adapter_no_edge.js - same as above but does not include the Microsoft Edge (ORTC) shim.
+* adapter_no_edge_no_global.js same as above but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
+* adapter.js_no_global.js - same as adapter.js but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
 
-#### Bower
-```html
-<script src="bower_components/webrtc-adapter/adapter.js"></script>
-```
+Include the file that suits your need in your project.
+
+#### Prebuilt releases
+In the [gh-pages branch](https://github.com/webrtc/adapter/tree/gh-pages) prebuilt ready to use files can be downloaded/linked directly.
+Latest version can be found at http://webrtc.github.io/adapter/adapter-latest.js.
+Specific versions can be found at http://webrtc.github.io/adapter/adapter-<version>.js, e.g. http://webrtc.github.io/adapter/adapter-0.2.10.js.
 
 #### NPM
 Copy to desired location in your src tree or use a minify/vulcanize tool (node_modules is usually not published with the code).
