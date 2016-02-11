@@ -7,8 +7,18 @@
  */
 'use strict';
 
-  // SDP helpers.
+// SDP helpers.
 var SDPUtils = {};
+
+// Generate an alphanumeric identifier for cname or mids.
+// TODO: use UUIDs instead? https://gist.github.com/jed/982883
+SDPUtils.generateIdentifier = function() {
+  return Math.random().toString(36).substr(2, 10);
+};
+
+// The RTCP CNAME used by all peerconnections from the same JS.
+SDPUtils.localCName = SDPUtils.generateIdentifier();
+
 
 // Splits SDP into lines, dealing with both CRLF and LF.
 SDPUtils.splitLines = function(blob) {
@@ -349,7 +359,7 @@ SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
   }
   // FIXME: this should be written by writeRtpDescription.
   sdp += 'a=ssrc:' + transceiver.sendSsrc + ' cname:' +
-      localCName + '\r\n';
+      SDPUtils.localCName + '\r\n';
   return sdp;
 };
 

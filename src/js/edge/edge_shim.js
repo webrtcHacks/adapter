@@ -14,15 +14,6 @@ var browserDetails = require('../utils').browserDetails;
 var edgeShim = {
   shimPeerConnection: function() {
     if (window.RTCIceGatherer) {
-      // Generate an alphanumeric identifier for cname or mids.
-      // TODO: use UUIDs instead? https://gist.github.com/jed/982883
-      var generateIdentifier_ = function() {
-        return Math.random().toString(36).substr(2, 10);
-      };
-
-      // The RTCP CNAME used by all peerconnections from the same JS.
-      var localCName = generateIdentifier_();
-
       // ORTC defines an RTCIceCandidate object but no constructor.
       // Not implemented in Edge.
       if (!window.RTCIceCandidate) {
@@ -257,7 +248,7 @@ var edgeShim = {
           ssrc: transceiver.sendSsrc
         }];
         params.rtcp = {
-          cname: localCName,
+          cname: SDPUtils.localCName,
           ssrc: transceiver.recvSsrc
         };
         transceiver.rtpSender.send(params);
@@ -654,7 +645,7 @@ var edgeShim = {
         // potentially rtpsender and rtpreceiver.
         var track = mline.track;
         var kind = mline.kind;
-        var mid = generateIdentifier();
+        var mid = SDPUtils.generateIdentifier();
 
         var transports = self._createIceAndDtlsTransports(mid, sdpMLineIndex);
 
