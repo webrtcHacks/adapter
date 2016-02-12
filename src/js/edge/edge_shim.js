@@ -108,6 +108,7 @@ var edgeShim = {
       var self = this;
       // FIXME: need to apply ice candidates in a way which is async but in-order
       this._localIceCandidatesBuffer.forEach(function(event) {
+        self.dispatchEvent(event);
         if (self.onicecandidate !== null) {
           self.onicecandidate(event);
         }
@@ -175,7 +176,7 @@ var edgeShim = {
       var iceGatherer = new RTCIceGatherer(self.iceOptions);
       var iceTransport = new RTCIceTransport(iceGatherer);
       iceGatherer.onlocalcandidate = function(evt) {
-        var event = {};
+        var event = new Event('icecandidate');
         event.candidate = {sdpMid: mid, sdpMLineIndex: sdpMLineIndex};
 
         var cand = evt.candidate;
@@ -207,18 +208,22 @@ var edgeShim = {
         //     is set. To make things worse, gather.getLocalCandidates still errors in
         //     Edge 10547 when no candidates have been gathered yet.
 
-        if (self.onicecandidate !== null) {
-          // Emit candidate if localDescription is set.
-          // Also emits null candidate when all gatherers are complete.
-          if (self.localDescription && self.localDescription.type === '') {
-            self._localIceCandidatesBuffer.push(event);
-            if (complete) {
-              self._localIceCandidatesBuffer.push({});
-            }
-          } else {
+        // Emit candidate if localDescription is set.
+        // Also emits null candidate when all gatherers are complete.
+        if (self.localDescription && self.localDescription.type === '') {
+          self._localIceCandidatesBuffer.push(event);
+          if (complete) {
+            self._localIceCandidatesBuffer.push(new Event('icecandidate'));
+          }
+        } else {
+          self.dispatchEvent(event);
+          if (self.onicecandidate !== null) {
             self.onicecandidate(event);
-            if (complete) {
-              self.onicecandidate({});
+          }
+          if (complete) {
+            self.dispatchEvent(new Event('icecandidate'));
+            if (self.onicecandidate !== null) {
+              self.onicecandidate(new Event('icecandidate'));
             }
           }
         }
@@ -524,8 +529,10 @@ var edgeShim = {
     window.RTCPeerConnection.prototype._updateSignalingState =
         function(newState) {
       this.signalingState = newState;
+      var event = new Event('signalingstatechange');
+      this.dispatchEvent(event);
       if (this.onsignalingstatechange !== null) {
-        this.onsignalingstatechange();
+        this.onsignalingstatechange(event);
       }
     };
 
@@ -533,8 +540,10 @@ var edgeShim = {
     window.RTCPeerConnection.prototype._maybeFireNegotiationNeeded =
         function() {
       // Fire away (for now).
+      var event = new Event('negotiationneeded');
+      this.dispatchEvent(event);
       if (this.onnegotiationneeded !== null) {
-        this.onnegotiationneeded();
+        this.onnegotiationneeded(event);
       }
     };
 
@@ -574,8 +583,10 @@ var edgeShim = {
 
       if (newState !== self.iceConnectionState) {
         self.iceConnectionState = newState;
+        var event = new Event('iceconnectionstatechange');
+        this.dispatchEvent(event);
         if (this.oniceconnectionstatechange !== null) {
-          this.oniceconnectionstatechange();
+          this.oniceconnectionstatechange(event);
         }
       }
     };
