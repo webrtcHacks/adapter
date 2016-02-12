@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "prepublish": "grunt build",
-    "test": "grunt && test/run-tests"
+    "test": "grunt && test/run-tests | faucet"
   },
   "dependencies": {
     "grunt": "^0.4.5",
@@ -30,6 +30,7 @@
     "grunt-jscs": "^2.0.0",
     "selenium-webdriver": "^2.48.0",
     "tape": "^4.0.0",
-    "travis-multirunner": "^3.0.0"
+    "travis-multirunner": "^3.0.0",
+    "faucet": "0.0.1"
   }
 }
