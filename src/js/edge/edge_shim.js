@@ -34,6 +34,12 @@ var edgeShim = {
     window.RTCPeerConnection = function(config) {
       var self = this;
 
+      var _eventTarget = document.createDocumentFragment();
+      ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
+          function(method) {
+        self[method] = _eventTarget[method].bind(_eventTarget);
+      });
+
       this.onicecandidate = null;
       this.onaddstream = null;
       this.onremovestream = null;
@@ -475,8 +481,12 @@ var edgeShim = {
       window.setTimeout(function() {
         if (self.onaddstream !== null && stream.getTracks().length) {
           self.remoteStreams.push(stream);
+
+          var event = new Event('addstream');
+          event.stream = stream;
+          self.dispatchEvent(event);
           window.setTimeout(function() {
-            self.onaddstream({stream: stream});
+            self.onaddstream(event);
           }, 0);
         }
       }, 0);
