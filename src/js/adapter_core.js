@@ -48,9 +48,9 @@
       module.exports.browserShim = chromeShim;
 
       chromeShim.shimGetUserMedia();
-      chromeShim.shimOnTrack();
       chromeShim.shimSourceObject();
       chromeShim.shimPeerConnection();
+      chromeShim.shimOnTrack();
       break;
     case 'edge':
       if (!edgeShim) {
@@ -73,9 +73,9 @@
       module.exports.browserShim = firefoxShim;
 
       firefoxShim.shimGetUserMedia();
-      firefoxShim.shimOnTrack();
       firefoxShim.shimSourceObject();
       firefoxShim.shimPeerConnection();
+      firefoxShim.shimOnTrack();
       break;
     default:
       logging('Unsupported browser!');
