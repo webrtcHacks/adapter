@@ -783,11 +783,23 @@ var edgeShim = {
         });
       });
     };
+  },
+
+  // Attach a media stream to an element.
+  attachMediaStream: function(element, stream) {
+    element.srcObject = stream;
+  },
+
+  reattachMediaStream: function(to, from) {
+    logging('DEPRECATED, reattachMediaStream will soon be removed.');
+    to.srcObject = from.srcObject;
   }
 }
 
 // Expose public methods.
 module.exports = {
-  shimPeerConnection: edgeShim.shimPeerConnection
+  shimPeerConnection: edgeShim.shimPeerConnection,
+  attachMediaStream: edgeShim.attachMediaStream,
+  reattachMediaStream: edgeShim.reattachMediaStream
 }
 
