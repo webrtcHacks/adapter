@@ -788,8 +788,6 @@ var edgeShim = {
 
 // Expose public methods.
 module.exports = {
-  shimSourceObject: edgeShim.shimSourceObject,
-  shimPeerConnection: edgeShim.shimPeerConnection,
-  setUtilsObject: edgeShim.setUtilsObject,
+  shimPeerConnection: edgeShim.shimPeerConnection
 }
 
