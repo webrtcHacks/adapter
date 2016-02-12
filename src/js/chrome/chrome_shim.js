@@ -59,6 +59,13 @@ var chromeShim = {
             this._srcObject = stream;
             // TODO: revokeObjectUrl(this.src) when !stream to release resources?
             this.src = URL.createObjectURL(stream);
+            // We need to recreate the blob url when a track is added or removed
+            stream.addEventListener('addtrack', function() {
+              self.src = URL.createObjectURL(stream);
+            });
+            stream.addEventListener('removetrack', function() {
+              self.src = URL.createObjectURL(stream);
+            });
           }
         });
       }
