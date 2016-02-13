@@ -483,18 +483,20 @@ var edgeShim = {
         default:
           throw new TypeError('unsupported type "' + description.type + '"');
       }
-      window.setTimeout(function() {
-        if (self.onaddstream !== null && stream.getTracks().length) {
-          self.remoteStreams.push(stream);
-
+      if (stream.getTracks().length) {
+        self.remoteStreams.push(stream);
+        window.setTimeout(function() {
           var event = new Event('addstream');
           event.stream = stream;
           self.dispatchEvent(event);
-          window.setTimeout(function() {
-            self.onaddstream(event);
-          }, 0);
-        }
-      }, 0);
+          if (self.onaddstream !== null) {
+            window.setTimeout(function() {
+              self.onaddstream(event);
+            }, 0);
+          }
+          // TODO: dispatch track event
+        }, 0);
+      }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
       }
