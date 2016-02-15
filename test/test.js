@@ -1271,21 +1271,6 @@ test('Basic connection establishment', function(t) {
     pc2.onicecandidate = function(event) {
       addCandidate(pc1, event);
     };
-    pc2.ontrack = function(e) {
-      t.ok(true, 'pc2.ontrack');
-      t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
-      t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is object');
-      t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
-      t.is(e.streams.length, 1, 'trackEvent.streams has one stream');
-      t.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
-           'trackEvent.track is in stream');
-
-      var receivers = pc2.getReceivers();
-      if (receivers && receivers.length) {
-        t.ok(receivers.indexOf(e.receiver) !== -1,
-             'trackEvent.receiver matches a known receiver');
-      }
-    };
 
     var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
@@ -1432,21 +1417,6 @@ test('Basic connection establishment with promise', function(t) {
     };
     pc2.onicecandidate = function(event) {
       addCandidate(pc1, event);
-    };
-    pc2.ontrack = function(e) {
-      t.ok(true, 'pc2.ontrack');
-      t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
-      t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is object');
-      t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
-      t.is(e.streams.length, 1, 'trackEvent.streams has one stream');
-      t.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
-          'trackEvent.track is in stream');
-
-      var receivers = pc2.getReceivers();
-      if (receivers && receivers.length) {
-        t.ok(receivers.indexOf(e.receiver) !== -1,
-            'trackEvent.receiver matches a known receiver');
-      }
     };
 
     var constraints = {video: true, fake: true};
@@ -2060,6 +2030,134 @@ test('static generateCertificate method', function(t) {
   });
 });
 
+// ontrack is shimmed in Chrome so we test that it is called.
+test('ontrack', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    window.testPassed = [];
+    window.testFailed = [];
+    var t = {
+      ok: function(ok, msg) {
+        window[ok ? 'testPassed' : 'testFailed'].push(msg);
+      },
+      is: function(a, b, msg) {
+        this.ok((a === b), msg + ' - got ' + b);
+      },
+      pass: function(msg) {
+        this.ok(true, msg);
+      },
+      fail: function(msg) {
+        this.ok(false, msg);
+      }
+    };
+    var pc1 = new RTCPeerConnection(null);
+    var pc2 = new RTCPeerConnection(null);
+
+    pc1.oniceconnectionstatechange = function() {
+      if (pc1.iceConnectionState === 'connected' ||
+          pc1.iceConnectionState === 'completed') {
+        callback(pc1.iceConnectionState);
+      }
+    };
+
+    var addCandidate = function(pc, event) {
+      if (event.candidate) {
+        var cand = new RTCIceCandidate(event.candidate);
+        pc.addIceCandidate(cand).catch(function(err) {
+          t.fail('addIceCandidate ' + err.toString());
+        });
+      }
+    };
+    pc1.onicecandidate = function(event) {
+      addCandidate(pc2, event);
+    };
+    pc2.onicecandidate = function(event) {
+      addCandidate(pc1, event);
+    };
+    pc2.ontrack = function(e) {
+      t.ok(true, 'pc2.ontrack called');
+      t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
+      t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is object');
+      t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
+      t.is(e.streams.length, 1, 'trackEvent.streams has one stream');
+      t.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
+          'trackEvent.track is in stream');
+
+      var receivers = pc2.getReceivers();
+      if (receivers && receivers.length) {
+        t.ok(receivers.indexOf(e.receiver) !== -1,
+            'trackEvent.receiver matches a known receiver');
+      }
+    };
+
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      pc1.addStream(stream);
+      pc1.createOffer().then(function(offer) {
+        return pc1.setLocalDescription(offer);
+      }).then(function() {
+        return pc2.setRemoteDescription(pc1.localDescription);
+      }).then(function() {
+        return pc2.createAnswer();
+      }).then(function(answer) {
+        return pc2.setLocalDescription(answer);
+      }).then(function() {
+        return pc1.setRemoteDescription(pc2.localDescription);
+      }).then(function() {
+      }).catch(function(err) {
+        t.fail(err.toString());
+      });
+    })
+    .catch(function(error) {
+      callback(error);
+    });
+  };
+
+  // plan for 7 tests.
+  t.plan(7);
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(function(callback) {
+    // Callback will either return an error object or pc1ConnectionStatus.
+    if (callback.name === 'Error') {
+      t.fail('getUserMedia failure: ' + callback.toString());
+    } else {
+      return callback;
+    }
+  })
+  .then(function(pc1ConnectionStatus) {
+    t.ok(pc1ConnectionStatus === 'completed' || 'connected',
+      'P2P connection established');
+    return driver.executeScript('return window.testPassed');
+  })
+  .then(function(testPassed) {
+    return driver.executeScript('return window.testFailed')
+    .then(function(testFailed) {
+      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+        t.pass(testPassed[testPass]);
+      }
+      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+        t.fail(testFailed[testFail]);
+      }
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
 // This MUST to be the last test since it loads adapter
 // again which may result in unintended behaviour.
 test('Non-module logging to console still works', function(t) {
