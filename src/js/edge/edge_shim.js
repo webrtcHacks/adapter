@@ -787,6 +787,7 @@ var edgeShim = {
 
   // Attach a media stream to an element.
   attachMediaStream: function(element, stream) {
+    logging('DEPRECATED, attachMediaStream will soon be removed.');
     element.srcObject = stream;
   },
 
