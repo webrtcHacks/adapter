@@ -356,6 +356,7 @@ var edgeShim = {
         function(description) {
       var self = this;
       var stream = new MediaStream();
+      var receiverList = [];
       var sections = SDPUtils.splitSections(description.sdp);
       var sessionpart = sections.shift();
       sections.forEach(function(mediaSection, sdpMLineIndex) {
@@ -375,6 +376,7 @@ var edgeShim = {
         var recvSsrc;
         var localCapabilities;
 
+        var track;
         // FIXME: ensure the mediaSection has rtcp-mux set.
         var remoteCapabilities = SDPUtils.parseRtpParameters(mediaSection);
         var remoteIceParameters;
@@ -409,9 +411,11 @@ var edgeShim = {
 
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
+          track = rtpReceiver.track;
+          receiverList.push([track, rtpReceiver]);
           // FIXME: not correct when there are multiple streams but that is
           // not currently supported in this shim.
-          stream.addTrack(rtpReceiver.track);
+          stream.addTrack(track);
 
           // FIXME: look at direction.
           if (self.localStreams.length > 0 &&
@@ -464,7 +468,9 @@ var edgeShim = {
 
           if (rtpReceiver &&
               (direction === 'sendrecv' || direction === 'sendonly')) {
-            stream.addTrack(rtpReceiver.track);
+            track = rtpReceiver.track;
+            receiverList.push([track, rtpReceiver]);
+            stream.addTrack(track);
           } else {
             // FIXME: actually the receiver should be created later.
             delete transceiver.rtpReceiver;
@@ -494,7 +500,16 @@ var edgeShim = {
               self.onaddstream(event);
             }, 0);
           }
-          // TODO: dispatch track event
+
+          receiverList.forEach(function(item) {
+            var track = item[0];
+            var receiver = item[1];
+            var event = new Event('track');
+            event.track = track;
+            event.receiver = receiver;
+            event.streams = [stream];
+            self.dispatchEvent(event);
+          });
         }, 0);
       }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
