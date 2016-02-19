@@ -38,25 +38,17 @@ var firefoxShim = {
   },
 
   shimSourceObject: function() {
+    // Firefox has supported mozSrcObject since FF22, unprefixed in 42.
     if (typeof window === 'object') {
       if (window.HTMLMediaElement &&
         !('srcObject' in window.HTMLMediaElement.prototype)) {
         // Shim the srcObject property, once, when HTMLMediaElement is found.
         Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
           get: function() {
-            // If prefixed srcObject property exists, return it.
-            // Otherwise use the shimmed property, _srcObject
-            return 'mozSrcObject' in this ? this.mozSrcObject : this._srcObject;
+            return this.mozSrcObject;
           },
           set: function(stream) {
-            if ('mozSrcObject' in this) {
-              this.mozSrcObject = stream;
-            } else {
-              // Use _srcObject as a private property for this shim
-              this._srcObject = stream;
-              // TODO: revokeObjectUrl(this.src) when !stream to release resources?
-              this.src = URL.createObjectURL(stream);
-            }
+            this.mozSrcObject = stream;
           }
         });
       }
@@ -219,22 +211,12 @@ var firefoxShim = {
   // Attach a media stream to an element.
   attachMediaStream: function(element, stream) {
     logging('DEPRECATED, attachMediaStream will soon be removed.');
-    if (browserDetails.version >= 43) {
-      element.srcObject = stream;
-    } else if (typeof element.src !== 'undefined') {
-      element.src = URL.createObjectURL(stream);
-    } else {
-      logging('Error attaching stream to element.');
-    }
+    element.srcObject = stream;
   },
 
   reattachMediaStream: function(to, from) {
     logging('DEPRECATED, reattachMediaStream will soon be removed.');
-    if (browserDetails.version >= 43) {
-      to.srcObject = from.srcObject;
-    } else {
-      to.src = from.src;
-    }
+    to.srcObject = from.srcObject;
   }
 }
 
