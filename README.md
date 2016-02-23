@@ -6,7 +6,6 @@
 ## Install ##
 
 #### Bower
-TODO: Might need to point to the gh-pages branch instead so that the prebuilt versions can be accessed.
 ```bash
 bower install webrtc-adapter
 ```
