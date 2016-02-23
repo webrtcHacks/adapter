@@ -29,7 +29,7 @@ Include the file that suits your need in your project.
 #### Prebuilt releases
 In the [gh-pages branch](https://github.com/webrtc/adapter/tree/gh-pages) prebuilt ready to use files can be downloaded/linked directly.
 Latest version can be found at http://webrtc.github.io/adapter/adapter-latest.js.
-Specific versions can be found at http://webrtc.github.io/adapter/adapter-<version>.js, e.g. http://webrtc.github.io/adapter/adapter-0.2.10.js.
+Specific versions can be found at http://webrtc.github.io/adapter/adapter-N.N.N.js, e.g. http://webrtc.github.io/adapter/adapter-1.0.2.js.
 
 #### NPM
 Copy to desired location in your src tree or use a minify/vulcanize tool (node_modules is usually not published with the code).
