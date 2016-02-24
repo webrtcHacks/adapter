@@ -87,6 +87,10 @@ var utils = {
       result.minVersion = 10547;
       return result;
     }
+    
+    // Non supported browser default.
+    result.browser = 'Not a supported browser.';
+    return result;
   }
 };
 
