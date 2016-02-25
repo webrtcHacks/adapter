@@ -547,18 +547,18 @@ var edgeShim = {
         states[transceiver.dtlsTransport.state]++;
       });
       // ICETransport.completed and connected are the same for this purpose.
-      states.connected += states.completed;
+      states['connected'] += states['completed'];
 
       newState = 'new';
-      if (states.failed > 0) {
+      if (states['failed'] > 0) {
         newState = 'failed';
-      } else if (states.connecting > 0 || states.checking > 0) {
+      } else if (states['connecting'] > 0 || states['checking'] > 0) {
         newState = 'connecting';
-      } else if (states.disconnected > 0) {
+      } else if (states['disconnected'] > 0) {
         newState = 'disconnected';
-      } else if (states.new > 0) {
+      } else if (states['new'] > 0) {
         newState = 'new';
-      } else if (states.connecting > 0 || states.completed > 0) {
+      } else if (states['connecting'] > 0 || states['completed'] > 0) {
         newState = 'connected';
       }
 
