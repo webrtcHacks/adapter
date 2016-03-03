@@ -51,7 +51,7 @@ var utils = {
     // Returned result object.
     var result = {};
     result.browser = null;
-    result.version = null
+    result.version = null;
     result.minVersion = null;
 
     // Non supported browser.
