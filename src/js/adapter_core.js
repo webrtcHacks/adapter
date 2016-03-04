@@ -43,7 +43,7 @@
         logging('Chrome shim is not included in this adapter release.');
         return;
       }
-      logging('Adapter.js shimming chrome!');
+      logging('adapter.js shimming chrome!');
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = chromeShim;
 
@@ -57,7 +57,7 @@
         logging('MS edge shim is not included in this adapter release.');
         return;
       }
-      logging('Adapter.js shimming edge!');
+      logging('adapter.js shimming edge!');
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = edgeShim;
 
@@ -68,7 +68,7 @@
         logging('Firefox shim is not included in this adapter release.');
         return;
       }
-      logging('Adapter.js shimming firefox!');
+      logging('adapter.js shimming firefox!');
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = firefoxShim;
 
