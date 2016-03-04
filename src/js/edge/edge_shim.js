@@ -749,6 +749,12 @@ var edgeShim = {
           cand = {};
         }
         transceiver.iceTransport.addRemoteCandidate(cand);
+
+        // update the remoteDescription.
+        var sections = SDPUtils.splitSections(this.remoteDescription.sdp);
+        sections[mLineIndex + 1] += cand.type ? candidate.candidate + '\r\n' :
+            'a=end-of-candidates\r\n';
+        this.remoteDescription.sdp = sections.join('');
       }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
