@@ -100,13 +100,25 @@ var edgeShim = {
 
     window.RTCPeerConnection.prototype._emitBufferedCandidates = function() {
       var self = this;
+      var sections = SDPUtils.splitSections(self.localDescription.sdp);
       // FIXME: need to apply ice candidates in a way which is async but in-order
       this._localIceCandidatesBuffer.forEach(function(event) {
+        var end = !event.candidate || Object.keys(event.candidate).length == 0;
+        if (end) {
+          for (var j = 1; j < sections.length; j++) {
+            sections[j] += 'a=end-of-candidates\r\n';
+          }
+        } else {
+          sections[event.candidate.sdpMLineIndex + 1] +=
+              event.candidate.candidate + '\r\n';
+        }
+
         if (self.onicecandidate !== null) {
           self.onicecandidate(event);
         }
       });
       this._localIceCandidatesBuffer = [];
+      this.localDescription.sdp = sections.join('');
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
@@ -173,8 +185,9 @@ var edgeShim = {
         event.candidate = {sdpMid: mid, sdpMLineIndex: sdpMLineIndex};
 
         var cand = evt.candidate;
+        var end = !cand || Object.keys(cand).length === 0;
         // Edge emits an empty object for RTCIceCandidateComplete‥
-        if (!cand || Object.keys(cand).length === 0) {
+        if (end) {
           // polyfill since RTCIceGatherer.state is not implemented in Edge 10547 yet.
           if (iceGatherer.state === undefined) {
             iceGatherer.state = 'completed';
@@ -196,10 +209,16 @@ var edgeShim = {
           return transceiver.iceGatherer &&
               transceiver.iceGatherer.state === 'completed';
         });
-        // FIXME: update .localDescription with candidate and (potentially) end-of-candidates.
+        // update .localDescription with candidate and (potentially) end-of-candidates.
         //     To make this harder, the gatherer might emit candidates before localdescription
         //     is set. To make things worse, gather.getLocalCandidates still errors in
         //     Edge 10547 when no candidates have been gathered yet.
+        if (self.localDescription && self.localDescription.type !== '') {
+          var sections = SDPUtils.splitSections(self.localDescription.sdp);
+          sections[sdpMLineIndex + 1] += (!end ? event.candidate.candidate :
+              'a=end-of-candidates') + '\r\n';
+          self.localDescription.sdp = sections.join('');
+        }
 
         if (self.onicecandidate !== null) {
           // Emit candidate if localDescription is set.
@@ -758,8 +777,8 @@ var edgeShim = {
 
         // update the remoteDescription.
         var sections = SDPUtils.splitSections(this.remoteDescription.sdp);
-        sections[mLineIndex + 1] += cand.type ? candidate.candidate + '\r\n' :
-            'a=end-of-candidates\r\n';
+        sections[mLineIndex + 1] += (cand.type ? candidate.candidate.trim()
+            : 'a=end-of-candidates') + '\r\n';
         this.remoteDescription.sdp = sections.join('');
       }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
