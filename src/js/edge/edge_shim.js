@@ -309,7 +309,10 @@ var edgeShim = {
         });
       }
 
-      this.localDescription = description;
+      this.localDescription = {
+        type: description.type,
+        sdp: description.sdp
+      };
       switch (description.type) {
         case 'offer':
           this._updateSignalingState('have-local-offer');
@@ -461,7 +464,10 @@ var edgeShim = {
         }
       });
 
-      this.remoteDescription = description;
+      this.remoteDescription = {
+          type: description.type,
+          sdp: description.sdp
+      };
       switch (description.type) {
         case 'offer':
           this._updateSignalingState('have-remote-offer');
