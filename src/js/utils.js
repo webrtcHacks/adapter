@@ -54,42 +54,45 @@ var utils = {
     result.version = null;
     result.minVersion = null;
 
-    // Non supported browser.
-    if (typeof window === 'undefined' || !window.navigator) {
-      result.browser = 'Not a supported browser.';
-      return result;
+    function checkMinVersion_(browser, version, minVersion) {
+      // Warn if version is less than minVersion.
+      if (!version && version < minVersion) {
+        utils.log('Browser: ' + browser + ' Version: ' + version + ' < ' +
+            'minimum supported version: ' + minVersion + '\n some things ' +
+            'might not work!');
+      } else {
+        utils.log('Browser version could not be detected, some things might ' +
+            'not work.')
+      }
     }
 
-    // Firefox.
-    if (navigator.mozGetUserMedia) {
+    if (typeof window === 'undefined' || !window.navigator) {
+      result.browser = 'Not a browser.';
+    } else if (navigator.mozGetUserMedia) {
+      // Firefox.
       result.browser = 'firefox';
       result.version = this.extractVersion(navigator.userAgent,
           /Firefox\/([0-9]+)\./, 1);
       result.minVersion = 31;
-      return result;
-    }
-
-    // Chrome/Chromium/Webview.
-    if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
+      checkMinVersion_(result.browser, result.version, result.minVersion);
+    } else if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
+      // Chrome, Chromium, WebView, Opera and other WebKit browsers.
       result.browser = 'chrome';
       result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
       result.minVersion = 38;
-      return result;
-    }
-
-    // Edge.
-    if (navigator.mediaDevices &&
+      checkMinVersion_(result.browser, result.version, result.minVersion);
+    } else if(navigator.mediaDevices &&
         navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
+      // Edge.
       result.browser = 'edge';
       result.version = this.extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
       result.minVersion = 10547;
-      return result;
+      checkMinVersion_(result.browser, result.version, result.minVersion);
+    } else {
+      result.browser = 'Not a supported browser.';
     }
-    
-    // Non supported browser default.
-    result.browser = 'Not a supported browser.';
     return result;
   }
 };
