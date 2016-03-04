@@ -54,34 +54,21 @@ var utils = {
     result.version = null;
     result.minVersion = null;
 
-    function checkMinVersion_(browser, version, minVersion) {
-      // Warn if version is less than minVersion.
-      if (!version && version < minVersion) {
-        utils.log('Browser: ' + browser + ' Version: ' + version + ' < ' +
-            'minimum supported version: ' + minVersion + '\n some things ' +
-            'might not work!');
-      } else {
-        utils.log('Browser version could not be detected, some things might ' +
-            'not work.')
-      }
-    }
-
     if (typeof window === 'undefined' || !window.navigator) {
       result.browser = 'Not a browser.';
+      return result;
     } else if (navigator.mozGetUserMedia) {
       // Firefox.
       result.browser = 'firefox';
       result.version = this.extractVersion(navigator.userAgent,
           /Firefox\/([0-9]+)\./, 1);
       result.minVersion = 31;
-      checkMinVersion_(result.browser, result.version, result.minVersion);
     } else if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
       // Chrome, Chromium, WebView, Opera and other WebKit browsers.
       result.browser = 'chrome';
       result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
       result.minVersion = 38;
-      checkMinVersion_(result.browser, result.version, result.minVersion);
     } else if(navigator.mediaDevices &&
         navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
       // Edge.
@@ -89,9 +76,19 @@ var utils = {
       result.version = this.extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
       result.minVersion = 10547;
-      checkMinVersion_(result.browser, result.version, result.minVersion);
     } else {
       result.browser = 'Not a supported browser.';
+    }
+
+    // Warn if version is less than minVersion.
+    if (!result.version  && !result.minVersion && !result.browser &&
+        result.version < result.minVersion) {
+      utils.log('Browser: ' + result.browser + ' Version: ' + version + ' < ' +
+          'minimum supported version: ' + minVersion + '\n some things ' +
+          'might not work!');
+    } else {
+      utils.log('Browser version could not be detected, some things might ' +
+          'not work.')
     }
     return result;
   }
