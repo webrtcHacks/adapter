@@ -78,18 +78,16 @@ var utils = {
       result.minVersion = 10547;
     } else {
       result.browser = 'Not a supported browser.';
+      return result;
     }
 
     // Warn if version is less than minVersion.
-    if (!result.version  && !result.minVersion && !result.browser &&
-        result.version < result.minVersion) {
-      utils.log('Browser: ' + result.browser + ' Version: ' + version + ' < ' +
-          'minimum supported version: ' + minVersion + '\n some things ' +
-          'might not work!');
-    } else {
-      utils.log('Browser version could not be detected, some things might ' +
-          'not work.')
+    if (result.version < result.minVersion) {
+      utils.log('Browser: ' + result.browser + ' Version: ' + result.version +
+          ' < minimum supported version: ' + result.minVersion +
+          '\n some things might not work!');
     }
+
     return result;
   }
 };
