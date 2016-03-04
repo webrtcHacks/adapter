@@ -34,6 +34,12 @@ var edgeShim = {
     window.RTCPeerConnection = function(config) {
       var self = this;
 
+      var _eventTarget = document.createDocumentFragment();
+      ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
+          function(method) {
+        self[method] = _eventTarget[method].bind(_eventTarget);
+      });
+
       this.onicecandidate = null;
       this.onaddstream = null;
       this.onremovestream = null;
@@ -112,7 +118,7 @@ var edgeShim = {
           sections[event.candidate.sdpMLineIndex + 1] +=
               event.candidate.candidate + '\r\n';
         }
-
+        self.dispatchEvent(event);
         if (self.onicecandidate !== null) {
           self.onicecandidate(event);
         }
@@ -181,7 +187,7 @@ var edgeShim = {
       var iceGatherer = new RTCIceGatherer(self.iceOptions);
       var iceTransport = new RTCIceTransport(iceGatherer);
       iceGatherer.onlocalcandidate = function(evt) {
-        var event = {};
+        var event = new Event('icecandidate');
         event.candidate = {sdpMid: mid, sdpMLineIndex: sdpMLineIndex};
 
         var cand = evt.candidate;
@@ -220,18 +226,22 @@ var edgeShim = {
           self.localDescription.sdp = sections.join('');
         }
 
-        if (self.onicecandidate !== null) {
-          // Emit candidate if localDescription is set.
-          // Also emits null candidate when all gatherers are complete.
-          if (self.localDescription && self.localDescription.type === '') {
-            self._localIceCandidatesBuffer.push(event);
-            if (complete) {
-              self._localIceCandidatesBuffer.push({});
-            }
-          } else {
+        // Emit candidate if localDescription is set.
+        // Also emits null candidate when all gatherers are complete.
+        if (self.localDescription && self.localDescription.type === '') {
+          self._localIceCandidatesBuffer.push(event);
+          if (complete) {
+            self._localIceCandidatesBuffer.push(new Event('icecandidate'));
+          }
+        } else {
+          self.dispatchEvent(event);
+          if (self.onicecandidate !== null) {
             self.onicecandidate(event);
-            if (complete) {
-              self.onicecandidate({});
+          }
+          if (complete) {
+            self.dispatchEvent(new Event('icecandidate'));
+            if (self.onicecandidate !== null) {
+              self.onicecandidate(new Event('icecandidate'));
             }
           }
         }
@@ -367,6 +377,7 @@ var edgeShim = {
         function(description) {
       var self = this;
       var stream = new MediaStream();
+      var receiverList = [];
       var sections = SDPUtils.splitSections(description.sdp);
       var sessionpart = sections.shift();
       sections.forEach(function(mediaSection, sdpMLineIndex) {
@@ -386,6 +397,7 @@ var edgeShim = {
         var recvSsrc;
         var localCapabilities;
 
+        var track;
         // FIXME: ensure the mediaSection has rtcp-mux set.
         var remoteCapabilities = SDPUtils.parseRtpParameters(mediaSection);
         var remoteIceParameters;
@@ -420,9 +432,11 @@ var edgeShim = {
 
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
+          track = rtpReceiver.track;
+          receiverList.push([track, rtpReceiver]);
           // FIXME: not correct when there are multiple streams but that is
           // not currently supported in this shim.
-          stream.addTrack(rtpReceiver.track);
+          stream.addTrack(track);
 
           // FIXME: look at direction.
           if (self.localStreams.length > 0 &&
@@ -475,7 +489,9 @@ var edgeShim = {
 
           if (rtpReceiver &&
               (direction === 'sendrecv' || direction === 'sendonly')) {
-            stream.addTrack(rtpReceiver.track);
+            track = rtpReceiver.track;
+            receiverList.push([track, rtpReceiver]);
+            stream.addTrack(track);
           } else {
             // FIXME: actually the receiver should be created later.
             delete transceiver.rtpReceiver;
@@ -497,14 +513,29 @@ var edgeShim = {
         default:
           throw new TypeError('unsupported type "' + description.type + '"');
       }
-      window.setTimeout(function() {
-        if (self.onaddstream !== null && stream.getTracks().length) {
-          self.remoteStreams.push(stream);
-          window.setTimeout(function() {
-            self.onaddstream({stream: stream});
-          }, 0);
-        }
-      }, 0);
+      if (stream.getTracks().length) {
+        self.remoteStreams.push(stream);
+        window.setTimeout(function() {
+          var event = new Event('addstream');
+          event.stream = stream;
+          self.dispatchEvent(event);
+          if (self.onaddstream !== null) {
+            window.setTimeout(function() {
+              self.onaddstream(event);
+            }, 0);
+          }
+
+          receiverList.forEach(function(item) {
+            var track = item[0];
+            var receiver = item[1];
+            var event = new Event('track');
+            event.track = track;
+            event.receiver = receiver;
+            event.streams = [stream];
+            self.dispatchEvent(event);
+          });
+        }, 0);
+      }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
       }
@@ -539,8 +570,10 @@ var edgeShim = {
     window.RTCPeerConnection.prototype._updateSignalingState =
         function(newState) {
       this.signalingState = newState;
+      var event = new Event('signalingstatechange');
+      this.dispatchEvent(event);
       if (this.onsignalingstatechange !== null) {
-        this.onsignalingstatechange();
+        this.onsignalingstatechange(event);
       }
     };
 
@@ -548,8 +581,10 @@ var edgeShim = {
     window.RTCPeerConnection.prototype._maybeFireNegotiationNeeded =
         function() {
       // Fire away (for now).
+      var event = new Event('negotiationneeded');
+      this.dispatchEvent(event);
       if (this.onnegotiationneeded !== null) {
-        this.onnegotiationneeded();
+        this.onnegotiationneeded(event);
       }
     };
 
@@ -589,8 +624,10 @@ var edgeShim = {
 
       if (newState !== self.iceConnectionState) {
         self.iceConnectionState = newState;
+        var event = new Event('iceconnectionstatechange');
+        this.dispatchEvent(event);
         if (this.oniceconnectionstatechange !== null) {
-          this.oniceconnectionstatechange();
+          this.oniceconnectionstatechange(event);
         }
       }
     };
