@@ -59,26 +59,42 @@ var utils = {
     if (typeof window === 'undefined' || !window.navigator) {
       result.browser = 'Not a browser.';
       return result;
-    } else if (navigator.mozGetUserMedia) {
+    }
+
+    if (navigator.mozGetUserMedia) {
       // Firefox.
       result.browser = 'firefox';
       result.version = this.extractVersion(navigator.userAgent,
           /Firefox\/([0-9]+)\./, 1);
       result.minVersion = 31;
+
     } else if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
-      // Chrome, Chromium, WebView, Opera and other WebKit browsers.
-      result.browser = 'chrome';
-      result.version = this.extractVersion(navigator.userAgent,
+
+      // Chrome, Chromium, Webview, Opera.
+      if (navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)) {
+        result.browser = 'chrome';
+        result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
-      result.minVersion = 38;
-    } else if(navigator.mediaDevices &&
-        navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
+        result.minVersion = 38;
+
+      // Safari
+      } else {
+        result.browser = 'safari';
+        result.version = this.extractVersion(navigator.userAgent,
+          /AppleWebKit\/([0-9]+)\./, 1);
+        result.minVersion = 602;
+      }
+
+    } else if (navigator.mediaDevices &&
       // Edge.
+      navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
       result.browser = 'edge';
       result.version = this.extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
       result.minVersion = 10547;
+
     } else {
+      // Default fallthrough: not supported.
       result.browser = 'Not a supported browser.';
       return result;
     }
