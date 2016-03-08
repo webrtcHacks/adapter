@@ -23,14 +23,6 @@
   // will still appear.
   //require('./utils').disableLog(true);
 
-  // Warn if version is not supported regardless of browser.
-  // Min version can be set per browser in utils.js
-  if (browserDetails.version < browserDetails.minVersion) {
-    logging('Browser: ' + browserDetails.browser + ' Version: ' +
-        browserDetails.version + ' <' + ' minimum supported version: ' +
-        browserDetails.minVersion + '\n some things might not work!');
-  }
-
   // Browser shims.
   var chromeShim = require('./chrome/chrome_shim') || null;
   var edgeShim = require('./edge/edge_shim') || null;
@@ -39,7 +31,7 @@
   // Shim browser if found.
   switch (browserDetails.browser) {
     case 'chrome':
-      if (!chromeShim||!chromeShim.shimPeerConnection) {
+      if (!chromeShim || !chromeShim.shimPeerConnection) {
         logging('Chrome shim is not included in this adapter release.');
         return;
       }
@@ -53,7 +45,7 @@
       chromeShim.shimOnTrack();
       break;
     case 'edge':
-      if (!edgeShim||!edgeShim.shimPeerConnection) {
+      if (!edgeShim || !edgeShim.shimPeerConnection) {
         logging('MS edge shim is not included in this adapter release.');
         return;
       }
@@ -64,7 +56,7 @@
       edgeShim.shimPeerConnection();
       break;
     case 'firefox':
-      if (!firefoxShim||!firefoxShim.shimPeerConnection) {
+      if (!firefoxShim || !firefoxShim.shimPeerConnection) {
         logging('Firefox shim is not included in this adapter release.');
         return;
       }
