@@ -17,7 +17,6 @@ var firefoxShim = {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
         get: function() { return this._ontrack; },
         set: function(f) {
-          var self = this;
           if (this._ontrack) {
             this.removeEventListener('track', this._ontrack);
             this.removeEventListener('addstream', this._ontrackpoly);
@@ -116,7 +115,8 @@ var firefoxShim = {
         }
         var require = [];
         Object.keys(c).forEach(function(key) {
-          if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
+          if (key === 'require' || key === 'advanced' ||
+              key === 'mediaSource') {
             return;
           }
           var r = c[key] = (typeof c[key] === 'object') ?
@@ -173,7 +173,7 @@ var firefoxShim = {
       return new Promise(function(resolve, reject) {
         navigator.getUserMedia(constraints, resolve, reject);
       });
-    }
+    };
 
     // Shim for mediaDevices on older versions.
     if (!navigator.mediaDevices) {
@@ -218,7 +218,7 @@ var firefoxShim = {
     logging('DEPRECATED, reattachMediaStream will soon be removed.');
     to.srcObject = from.srcObject;
   }
-}
+};
 
 // Expose public methods.
 module.exports = {
@@ -228,4 +228,4 @@ module.exports = {
   shimGetUserMedia: firefoxShim.shimGetUserMedia,
   attachMediaStream: firefoxShim.attachMediaStream,
   reattachMediaStream: firefoxShim.reattachMediaStream
-}
+};

@@ -55,6 +55,7 @@ var chromeShim = {
             return this._srcObject;
           },
           set: function(stream) {
+            var self = this;
             // Use _srcObject as a private property for this shim
             this._srcObject = stream;
             if (this.src) {
@@ -126,7 +127,8 @@ var chromeShim = {
             args[1](fixChromeStats_(response));
           };
 
-          return origGetStats.apply(this, [successCallbackWrapper_, arguments[0]]);
+          return origGetStats.apply(this, [successCallbackWrapper_,
+              arguments[0]]);
         }
 
         // promise-support
@@ -272,7 +274,7 @@ var chromeShim = {
       return new Promise(function(resolve, reject) {
         navigator.getUserMedia(constraints, resolve, reject);
       });
-    }
+    };
 
     if (!navigator.mediaDevices) {
       navigator.mediaDevices = {getUserMedia: getUserMediaPromise_,
@@ -348,7 +350,7 @@ var chromeShim = {
       to.src = from.src;
     }
   }
-}
+};
 
 // Expose public methods.
 module.exports = {

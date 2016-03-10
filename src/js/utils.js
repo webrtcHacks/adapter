@@ -30,8 +30,9 @@ var utils = {
     }
   },
 
-   /**
+  /**
    * Extract browser version out of the provided user agent string.
+   *
    * @param {!string} uastring userAgent string.
    * @param {!string} expr Regular expression used as match criteria.
    * @param {!number} pos position in the version string to be returned.
@@ -44,6 +45,7 @@ var utils = {
 
   /**
    * Browser detector.
+   *
    * @return {object} result containing browser, version and minVersion
    *     properties.
    */
@@ -87,7 +89,7 @@ var utils = {
       result.minVersion = 10547;
       return result;
     }
-    
+
     // Non supported browser default.
     result.browser = 'Not a supported browser.';
     return result;

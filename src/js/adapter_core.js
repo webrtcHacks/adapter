@@ -39,7 +39,7 @@
   // Shim browser if found.
   switch (browserDetails.browser) {
     case 'chrome':
-      if (!chromeShim||!chromeShim.shimPeerConnection) {
+      if (!chromeShim || !chromeShim.shimPeerConnection) {
         logging('Chrome shim is not included in this adapter release.');
         return;
       }
@@ -53,7 +53,7 @@
       chromeShim.shimOnTrack();
       break;
     case 'edge':
-      if (!edgeShim||!edgeShim.shimPeerConnection) {
+      if (!edgeShim || !edgeShim.shimPeerConnection) {
         logging('MS edge shim is not included in this adapter release.');
         return;
       }
@@ -64,7 +64,7 @@
       edgeShim.shimPeerConnection();
       break;
     case 'firefox':
-      if (!firefoxShim||!firefoxShim.shimPeerConnection) {
+      if (!firefoxShim || !firefoxShim.shimPeerConnection) {
         logging('Firefox shim is not included in this adapter release.');
         return;
       }

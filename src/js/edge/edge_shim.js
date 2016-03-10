@@ -9,7 +9,6 @@
 
 var SDPUtils = require('./edge_sdp');
 var logging = require('../utils').log;
-var browserDetails = require('../utils').browserDetails;
 
 var edgeShim = {
   shimPeerConnection: function() {
@@ -833,12 +832,11 @@ var edgeShim = {
     logging('DEPRECATED, reattachMediaStream will soon be removed.');
     to.srcObject = from.srcObject;
   }
-}
+};
 
 // Expose public methods.
 module.exports = {
   shimPeerConnection: edgeShim.shimPeerConnection,
   attachMediaStream: edgeShim.attachMediaStream,
   reattachMediaStream: edgeShim.reattachMediaStream
-}
-
+};
