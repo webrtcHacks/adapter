@@ -63,6 +63,7 @@ var edgeShim = {
       });
       this.signalingState = 'stable';
       this.iceConnectionState = 'new';
+      this.iceGatheringState = 'new';
 
       this.iceOptions = {
         gatherPolicy: 'all',
@@ -111,6 +112,9 @@ var edgeShim = {
         self.dispatchEvent(event);
         if (self.onicecandidate !== null) {
           self.onicecandidate(event);
+        }
+        if (!event.candidate) {
+          self.iceGatheringState = 'complete';
         }
       });
       this._localIceCandidatesBuffer = [];
@@ -210,12 +214,15 @@ var edgeShim = {
 
         // Emit candidate if localDescription is set.
         // Also emits null candidate when all gatherers are complete.
-        if (self.localDescription && self.localDescription.type === '') {
+        switch(self.iceGatheringState) {
+        case 'new':
           self._localIceCandidatesBuffer.push(event);
           if (complete) {
             self._localIceCandidatesBuffer.push(new Event('icecandidate'));
           }
-        } else {
+          break;
+        case 'gathering':
+          self._emitBufferedCandidates();
           self.dispatchEvent(event);
           if (self.onicecandidate !== null) {
             self.onicecandidate(event);
@@ -225,7 +232,12 @@ var edgeShim = {
             if (self.onicecandidate !== null) {
               self.onicecandidate(new Event('icecandidate'));
             }
+            self.iceGatheringState = 'complete';
           }
+          break;
+        case 'complete':
+          // should not happen... currently!
+          break;
         }
       };
       iceTransport.onicestatechange = function() {
@@ -340,13 +352,20 @@ var edgeShim = {
         var cb = arguments[1];
         window.setTimeout(function() {
           cb();
+          if (self.iceGatheringState === 'new') {
+            self.iceGatheringState = 'gathering';
+          }
           self._emitBufferedCandidates();
         }, 0);
       }
       var p = Promise.resolve();
       p.then(function() {
         if (!hasCallback) {
-          window.setTimeout(self._emitBufferedCandidates.bind(self), 0);
+          if (self.iceGatheringState === 'new') {
+            self.iceGatheringState = 'gathering';
+          }
+          // Usually candidates will be emitted earlier.
+          window.setTimeout(self._emitBufferedCandidates.bind(self), 500);
         }
       });
       return p;
