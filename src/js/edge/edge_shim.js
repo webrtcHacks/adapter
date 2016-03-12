@@ -42,6 +42,7 @@ var edgeShim = {
 
       this.onicecandidate = null;
       this.onaddstream = null;
+      this.ontrack = null;
       this.onremovestream = null;
       this.onsignalingstatechange = null;
       this.oniceconnectionstatechange = null;
@@ -533,6 +534,11 @@ var edgeShim = {
             event.receiver = receiver;
             event.streams = [stream];
             self.dispatchEvent(event);
+            if (self.ontrack !== null) {
+                window.setTimeout(function() {
+                  self.ontrack(event);
+                }, 0);
+            }
           });
         }, 0);
       }
