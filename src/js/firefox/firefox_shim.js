@@ -225,7 +225,7 @@ module.exports = {
   shimOnTrack: firefoxShim.shimOnTrack,
   shimSourceObject: firefoxShim.shimSourceObject,
   shimPeerConnection: firefoxShim.shimPeerConnection,
-  shimGetUserMedia: firefoxShim.shimGetUserMedia,
+  shimGetUserMedia: require('./getusermedia'),
   attachMediaStream: firefoxShim.attachMediaStream,
   reattachMediaStream: firefoxShim.reattachMediaStream
 }
