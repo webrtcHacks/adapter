@@ -76,13 +76,31 @@ module.exports = function(grunt) {
         'excludeFiles': [
         ]
       }
+    },
+    clean: {
+      out: ["out"]
+    },
+    uglify: {
+      out: {
+        files: [{
+            expand: true,
+            cwd: 'out',
+            src: '*.js',
+            dest: 'out/',
+            rename: function(dest, src) {
+              return dest + src.replace('.js','.min.js');
+            }
+        }]
+      }
     }
   });
 
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-jscs');
   grunt.loadNpmTasks('grunt-githooks');
   grunt.loadNpmTasks('grunt-browserify');
-  grunt.registerTask('default', ['jshint', 'jscs', 'browserify']);
-  grunt.registerTask('build', ['browserify']);
+  grunt.registerTask('default', ['clean' ,'jshint', 'jscs', 'browserify', 'uglify']);
+  grunt.registerTask('build', ['clean' ,'browserify', 'uglify']);
 };
