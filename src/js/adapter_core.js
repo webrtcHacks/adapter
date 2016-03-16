@@ -23,14 +23,6 @@
   // will still appear.
   //require('./utils').disableLog(true);
 
-  // Warn if version is not supported regardless of browser.
-  // Min version can be set per browser in utils.js
-  if (browserDetails.version < browserDetails.minVersion) {
-    logging('Browser: ' + browserDetails.browser + ' Version: ' +
-        browserDetails.version + ' <' + ' minimum supported version: ' +
-        browserDetails.minVersion + '\n some things might not work!');
-  }
-
   // Browser shims.
   var chromeShim = require('./chrome/chrome_shim') || null;
   var edgeShim = require('./edge/edge_shim') || null;
@@ -39,11 +31,11 @@
   // Shim browser if found.
   switch (browserDetails.browser) {
     case 'chrome':
-      if (!chromeShim) {
+      if (!chromeShim || !chromeShim.shimPeerConnection) {
         logging('Chrome shim is not included in this adapter release.');
         return;
       }
-      logging('Adapter.js shimming chrome!');
+      logging('adapter.js shimming chrome!');
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = chromeShim;
 
@@ -53,22 +45,22 @@
       chromeShim.shimOnTrack();
       break;
     case 'edge':
-      if (!edgeShim) {
+      if (!edgeShim || !edgeShim.shimPeerConnection) {
         logging('MS edge shim is not included in this adapter release.');
         return;
       }
-      logging('Adapter.js shimming edge!');
+      logging('adapter.js shimming edge!');
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = edgeShim;
 
       edgeShim.shimPeerConnection();
       break;
     case 'firefox':
-    if (!firefoxShim) {
+      if (!firefoxShim || !firefoxShim.shimPeerConnection) {
         logging('Firefox shim is not included in this adapter release.');
         return;
       }
-      logging('Adapter.js shimming firefox!');
+      logging('adapter.js shimming firefox!');
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = firefoxShim;
 

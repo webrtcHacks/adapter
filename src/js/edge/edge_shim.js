@@ -34,8 +34,15 @@ var edgeShim = {
     window.RTCPeerConnection = function(config) {
       var self = this;
 
+      var _eventTarget = document.createDocumentFragment();
+      ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
+          function(method) {
+        self[method] = _eventTarget[method].bind(_eventTarget);
+      });
+
       this.onicecandidate = null;
       this.onaddstream = null;
+      this.ontrack = null;
       this.onremovestream = null;
       this.onsignalingstatechange = null;
       this.oniceconnectionstatechange = null;
@@ -57,6 +64,7 @@ var edgeShim = {
       });
       this.signalingState = 'stable';
       this.iceConnectionState = 'new';
+      this.iceGatheringState = 'new';
 
       this.iceOptions = {
         gatherPolicy: 'all',
@@ -100,13 +108,28 @@ var edgeShim = {
 
     window.RTCPeerConnection.prototype._emitBufferedCandidates = function() {
       var self = this;
+      var sections = SDPUtils.splitSections(self.localDescription.sdp);
       // FIXME: need to apply ice candidates in a way which is async but in-order
       this._localIceCandidatesBuffer.forEach(function(event) {
+        var end = !event.candidate || Object.keys(event.candidate).length == 0;
+        if (end) {
+          for (var j = 1; j < sections.length; j++) {
+            sections[j] += 'a=end-of-candidates\r\n';
+          }
+        } else {
+          sections[event.candidate.sdpMLineIndex + 1] +=
+              event.candidate.candidate + '\r\n';
+        }
+        self.dispatchEvent(event);
         if (self.onicecandidate !== null) {
           self.onicecandidate(event);
         }
+        if (!event.candidate) {
+          self.iceGatheringState = 'complete';
+        }
       });
       this._localIceCandidatesBuffer = [];
+      this.localDescription.sdp = sections.join('');
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
@@ -169,12 +192,13 @@ var edgeShim = {
       var iceGatherer = new RTCIceGatherer(self.iceOptions);
       var iceTransport = new RTCIceTransport(iceGatherer);
       iceGatherer.onlocalcandidate = function(evt) {
-        var event = {};
+        var event = new Event('icecandidate');
         event.candidate = {sdpMid: mid, sdpMLineIndex: sdpMLineIndex};
 
         var cand = evt.candidate;
+        var end = !cand || Object.keys(cand).length === 0;
         // Edge emits an empty object for RTCIceCandidateComplete‥
-        if (!cand || Object.keys(cand).length === 0) {
+        if (end) {
           // polyfill since RTCIceGatherer.state is not implemented in Edge 10547 yet.
           if (iceGatherer.state === undefined) {
             iceGatherer.state = 'completed';
@@ -196,25 +220,43 @@ var edgeShim = {
           return transceiver.iceGatherer &&
               transceiver.iceGatherer.state === 'completed';
         });
-        // FIXME: update .localDescription with candidate and (potentially) end-of-candidates.
+        // update .localDescription with candidate and (potentially) end-of-candidates.
         //     To make this harder, the gatherer might emit candidates before localdescription
         //     is set. To make things worse, gather.getLocalCandidates still errors in
         //     Edge 10547 when no candidates have been gathered yet.
+        if (self.localDescription && self.localDescription.type !== '') {
+          var sections = SDPUtils.splitSections(self.localDescription.sdp);
+          sections[sdpMLineIndex + 1] += (!end ? event.candidate.candidate :
+              'a=end-of-candidates') + '\r\n';
+          self.localDescription.sdp = sections.join('');
+        }
 
-        if (self.onicecandidate !== null) {
-          // Emit candidate if localDescription is set.
-          // Also emits null candidate when all gatherers are complete.
-          if (self.localDescription && self.localDescription.type === '') {
-            self._localIceCandidatesBuffer.push(event);
-            if (complete) {
-              self._localIceCandidatesBuffer.push({});
-            }
-          } else {
-            self.onicecandidate(event);
-            if (complete) {
-              self.onicecandidate({});
-            }
+        // Emit candidate if localDescription is set.
+        // Also emits null candidate when all gatherers are complete.
+        switch(self.iceGatheringState) {
+        case 'new':
+          self._localIceCandidatesBuffer.push(event);
+          if (complete) {
+            self._localIceCandidatesBuffer.push(new Event('icecandidate'));
           }
+          break;
+        case 'gathering':
+          self._emitBufferedCandidates();
+          self.dispatchEvent(event);
+          if (self.onicecandidate !== null) {
+            self.onicecandidate(event);
+          }
+          if (complete) {
+            self.dispatchEvent(new Event('icecandidate'));
+            if (self.onicecandidate !== null) {
+              self.onicecandidate(new Event('icecandidate'));
+            }
+            self.iceGatheringState = 'complete';
+          }
+          break;
+        case 'complete':
+          // should not happen... currently!
+          break;
         }
       };
       iceTransport.onicestatechange = function() {
@@ -309,7 +351,10 @@ var edgeShim = {
         });
       }
 
-      this.localDescription = description;
+      this.localDescription = {
+        type: description.type,
+        sdp: description.sdp
+      };
       switch (description.type) {
         case 'offer':
           this._updateSignalingState('have-local-offer');
@@ -329,13 +374,20 @@ var edgeShim = {
         var cb = arguments[1];
         window.setTimeout(function() {
           cb();
+          if (self.iceGatheringState === 'new') {
+            self.iceGatheringState = 'gathering';
+          }
           self._emitBufferedCandidates();
         }, 0);
       }
       var p = Promise.resolve();
       p.then(function() {
         if (!hasCallback) {
-          window.setTimeout(self._emitBufferedCandidates.bind(self), 0);
+          if (self.iceGatheringState === 'new') {
+            self.iceGatheringState = 'gathering';
+          }
+          // Usually candidates will be emitted earlier.
+          window.setTimeout(self._emitBufferedCandidates.bind(self), 500);
         }
       });
       return p;
@@ -345,6 +397,7 @@ var edgeShim = {
         function(description) {
       var self = this;
       var stream = new MediaStream();
+      var receiverList = [];
       var sections = SDPUtils.splitSections(description.sdp);
       var sessionpart = sections.shift();
       sections.forEach(function(mediaSection, sdpMLineIndex) {
@@ -364,6 +417,7 @@ var edgeShim = {
         var recvSsrc;
         var localCapabilities;
 
+        var track;
         // FIXME: ensure the mediaSection has rtcp-mux set.
         var remoteCapabilities = SDPUtils.parseRtpParameters(mediaSection);
         var remoteIceParameters;
@@ -398,9 +452,11 @@ var edgeShim = {
 
           rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
+          track = rtpReceiver.track;
+          receiverList.push([track, rtpReceiver]);
           // FIXME: not correct when there are multiple streams but that is
           // not currently supported in this shim.
-          stream.addTrack(rtpReceiver.track);
+          stream.addTrack(track);
 
           // FIXME: look at direction.
           if (self.localStreams.length > 0 &&
@@ -453,7 +509,9 @@ var edgeShim = {
 
           if (rtpReceiver &&
               (direction === 'sendrecv' || direction === 'sendonly')) {
-            stream.addTrack(rtpReceiver.track);
+            track = rtpReceiver.track;
+            receiverList.push([track, rtpReceiver]);
+            stream.addTrack(track);
           } else {
             // FIXME: actually the receiver should be created later.
             delete transceiver.rtpReceiver;
@@ -461,7 +519,10 @@ var edgeShim = {
         }
       });
 
-      this.remoteDescription = description;
+      this.remoteDescription = {
+          type: description.type,
+          sdp: description.sdp
+      };
       switch (description.type) {
         case 'offer':
           this._updateSignalingState('have-remote-offer');
@@ -472,14 +533,34 @@ var edgeShim = {
         default:
           throw new TypeError('unsupported type "' + description.type + '"');
       }
-      window.setTimeout(function() {
-        if (self.onaddstream !== null && stream.getTracks().length) {
-          self.remoteStreams.push(stream);
-          window.setTimeout(function() {
-            self.onaddstream({stream: stream});
-          }, 0);
-        }
-      }, 0);
+      if (stream.getTracks().length) {
+        self.remoteStreams.push(stream);
+        window.setTimeout(function() {
+          var event = new Event('addstream');
+          event.stream = stream;
+          self.dispatchEvent(event);
+          if (self.onaddstream !== null) {
+            window.setTimeout(function() {
+              self.onaddstream(event);
+            }, 0);
+          }
+
+          receiverList.forEach(function(item) {
+            var track = item[0];
+            var receiver = item[1];
+            var event = new Event('track');
+            event.track = track;
+            event.receiver = receiver;
+            event.streams = [stream];
+            self.dispatchEvent(event);
+            if (self.ontrack !== null) {
+                window.setTimeout(function() {
+                  self.ontrack(event);
+                }, 0);
+            }
+          });
+        }, 0);
+      }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
       }
@@ -514,8 +595,10 @@ var edgeShim = {
     window.RTCPeerConnection.prototype._updateSignalingState =
         function(newState) {
       this.signalingState = newState;
+      var event = new Event('signalingstatechange');
+      this.dispatchEvent(event);
       if (this.onsignalingstatechange !== null) {
-        this.onsignalingstatechange();
+        this.onsignalingstatechange(event);
       }
     };
 
@@ -523,8 +606,10 @@ var edgeShim = {
     window.RTCPeerConnection.prototype._maybeFireNegotiationNeeded =
         function() {
       // Fire away (for now).
+      var event = new Event('negotiationneeded');
+      this.dispatchEvent(event);
       if (this.onnegotiationneeded !== null) {
-        this.onnegotiationneeded();
+        this.onnegotiationneeded(event);
       }
     };
 
@@ -547,25 +632,27 @@ var edgeShim = {
         states[transceiver.dtlsTransport.state]++;
       });
       // ICETransport.completed and connected are the same for this purpose.
-      states.connected += states.completed;
+      states['connected'] += states['completed'];
 
       newState = 'new';
-      if (states.failed > 0) {
+      if (states['failed'] > 0) {
         newState = 'failed';
-      } else if (states.connecting > 0 || states.checking > 0) {
+      } else if (states['connecting'] > 0 || states['checking'] > 0) {
         newState = 'connecting';
-      } else if (states.disconnected > 0) {
+      } else if (states['disconnected'] > 0) {
         newState = 'disconnected';
-      } else if (states.new > 0) {
+      } else if (states['new'] > 0) {
         newState = 'new';
-      } else if (states.connecting > 0 || states.completed > 0) {
+      } else if (states['connecting'] > 0 || states['completed'] > 0) {
         newState = 'connected';
       }
 
       if (newState !== self.iceConnectionState) {
         self.iceConnectionState = newState;
+        var event = new Event('iceconnectionstatechange');
+        this.dispatchEvent(event);
         if (this.oniceconnectionstatechange !== null) {
-          this.oniceconnectionstatechange();
+          this.oniceconnectionstatechange(event);
         }
       }
     };
@@ -749,6 +836,12 @@ var edgeShim = {
           cand = {};
         }
         transceiver.iceTransport.addRemoteCandidate(cand);
+
+        // update the remoteDescription.
+        var sections = SDPUtils.splitSections(this.remoteDescription.sdp);
+        sections[mLineIndex + 1] += (cand.type ? candidate.candidate.trim()
+            : 'a=end-of-candidates') + '\r\n';
+        this.remoteDescription.sdp = sections.join('');
       }
       if (arguments.length > 1 && typeof arguments[1] === 'function') {
         window.setTimeout(arguments[1], 0);
@@ -783,13 +876,24 @@ var edgeShim = {
         });
       });
     };
+  },
+
+  // Attach a media stream to an element.
+  attachMediaStream: function(element, stream) {
+    logging('DEPRECATED, attachMediaStream will soon be removed.');
+    element.srcObject = stream;
+  },
+
+  reattachMediaStream: function(to, from) {
+    logging('DEPRECATED, reattachMediaStream will soon be removed.');
+    to.srcObject = from.srcObject;
   }
 }
 
 // Expose public methods.
 module.exports = {
-  shimSourceObject: edgeShim.shimSourceObject,
   shimPeerConnection: edgeShim.shimPeerConnection,
-  setUtilsObject: edgeShim.setUtilsObject,
+  attachMediaStream: edgeShim.attachMediaStream,
+  reattachMediaStream: edgeShim.reattachMediaStream
 }
 

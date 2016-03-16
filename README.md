@@ -6,7 +6,6 @@
 ## Install ##
 
 #### Bower
-TODO: Might need to point to the gh-pages branch instead so that the prebuilt versions can be accessed.
 ```bash
 bower install webrtc-adapter
 ```
@@ -19,17 +18,17 @@ npm install webrtc-adapter
 ## Usage ##
 #### NPM
 In node_modules/webrtc-adapter/out/ folder you will find 4 files:
-* adapter.js - includes all the shims and is visible in the browser under the global `adapter` object (window.adapter).
-* adapter_no_edge.js - same as above but does not include the Microsoft Edge (ORTC) shim.
-* adapter_no_edge_no_global.js - same as above but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
-* adapter.js_no_global.js - same as adapter.js but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
+* `adapter.js` - includes all the shims and is visible in the browser under the global `adapter` object (window.adapter).
+* `adapter_no_edge.js` - same as above but does not include the Microsoft Edge (ORTC) shim.
+* `adapter_no_edge_no_global.js` - same as above but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
+* `adapter_no_global.js` - same as `adapter.js` but is not exposed/visible in the browser (you cannot call/interact with the shims in the browser).
 
 Include the file that suits your need in your project.
 
 #### Prebuilt releases
 In the [gh-pages branch](https://github.com/webrtc/adapter/tree/gh-pages) prebuilt ready to use files can be downloaded/linked directly.
 Latest version can be found at http://webrtc.github.io/adapter/adapter-latest.js.
-Specific versions can be found at http://webrtc.github.io/adapter/adapter-<version>.js, e.g. http://webrtc.github.io/adapter/adapter-0.2.10.js.
+Specific versions can be found at http://webrtc.github.io/adapter/adapter-N.N.N.js, e.g. http://webrtc.github.io/adapter/adapter-1.0.2.js.
 
 #### NPM
 Copy to desired location in your src tree or use a minify/vulcanize tool (node_modules is usually not published with the code).
