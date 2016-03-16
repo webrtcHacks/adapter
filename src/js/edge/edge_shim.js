@@ -310,15 +310,25 @@ var edgeShim = {
     window.RTCPeerConnection.prototype.setLocalDescription =
         function(description) {
       var self = this;
+      var sections;
+      var sessionpart;
       if (description.type === 'offer') {
         if (!this._pendingOffer) {
-        } else {
+        } else { 
+          // VERY limited support for SDP munging. Limited to:
+          // * changing the order of codecs
+          sections = SDPUtils.splitSections(description.sdp);
+          sessionpart = sections.shift();
+          sections.forEach(function(mediaSection, sdpMLineIndex) {
+            var caps = SDPUtils.parseRtpParameters(mediaSection);
+            self._pendingOffer[sdpMLineIndex].localCapabilities = caps;
+          });
           this.transceivers = this._pendingOffer;
           delete this._pendingOffer;
         }
       } else if (description.type === 'answer') {
-        var sections = SDPUtils.splitSections(self.remoteDescription.sdp);
-        var sessionpart = sections.shift();
+        sections = SDPUtils.splitSections(self.remoteDescription.sdp);
+        sessionpart = sections.shift();
         sections.forEach(function(mediaSection, sdpMLineIndex) {
           var transceiver = self.transceivers[sdpMLineIndex];
           var iceGatherer = transceiver.iceGatherer;
