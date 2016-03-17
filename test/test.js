@@ -760,8 +760,8 @@ test('srcObject null setter', function(t) {
         'return document.getElementById(\'video\').src');
   })
   .then(function(src) {
-    t.ok(src === 'file://' + process.cwd() + '/test/testpage.html',
-        'src is the empty string'); // kind of... it actually is this page.
+    t.ok(src === 'file://' + process.cwd() + '/test/testpage.html' ||
+        src === '', 'src is the empty string'); // kind of... it actually is this page.
   })
   .then(function() {
     t.end();
