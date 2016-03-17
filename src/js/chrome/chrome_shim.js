@@ -55,10 +55,16 @@ var chromeShim = {
             return this._srcObject;
           },
           set: function(stream) {
+            var self = this;
             // Use _srcObject as a private property for this shim
             this._srcObject = stream;
             if (this.src) {
               URL.revokeObjectURL(this.src);
+            }
+
+            if (!stream) {
+              this.src = '';
+              return;
             }
             this.src = URL.createObjectURL(stream);
             // We need to recreate the blob url when a track is added or removed.

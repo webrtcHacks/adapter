@@ -348,10 +348,10 @@ test('attachMediaStream', function(t) {
       // due to 38 being stable now.
       video.addEventListener('resize', function() {
         document.body.appendChild(video);
+        callback(null);
       });
 
       window.adapter.browserShim.attachMediaStream(video, stream);
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -436,10 +436,10 @@ test('reattachMediaStream', function(t) {
       });
       video2.addEventListener('resize', function() {
         document.body.appendChild(video2);
+        callback(null);
       });
 
       window.adapter.browserShim.attachMediaStream(video, stream);
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -531,8 +531,8 @@ test('Video srcObject getter/setter test', function(t) {
       // at some point. This will trigger onresize.
       video.addEventListener('resize', function() {
         document.body.appendChild(video);
+        callback(null);
       });
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -597,8 +597,8 @@ test('Audio srcObject getter/setter test', function(t) {
       // at some point. This will trigger onresize.
       audio.addEventListener('loadedmetadata', function() {
         document.body.appendChild(audio);
+        callback(null);
       });
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -668,8 +668,8 @@ test('srcObject set from another object', function(t) {
       video.addEventListener('resize', function() {
         document.body.appendChild(video);
         document.body.appendChild(video2);
+        callback(null);
       });
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -702,6 +702,66 @@ test('srcObject set from another object', function(t) {
             'Stream ids from srcObjects match.');
       });
     });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+test('srcObject null setter', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Define test.
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      window.stream = stream;
+
+      var video = document.createElement('video');
+      video.setAttribute('id', 'video');
+      video.setAttribute('autoplay', 'true');
+      document.body.appendChild(video);
+      video.srcObject = stream;
+      video.srcObject = null;
+
+      callback(null);
+    })
+    .catch(function(err) {
+      callback(err.name);
+    });
+  };
+
+  // Run test.
+  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  .then(function() {
+    t.plan(3);
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(function(error) {
+    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
+    // Wait until resize event has fired and appended video element.
+    // 5 second timeout in case the event does not fire for some reason.
+    return driver.wait(webdriver.until.elementLocated(
+      webdriver.By.id('video')), 3000);
+  })
+  .then(function() {
+    return driver.executeScript(
+        'return document.getElementById(\'video\').src');
+  })
+  .then(function(src) {
+    t.ok(src === 'file://' + process.cwd() + '/test/testpage.html' ||
+        src === '', 'src is the empty string'); // kind of... it actually is this page.
   })
   .then(function() {
     t.end();
