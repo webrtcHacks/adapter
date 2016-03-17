@@ -118,7 +118,7 @@ var edgeShim = {
           }
         } else {
           sections[event.candidate.sdpMLineIndex + 1] +=
-              event.candidate.candidate + '\r\n';
+              'a=' + event.candidate.candidate + '\r\n';
         }
         self.dispatchEvent(event);
         if (self.onicecandidate !== null) {
@@ -226,7 +226,7 @@ var edgeShim = {
         //     Edge 10547 when no candidates have been gathered yet.
         if (self.localDescription && self.localDescription.type !== '') {
           var sections = SDPUtils.splitSections(self.localDescription.sdp);
-          sections[sdpMLineIndex + 1] += (!end ? event.candidate.candidate :
+          sections[sdpMLineIndex + 1] += (!end ? 'a=' + event.candidate.candidate :
               'a=end-of-candidates') + '\r\n';
           self.localDescription.sdp = sections.join('');
         }
