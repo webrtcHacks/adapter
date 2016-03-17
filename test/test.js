@@ -348,10 +348,10 @@ test('attachMediaStream', function(t) {
       // due to 38 being stable now.
       video.addEventListener('resize', function() {
         document.body.appendChild(video);
+        callback(null);
       });
 
       window.adapter.browserShim.attachMediaStream(video, stream);
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -436,10 +436,10 @@ test('reattachMediaStream', function(t) {
       });
       video2.addEventListener('resize', function() {
         document.body.appendChild(video2);
+        callback(null);
       });
 
       window.adapter.browserShim.attachMediaStream(video, stream);
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -531,8 +531,8 @@ test('Video srcObject getter/setter test', function(t) {
       // at some point. This will trigger onresize.
       video.addEventListener('resize', function() {
         document.body.appendChild(video);
+        callback(null);
       });
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -597,8 +597,8 @@ test('Audio srcObject getter/setter test', function(t) {
       // at some point. This will trigger onresize.
       audio.addEventListener('loadedmetadata', function() {
         document.body.appendChild(audio);
+        callback(null);
       });
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
@@ -668,8 +668,8 @@ test('srcObject set from another object', function(t) {
       video.addEventListener('resize', function() {
         document.body.appendChild(video);
         document.body.appendChild(video2);
+        callback(null);
       });
-      callback(null);
     })
     .catch(function(err) {
       callback(err.name);
