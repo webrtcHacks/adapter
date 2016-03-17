@@ -902,6 +902,8 @@ test('Re-attaching mediaStream directly', function(t) {
   });
 });
 
+/*
+ * deactivated due to https://github.com/webrtc/adapter/issues/180
 test('Call getUserMedia with impossible constraints', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
@@ -960,6 +962,7 @@ test('Call getUserMedia with impossible constraints', function(t) {
     t.end();
   });
 });
+*/
 
 test('Check getUserMedia legacy constraints converter', function(t) {
   var driver = seleniumHelpers.buildDriver();
