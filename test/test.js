@@ -2124,6 +2124,16 @@ test('ontrack', function(t) {
   t.plan(7);
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
+  // currently deactivated in Firefox. https://github.com/webrtc/adapter/issues/229
+  .then(function() {
+    return driver.executeScript('return adapter.browserDetails.browser');
+  })
+  .then(function(browser) {
+    if (browser === 'firefox') {
+      t.plan(0); // change of plan.
+      throw 'skip-test';
+    }
+  })
   .then(function() {
     return driver.executeAsyncScript(testDefinition);
   })
