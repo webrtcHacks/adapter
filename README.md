@@ -49,3 +49,4 @@ Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/te
 
 ## Publish a new version ##
 Just run `npm version patch -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
+Currently only tested on Linux, not sure about MAC but will definitely not work on Windows.
