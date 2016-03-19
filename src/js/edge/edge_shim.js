@@ -114,12 +114,15 @@ var edgeShim = {
         var end = !event.candidate || Object.keys(event.candidate).length == 0;
         if (end) {
           for (var j = 1; j < sections.length; j++) {
-            sections[j] += 'a=end-of-candidates\r\n';
+            if (sections[j].indexOf('\r\na=end-of-candidates\r\n') === -1) {
+              sections[j] += 'a=end-of-candidates\r\n';
+            }
           }
         } else {
           sections[event.candidate.sdpMLineIndex + 1] +=
               'a=' + event.candidate.candidate + '\r\n';
         }
+        self.localDescription.sdp = sections.join('');
         self.dispatchEvent(event);
         if (self.onicecandidate !== null) {
           self.onicecandidate(event);
@@ -129,7 +132,6 @@ var edgeShim = {
         }
       });
       this._localIceCandidatesBuffer = [];
-      this.localDescription.sdp = sections.join('');
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
@@ -236,7 +238,7 @@ var edgeShim = {
         switch(self.iceGatheringState) {
         case 'new':
           self._localIceCandidatesBuffer.push(event);
-          if (complete) {
+          if (end && complete) {
             self._localIceCandidatesBuffer.push(new Event('icecandidate'));
           }
           break;
@@ -444,8 +446,20 @@ var edgeShim = {
           cname = remoteSsrc.value;
         }
 
+        var isComplete = SDPUtils.matchPrefix(mediaSection,
+            'a=end-of-candidates').length > 0;
+        var cands = SDPUtils.matchPrefix(mediaSection, 'a=candidate:')
+            .map(function(cand) {
+              return SDPUtils.parseCandidate(cand);
+            })
+            .filter(function(cand) {
+              return cand.component === '1';
+            });
         if (description.type === 'offer') {
           var transports = self._createIceAndDtlsTransports(mid, sdpMLineIndex);
+          if (isComplete) {
+            transports.iceTransport.setRemoteCandidates(cands);
+          }
 
           localCapabilities = RTCRtpReceiver.getCapabilities(kind);
           sendSsrc = (2 * sdpMLineIndex + 2) * 1001;
@@ -500,6 +514,9 @@ var edgeShim = {
               remoteCapabilities;
           self.transceivers[sdpMLineIndex].cname = cname;
 
+          if (isComplete) {
+            iceTransport.setRemoteCandidates(cands);
+          }
           iceTransport.start(iceGatherer, remoteIceParameters, 'controlling');
           dtlsTransport.start(remoteDtlsParameters);
 
