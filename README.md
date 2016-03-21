@@ -48,5 +48,8 @@ Detailed information on developing in the [webrtc](https://github.com/webrtc) gi
 Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/test/README.md) and get started developing.
 
 ## Publish a new version ##
-Just run `npm version patch -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
-Currently only tested on Linux, not sure about MAC but will definitely not work on Windows.
+* Go the the adapter repository root directory
+* Make sure your repository is clean, i.e. no untracked files etc
+* Run `npm version patch -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
+
+Note: Currently only tested on Linux, not sure about Mac but will definitely not work on Windows.
