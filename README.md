@@ -46,3 +46,10 @@ Include the file that suits your need in your project.
 Detailed information on developing in the [webrtc](https://github.com/webrtc) github repo can be found in the [WebRTC GitHub repo developer's guide](https://docs.google.com/document/d/1tn1t6LW2ffzGuYTK3366w1fhTkkzsSvHsBnOHoDfRzY/edit?pli=1#heading=h.e3366rrgmkdk).
 
 Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/test/README.md) and get started developing.
+
+## Publish a new version ##
+* Go the the adapter repository root directory
+* Make sure your repository is clean, i.e. no untracked files etc
+* Run `npm version patch -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
+
+Note: Currently only tested on Linux, not sure about Mac but will definitely not work on Windows.
