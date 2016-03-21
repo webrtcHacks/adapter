@@ -78,7 +78,7 @@ module.exports = function() {
     return new Promise(function(resolve, reject) {
       navigator.getUserMedia(constraints, resolve, reject);
     });
-  }
+  };
 
   if (!navigator.mediaDevices) {
     navigator.mediaDevices = {getUserMedia: getUserMediaPromise_,

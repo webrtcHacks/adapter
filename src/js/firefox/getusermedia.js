@@ -77,7 +77,7 @@ module.exports = function() {
     return new Promise(function(resolve, reject) {
       navigator.getUserMedia(constraints, resolve, reject);
     });
-  }
+  };
 
   // Shim for mediaDevices on older versions.
   if (!navigator.mediaDevices) {
@@ -110,4 +110,4 @@ module.exports = function() {
       });
     };
   }
-}
+};

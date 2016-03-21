@@ -19,7 +19,6 @@ SDPUtils.generateIdentifier = function() {
 // The RTCP CNAME used by all peerconnections from the same JS.
 SDPUtils.localCName = SDPUtils.generateIdentifier();
 
-
 // Splits SDP into lines, dealing with both CRLF and LF.
 SDPUtils.splitLines = function(blob) {
   return blob.trim().split('\n').map(function(line) {

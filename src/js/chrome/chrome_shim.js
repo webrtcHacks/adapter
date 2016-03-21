@@ -132,7 +132,8 @@ var chromeShim = {
             args[1](fixChromeStats_(response));
           };
 
-          return origGetStats.apply(this, [successCallbackWrapper_, arguments[0]]);
+          return origGetStats.apply(this, [successCallbackWrapper_,
+              arguments[0]]);
         }
 
         // promise-support
@@ -229,7 +230,7 @@ var chromeShim = {
       to.src = from.src;
     }
   }
-}
+};
 
 
 // Expose public methods.
