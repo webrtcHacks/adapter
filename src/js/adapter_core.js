@@ -27,10 +27,12 @@
   var chromeShim = require('./chrome/chrome_shim') || null;
   var edgeShim = require('./edge/edge_shim') || null;
   var firefoxShim = require('./firefox/firefox_shim') || null;
+  var safariShim = require('./safari/safari_shim') || null;
 
   // Shim browser if found.
   switch (browserDetails.browser) {
     // NOTE ALEX: for the time being, just fall through
+    // ...        Eventually use the safari shim when ready.
     case 'safari':
     case 'chrome':
       if (!chromeShim || !chromeShim.shimPeerConnection) {
