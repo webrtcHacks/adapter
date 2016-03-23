@@ -20,10 +20,7 @@ var safariShim = {
   },
 
   shimGetUserMedia: function() {
-    // NOTES ALEX: both navigatorusermedia and mediaDevices version exist ...
-    // ...         the former, prefixed with "webkit" is a JS implementation
-    // ...         that wraps the MediaDevices one, as per latest specs.
-    navigator.getUserMedia = navigator.webkitGetUserMedia(constraints, onSuccess, onError);
+    navigator.getUserMedia = navigator.webkitGetUserMedia;
   },
 
   attachMediaStream: function(element, stream) {
