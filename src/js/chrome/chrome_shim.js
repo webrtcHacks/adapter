@@ -138,7 +138,7 @@ var chromeShim = {
 
         // promise-support
         return new Promise(function(resolve, reject) {
-          if (args.length === 1 && selector === null) {
+          if (args.length === 1 && selector === 'object') {
             origGetStats.apply(self, [
                 function(response) {
                   resolve.apply(null, [fixChromeStats_(response)]);
