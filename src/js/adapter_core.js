@@ -31,9 +31,6 @@
 
   // Shim browser if found.
   switch (browserDetails.browser) {
-    // NOTE ALEX: for the time being, just fall through
-    // ...        Eventually use the safari shim when ready.
-    case 'safari':
     case 'chrome':
       if (!chromeShim || !chromeShim.shimPeerConnection) {
         logging('Chrome shim is not included in this adapter release.');
@@ -48,17 +45,6 @@
       chromeShim.shimPeerConnection();
       chromeShim.shimOnTrack();
       break;
-    case 'edge':
-      if (!edgeShim || !edgeShim.shimPeerConnection) {
-        logging('MS edge shim is not included in this adapter release.');
-        return;
-      }
-      logging('adapter.js shimming edge!');
-      // Export to the adapter global object visible in the browser.
-      module.exports.browserShim = edgeShim;
-
-      edgeShim.shimPeerConnection();
-      break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection) {
         logging('Firefox shim is not included in this adapter release.');
@@ -72,6 +58,31 @@
       firefoxShim.shimSourceObject();
       firefoxShim.shimPeerConnection();
       firefoxShim.shimOnTrack();
+      break;
+    case 'edge':
+      if (!edgeShim || !edgeShim.shimPeerConnection) {
+        logging('MS edge shim is not included in this adapter release.');
+        return;
+      }
+      logging('adapter.js shimming edge!');
+      // Export to the adapter global object visible in the browser.
+      module.exports.browserShim = edgeShim;
+
+      edgeShim.shimPeerConnection();
+      break;
+    case 'safari':
+      if (!safariShim) {
+        logging('Safari shim is not included in this adapter release.');
+        return;
+      }
+      logging('adapter.js shimming safari!');
+      // Export to the adapter global object visible in the browser.
+      module.exports.browserShim = safariShim;
+
+      safariShim.shimGetUserMedia();
+      safariShim.shimSourceObject();
+      safariShim.shimPeerConnection();
+      safariShim.shimOnTrack();
       break;
     default:
       logging('Unsupported browser!');
