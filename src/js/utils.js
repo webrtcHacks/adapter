@@ -56,38 +56,52 @@ var utils = {
     result.version = null;
     result.minVersion = null;
 
+    // Fail early if it's not a browser
     if (typeof window === 'undefined' || !window.navigator) {
       result.browser = 'Not a browser.';
       return result;
     }
 
+    // Firefox.
     if (navigator.mozGetUserMedia) {
-      // Firefox.
       result.browser = 'firefox';
       result.version = this.extractVersion(navigator.userAgent,
           /Firefox\/([0-9]+)\./, 1);
       result.minVersion = 31;
 
+    // all webkit-based browsers
     } else if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
 
-      // Chrome, Chromium, Webview, Opera.
+      // Chrome, Chromium, Webview, Opera, all use the chrome shim for nowa
       if (navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)) {
         result.browser = 'chrome';
         result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
         result.minVersion = 38;
 
-      // Safari
-      } else {
+      // Safari uses its own shim.
+      //
+      // Safari UA substrings of interesti for reference:
+      // - webkit version:            AppleWebKit/602.1.25 (also used in Cr)
+      // - safari commercial version: Version/9.0.3
+      // - safari webkit version:     Safari/601.4.4 (also used in Cr)
+      // if the safari webkit version and webkit versions are different,
+      // ... this is a nightly version.
+      } else if (navigator.userAgent.match(/Safari\//) {
         result.browser = 'safari';
         result.version = this.extractVersion(navigator.userAgent,
           /AppleWebKit\/([0-9]+)\./, 1);
         result.minVersion = 602;
+
+      // unknown webkit-based browser
+      } else {
+        result.browser = 'Unsupported webkit-based browser.';
+        return result;
       }
 
-    } else if (navigator.mediaDevices &&
       // Edge.
-      navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
+    } else if (navigator.mediaDevices &&
+        navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
       result.browser = 'edge';
       result.version = this.extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
