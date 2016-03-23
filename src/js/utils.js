@@ -87,7 +87,7 @@ var utils = {
       // - safari webkit version:     Safari/601.4.4 (also used in Cr)
       // if the safari webkit version and webkit versions are different,
       // ... this is a nightly version.
-      } else if (navigator.userAgent.match(/Safari\//) {
+      } else if (navigator.userAgent.match(/Safari\//)) {
         result.browser = 'safari';
         result.version = this.extractVersion(navigator.userAgent,
           /AppleWebKit\/([0-9]+)\./, 1);
