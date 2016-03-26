@@ -298,8 +298,11 @@ SDPUtils.parseRtpParameters = function(mediaSection) {
           mediaSection, 'a=rtcp-fb:' + pt + ' ')
         .map(SDPUtils.parseRtcpFb);
       description.codecs.push(codec);
-      if (codec.name.toUpperCase() === 'RED') {
-        description.fecMechanisms.push(codec.name.toUpperCase());
+      switch(codec.name.toUpperCase()) {
+        case 'RED':
+        case 'ULPFEC':
+          description.fecMechanisms.push(codec.name.toUpperCase());
+          break;
       }
     }
   }

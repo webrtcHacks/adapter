@@ -18,7 +18,9 @@ test('parseRtpParameters', function(t) {
   var sections = SDPUtils.splitSections(videoSDP);
   var data = SDPUtils.parseRtpParameters(sections[1]);
   t.ok(data.codecs.length === 9, 'parsed 9 codecs');
-  t.ok(data.fecMechanisms.length === 1, 'parsed RED as fec mechanism');
+  t.ok(data.fecMechanisms.length === 2, 'parsed FEC mechanisms');
+  t.ok(data.fecMechanisms.indexOf('RED') !== -1, 'parsed RED as FEC mechanism');
+  t.ok(data.fecMechanisms.indexOf('ULPFEC') !== -1, 'parsed ULPFEC as FEC mechanism');
   t.ok(data.headerExtensions.length === 3, 'parsed 3 header extensions');
   t.end();
 });
