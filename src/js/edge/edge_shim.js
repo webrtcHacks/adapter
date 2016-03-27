@@ -117,7 +117,8 @@ var edgeShim = {
               sections[j] += 'a=end-of-candidates\r\n';
             }
           }
-        } else {
+        } else if (event.candidate.candidate.indexOf('typ endOfCandidates')
+            === -1) {
           sections[event.candidate.sdpMLineIndex + 1] +=
               'a=' + event.candidate.candidate + '\r\n';
         }
@@ -221,16 +222,6 @@ var edgeShim = {
           return transceiver.iceGatherer &&
               transceiver.iceGatherer.state === 'completed';
         });
-        // update .localDescription with candidate and (potentially) end-of-candidates.
-        //     To make this harder, the gatherer might emit candidates before localdescription
-        //     is set. To make things worse, gather.getLocalCandidates still errors in
-        //     Edge 10547 when no candidates have been gathered yet.
-        if (self.localDescription && self.localDescription.type !== '') {
-          var sections = SDPUtils.splitSections(self.localDescription.sdp);
-          sections[sdpMLineIndex + 1] += (!end ? 'a=' + event.candidate.candidate :
-              'a=end-of-candidates') + '\r\n';
-          self.localDescription.sdp = sections.join('');
-        }
 
         // Emit candidate if localDescription is set.
         // Also emits null candidate when all gatherers are complete.
