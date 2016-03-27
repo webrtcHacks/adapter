@@ -70,14 +70,17 @@ var utils = {
       result.minVersion = 31;
 
     // all webkit-based browsers
-    } else if (navigator.webkitGetUserMedia && window.webkitRTCPeerConnection) {
+    } else if (navigator.webkitGetUserMedia) {
 
-      // Chrome, Chromium, Webview, Opera, all use the chrome shim for nowa
-      if (navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)) {
+      // Chrome, Chromium, Webview, Opera, all use the chrome shim for now
+      if( window.webkitRTCPeerConnection) {
         result.browser = 'chrome';
         result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
         result.minVersion = 38;
+     
+      // 03/20 commit in webkit removed the RTCPeerconnection for now 
+      } else {
 
       // Safari uses its own shim.
       //
@@ -87,21 +90,22 @@ var utils = {
       // - safari webkit version:     Safari/601.4.4 (also used in Cr)
       // if the safari webkit version and webkit versions are different,
       // ... this is a nightly version.
-      } else if (navigator.userAgent.match(/Safari\//)) {
+      if (navigator.userAgent.match(/Safari\//)) {
         result.browser = 'safari';
         result.version = this.extractVersion(navigator.userAgent,
           /AppleWebKit\/([0-9]+)\./, 1);
         result.minVersion = 602;
 
-      // unknown webkit-based browser
-      } else {
-        result.browser = 'Unsupported webkit-based browser.';
-        return result;
+        // unknown webkit-based browser
+        } else {
+          result.browser = 'Unsupported webkit-based browser.';
+          return result;
+        }
       }
 
-      // Edge.
     } else if (navigator.mediaDevices &&
         navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
+      // Edge.
       result.browser = 'edge';
       result.version = this.extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
