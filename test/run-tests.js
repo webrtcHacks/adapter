@@ -34,9 +34,16 @@ if (os.platform() === 'linux') {
     }
   }
 }
-if (os.platform() === 'win32' && process.env.BROWSER === 'MicrosoftEdge') {
-  // assume MicrosoftWebDriver is installed.
-  process.env.PATH += ';C:\\Program Files (x86)\\Microsoft Web Driver\\';
+if (os.platform() === 'win32') {
+  if (process.env.BROWSER === 'MicrosoftEdge') {
+    // assume MicrosoftWebDriver is installed.
+    process.env.PATH += ';C:\\Program Files (x86)\\Microsoft Web Driver\\';
+  }
+  if (process.env.BROWSER === 'chrome') {
+    // for some reason chromedriver doesn't like the one in node_modules\.bin
+    process.env.PATH += ';' + process.cwd() +
+      '\\node_modules\\chromedriver\\lib\\chromedriver\\';
+  }
 }
 
 // Add all test files here with a short comment.
