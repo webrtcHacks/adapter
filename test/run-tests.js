@@ -13,7 +13,6 @@ var fs = require('fs');
 var os = require('os');
 var test = require('tape');
 
-process.env.BINDIR = './browsers/bin';
 if (!process.env.BROWSER) {
   process.env.BROWSER = 'chrome';
 }
