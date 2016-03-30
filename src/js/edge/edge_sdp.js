@@ -195,7 +195,7 @@ SDPUtils.writeRtcpFb = function(codec) {
 SDPUtils.parseSsrcMedia = function(line) {
   var sp = line.indexOf(' ');
   var parts = {
-    ssrc: line.substr(7, sp - 7),
+    ssrc: line.substr(7, sp - 7)
   };
   var colon = line.indexOf(':', sp);
   if (colon > -1) {
