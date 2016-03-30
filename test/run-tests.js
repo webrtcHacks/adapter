@@ -35,6 +35,10 @@ if (os.platform() === 'linux') {
     }
   }
 }
+if (os.platform() === 'win32' && process.env.BROWSER === 'MicrosoftEdge') {
+  // assume MicrosoftWebDriver is installed.
+  process.env.PATH += ';C:\\Program Files (x86)\\Microsoft Web Driver\\';
+}
 
 // Add all test files here with a short comment.
 
