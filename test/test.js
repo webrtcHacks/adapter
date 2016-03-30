@@ -960,9 +960,10 @@ test('Re-attaching mediaStream directly', function(t) {
   });
 });
 
-/*
- * deactivated due to https://github.com/webrtc/adapter/issues/180
-test('Call getUserMedia with impossible constraints', function(t) {
+// deactivated in Chrome due to https://github.com/webrtc/adapter/issues/180
+test('Call getUserMedia with impossible constraints',
+    {skip: process.env.BROWSER === 'chrome'},
+    function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Define test.
@@ -1020,7 +1021,6 @@ test('Call getUserMedia with impossible constraints', function(t) {
     t.end();
   });
 });
-*/
 
 test('Check getUserMedia legacy constraints converter', function(t) {
   var driver = seleniumHelpers.buildDriver();
@@ -2092,7 +2092,9 @@ test('static generateCertificate method', function(t) {
 });
 
 // ontrack is shimmed in Chrome so we test that it is called.
-test('ontrack', function(t) {
+// currently deactivated in Firefox. https://github.com/webrtc/adapter/issues/229
+test('ontrack', {skip: process.env.BROWSER === 'firefox'},
+    function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   var testDefinition = function() {
@@ -2182,16 +2184,6 @@ test('ontrack', function(t) {
   t.plan(7);
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
-  // currently deactivated in Firefox. https://github.com/webrtc/adapter/issues/229
-  .then(function() {
-    return driver.executeScript('return adapter.browserDetails.browser');
-  })
-  .then(function(browser) {
-    if (browser === 'firefox') {
-      t.plan(0); // change of plan.
-      throw 'skip-test';
-    }
-  })
   .then(function() {
     return driver.executeAsyncScript(testDefinition);
   })
