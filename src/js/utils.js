@@ -27,7 +27,9 @@ var utils = {
       if (logDisabled_) {
         return;
       }
-      console.log.apply(console, arguments);
+      if (typeof console !== 'undefined' && typeof console.log === 'function') {
+        console.log.apply(console, arguments);
+      }
     }
   },
 
