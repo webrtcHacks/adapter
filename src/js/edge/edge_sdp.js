@@ -305,13 +305,14 @@ SDPUtils.parseRtpParameters = function(mediaSection) {
           mediaSection, 'a=rtcp-fb:' + pt + ' ')
         .map(SDPUtils.parseRtcpFb);
       description.codecs.push(codec);
+      // parse FEC mechanisms from rtpmap lines.
       switch (codec.name.toUpperCase()) {
         case 'RED':
         case 'ULPFEC':
           description.fecMechanisms.push(codec.name.toUpperCase());
           break;
-        default:
-          // FIXME: What should happen here?
+        default: // only RED and ULPFEC are recognized as FEC mechanisms.
+          break;
       }
     }
   }
