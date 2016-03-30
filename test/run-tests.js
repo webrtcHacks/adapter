@@ -9,7 +9,32 @@
 /* globals require */
 
 'use strict';
+var fs = require('fs');
+var os = require('os');
 var test = require('tape');
+
+process.env.BINDIR = './browsers/bin';
+if (!process.env.BROWSER) {
+  process.env.BROWSER = 'chrome';
+}
+if (!process.env.BVER) {
+  process.env.BVER = 'stable';
+}
+var browserbin = './browsers/bin/' + process.env.BROWSER +
+    '-' + process.env.BVER;
+
+// install browsers via travis-multirunner (on Linux).
+if (os.platform() === 'linux') {
+  try {
+    fs.accessSync(browserbin, fs.X_OK);
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      // execute travis-multirunner setup to install browser
+      require('child_process').execSync(
+          './node_modules/travis-multirunner/setup.sh');
+    }
+  }
+}
 
 // Add all test files here with a short comment.
 
