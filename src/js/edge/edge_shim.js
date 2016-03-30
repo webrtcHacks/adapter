@@ -84,8 +84,8 @@ var edgeShim = {
             // FIXME: remove once implementation and spec have added this.
             throw new TypeError('iceTransportPolicy "none" not supported');
           default:
-            // FIXME: What should happen here?
-            return;
+            // don't set iceTransportPolicy.
+            break;
         }
       }
       if (config && config.iceServers) {
@@ -269,9 +269,8 @@ var edgeShim = {
               case 'complete':
                 // should not happen... currently!
                 break;
-              default:
-                // FIXME: What should happen here?
-                return;
+              default: // no-op.
+                break;
             }
           };
           iceTransport.onicestatechange = function() {
