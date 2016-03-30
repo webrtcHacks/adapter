@@ -2091,10 +2091,7 @@ test('static generateCertificate method', function(t) {
   });
 });
 
-// ontrack is shimmed in Chrome so we test that it is called.
-// currently deactivated in Firefox. https://github.com/webrtc/adapter/issues/229
-test('ontrack', {skip: process.env.BROWSER === 'firefox'},
-    function(t) {
+test('ontrack', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   var testDefinition = function() {
