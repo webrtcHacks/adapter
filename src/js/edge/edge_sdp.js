@@ -312,7 +312,6 @@ SDPUtils.parseRtpParameters = function(mediaSection) {
           break;
         default:
           // FIXME: What should happen here?
-          return;
       }
     }
   }
@@ -411,7 +410,6 @@ SDPUtils.getDirection = function(mediaSection, sessionpart) {
         return lines[i].substr(2);
       default:
         // FIXME: What should happen here?
-        return;
     }
   }
   if (sessionpart) {
