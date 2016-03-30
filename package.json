@@ -14,7 +14,7 @@
   "scripts": {
     "preversion": "git stash && git checkout master && git pull && grunt && test/run-tests | faucet && git checkout -B bumpVersion",
     "version": "grunt build",
-    "postversion": "git push --force --set-upstream origin bumpVersion --follow-tags && export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git checkout gh-pages && git pull && cp out/adapter.js . && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir adapter-`$GITTAG`-variants && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && npm publish",
+    "postversion": "git push --force --set-upstream origin bumpVersion --follow-tags && export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git checkout gh-pages && git pull && cp out/adapter.js . && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir adapter-`$GITTAG`-variants && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepublish": "grunt build",
     "test": "grunt && test/run-tests | faucet"
   },
@@ -24,9 +24,8 @@
     "grunt": "^0.4.5",
     "grunt-browserify": "^4.0.1",
     "grunt-cli": ">=0.1.9",
-    "grunt-contrib-jshint": "^0.11.2",
+    "grunt-eslint": "^17.2.0",
     "grunt-githooks": "^0.3.1",
-    "grunt-jscs": "^2.0.0",
     "selenium-webdriver": "^2.48.0",
     "tape": "^4.0.0",
     "travis-multirunner": "^3.0.0",
