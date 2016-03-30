@@ -5,6 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+ /* eslint-env node */
 'use strict';
 
 var SDPUtils = require('./edge_sdp');
@@ -312,7 +313,7 @@ var edgeShim = {
       var sessionpart;
       if (description.type === 'offer') {
         if (!this._pendingOffer) {
-        } else { 
+        } else {
           // VERY limited support for SDP munging. Limited to:
           // * changing the order of codecs
           sections = SDPUtils.splitSections(description.sdp);
