@@ -82,20 +82,22 @@ module.exports = function() {
   };
 
   if (!navigator.mediaDevices) {
-    navigator.mediaDevices = {getUserMedia: getUserMediaPromise_,
-                             enumerateDevices: function() {
-      return new Promise(function(resolve) {
-        var kinds = {audio: 'audioinput', video: 'videoinput'};
-        return MediaStreamTrack.getSources(function(devices) {
-          resolve(devices.map(function(device) {
-            return {label: device.label,
-                    kind: kinds[device.kind],
-                    deviceId: device.id,
-                    groupId: ''};
-          }));
+    navigator.mediaDevices = {
+      getUserMedia: getUserMediaPromise_,
+      enumerateDevices: function() {
+        return new Promise(function(resolve) {
+          var kinds = {audio: 'audioinput', video: 'videoinput'};
+          return MediaStreamTrack.getSources(function(devices) {
+            resolve(devices.map(function(device) {
+              return {label: device.label,
+                      kind: kinds[device.kind],
+                      deviceId: device.id,
+                      groupId: ''};
+            }));
+          });
         });
-      });
-    }};
+      }
+    };
   }
 
   // A shim for getUserMedia method on the mediaDevices object.

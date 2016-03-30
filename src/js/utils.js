@@ -72,7 +72,7 @@ var utils = {
       result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
       result.minVersion = 38;
-    } else if(navigator.mediaDevices &&
+    } else if (navigator.mediaDevices &&
         navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
       // Edge.
       result.browser = 'edge';

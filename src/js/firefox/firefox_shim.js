@@ -16,7 +16,9 @@ var firefoxShim = {
     if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
         window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-        get: function() { return this._ontrack; },
+        get: function() {
+          return this._ontrack;
+        },
         set: function(f) {
           if (this._ontrack) {
             this.removeEventListener('track', this._ontrack);
@@ -84,7 +86,7 @@ var firefoxShim = {
             pcConfig.iceServers = newIceServers;
           }
         }
-        return new mozRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
+        return new mozRTCPeerConnection(pcConfig, pcConstraints);
       };
       window.RTCPeerConnection.prototype = mozRTCPeerConnection.prototype;
 
@@ -95,9 +97,8 @@ var firefoxShim = {
             if (arguments.length) {
               return mozRTCPeerConnection.generateCertificate.apply(null,
                   arguments);
-            } else {
-              return mozRTCPeerConnection.generateCertificate;
             }
+            return mozRTCPeerConnection.generateCertificate;
           }
         });
       }
@@ -185,14 +186,14 @@ var firefoxShim = {
     }
     navigator.mediaDevices.enumerateDevices =
         navigator.mediaDevices.enumerateDevices || function() {
-      return new Promise(function(resolve) {
-        var infos = [
-          {kind: 'audioinput', deviceId: 'default', label: '', groupId: ''},
-          {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''}
-        ];
-        resolve(infos);
-      });
-    };
+          return new Promise(function(resolve) {
+            var infos = [
+              {kind: 'audioinput', deviceId: 'default', label: '', groupId: ''},
+              {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''}
+            ];
+            resolve(infos);
+          });
+        };
 
     if (browserDetails.version < 41) {
       // Work around http://bugzil.la/1169665

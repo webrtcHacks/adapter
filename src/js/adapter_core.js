@@ -23,7 +23,7 @@
   // statement below. Can also be turned off in the browser via
   // adapter.disableLog(true) but then logging from the switch statement below
   // will still appear.
-  //require('./utils').disableLog(true);
+  // require('./utils').disableLog(true);
 
   // Browser shims.
   var chromeShim = require('./chrome/chrome_shim') || null;
