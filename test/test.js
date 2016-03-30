@@ -98,7 +98,7 @@ test('Browser identified', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(4);
     t.pass('Page loaded');
@@ -130,7 +130,7 @@ test('Browser supported by adapter.js', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(2);
     t.pass('Page loaded');
@@ -171,7 +171,7 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -209,7 +209,7 @@ test('getUserMedia shim', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
@@ -241,7 +241,7 @@ test('navigator.mediaDevices eventlisteners', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
@@ -275,7 +275,7 @@ test('RTCPeerConnection shim', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(4);
     t.pass('Page loaded');
@@ -306,7 +306,7 @@ test('Create RTCPeerConnection', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(2);
     t.pass('Page loaded');
@@ -356,7 +356,7 @@ test('attachMediaStream', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(6);
     t.pass('Page loaded');
@@ -444,7 +444,7 @@ test('reattachMediaStream', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(9);
     t.pass('Page loaded');
@@ -537,7 +537,7 @@ test('Video srcObject getter/setter test', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
@@ -603,7 +603,7 @@ test('Audio srcObject getter/setter test', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
@@ -674,7 +674,7 @@ test('srcObject set from another object', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
@@ -738,7 +738,7 @@ test('srcObject null setter', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
@@ -804,7 +804,7 @@ test('Attach mediaStream directly', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(6);
     t.pass('Page loaded');
@@ -892,7 +892,7 @@ test('Re-attaching mediaStream directly', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(9);
     t.pass('Page loaded');
@@ -993,7 +993,7 @@ test('Call getUserMedia with impossible constraints',
       };
 
       // Run test.
-      driver.get('file://' + process.cwd() + '/test/testpage.html')
+      seleniumHelpers.loadTestPage(driver)
       .then(function() {
         t.plan(2);
         t.pass('Page loaded');
@@ -1241,7 +1241,7 @@ test('Check getUserMedia legacy constraints converter', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     // t.plan(2);
     t.pass('Page loaded');
@@ -1395,7 +1395,7 @@ test('Basic connection establishment', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -1512,7 +1512,7 @@ test('Basic connection establishment with promise', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -1634,7 +1634,7 @@ test('Basic connection establishment with datachannel', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -1690,7 +1690,7 @@ test('call enumerateDevices', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -1765,7 +1765,7 @@ test('getStats', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -1842,7 +1842,7 @@ test('originalChromeGetStats', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeScript('return adapter.browserDetails.browser')
@@ -1933,7 +1933,7 @@ test('getStats promise', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -2018,7 +2018,7 @@ test('iceTransportPolicy relay functionality', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
@@ -2055,7 +2055,7 @@ test('static generateCertificate method', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.plan(2);
     t.pass('Page loaded');
@@ -2182,7 +2182,7 @@ test('ontrack', function(t) {
   // plan for 7 tests.
   t.plan(7);
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     return driver.executeAsyncScript(testDefinition);
   })
@@ -2256,7 +2256,7 @@ test('Non-module logging to console still works', function(t) {
   };
 
   // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
+  seleniumHelpers.loadTestPage(driver)
   .then(function() {
     t.pass('Page loaded');
     return driver.executeScript(testDefinition);

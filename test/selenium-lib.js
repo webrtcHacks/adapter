@@ -12,6 +12,7 @@
 var webdriver = require('selenium-webdriver');
 var chrome = require('selenium-webdriver/chrome');
 var firefox = require('selenium-webdriver/firefox');
+var edge = require('selenium-webdriver/edge');
 var fs = require('fs');
 var os = require('os');
 
@@ -82,23 +83,46 @@ function buildDriver() {
     chromeOptions.addArguments('--enable-experimental-web-platform-features');
   }
 
+  var edgeOptions = new edge.Options();
+
   sharedDriver = new webdriver.Builder()
       .forBrowser(process.env.BROWSER)
       .setFirefoxOptions(firefoxOptions)
       .setChromeOptions(chromeOptions)
-      .build();
+      .setEdgeOptions(edgeOptions);
+
+  if (process.env.BROWSER === 'MicrosoftEdge') {
+    if (process.env.SELENIUM_SERVER) {
+      sharedDriver.usingServer(process.env.SELENIUM_SERVER);
+    } else if (os.platform() !== 'win32') {
+      throw new Error('MicrosoftEdge is only supported on Windows or via ' +
+          'a selenium server');
+    }
+  }
+
+  sharedDriver = sharedDriver.build();
 
   // Set global executeAsyncScript() timeout (default is 0) to allow async
   // callbacks to be caught in tests.
-  sharedDriver.manage().timeouts().setScriptTimeout(5000);
+  sharedDriver.manage().timeouts().setScriptTimeout(10 * 1000);
 
   return sharedDriver;
+}
+
+// loads the dummy page that includes adapter.js.
+// In Microsoft Edge (via selenium) this directly injects adapter.js.
+function loadTestPage(driver) {
+  if (process.env.BROWSER === 'MicrosoftEdge') {
+    return driver.get('about:blank').then(function() {
+      return driver.executeScript(fs.readFileSync('out/adapter.js').toString());
+    });
+  }
+  return driver.get('file://' + process.cwd() + '/test/testpage.html');
 }
 
 // A helper function to query stats from a PeerConnection.
 function getStats(driver, peerConnection) {
   // Execute getStats on peerconnection named `peerConnection`.
-  driver.manage().timeouts().setScriptTimeout(1000);
   return driver.executeAsyncScript(
       'var callback = arguments[arguments.length - 1];' +
       peerConnection + '.getStats(null).then(function(report) {' +
@@ -108,5 +132,6 @@ function getStats(driver, peerConnection) {
 
 module.exports = {
   buildDriver: buildDriver,
+  loadTestPage: loadTestPage,
   getStats: getStats
 };

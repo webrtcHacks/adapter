@@ -22,7 +22,8 @@ var browserbin = './browsers/bin/' + process.env.BROWSER +
     '-' + process.env.BVER;
 
 // install browsers via travis-multirunner (on Linux).
-if (os.platform() === 'linux') {
+if (os.platform() === 'linux' &&
+    process.env.BROWSER !== 'MicrosoftEdge') {
   try {
     fs.accessSync(browserbin, fs.X_OK);
   } catch (e) {
@@ -62,5 +63,12 @@ test('Shutdown', function(t) {
     driver.quit().then(function() {
       t.end();
     });
+  })
+  .catch(function(err) {
+    // Edge doesn't like close->quit
+    console.log(err.name);
+    if (process.env.BROWSER === 'MicrosoftEdge') {
+      t.end();
+    }
   });
 });
