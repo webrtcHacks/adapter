@@ -117,7 +117,8 @@ var edgeShim = {
               sections[j] += 'a=end-of-candidates\r\n';
             }
           }
-        } else {
+        } else if (event.candidate.candidate.indexOf('typ endOfCandidates')
+            === -1) {
           sections[event.candidate.sdpMLineIndex + 1] +=
               'a=' + event.candidate.candidate + '\r\n';
         }
@@ -126,8 +127,14 @@ var edgeShim = {
         if (self.onicecandidate !== null) {
           self.onicecandidate(event);
         }
-        if (!event.candidate) {
-          self.iceGatheringState = 'complete';
+        if (!event.candidate && self.iceGatheringState !== 'complete') {
+          var complete = self.transceivers.every(function(transceiver) {
+            return transceiver.iceGatherer &&
+                transceiver.iceGatherer.state === 'completed';
+          });
+          if (complete) {
+            self.iceGatheringState = 'complete';
+          }
         }
       });
       this._localIceCandidatesBuffer = [];
@@ -221,16 +228,6 @@ var edgeShim = {
           return transceiver.iceGatherer &&
               transceiver.iceGatherer.state === 'completed';
         });
-        // update .localDescription with candidate and (potentially) end-of-candidates.
-        //     To make this harder, the gatherer might emit candidates before localdescription
-        //     is set. To make things worse, gather.getLocalCandidates still errors in
-        //     Edge 10547 when no candidates have been gathered yet.
-        if (self.localDescription && self.localDescription.type !== '') {
-          var sections = SDPUtils.splitSections(self.localDescription.sdp);
-          sections[sdpMLineIndex + 1] += (!end ? 'a=' + event.candidate.candidate :
-              'a=end-of-candidates') + '\r\n';
-          self.localDescription.sdp = sections.join('');
-        }
 
         // Emit candidate if localDescription is set.
         // Also emits null candidate when all gatherers are complete.
@@ -311,13 +308,15 @@ var edgeShim = {
     window.RTCPeerConnection.prototype.setLocalDescription =
         function(description) {
       var self = this;
-      var sections = SDPUtils.splitSections(description.sdp);
-      var sessionpart = sections.shift();
+      var sections;
+      var sessionpart;
       if (description.type === 'offer') {
         if (!this._pendingOffer) {
         } else { 
           // VERY limited support for SDP munging. Limited to:
           // * changing the order of codecs
+          sections = SDPUtils.splitSections(description.sdp);
+          sessionpart = sections.shift();
           sections.forEach(function(mediaSection, sdpMLineIndex) {
             var caps = SDPUtils.parseRtpParameters(mediaSection);
             self._pendingOffer[sdpMLineIndex].localCapabilities = caps;
@@ -326,6 +325,8 @@ var edgeShim = {
           delete this._pendingOffer;
         }
       } else if (description.type === 'answer') {
+        sections = SDPUtils.splitSections(self.remoteDescription.sdp);
+        sessionpart = sections.shift();
         sections.forEach(function(mediaSection, sdpMLineIndex) {
           var transceiver = self.transceivers[sdpMLineIndex];
           var iceGatherer = transceiver.iceGatherer;
