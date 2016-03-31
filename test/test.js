@@ -5,8 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* jshint node: true */
- /* global Promise */
+ /* eslint-env node */
 
 'use strict';
 
@@ -222,12 +221,12 @@ test('getUserMedia shim', function(t) {
     return driver.executeScript(
       'return typeof navigator.mediaDevices.getUserMedia !== \'undefined\'');
   })
-   .then(function(isMediaDevicesDefined) {
+  .then(function(isMediaDevicesDefined) {
     t.ok(isMediaDevicesDefined,
       'navigator.mediaDevices.getUserMedia is defined');
     t.end();
   })
- .then(null, function(err) {
+  .then(null, function(err) {
     if (err !== 'skip-test') {
       t.fail(err);
     }
@@ -343,10 +342,8 @@ test('attachMediaStream', function(t) {
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onresize.
-      // Firefox < 38 had issues with this, workaround removed
-      // due to 38 being stable now.
-      video.addEventListener('resize', function() {
+      // at some point. This will trigger loadedmetadata.
+      video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
         callback(null);
       });
@@ -379,7 +376,7 @@ test('attachMediaStream', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadededmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
@@ -427,14 +424,14 @@ test('reattachMediaStream', function(t) {
       video2.setAttribute('id', 'video2');
       video2.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onresize.
+      // at some point. This will trigger loadedmetadata.
       // This reattaches to the second video which will trigger
-      // onresize there.
-      video.addEventListener('resize', function() {
+      // loadedmetadata there.
+      video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
         window.adapter.browserShim.reattachMediaStream(video2, video);
       });
-      video2.addEventListener('resize', function() {
+      video2.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video2);
         callback(null);
       });
@@ -467,7 +464,7 @@ test('reattachMediaStream', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
   })
@@ -483,7 +480,7 @@ test('reattachMediaStream', function(t) {
         t.ok(height > 2, 'Video height is: ' + height);
       });
     });
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video2')), 3000);
   })
@@ -528,8 +525,8 @@ test('Video srcObject getter/setter test', function(t) {
       video.setAttribute('autoplay', 'true');
       video.srcObject = stream;
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onresize.
-      video.addEventListener('resize', function() {
+      // at some point. This will trigger loadedmetadata.
+      video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
         callback(null);
       });
@@ -549,7 +546,7 @@ test('Video srcObject getter/setter test', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
   })
@@ -594,7 +591,7 @@ test('Audio srcObject getter/setter test', function(t) {
       audio.setAttribute('id', 'audio');
       audio.srcObject = stream;
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onresize.
+      // at some point. This will trigger loadedmetadata.
       audio.addEventListener('loadedmetadata', function() {
         document.body.appendChild(audio);
         callback(null);
@@ -615,7 +612,7 @@ test('Audio srcObject getter/setter test', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('audio')), 3000);
@@ -664,8 +661,8 @@ test('srcObject set from another object', function(t) {
       video2.srcObject = video.srcObject;
 
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onresize.
-      video.addEventListener('resize', function() {
+      // at some point. This will trigger loadedmetadata.
+      video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
         document.body.appendChild(video2);
         callback(null);
@@ -686,7 +683,7 @@ test('srcObject set from another object', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video2')), 3000);
@@ -750,7 +747,7 @@ test('srcObject null setter', function(t) {
   .then(function(error) {
     var gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
@@ -761,7 +758,8 @@ test('srcObject null setter', function(t) {
   })
   .then(function(src) {
     t.ok(src === 'file://' + process.cwd() + '/test/testpage.html' ||
-        src === '', 'src is the empty string'); // kind of... it actually is this page.
+        // kind of... it actually is this page.
+        src === '', 'src is the empty string');
   })
   .then(function() {
     t.end();
@@ -790,10 +788,10 @@ test('Attach mediaStream directly', function(t) {
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onresize.
+      // at some point. This will trigger loadedmetadata.
       // Firefox < 38 had issues with this, workaround removed
       // due to 38 being stable now.
-      video.addEventListener('resize', function() {
+      video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
       });
 
@@ -826,7 +824,7 @@ test('Attach mediaStream directly', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
@@ -874,14 +872,14 @@ test('Re-attaching mediaStream directly', function(t) {
       video2.setAttribute('id', 'video2');
       video2.setAttribute('autoplay', 'true');
       // If attachMediaStream works, we should get a video
-      // at some point. This will trigger onresize.
+      // at some point. This will trigger loadedmetadata.
       // This reattaches to the second video which will trigger
-      // onresize there.
-      video.addEventListener('resize', function() {
+      // loadedmetadata there.
+      video.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video);
         video2.srcObject = video.srcObject;
       });
-      video2.addEventListener('resize', function() {
+      video2.addEventListener('loadedmetadata', function() {
         document.body.appendChild(video2);
       });
 
@@ -916,7 +914,7 @@ test('Re-attaching mediaStream directly', function(t) {
   })
   .then(function(isMediaStream) {
     t.ok(isMediaStream, 'Stream is a MediaStream');
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
@@ -933,7 +931,7 @@ test('Re-attaching mediaStream directly', function(t) {
         t.ok(height > 2, 'Video height is: ' + height);
       });
     });
-    // Wait until resize event has fired and appended video element.
+    // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video2')), 3000);
@@ -962,73 +960,72 @@ test('Re-attaching mediaStream directly', function(t) {
   });
 });
 
-/*
- * deactivated due to https://github.com/webrtc/adapter/issues/180
-test('Call getUserMedia with impossible constraints', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+// deactivated in Chrome due to https://github.com/webrtc/adapter/issues/180
+test('Call getUserMedia with impossible constraints',
+    {skip: process.env.BROWSER === 'chrome'},
+    function(t) {
+      var driver = seleniumHelpers.buildDriver();
 
-  // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+      // Define test.
+      var testDefinition = function() {
+        var callback = arguments[arguments.length - 1];
 
-    var impossibleConstraints = {
-      video: {
-        width: 1280,
-        height: {min: 200, ideal: 720, max: 1080},
-        frameRate: {exact: 0} // to fail
-      }
-    };
-    // TODO: Remove when firefox 42+ accepts impossible constraints
-    // on fake devices.
-    if (window.adapter.browserDetails.browser === 'firefox') {
-      impossibleConstraints.fake = false;
-    }
-    navigator.mediaDevices.getUserMedia(impossibleConstraints)
-    .then(function(stream) {
-      window.stream = stream;
-      callback(null);
-    })
-    .catch(function(err) {
-      callback(err.name);
+        var impossibleConstraints = {
+          video: {
+            width: 1280,
+            height: {min: 200, ideal: 720, max: 1080},
+            frameRate: {exact: 0} // to fail
+          }
+        };
+        // TODO: Remove when firefox 42+ accepts impossible constraints
+        // on fake devices.
+        if (window.adapter.browserDetails.browser === 'firefox') {
+          impossibleConstraints.fake = false;
+        }
+        navigator.mediaDevices.getUserMedia(impossibleConstraints)
+        .then(function(stream) {
+          window.stream = stream;
+          callback(null);
+        })
+        .catch(function(err) {
+          callback(err.name);
+        });
+      };
+
+      // Run test.
+      driver.get('file://' + process.cwd() + '/test/testpage.html')
+      .then(function() {
+        t.plan(2);
+        t.pass('Page loaded');
+        return driver.executeScript(
+          'return adapter.browserDetails.browser === \'firefox\' ' +
+          '&& adapter.browserDetails.version < 42');
+      })
+      .then(function(isFirefoxAndVersionLessThan42) {
+        if (isFirefoxAndVersionLessThan42) {
+          t.skip('getUserMedia(impossibleConstraints) not supported on < 42');
+          throw 'skip-test';
+        }
+        return driver.executeAsyncScript(testDefinition);
+      })
+      .then(function(error) {
+        t.ok(error, 'getUserMedia(impossibleConstraints) must fail');
+      })
+      .then(function() {
+        t.end();
+      })
+      .then(null, function(err) {
+        if (err !== 'skip-test') {
+          t.fail(err);
+        }
+        t.end();
+      });
     });
-  };
-
-  // Run test.
-  driver.get('file://' + process.cwd() + '/test/testpage.html')
-  .then(function() {
-    t.plan(2);
-    t.pass('Page loaded');
-    return driver.executeScript(
-      'return adapter.browserDetails.browser === \'firefox\' ' +
-      '&& adapter.browserDetails.version < 42');
-  })
-  .then(function(isFirefoxAndVersionLessThan42) {
-    if (isFirefoxAndVersionLessThan42) {
-      t.skip('getUserMedia(impossibleConstraints) not supported on < 42');
-      throw 'skip-test';
-    }
-    return driver.executeAsyncScript(testDefinition);
-  })
-  .then(function(error) {
-    t.ok(error, 'getUserMedia(impossibleConstraints) must fail');
-  })
-  .then(function() {
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-*/
 
 test('Check getUserMedia legacy constraints converter', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   var testDefinition = function() {
-
     // Used to collect the result of test.
     window.constraintsArray = [];
     // Helpers to test adapter's legacy constraints-manipulation.
@@ -1065,81 +1062,81 @@ test('Check getUserMedia legacy constraints converter', function(t) {
         testBeforeAfterPairs('mozGetUserMedia', [
           // Test that spec constraints get back-converted on FF37.
           [
-           {
-             video: {
-               mediaSource: 'screen',
-               width: 1280,
-               height: {min: 200, ideal: 720, max: 1080},
-               facingMode: 'user',
-               frameRate: {exact: 50}
-             }
-           },
-           {
-             video: {
-               mediaSource: 'screen',
-               height: {min: 200, max: 1080},
-               frameRate: {max: 50, min: 50},
-               advanced: [
-                 {width: {min: 1280, max: 1280}},
-                 {height: {min: 720, max: 720}},
-                 {facingMode: 'user'}
-               ],
-               require: ['height', 'frameRate']
-             }
-           }
+            {
+              video: {
+                mediaSource: 'screen',
+                width: 1280,
+                height: {min: 200, ideal: 720, max: 1080},
+                facingMode: 'user',
+                frameRate: {exact: 50}
+              }
+            },
+            {
+              video: {
+                mediaSource: 'screen',
+                height: {min: 200, max: 1080},
+                frameRate: {max: 50, min: 50},
+                advanced: [
+                  {width: {min: 1280, max: 1280}},
+                  {height: {min: 720, max: 720}},
+                  {facingMode: 'user'}
+                ],
+                require: ['height', 'frameRate']
+              }
+            }
           ],
           // Test that legacy constraints pass through unharmed on FF37.
           [
-           {
-             video: {
-               height: {min: 200, max: 1080},
-               frameRate: {max: 50, min: 50},
-               advanced: [
-                 {width: {min: 1280, max: 1280}},
-                 {height: {min: 720, max: 720}},
-                 {facingMode: 'user'}
-               ],
-               require: ['height', 'frameRate']
-             }
-           },
-           {
-             video: {
-               height: {min: 200, max: 1080},
-               frameRate: {max: 50, min: 50},
-               advanced: [
-                 {width: {min: 1280, max: 1280}},
-                 {height: {min: 720, max: 720}},
-                 {facingMode: 'user'}
-               ],
-               require: ['height', 'frameRate']
-             }
-           }
-          ],
+            {
+              video: {
+                height: {min: 200, max: 1080},
+                frameRate: {max: 50, min: 50},
+                advanced: [
+                  {width: {min: 1280, max: 1280}},
+                  {height: {min: 720, max: 720}},
+                  {facingMode: 'user'}
+                ],
+                require: ['height', 'frameRate']
+              }
+            },
+            {
+              video: {
+                height: {min: 200, max: 1080},
+                frameRate: {max: 50, min: 50},
+                advanced: [
+                  {width: {min: 1280, max: 1280}},
+                  {height: {min: 720, max: 720}},
+                  {facingMode: 'user'}
+                ],
+                require: ['height', 'frameRate']
+              }
+            }
+          ]
         ]);
       });
       pretendVersion(38, function() {
         testBeforeAfterPairs('mozGetUserMedia', [
           // Test that spec constraints pass through unharmed on FF38+.
           [
-           {
-             video: {
-               mediaSource: 'screen',
-               width: 1280,
-               height: {min: 200, ideal: 720, max: 1080},
-               facingMode: 'user',
-               frameRate: {exact: 50}
-             }
-           },
-           {
-             video: {
-               mediaSource: 'screen',
-               width: 1280,
-               height: {min: 200, ideal: 720, max: 1080},
-               facingMode: 'user',
-               frameRate: {exact: 50}
-             }
-           },
-          ],
+            {
+              video: {
+                mediaSource: 'screen',
+                width: 1280,
+                height: {min: 200, ideal: 720, max: 1080},
+                facingMode: 'user',
+                frameRate: {exact: 50}
+              }
+            },
+            {
+              video: {
+                mediaSource: 'screen',
+                width: 1280,
+                height: {min: 200, ideal: 720, max: 1080},
+                facingMode: 'user',
+                frameRate: {exact: 50}
+              }
+            }
+          ]
         ]);
       });
     };
@@ -1148,83 +1145,84 @@ test('Check getUserMedia legacy constraints converter', function(t) {
       testBeforeAfterPairs('webkitGetUserMedia', [
         // Test that spec constraints get back-converted on Chrome.
         [
-         {
-           video: {
-             width: 1280,
-             height: {min: 200, ideal: 720, max: 1080},
-             frameRate: {exact: 50}
-           }
-         },
-         {
-           video: {
-             mandatory: {
-               maxFrameRate: 50,
-               maxHeight: 1080,
-               minHeight: 200,
-               minFrameRate: 50
-             },
-             optional: [
-               {minWidth: 1280},
-               {maxWidth: 1280},
-               {minHeight: 720},
-               {maxHeight: 720},
-             ]
-           }
-         }
+          {
+            video: {
+              width: 1280,
+              height: {min: 200, ideal: 720, max: 1080},
+              frameRate: {exact: 50}
+            }
+          },
+          {
+            video: {
+              mandatory: {
+                maxFrameRate: 50,
+                maxHeight: 1080,
+                minHeight: 200,
+                minFrameRate: 50
+              },
+              optional: [
+                {minWidth: 1280},
+                {maxWidth: 1280},
+                {minHeight: 720},
+                {maxHeight: 720}
+              ]
+            }
+          }
         ],
         // Test that legacy constraints pass through unharmed on Chrome.
         [
-         {
-           video: {
-             mandatory: {
-               maxFrameRate: 50,
-               maxHeight: 1080,
-               minHeight: 200,
-               minFrameRate: 50
-             },
-             optional: [
-               {minWidth: 1280},
-               {maxWidth: 1280},
-               {minHeight: 720},
-               {maxHeight: 720},
-             ]
-           }
-         },
-         {
-           video: {
-             mandatory: {
-               maxFrameRate: 50,
-               maxHeight: 1080,
-               minHeight: 200,
-               minFrameRate: 50
-             },
-             optional: [
-               {minWidth: 1280},
-               {maxWidth: 1280},
-               {minHeight: 720},
-               {maxHeight: 720},
-             ]
-           }
-         }
+          {
+            video: {
+              mandatory: {
+                maxFrameRate: 50,
+                maxHeight: 1080,
+                minHeight: 200,
+                minFrameRate: 50
+              },
+              optional: [
+                {minWidth: 1280},
+                {maxWidth: 1280},
+                {minHeight: 720},
+                {maxHeight: 720}
+              ]
+            }
+          },
+          {
+            video: {
+              mandatory: {
+                maxFrameRate: 50,
+                maxHeight: 1080,
+                minHeight: 200,
+                minFrameRate: 50
+              },
+              optional: [
+                {minWidth: 1280},
+                {maxWidth: 1280},
+                {minHeight: 720},
+                {maxHeight: 720}
+              ]
+            }
+          }
         ],
-        // Test code protecting Chrome from choking on common unknown constraints.
+        // Test code protecting Chrome from choking on common unknown
+        // constraints.
         [
-         {
-           video: {
-             mediaSource: 'screen',
-             advanced: [
-               {facingMode: 'user'}
-             ],
-             require: ['height', 'frameRate']
-           }
-         },
-         {
-           video: {
-             optional: [
-               {facingMode: 'user'}
-             ]
-           }
-         }
+          {
+            video: {
+              mediaSource: 'screen',
+              advanced: [
+                {facingMode: 'user'}
+              ],
+              require: ['height', 'frameRate']
+            }
+          },
+          {
+            video: {
+              optional: [
+                {facingMode: 'user'}
+              ]
+            }
+          }
         ]
       ]);
     };
@@ -1289,7 +1287,7 @@ test('Basic connection establishment', function(t) {
     var counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var t = {
+    var tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1320,10 +1318,10 @@ test('Basic connection establishment', function(t) {
           function() {
             // TODO: Decide if we are intereted in adding all candidates
             // as passed tests.
-            t.pass('addIceCandidate ' + counter++);
+            tc.pass('addIceCandidate ' + counter++);
           },
           function(err) {
-            t.fail('addIceCandidate ' + err.toString());
+            tc.fail('addIceCandidate ' + err.toString());
           }
         );
       }
@@ -1342,55 +1340,55 @@ test('Basic connection establishment', function(t) {
 
       pc1.createOffer(
         function(offer) {
-          t.pass('pc1.createOffer');
+          tc.pass('pc1.createOffer');
           pc1.setLocalDescription(offer,
             function() {
-              t.pass('pc1.setLocalDescription');
+              tc.pass('pc1.setLocalDescription');
               offer = new RTCSessionDescription(offer);
-              t.pass('created RTCSessionDescription from offer');
+              tc.pass('created RTCSessionDescription from offer');
               pc2.setRemoteDescription(offer,
                 function() {
-                  t.pass('pc2.setRemoteDescription');
+                  tc.pass('pc2.setRemoteDescription');
                   pc2.createAnswer(
                     function(answer) {
-                      t.pass('pc2.createAnswer');
+                      tc.pass('pc2.createAnswer');
                       pc2.setLocalDescription(answer,
                         function() {
-                          t.pass('pc2.setLocalDescription');
+                          tc.pass('pc2.setLocalDescription');
                           answer = new RTCSessionDescription(answer);
-                          t.pass('created RTCSessionDescription from answer');
+                          tc.pass('created RTCSessionDescription from answer');
                           pc1.setRemoteDescription(answer,
                             function() {
-                              t.pass('pc1.setRemoteDescription');
+                              tc.pass('pc1.setRemoteDescription');
                             },
                             function(err) {
-                              t.pass('pc1.setRemoteDescription ' +
+                              tc.pass('pc1.setRemoteDescription ' +
                                   err.toString());
                             }
                           );
                         },
                         function(err) {
-                          t.fail('pc2.setLocalDescription ' + err.toString());
+                          tc.fail('pc2.setLocalDescription ' + err.toString());
                         }
                       );
                     },
                     function(err) {
-                      t.fail('pc2.createAnswer ' + err.toString());
+                      tc.fail('pc2.createAnswer ' + err.toString());
                     }
                   );
                 },
                 function(err) {
-                  t.fail('pc2.setRemoteDescription ' + err.toString());
+                  tc.fail('pc2.setRemoteDescription ' + err.toString());
                 }
               );
             },
             function(err) {
-              t.fail('pc1.setLocalDescription ' + err.toString());
+              tc.fail('pc1.setLocalDescription ' + err.toString());
             }
           );
         },
         function(err) {
-          t.fail('pc1 failed to create offer ' + err.toString());
+          tc.fail('pc1 failed to create offer ' + err.toString());
         }
       );
     });
@@ -1438,7 +1436,7 @@ test('Basic connection establishment with promise', function(t) {
     var counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var t = {
+    var tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1468,10 +1466,10 @@ test('Basic connection establishment with promise', function(t) {
         pc.addIceCandidate(cand).then(function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
-          t.pass('addIceCandidate ' + counter++);
+          tc.pass('addIceCandidate ' + counter++);
         })
         .catch(function(err) {
-          t.fail('addIceCandidate ' + err.toString());
+          tc.fail('addIceCandidate ' + err.toString());
         });
       }
     };
@@ -1487,24 +1485,24 @@ test('Basic connection establishment with promise', function(t) {
     .then(function(stream) {
       pc1.addStream(stream);
       pc1.createOffer().then(function(offer) {
-        t.pass('pc1.createOffer');
+        tc.pass('pc1.createOffer');
         return pc1.setLocalDescription(offer);
       }).then(function() {
-        t.pass('pc1.setLocalDescription');
+        tc.pass('pc1.setLocalDescription');
         return pc2.setRemoteDescription(pc1.localDescription);
       }).then(function() {
-        t.pass('pc2.setRemoteDescription');
+        tc.pass('pc2.setRemoteDescription');
         return pc2.createAnswer();
       }).then(function(answer) {
-        t.pass('pc2.createAnswer');
+        tc.pass('pc2.createAnswer');
         return pc2.setLocalDescription(answer);
       }).then(function() {
-        t.pass('pc2.setLocalDescription');
+        tc.pass('pc2.setLocalDescription');
         return pc1.setRemoteDescription(pc2.localDescription);
       }).then(function() {
-        t.pass('pc1.setRemoteDescription');
+        tc.pass('pc1.setRemoteDescription');
       }).catch(function(err) {
-        t.fail(err.toString());
+        tc.fail(err.toString());
       });
     })
     .catch(function(error) {
@@ -1562,7 +1560,7 @@ test('Basic connection establishment with datachannel', function(t) {
     var counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var t = {
+    var tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1597,10 +1595,10 @@ test('Basic connection establishment with datachannel', function(t) {
         pc.addIceCandidate(cand).then(function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
-          t.pass('addIceCandidate ' + counter++);
+          tc.pass('addIceCandidate ' + counter++);
         })
         .catch(function(err) {
-          t.fail('addIceCandidate ' + err.toString());
+          tc.fail('addIceCandidate ' + err.toString());
         });
       }
     };
@@ -1613,24 +1611,24 @@ test('Basic connection establishment with datachannel', function(t) {
 
     pc1.createDataChannel('somechannel');
     pc1.createOffer().then(function(offer) {
-      t.pass('pc1.createOffer');
+      tc.pass('pc1.createOffer');
       return pc1.setLocalDescription(offer);
     }).then(function() {
-      t.pass('pc1.setLocalDescription');
+      tc.pass('pc1.setLocalDescription');
       return pc2.setRemoteDescription(pc1.localDescription);
     }).then(function() {
-      t.pass('pc2.setRemoteDescription');
+      tc.pass('pc2.setRemoteDescription');
       return pc2.createAnswer();
     }).then(function(answer) {
-      t.pass('pc2.createAnswer');
+      tc.pass('pc2.createAnswer');
       return pc2.setLocalDescription(answer);
     }).then(function() {
-      t.pass('pc2.setLocalDescription');
+      tc.pass('pc2.setLocalDescription');
       return pc1.setRemoteDescription(pc2.localDescription);
     }).then(function() {
-      t.pass('pc1.setRemoteDescription');
+      tc.pass('pc1.setRemoteDescription');
     }).catch(function(err) {
-      t.fail(err.name);
+      tc.fail(err.name);
     });
   };
 
@@ -1911,8 +1909,8 @@ test('getStats promise', function(t) {
         return;
       }
       pc1.getStats()
-      .then(function(report) {
-        testsEqualArray.push([typeof report, 'object',
+      .then(function(reportWithoutArg) {
+        testsEqualArray.push([typeof reportWithoutArg, 'object',
             'getStats with no arguments returns a Promise']);
         callback(testsEqualArray);
       })
@@ -2102,7 +2100,7 @@ test('ontrack', function(t) {
 
     window.testPassed = [];
     window.testFailed = [];
-    var t = {
+    var tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -2130,7 +2128,7 @@ test('ontrack', function(t) {
       if (event.candidate) {
         var cand = new RTCIceCandidate(event.candidate);
         pc.addIceCandidate(cand).catch(function(err) {
-          t.fail('addIceCandidate ' + err.toString());
+          tc.fail('addIceCandidate ' + err.toString());
         });
       }
     };
@@ -2141,17 +2139,18 @@ test('ontrack', function(t) {
       addCandidate(pc1, event);
     };
     pc2.ontrack = function(e) {
-      t.ok(true, 'pc2.ontrack called');
-      t.ok(typeof e.track === 'object', 'trackEvent.track is an object');
-      t.ok(typeof e.receiver === 'object', 'trackEvent.receiver is object');
-      t.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
-      t.is(e.streams.length, 1, 'trackEvent.streams has one stream');
-      t.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
+      tc.ok(true, 'pc2.ontrack called');
+      tc.ok(typeof e.track === 'object', 'trackEvent.track is an object');
+      tc.ok(typeof e.receiver === 'object',
+          'trackEvent.receiver is object');
+      tc.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
+      tc.is(e.streams.length, 1, 'trackEvent.streams has one stream');
+      tc.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
           'trackEvent.track is in stream');
 
       var receivers = pc2.getReceivers();
       if (receivers && receivers.length) {
-        t.ok(receivers.indexOf(e.receiver) !== -1,
+        tc.ok(receivers.indexOf(e.receiver) !== -1,
             'trackEvent.receiver matches a known receiver');
       }
     };
@@ -2184,16 +2183,6 @@ test('ontrack', function(t) {
   t.plan(7);
   // Run test.
   driver.get('file://' + process.cwd() + '/test/testpage.html')
-  // currently deactivated in Firefox. https://github.com/webrtc/adapter/issues/229
-  .then(function() {
-    return driver.executeScript('return adapter.browserDetails.browser');
-  })
-  .then(function(browser) {
-    if (browser === 'firefox') {
-      t.plan(0); // change of plan.
-      throw 'skip-test';
-    }
-  })
   .then(function() {
     return driver.executeAsyncScript(testDefinition);
   })
@@ -2231,6 +2220,7 @@ test('ontrack', function(t) {
     t.end();
   });
 });
+
 // This MUST to be the last test since it loads adapter
 // again which may result in unintended behaviour.
 test('Non-module logging to console still works', function(t) {

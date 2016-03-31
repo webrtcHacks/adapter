@@ -5,6 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+ /* eslint-env node */
 'use strict';
 
 // SDP helpers.
@@ -41,7 +42,8 @@ SDPUtils.matchPrefix = function(blob, prefix) {
 };
 
 // Parses an ICE candidate line. Sample input:
-// candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8 rport 55996"
+// candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8
+// rport 55996"
 SDPUtils.parseCandidate = function(line) {
   var parts;
   // Parse both variants.
@@ -119,11 +121,13 @@ SDPUtils.parseRtpMap = function(line) {
 
   parsed.name = parts[0];
   parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
-  parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1; // was: channels
+  // was: channels
+  parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1;
   return parsed;
 };
 
-// Generate an a=rtpmap line from RTCRtpCodecCapability or RTCRtpCodecParameters.
+// Generate an a=rtpmap line from RTCRtpCodecCapability or
+// RTCRtpCodecParameters.
 SDPUtils.writeRtpMap = function(codec) {
   var pt = codec.payloadType;
   if (codec.preferredPayloadType !== undefined) {
@@ -131,6 +135,23 @@ SDPUtils.writeRtpMap = function(codec) {
   }
   return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate +
       (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
+};
+
+// Parses an a=extmap line (headerextension from RFC 5285). Sample input:
+// a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
+SDPUtils.parseExtmap = function(line) {
+  var parts = line.substr(9).split(' ');
+  return {
+    id: parseInt(parts[0], 10),
+    uri: parts[1]
+  };
+};
+
+// Generates a=extmap line from RTCRtpHeaderExtensionParameters or
+// RTCRtpHeaderExtension.
+SDPUtils.writeExtmap = function(headerExtension) {
+  return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) +
+       ' ' + headerExtension.uri + '\r\n';
 };
 
 // Parses an ftmp line, returns dictionary. Sample input:
@@ -195,7 +216,7 @@ SDPUtils.writeRtcpFb = function(codec) {
 SDPUtils.parseSsrcMedia = function(line) {
   var sp = line.indexOf(' ');
   var parts = {
-    ssrc: line.substr(7, sp - 7),
+    ssrc: line.substr(7, sp - 7)
   };
   var colon = line.indexOf(':', sp);
   if (colon > -1) {
@@ -212,7 +233,8 @@ SDPUtils.parseSsrcMedia = function(line) {
 //   get the fingerprint line as input. See also getIceParameters.
 SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
   var lines = SDPUtils.splitLines(mediaSection);
-  lines = lines.concat(SDPUtils.splitLines(sessionpart)); // Search in session part, too.
+  // Search in session part, too.
+  lines = lines.concat(SDPUtils.splitLines(sessionpart));
   var fpLine = lines.filter(function(line) {
     return line.indexOf('a=fingerprint:') === 0;
   })[0].substr(14);
@@ -240,7 +262,8 @@ SDPUtils.writeDtlsParameters = function(params, setupType) {
 //   get the ice-ufrag and ice-pwd lines as input.
 SDPUtils.getIceParameters = function(mediaSection, sessionpart) {
   var lines = SDPUtils.splitLines(mediaSection);
-  lines = lines.concat(SDPUtils.splitLines(sessionpart)); // Search in session part, too.
+  // Search in session part, too.
+  lines = lines.concat(SDPUtils.splitLines(sessionpart));
   var iceParameters = {
     usernameFragment: lines.filter(function(line) {
       return line.indexOf('a=ice-ufrag:') === 0;
@@ -282,13 +305,26 @@ SDPUtils.parseRtpParameters = function(mediaSection) {
           mediaSection, 'a=rtcp-fb:' + pt + ' ')
         .map(SDPUtils.parseRtcpFb);
       description.codecs.push(codec);
+      // parse FEC mechanisms from rtpmap lines.
+      switch (codec.name.toUpperCase()) {
+        case 'RED':
+        case 'ULPFEC':
+          description.fecMechanisms.push(codec.name.toUpperCase());
+          break;
+        default: // only RED and ULPFEC are recognized as FEC mechanisms.
+          break;
+      }
     }
   }
-  // FIXME: parse headerExtensions, fecMechanisms and rtcp.
+  SDPUtils.matchPrefix(mediaSection, 'a=extmap:').forEach(function(line) {
+    description.headerExtensions.push(SDPUtils.parseExtmap(line));
+  });
+  // FIXME: parse rtcp.
   return description;
 };
 
-// Generates parts of the SDP media section describing the capabilities / parameters.
+// Generates parts of the SDP media section describing the capabilities /
+// parameters.
 SDPUtils.writeRtpDescription = function(kind, caps) {
   var sdp = '';
 
@@ -373,6 +409,8 @@ SDPUtils.getDirection = function(mediaSection, sessionpart) {
       case 'a=recvonly':
       case 'a=inactive':
         return lines[i].substr(2);
+      default:
+        // FIXME: What should happen here?
     }
   }
   if (sessionpart) {

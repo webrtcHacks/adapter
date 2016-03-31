@@ -5,6 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+ /* eslint-env node */
 'use strict';
 var logging = require('../utils.js').log;
 var browserDetails = require('../utils.js').browserDetails;
@@ -14,7 +15,9 @@ var chromeShim = {
     if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
         window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-        get: function() { return this._ontrack; },
+        get: function() {
+          return this._ontrack;
+        },
         set: function(f) {
           var self = this;
           if (this._ontrack) {
@@ -23,8 +26,8 @@ var chromeShim = {
           }
           this.addEventListener('track', this._ontrack = f);
           this.addEventListener('addstream', this._ontrackpoly = function(e) {
-            // onaddstream does not fire when a track is added to an existing stream.
-            // but stream.onaddtrack is implemented so we use that
+            // onaddstream does not fire when a track is added to an existing
+            // stream. But stream.onaddtrack is implemented so we use that.
             e.stream.addEventListener('addtrack', function(te) {
               var event = new Event('track');
               event.track = te.track;
@@ -67,8 +70,8 @@ var chromeShim = {
               return;
             }
             this.src = URL.createObjectURL(stream);
-            // We need to recreate the blob url when a track is added or removed.
-            // Doing it manually since we want to avoid a recursion.
+            // We need to recreate the blob url when a track is added or
+            // removed. Doing it manually since we want to avoid a recursion.
             stream.addEventListener('addtrack', function() {
               if (self.src) {
                 URL.revokeObjectURL(self.src);
@@ -97,9 +100,9 @@ var chromeShim = {
         pcConfig.iceTransports = pcConfig.iceTransportPolicy;
       }
 
-      var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints); // jscs:ignore requireCapitalizedConstructors
+      var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints);
       var origGetStats = pc.getStats.bind(pc);
-      pc.getStats = function(selector, successCallback, errorCallback) { // jshint ignore: line
+      pc.getStats = function(selector, successCallback, errorCallback) {
         var self = this;
         var args = arguments;
 
@@ -138,9 +141,9 @@ var chromeShim = {
 
         // promise-support
         return new Promise(function(resolve, reject) {
-          if (args.length === 1 && selector === null) {
-            origGetStats.apply(self, [
-                function(response) {
+          if (args.length === 1 && typeof selector === 'object') {
+            origGetStats.apply(self,
+                [function(response) {
                   resolve.apply(null, [fixChromeStats_(response)]);
                 }, reject]);
           } else {
@@ -160,9 +163,8 @@ var chromeShim = {
           if (arguments.length) {
             return webkitRTCPeerConnection.generateCertificate.apply(null,
                 arguments);
-          } else {
-            return webkitRTCPeerConnection.generateCertificate;
           }
+          return webkitRTCPeerConnection.generateCertificate;
         }
       });
     }
@@ -178,36 +180,35 @@ var chromeShim = {
           return new Promise(function(resolve, reject) {
             nativeMethod.apply(self, [resolve, reject, opts]);
           });
-        } else {
-          return nativeMethod.apply(this, arguments);
         }
+        return nativeMethod.apply(this, arguments);
       };
     });
 
-    ['setLocalDescription', 'setRemoteDescription',
-        'addIceCandidate'].forEach(function(method) {
-      var nativeMethod = webkitRTCPeerConnection.prototype[method];
-      webkitRTCPeerConnection.prototype[method] = function() {
-        var args = arguments;
-        var self = this;
-        return new Promise(function(resolve, reject) {
-          nativeMethod.apply(self, [args[0],
-              function() {
-                resolve();
-                if (args.length >= 2) {
-                  args[1].apply(null, []);
-                }
-              },
-              function(err) {
-                reject(err);
-                if (args.length >= 3) {
-                  args[2].apply(null, [err]);
-                }
-              }]
-            );
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          var nativeMethod = webkitRTCPeerConnection.prototype[method];
+          webkitRTCPeerConnection.prototype[method] = function() {
+            var args = arguments;
+            var self = this;
+            return new Promise(function(resolve, reject) {
+              nativeMethod.apply(self, [args[0],
+                  function() {
+                    resolve();
+                    if (args.length >= 2) {
+                      args[1].apply(null, []);
+                    }
+                  },
+                  function(err) {
+                    reject(err);
+                    if (args.length >= 3) {
+                      args[2].apply(null, [err]);
+                    }
+                  }]
+                );
+            });
+          };
         });
-      };
-    });
   },
 
   // Attach a media stream to an element.

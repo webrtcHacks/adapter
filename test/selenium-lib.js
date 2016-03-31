@@ -5,15 +5,15 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* jshint node: true */
-
- 'use strict';
+ /* eslint-env node */
+'use strict';
 
 // https://code.google.com/p/selenium/wiki/WebDriverJs
 var webdriver = require('selenium-webdriver');
 var chrome = require('selenium-webdriver/chrome');
 var firefox = require('selenium-webdriver/firefox');
 var fs = require('fs');
+var os = require('os');
 
 var sharedDriver = null;
 
@@ -29,8 +29,8 @@ function getBrowserVersion() {
   var chromePos = 2;
   var firefoxPos = 1;
 
-  var browserVersion = function(path, expr, pos) {
-    var match = path.match(expr);
+  var browserVersion = function(pathToBrowser, expr, pos) {
+    var match = pathToBrowser.match(expr);
     return match && match.length >= pos && parseInt(match[pos], 10);
   };
 
@@ -62,16 +62,20 @@ function buildDriver() {
   profile.setPreference('xpinstall.signatures.required', false);
 
   var firefoxOptions = new firefox.Options()
-      .setProfile(profile)
-      .setBinary('node_modules/.bin/start-firefox');
+      .setProfile(profile);
+  if (os.platform() === 'linux') {
+    firefoxOptions.setBinary('node_modules/.bin/start-firefox');
+  }
 
   // Chrome options.
   // http://selenium.googlecode.com/git/docs/api/javascript/module_selenium-webdriver_chrome_class_Options.html#addArguments
   var chromeOptions = new chrome.Options()
-      .setChromeBinaryPath('node_modules/.bin/start-chrome')
       .addArguments('allow-file-access-from-files')
       .addArguments('use-fake-device-for-media-stream')
       .addArguments('use-fake-ui-for-media-stream');
+  if (os.platform() === 'linux') {
+    chromeOptions.setChromeBinaryPath('node_modules/.bin/start-chrome');
+  }
 
   // Only enable this for Chrome >= 49.
   if (process.env.BROWSER === 'chrome' && getBrowserVersion >= '49') {

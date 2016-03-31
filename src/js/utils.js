@@ -5,6 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+ /* eslint-env node */
 'use strict';
 
 var logDisabled_ = false;
@@ -26,7 +27,9 @@ var utils = {
       if (logDisabled_) {
         return;
       }
-      console.log.apply(console, arguments);
+      if (typeof console !== 'undefined' && typeof console.log === 'function') {
+        console.log.apply(console, arguments);
+      }
     }
   },
 
@@ -79,7 +82,8 @@ var utils = {
           /Chrom(e|ium)\/([0-9]+)\./, 2);
         result.minVersion = 38;
      
-      // 03/20 commit in webkit removed the RTCPeerconnection for now 
+      // 03/20/16 commit in webkit removed the RTCPeerconnection for now
+      // in nightly.
       } else {
 
       // Safari uses its own shim.
