@@ -51,6 +51,9 @@ Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/te
 * Go the the adapter repository root directory
 * Make sure your repository is clean, i.e. no untracked files etc
 * Run `npm version patch -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
+* Create and merge the PR if green in the GitHub web ui
+* Run ´git pull´
+* Run `npm publish`
 * Done! There should now be a new release published to NPM and the gh-pages branch.
 
 Note: Currently only tested on Linux, not sure about Mac but will definitely not work on Windows.
