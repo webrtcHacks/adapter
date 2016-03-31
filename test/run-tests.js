@@ -8,7 +8,42 @@
  /* eslint-env node */
 
 'use strict';
+var fs = require('fs');
+var os = require('os');
 var test = require('tape');
+
+if (!process.env.BROWSER) {
+  process.env.BROWSER = 'chrome';
+}
+if (!process.env.BVER) {
+  process.env.BVER = 'stable';
+}
+var browserbin = './browsers/bin/' + process.env.BROWSER +
+    '-' + process.env.BVER;
+
+// install browsers via travis-multirunner (on Linux).
+if (os.platform() === 'linux') {
+  try {
+    fs.accessSync(browserbin, fs.X_OK);
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      // execute travis-multirunner setup to install browser
+      require('child_process').execSync(
+          './node_modules/travis-multirunner/setup.sh');
+    }
+  }
+}
+if (os.platform() === 'win32') {
+  if (process.env.BROWSER === 'MicrosoftEdge') {
+    // assume MicrosoftWebDriver is installed.
+    process.env.PATH += ';C:\\Program Files (x86)\\Microsoft Web Driver\\';
+  }
+  if (process.env.BROWSER === 'chrome') {
+    // for some reason chromedriver doesn't like the one in node_modules\.bin
+    process.env.PATH += ';' + process.cwd() +
+      '\\node_modules\\chromedriver\\lib\\chromedriver\\';
+  }
+}
 
 // Add all test files here with a short comment.
 

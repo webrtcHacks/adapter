@@ -16,7 +16,7 @@
     "version": "grunt build",
     "postversion": "git push --force --set-upstream origin bumpVersion --follow-tags && export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git checkout gh-pages && git pull && cp out/adapter.js . && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir adapter-`$GITTAG`-variants && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepublish": "grunt build",
-    "test": "grunt && test/run-tests"
+    "test": "grunt && node test/run-tests.js"
   },
   "dependencies": {},
   "devDependencies": {
@@ -26,7 +26,7 @@
     "grunt-cli": ">=0.1.9",
     "grunt-eslint": "^17.2.0",
     "grunt-githooks": "^0.3.1",
-    "selenium-webdriver": "^2.48.0",
+    "selenium-webdriver": "^2.52.0",
     "tape": "^4.0.0",
     "travis-multirunner": "^3.0.0",
     "faucet": "0.0.1"
