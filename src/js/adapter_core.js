@@ -33,12 +33,14 @@
 
   // Shim browser if found.
   switch (browserDetails.browser) {
+    case 'opera': // fallthrough as it uses chrome shims
     case 'chrome':
       if (!chromeShim || !chromeShim.shimPeerConnection) {
         logging('Chrome shim is not included in this adapter release.');
         return;
       }
-      logging('adapter.js shimming chrome!');
+      logging(`adapter.js shimming ${browserDetails.browser}`
+        + ` (as chrome ${browserDetails.version})!`);
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = chromeShim;
 
@@ -52,7 +54,7 @@
         logging('Firefox shim is not included in this adapter release.');
         return;
       }
-      logging('adapter.js shimming firefox!');
+      logging(`adapter.js shimming ${browserDetails.browser} ${browserDetails.version}!`);
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = firefoxShim;
 
@@ -66,7 +68,7 @@
         logging('MS edge shim is not included in this adapter release.');
         return;
       }
-      logging('adapter.js shimming edge!');
+      logging(`adapter.js shimming ${browserDetails.browser} ${browserDetails.version}!`);
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = edgeShim;
 
@@ -77,14 +79,11 @@
         logging('Safari shim is not included in this adapter release.');
         return;
       }
-      logging('adapter.js shimming safari!');
+      logging(`adapter.js shimming ${browserDetails.browser} ${browserDetails.version}!`);
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = safariShim;
 
       safariShim.shimGetUserMedia();
-      safariShim.shimSourceObject();
-      safariShim.shimPeerConnection();
-      safariShim.shimOnTrack();
       break;
     default:
       logging('Unsupported browser!');

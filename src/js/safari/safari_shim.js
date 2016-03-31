@@ -6,37 +6,29 @@
  *  tree.
  */
 'use strict';
-var logging = require('../utils.js').log;
-var browserDetails = require('../utils.js').browserDetails;
-
 var safariShim = {
-  // TODO: alex, should be here, double check against LayoutTests
-  shimOnTrack: function() { },
+  // TODO: DrAlex, should be here, double check against LayoutTests
+  // shimOnTrack: function() { },
 
-  // TODO: alex, not sure if the HTMLMediaElement has been updated,
-  // ... double-check anyway
-  shimSourceObject: function() { },
-  attachMediaStream: function(element, stream) { },
-  reattachMediaStream: function(to, from) { },
+  // TODO: DrAlex
+  // attachMediaStream: function(element, stream) { },
+  // reattachMediaStream: function(to, from) { },
 
   // TODO: once the back-end for the mac port is done, add.
   // TODO: check for webkitGTK+
-  shimPeerConnection: function() { },
+  // shimPeerConnection: function() { },
 
-  // Very recent implementation, based on Last Call specs
-  // ... just need to remove the prefix. navigator.GUM is
-  // ... but a wrapper for mediaDevices.GUM. 
   shimGetUserMedia: function() {
     navigator.getUserMedia = navigator.webkitGetUserMedia;
-  },
-}
+  }
+};
 
 // Expose public methods.
 module.exports = {
-  shimOnTrack: safariShim.shimOnTrack,
-  shimSourceObject: safariShim.shimSourceObject,
-  shimPeerConnection: safariShim.shimPeerConnection,
-  shimGetUserMedia: safariShim.shimGetUserMedia,
-  attachMediaStream: safariShim.attachMediaStream,
-  reattachMediaStream: safariShim.reattachMediaStream
+  shimGetUserMedia: safariShim.shimGetUserMedia
+  // TODO
+  // shimOnTrack: safariShim.shimOnTrack,
+  // shimPeerConnection: safariShim.shimPeerConnection,
+  // attachMediaStream: safariShim.attachMediaStream,
+  // reattachMediaStream: safariShim.reattachMediaStream
 };
