@@ -5,9 +5,8 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* jshint node: true */
-
- 'use strict';
+ /* eslint-env node */
+'use strict';
 
 // https://code.google.com/p/selenium/wiki/WebDriverJs
 var webdriver = require('selenium-webdriver');
@@ -29,8 +28,8 @@ function getBrowserVersion() {
   var chromePos = 2;
   var firefoxPos = 1;
 
-  var browserVersion = function(path, expr, pos) {
-    var match = path.match(expr);
+  var browserVersion = function(pathToBrowser, expr, pos) {
+    var match = pathToBrowser.match(expr);
     return match && match.length >= pos && parseInt(match[pos], 10);
   };
 

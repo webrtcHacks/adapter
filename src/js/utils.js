@@ -5,6 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+ /* eslint-env node */
 'use strict';
 
 var logDisabled_ = false;
@@ -73,7 +74,7 @@ var utils = {
       result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
       result.minVersion = 38;
-    } else if(navigator.mediaDevices &&
+    } else if (navigator.mediaDevices &&
         navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
       // Edge.
       result.browser = 'edge';

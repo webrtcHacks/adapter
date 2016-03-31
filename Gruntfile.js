@@ -60,29 +60,22 @@ module.exports = function(grunt) {
     },
     githooks: {
       all: {
-        'pre-commit': 'jshint jscs'
+        'pre-commit': 'lint'
       }
     },
-    jshint: {
+    eslint: {
       options: {
-        jshintrc: '.jshintrc'
+        configFile: '.eslintrc'
       },
-      files: ['adapter_core.js', 'test/*.js']
+      target: ['src/**/*.js', 'test/*.js']
     },
-    jscs: {
-      src: ['adapter_core.js', 'test/*.js'],
-      options: {
-        config: '.jscsrc',
-        'excludeFiles': [
-        ]
-      }
-    }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-jscs');
   grunt.loadNpmTasks('grunt-githooks');
+  grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-browserify');
-  grunt.registerTask('default', ['jshint', 'jscs', 'browserify']);
+
+  grunt.registerTask('default', ['eslint', 'browserify']);
+  grunt.registerTask('lint', ['eslint']);
   grunt.registerTask('build', ['browserify']);
 };
