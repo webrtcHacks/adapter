@@ -1724,7 +1724,7 @@ test('call enumerateDevices', function(t) {
   });
 });
 
-// Test Chrome polyfill for getStats.
+// Test polyfill for getStats.
 test('getStats', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
@@ -1741,13 +1741,21 @@ test('getStats', function(t) {
     .then(function(report) {
       window.testsEqualArray.push([typeof(report), 'object',
           'report is an object.']);
+      report.forEach((stat, key) => {
+        window.testsEqualArray.push([stat.id, key,
+            'report key matches stats id.']);
+      });
+      return report;
+    })
+    .then(function(report) {
+      // Test legacy behavior
       for (var key in report) {
         // This avoids problems with Firefox
         if (typeof(report[key]) === 'function') {
           continue;
         }
         window.testsEqualArray.push([report[key].id, key,
-            'report key matches stats id.']);
+            'legacy report key matches stats id.']);
       }
       callback(null);
     })
