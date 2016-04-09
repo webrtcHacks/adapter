@@ -60,3 +60,19 @@ test('parseRtpParameters', function(t) {
   t.ok(data.headerExtensions.length === 3, 'parsed 3 header extensions');
   t.end();
 });
+
+test('fmtp parsing and serialization', function(t) {
+  var base = 'a=fmtp:111 minptime=10; useinbandfec=1';
+  var nospace = 'a=fmtp:111 minptime=10;useinbandfec=1';
+
+  var parsed = SDPUtils.parseFmtp(base);
+  t.ok(Object.keys(parsed).length === 2, 'parsed 2 parameters');
+  t.ok(parsed.minptime === '10', 'parsed minptime');
+  t.ok(parsed.useinbandfec === '1', 'parsed useinbandfec');
+
+  // TODO: is this safe or can the order change?
+  t.ok(SDPUtils.writeFmtp({payloadType: 111, parameters: parsed})
+      === nospace + '\r\n',
+      'serialization does not add extra spaces between parameters');
+  t.end();
+});
