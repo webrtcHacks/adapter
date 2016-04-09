@@ -28,7 +28,7 @@ SDPUtils.splitLines = function(blob) {
 };
 // Splits SDP into sessionpart and mediasections. Ensures CRLF.
 SDPUtils.splitSections = function(blob) {
-  var parts = blob.split('\r\nm=');
+  var parts = blob.split('\nm=');
   return parts.map(function(part, index) {
     return (index > 0 ? 'm=' + part : part).trim() + '\r\n';
   });

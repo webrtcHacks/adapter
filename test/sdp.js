@@ -49,6 +49,23 @@ var videoSDP =
   'a=ssrc:2715962409 mslabel:EZVtYL50wdbfttMdmVFITVoKc4XgA0KBZXzd\r\n' +
   'a=ssrc:2715962409 label:63238d63-9a20-4afc-832c-48678926afce\r\n';
 
+test('splitSections', function(t) {
+  var parsed = SDPUtils.splitSections(videoSDP.replace(/\r\n/g, '\n'));
+  t.ok(parsed.length === 2,
+      'split video-only SDP with only LF into two sections');
+
+  parsed = SDPUtils.splitSections(videoSDP);
+  t.ok(parsed.length === 2, 'split video-only SDP into two sections');
+
+  t.ok(parsed.every(function(section) {
+    return section.substr(-2) === '\r\n';
+  }), 'every section ends with CRLF');
+
+  t.ok(parsed.join('') === videoSDP,
+      'joining sections without separator recreates SDP');
+  t.end();
+});
+
 test('parseRtpParameters', function(t) {
   var sections = SDPUtils.splitSections(videoSDP);
   var data = SDPUtils.parseRtpParameters(sections[1]);
