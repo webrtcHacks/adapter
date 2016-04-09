@@ -345,6 +345,8 @@ var edgeShim = {
           } else if (description.type === 'answer') {
             sections = SDPUtils.splitSections(self.remoteDescription.sdp);
             sessionpart = sections.shift();
+            var isIceLite = SDPUtils.matchPrefix(sessionpart,
+                'a=ice-lite').length > 0;
             sections.forEach(function(mediaSection, sdpMLineIndex) {
               var transceiver = self.transceivers[sdpMLineIndex];
               var iceGatherer = transceiver.iceGatherer;
@@ -358,11 +360,27 @@ var edgeShim = {
               if (!rejected) {
                 var remoteIceParameters = SDPUtils.getIceParameters(
                     mediaSection, sessionpart);
+                if (isIceLite) {
+                  var cands = SDPUtils.matchPrefix(mediaSection, 'a=candidate:')
+                  .map(function(cand) {
+                    return SDPUtils.parseCandidate(cand);
+                  })
+                  .filter(function(cand) {
+                    return cand.component === '1';
+                  });
+                  // ice-lite only includes host candidates in the SDP so we can
+                  // use setRemoteCandidates (which implies an
+                  // RTCIceCandidateComplete)
+                  iceTransport.setRemoteCandidates(cands);
+                }
                 iceTransport.start(iceGatherer, remoteIceParameters,
-                    'controlled');
+                    isIceLite ? 'controlling' : 'controlled');
 
                 var remoteDtlsParameters = SDPUtils.getDtlsParameters(
                     mediaSection, sessionpart);
+                if (isIceLite) {
+                  remoteDtlsParameters.role = 'server';
+                }
                 dtlsTransport.start(remoteDtlsParameters);
 
                 // Calculate intersection of capabilities.
@@ -429,6 +447,8 @@ var edgeShim = {
           var receiverList = [];
           var sections = SDPUtils.splitSections(description.sdp);
           var sessionpart = sections.shift();
+          var isIceLite = SDPUtils.matchPrefix(sessionpart,
+              'a=ice-lite').length > 0;
           sections.forEach(function(mediaSection, sdpMLineIndex) {
             var lines = SDPUtils.splitLines(mediaSection);
             var mline = lines[0].substr(2).split(' ');
@@ -456,6 +476,7 @@ var edgeShim = {
                   sessionpart);
               remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
                   sessionpart);
+              remoteDtlsParameters.role = 'client';
             }
             var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
             if (mid.length) {
@@ -551,7 +572,7 @@ var edgeShim = {
                   remoteCapabilities;
               self.transceivers[sdpMLineIndex].cname = cname;
 
-              if (isComplete) {
+              if (isIceLite || isComplete) {
                 iceTransport.setRemoteCandidates(cands);
               }
               iceTransport.start(iceGatherer, remoteIceParameters,
