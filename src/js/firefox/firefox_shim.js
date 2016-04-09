@@ -94,10 +94,6 @@ var firefoxShim = {
       if (mozRTCPeerConnection.generateCertificate) {
         Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
           get: function() {
-            if (arguments.length) {
-              return mozRTCPeerConnection.generateCertificate.apply(null,
-                  arguments);
-            }
             return mozRTCPeerConnection.generateCertificate;
           }
         });

@@ -160,10 +160,6 @@ var chromeShim = {
     if (webkitRTCPeerConnection.generateCertificate) {
       Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
         get: function() {
-          if (arguments.length) {
-            return webkitRTCPeerConnection.generateCertificate.apply(null,
-                arguments);
-          }
           return webkitRTCPeerConnection.generateCertificate;
         }
       });
