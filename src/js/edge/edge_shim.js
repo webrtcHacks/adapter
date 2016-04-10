@@ -95,9 +95,10 @@ var edgeShim = {
         this.iceOptions.iceServers = config.iceServers.filter(function(server) {
           if (server && server.urls) {
             server.urls = server.urls.filter(function(url) {
-              return url.indexOf('transport=udp') !== -1;
+              return url.indexOf('turn:') === 0 &&
+                  url.indexOf('transport=udp') !== -1;
             })[0];
-            return true;
+            return !!server.urls;
           }
           return false;
         });
