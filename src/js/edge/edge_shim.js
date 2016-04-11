@@ -458,7 +458,12 @@ var edgeShim = {
               remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
                   sessionpart);
             }
-            var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0].substr(6);
+            var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
+            if (mid.length) {
+              mid = mid[0].substr(6);
+            } else {
+              mid = undefined;
+            }
 
             var cname;
             // Gets the first SSRC. Note that with RTX there might be multiple
@@ -484,7 +489,7 @@ var edgeShim = {
                 .filter(function(cand) {
                   return cand.component === '1';
                 });
-            if (description.type === 'offer') {
+            if (description.type === 'offer' && !rejected) {
               var transports = self._createIceAndDtlsTransports(mid,
                   sdpMLineIndex);
               if (isComplete) {

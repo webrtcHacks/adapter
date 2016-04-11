@@ -49,14 +49,68 @@ var videoSDP =
   'a=ssrc:2715962409 mslabel:EZVtYL50wdbfttMdmVFITVoKc4XgA0KBZXzd\r\n' +
   'a=ssrc:2715962409 label:63238d63-9a20-4afc-832c-48678926afce\r\n';
 
+test('splitSections', function(t) {
+  var parsed = SDPUtils.splitSections(videoSDP.replace(/\r\n/g, '\n'));
+  t.ok(parsed.length === 2,
+      'split video-only SDP with only LF into two sections');
+
+  parsed = SDPUtils.splitSections(videoSDP);
+  t.ok(parsed.length === 2, 'split video-only SDP into two sections');
+
+  t.ok(parsed.every(function(section) {
+    return section.substr(-2) === '\r\n';
+  }), 'every section ends with CRLF');
+
+  t.ok(parsed.join('') === videoSDP,
+      'joining sections without separator recreates SDP');
+  t.end();
+});
+
 test('parseRtpParameters', function(t) {
   var sections = SDPUtils.splitSections(videoSDP);
-  var data = SDPUtils.parseRtpParameters(sections[1]);
-  t.ok(data.codecs.length === 9, 'parsed 9 codecs');
-  t.ok(data.fecMechanisms.length === 2, 'parsed FEC mechanisms');
-  t.ok(data.fecMechanisms.indexOf('RED') !== -1, 'parsed RED as FEC mechanism');
-  t.ok(data.fecMechanisms.indexOf('ULPFEC') !== -1,
+  var parsed = SDPUtils.parseRtpParameters(sections[1]);
+  t.ok(parsed.codecs.length === 9, 'parsed 9 codecs');
+  t.ok(parsed.fecMechanisms.length === 2, 'parsed FEC mechanisms');
+  t.ok(parsed.fecMechanisms.indexOf('RED') !== -1,
+      'parsed RED as FEC mechanism');
+  t.ok(parsed.fecMechanisms.indexOf('ULPFEC') !== -1,
       'parsed ULPFEC as FEC mechanism');
-  t.ok(data.headerExtensions.length === 3, 'parsed 3 header extensions');
+  t.ok(parsed.headerExtensions.length === 3, 'parsed 3 header extensions');
+  t.end();
+});
+
+test('fmtp parsing and serialization', function(t) {
+  var line = 'a=fmtp:111 minptime=10; useinbandfec=1';
+  var parsed = SDPUtils.parseFmtp(line);
+  t.ok(Object.keys(parsed).length === 2, 'parsed 2 parameters');
+  t.ok(parsed.minptime === '10', 'parsed minptime');
+  t.ok(parsed.useinbandfec === '1', 'parsed useinbandfec');
+
+  // TODO: is this safe or can the order change?
+  // serialization strings the extra whitespace after ';'
+  t.ok(SDPUtils.writeFmtp({payloadType: 111, parameters: parsed})
+      === line.replace('; ', ';') + '\r\n',
+      'serialization does not add extra spaces between parameters');
+  t.end();
+});
+
+test('rtpmap parsing and serialization', function(t) {
+  var line = 'a=rtpmap:111 opus/48000/2';
+  var parsed = SDPUtils.parseRtpMap(line);
+  t.ok(parsed.name === 'opus', 'parsed codec name');
+  t.ok(parsed.payloadType === 111, 'parsed payloadType as integer');
+  t.ok(parsed.clockRate === 48000, 'parsed clockRate as integer');
+  t.ok(parsed.numChannels === 2, 'parsed numChannels');
+
+  parsed = SDPUtils.parseRtpMap('a=rtpmap:0 PCMU/8000');
+  t.ok(parsed.numChannels === 1, 'numChannels defaults to 1 if not present');
+
+  t.ok(SDPUtils.writeRtpMap({
+    payloadType: 111,
+    name: 'opus',
+    clockRate: 48000,
+    numChannels: 2
+  }).trim() === line, 'serialized rtpmap');
+
   t.end();
 });

@@ -28,7 +28,7 @@ SDPUtils.splitLines = function(blob) {
 };
 // Splits SDP into sessionpart and mediasections. Ensures CRLF.
 SDPUtils.splitSections = function(blob) {
-  var parts = blob.split('\r\nm=');
+  var parts = blob.split('\nm=');
   return parts.map(function(part, index) {
     return (index > 0 ? 'm=' + part : part).trim() + '\r\n';
   });
@@ -169,13 +169,13 @@ SDPUtils.parseFmtp = function(line) {
 };
 
 // Generates an a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
-SDPUtils.writeFtmp = function(codec) {
+SDPUtils.writeFmtp = function(codec) {
   var line = '';
   var pt = codec.payloadType;
   if (codec.preferredPayloadType !== undefined) {
     pt = codec.preferredPayloadType;
   }
-  if (codec.parameters && codec.parameters.length) {
+  if (codec.parameters && Object.keys(codec.parameters).length) {
     var params = [];
     Object.keys(codec.parameters).forEach(function(param) {
       params.push(param + '=' + codec.parameters[param]);
@@ -345,7 +345,7 @@ SDPUtils.writeRtpDescription = function(kind, caps) {
   // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
   caps.codecs.forEach(function(codec) {
     sdp += SDPUtils.writeRtpMap(codec);
-    sdp += SDPUtils.writeFtmp(codec);
+    sdp += SDPUtils.writeFmtp(codec);
     sdp += SDPUtils.writeRtcpFb(codec);
   });
   // FIXME: add headerExtensions, fecMechanismş and rtcp.
