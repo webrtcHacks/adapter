@@ -2012,15 +2012,6 @@ test('iceTransportPolicy relay functionality', function(t) {
   driver.get('file://' + process.cwd() + '/test/testpage.html')
   .then(function() {
     t.pass('Page loaded');
-    return driver.executeScript(
-      'return adapter.browserDetails.browser === \'firefox\'');
-  })
-  .then(function(isFirefox) {
-    if (isFirefox) {
-      // TODO: Remove once supported in firefox.
-      t.skip('iceTransportPolicy is not implemented in Firefox yet.');
-      throw 'skip-test';
-    }
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
