@@ -1480,25 +1480,27 @@ test('Basic connection establishment with promise', function(t) {
       addCandidate(pc1, event);
     };
 
+    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+
     var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       pc1.addStream(stream);
       pc1.createOffer().then(function(offer) {
         tc.pass('pc1.createOffer');
-        return pc1.setLocalDescription(offer);
+        return pc1.setLocalDescription(dictionary(offer));
       }).then(function() {
         tc.pass('pc1.setLocalDescription');
-        return pc2.setRemoteDescription(pc1.localDescription);
+        return pc2.setRemoteDescription(dictionary(pc1.localDescription));
       }).then(function() {
         tc.pass('pc2.setRemoteDescription');
         return pc2.createAnswer();
       }).then(function(answer) {
         tc.pass('pc2.createAnswer');
-        return pc2.setLocalDescription(answer);
+        return pc2.setLocalDescription(dictionary(answer));
       }).then(function() {
         tc.pass('pc2.setLocalDescription');
-        return pc1.setRemoteDescription(pc2.localDescription);
+        return pc1.setRemoteDescription(dictionary(pc2.localDescription));
       }).then(function() {
         tc.pass('pc1.setRemoteDescription');
       }).catch(function(err) {
