@@ -2197,6 +2197,7 @@ test('ontrack', function(t) {
   .then(function(pc1ConnectionStatus) {
     t.ok(pc1ConnectionStatus === 'completed' || 'connected',
       'P2P connection established');
+    driver.sleep(1000); // flaky in firefox
     return driver.executeScript('return window.testPassed');
   })
   .then(function(testPassed) {
