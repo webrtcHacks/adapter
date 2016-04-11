@@ -112,9 +112,8 @@ var firefoxShim = {
         .forEach(function(method) {
           var nativeMethod = RTCPeerConnection.prototype[method];
           RTCPeerConnection.prototype[method] = function() {
-            var Frob = (method === 'addIceCandidate')?
-                RTCIceCandidate : RTCSessionDescription;
-            arguments[0] = new Frob(arguments[0]);
+            arguments[0] = new ((method === 'addIceCandidate')?
+                RTCIceCandidate : RTCSessionDescription)(arguments[0]);
             return nativeMethod.apply(this, arguments);
           };
         });
