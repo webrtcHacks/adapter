@@ -1460,10 +1460,11 @@ test('Basic connection establishment with promise', function(t) {
       }
     };
 
+    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+
     var addCandidate = function(pc, event) {
       if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand).then(function() {
+        pc.addIceCandidate(dictionary(event.candidate)).then(function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
           tc.pass('addIceCandidate ' + counter++);
@@ -1479,8 +1480,6 @@ test('Basic connection establishment with promise', function(t) {
     pc2.onicecandidate = function(event) {
       addCandidate(pc1, event);
     };
-
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
 
     var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
