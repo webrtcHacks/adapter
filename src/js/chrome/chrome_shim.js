@@ -130,9 +130,19 @@ var chromeShim = {
           return standardReport;
         };
 
+        // shim getStats with maplike support
+        var makeMapStats = (stats, legacyStats) => {
+          var map = new Map(Object.keys(stats).map(key => [key, stats[key]]));
+          legacyStats = legacyStats || stats;
+          Object.keys(legacyStats).forEach(key => {
+            map[key] = legacyStats[key];
+          });
+          return map;
+        };
+
         if (arguments.length >= 2) {
           var successCallbackWrapper_ = function(response) {
-            args[1](fixChromeStats_(response));
+            args[1](makeMapStats(fixChromeStats_(response)));
           };
 
           return origGetStats.apply(this, [successCallbackWrapper_,
@@ -143,13 +153,16 @@ var chromeShim = {
         return new Promise(function(resolve, reject) {
           if (args.length === 1 && typeof selector === 'object') {
             origGetStats.apply(self,
-                [function(response) {
-                  resolve.apply(null, [fixChromeStats_(response)]);
-                }, reject]);
+                [response => resolve(makeMapStats(fixChromeStats_(response))),
+                 reject]);
           } else {
-            origGetStats.apply(self, [resolve, reject]);
+            // Preserve legacy chrome stats only on legacy access of stats obj
+            origGetStats.apply(self,
+                [response => resolve(makeMapStats(fixChromeStats_(response),
+                                                  response.result())),
+                 reject]);
           }
-        });
+        }).then(successCallback, errorCallback);
       };
 
       return pc;
