@@ -462,7 +462,7 @@ var edgeShim = {
             if (mid.length) {
               mid = mid[0].substr(6);
             } else {
-              mid = undefined;
+              mid = SDPUtils.generateIdentifier();
             }
 
             var cname;
