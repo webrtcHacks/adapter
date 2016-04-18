@@ -58,17 +58,18 @@ module.exports = function() {
       }
       return c;
     };
+    var constraintsCopy = JSON.parse(JSON.stringify(constraints));
     if (browserDetails.version < 38) {
       logging('spec: ' + JSON.stringify(constraints));
-      if (constraints.audio) {
-        constraints.audio = constraintsToFF37_(constraints.audio);
+      if (constraintsCopy.audio) {
+        constraintsCopy.audio = constraintsToFF37_(constraintsCopy.audio);
       }
-      if (constraints.video) {
-        constraints.video = constraintsToFF37_(constraints.video);
+      if (constraintsCopy.video) {
+        constraintsCopy.video = constraintsToFF37_(constraintsCopy.video);
       }
-      logging('ff37: ' + JSON.stringify(constraints));
+      logging('ff37: ' + JSON.stringify(constraintsCopy));
     }
-    return navigator.mozGetUserMedia(constraints, onSuccess, onError);
+    return navigator.mozGetUserMedia(constraintsCopy, onSuccess, onError);
   };
 
   navigator.getUserMedia = getUserMedia_;
