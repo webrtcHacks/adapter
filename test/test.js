@@ -1460,10 +1460,11 @@ test('Basic connection establishment with promise', function(t) {
       }
     };
 
+    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+
     var addCandidate = function(pc, event) {
       if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand).then(function() {
+        pc.addIceCandidate(dictionary(event.candidate)).then(function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
           tc.pass('addIceCandidate ' + counter++);
@@ -1486,19 +1487,19 @@ test('Basic connection establishment with promise', function(t) {
       pc1.addStream(stream);
       pc1.createOffer().then(function(offer) {
         tc.pass('pc1.createOffer');
-        return pc1.setLocalDescription(offer);
+        return pc1.setLocalDescription(dictionary(offer));
       }).then(function() {
         tc.pass('pc1.setLocalDescription');
-        return pc2.setRemoteDescription(pc1.localDescription);
+        return pc2.setRemoteDescription(dictionary(pc1.localDescription));
       }).then(function() {
         tc.pass('pc2.setRemoteDescription');
         return pc2.createAnswer();
       }).then(function(answer) {
         tc.pass('pc2.createAnswer');
-        return pc2.setLocalDescription(answer);
+        return pc2.setLocalDescription(dictionary(answer));
       }).then(function() {
         tc.pass('pc2.setLocalDescription');
-        return pc1.setRemoteDescription(pc2.localDescription);
+        return pc1.setRemoteDescription(dictionary(pc2.localDescription));
       }).then(function() {
         tc.pass('pc1.setRemoteDescription');
       }).catch(function(err) {

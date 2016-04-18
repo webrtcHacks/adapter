@@ -102,6 +102,17 @@ var firefoxShim = {
       window.RTCSessionDescription = mozRTCSessionDescription;
       window.RTCIceCandidate = mozRTCIceCandidate;
     }
+
+    // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          var nativeMethod = RTCPeerConnection.prototype[method];
+          RTCPeerConnection.prototype[method] = function() {
+            arguments[0] = new ((method === 'addIceCandidate')?
+                RTCIceCandidate : RTCSessionDescription)(arguments[0]);
+            return nativeMethod.apply(this, arguments);
+          };
+        });
   },
 
   shimGetUserMedia: function() {
