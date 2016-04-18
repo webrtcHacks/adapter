@@ -301,23 +301,23 @@ var edgeShim = {
       var params = this._getCommonCapabilities(transceiver.localCapabilities,
           transceiver.remoteCapabilities);
       if (send && transceiver.rtpSender) {
-        params.encodings = [{
-          ssrc: transceiver.sendSsrc
-        }];
+        params.encodings = transceiver.sendEncodingParameters;
         params.rtcp = {
-          cname: SDPUtils.localCName,
-          ssrc: transceiver.recvSsrc
+          cname: SDPUtils.localCName
         };
+        if (transceiver.recvEncodingParameters.length) {
+          params.rtcp.ssrc = transceiver.recvEncodingParameters[0].ssrc;
+        }
         transceiver.rtpSender.send(params);
       }
       if (recv && transceiver.rtpReceiver) {
-        params.encodings = [{
-          ssrc: transceiver.recvSsrc
-        }];
+        params.encodings = transceiver.recvEncodingParameters;
         params.rtcp = {
-          cname: transceiver.cname,
-          ssrc: transceiver.sendSsrc
+          cname: transceiver.cname
         };
+        if (transceiver.sendEncodingParameters.length) {
+          params.rtcp.ssrc = transceiver.sendEncodingParameters[0].ssrc;
+        }
         transceiver.rtpReceiver.receive(params);
       }
     };
@@ -443,8 +443,8 @@ var edgeShim = {
             var dtlsTransport;
             var rtpSender;
             var rtpReceiver;
-            var sendSsrc;
-            var recvSsrc;
+            var sendEncodingParameters;
+            var recvEncodingParameters;
             var localCapabilities;
 
             var track;
@@ -458,6 +458,9 @@ var edgeShim = {
               remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
                   sessionpart);
             }
+            recvEncodingParameters =
+                SDPUtils.parseRtpEncodingParameters(mediaSection);
+
             var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
             if (mid.length) {
               mid = mid[0].substr(6);
@@ -476,7 +479,6 @@ var edgeShim = {
                   return obj.attribute === 'cname';
                 })[0];
             if (remoteSsrc) {
-              recvSsrc = parseInt(remoteSsrc.ssrc, 10);
               cname = remoteSsrc.value;
             }
 
@@ -497,7 +499,9 @@ var edgeShim = {
               }
 
               localCapabilities = RTCRtpReceiver.getCapabilities(kind);
-              sendSsrc = (2 * sdpMLineIndex + 2) * 1001;
+              sendEncodingParameters = [{
+                ssrc: (2 * sdpMLineIndex + 2) * 1001
+              }];
 
               rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
@@ -528,8 +532,8 @@ var edgeShim = {
                 kind: kind,
                 mid: mid,
                 cname: cname,
-                sendSsrc: sendSsrc,
-                recvSsrc: recvSsrc
+                sendEncodingParameters: sendEncodingParameters,
+                recvEncodingParameters: recvEncodingParameters
               };
               // Start the RTCRtpReceiver now. The RTPSender is started in
               // setLocalDescription.
@@ -543,11 +547,11 @@ var edgeShim = {
               dtlsTransport = transceiver.dtlsTransport;
               rtpSender = transceiver.rtpSender;
               rtpReceiver = transceiver.rtpReceiver;
-              sendSsrc = transceiver.sendSsrc;
-              // recvSsrc = transceiver.recvSsrc;
+              sendEncodingParameters = transceiver.sendEncodingParameters;
               localCapabilities = transceiver.localCapabilities;
 
-              self.transceivers[sdpMLineIndex].recvSsrc = recvSsrc;
+              self.transceivers[sdpMLineIndex].recvEncodingParameters =
+                  recvEncodingParameters;
               self.transceivers[sdpMLineIndex].remoteCapabilities =
                   remoteCapabilities;
               self.transceivers[sdpMLineIndex].cname = cname;
@@ -797,7 +801,9 @@ var edgeShim = {
         var rtpReceiver;
 
         // generate an ssrc now, to be used later in rtpSender.send
-        var sendSsrc = (2 * sdpMLineIndex + 1) * 1001;
+        var sendEncodingParameters = [{
+          ssrc: (2 * sdpMLineIndex + 1) * 1001
+        }];
         if (track) {
           rtpSender = new RTCRtpSender(track, transports.dtlsTransport);
         }
@@ -816,8 +822,8 @@ var edgeShim = {
           rtpReceiver: rtpReceiver,
           kind: kind,
           mid: mid,
-          sendSsrc: sendSsrc,
-          recvSsrc: null
+          sendEncodingParameters: sendEncodingParameters,
+          recvEncodingParameters: null
         };
         var transceiver = transceivers[sdpMLineIndex];
         sdp += SDPUtils.writeMediaSection(transceiver,

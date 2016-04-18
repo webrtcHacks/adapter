@@ -49,6 +49,31 @@ var videoSDP =
   'a=ssrc:2715962409 mslabel:EZVtYL50wdbfttMdmVFITVoKc4XgA0KBZXzd\r\n' +
   'a=ssrc:2715962409 label:63238d63-9a20-4afc-832c-48678926afce\r\n';
 
+// Firefox offer
+var videoSDP2 =
+  'v=0\r\n' +
+  'o=mozilla...THIS_IS_SDPARTA-45.0 5508396880163053452 0 IN IP4 0.0.0.0\r\n' +
+  's=-\r\nt=0 0\r\n' +
+  'a=fingerprint:sha-256 CC:0D:FB:A8:9F:59:36:57:69:F6:2C:0E:A3:EA:19:5A:E0' +
+  ':D4:37:82:D4:7B:FB:94:3D:F6:0E:F8:29:A7:9E:9C\r\n' +
+  'a=ice-options:trickle\r\na=msid-semantic:WMS *\r\n' +
+  'm=video 9 UDP/TLS/RTP/SAVPF 120 126 97\r\n' +
+  'c=IN IP4 0.0.0.0\r\na=sendrecv\r\n' +
+  'a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;' +
+  'packetization-mode=1\r\n' +
+  'a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\r\n' +
+  'a=fmtp:120 max-fs=12288;max-fr=60\r\n' +
+  'a=ice-pwd:e81aeca45422c37aeb669274d8959200\r\n' +
+  'a=ice-ufrag:30607a5c\r\na=mid:sdparta_0\r\n' +
+  'a=msid:{782ddf65-d10e-4dad-80b9-27e9f3928d82} ' +
+  '{37802bbd-01e2-481e-a2e8-acb5423b7a55}\r\n' +
+  'a=rtcp-fb:120 nack\r\na=rtcp-fb:120 nack pli\r\na=rtcp-fb:120 ccm fir\r\n' +
+  'a=rtcp-fb:126 nack\r\na=rtcp-fb:126 nack pli\r\na=rtcp-fb:126 ccm fir\r\n' +
+  'a=rtcp-fb:97 nack\r\na=rtcp-fb:97 nack pli\r\na=rtcp-fb:97 ccm fir\r\n' +
+  'a=rtcp-mux\r\na=rtpmap:120 VP8/90000\r\na=rtpmap:126 H264/90000\r\n' +
+  'a=rtpmap:97 H264/90000\r\na=setup:actpass\r\n' +
+  'a=ssrc:98927270 cname:{0817e909-53be-4a3f-ac45-b5a0e5edc3a7}\r\n';
+
 test('splitSections', function(t) {
   var parsed = SDPUtils.splitSections(videoSDP.replace(/\r\n/g, '\n'));
   t.ok(parsed.length === 2,
@@ -112,5 +137,46 @@ test('rtpmap parsing and serialization', function(t) {
     numChannels: 2
   }).trim() === line, 'serialized rtpmap');
 
+  t.end();
+});
+
+test('parseRtpEncodingParameters', function(t) {
+  var sections = SDPUtils.splitSections(videoSDP);
+  var data = SDPUtils.parseRtpEncodingParameters(sections[1]);
+  t.ok(data.length === 8, 'parsed encoding parameters for four codecs');
+
+  t.ok(data[0].ssrc === 1734522595, 'parsed primary SSRC');
+  t.ok(data[0].rtx, 'has RTX encoding');
+  t.ok(data[0].rtx.ssrc === 2715962409, 'parsed secondary SSRC for RTX');
+  t.end();
+});
+
+test('parseRtpEncodingParameters fallback', function(t) {
+  var sections = SDPUtils.splitSections(videoSDP2);
+  var data = SDPUtils.parseRtpEncodingParameters(sections[1]);
+
+  t.ok(data.length === 1 && data[0].ssrc === 98927270, 'parsed single SSRC');
+  t.end();
+});
+
+test('parseRtpEncodingParameters with b=AS', function(t) {
+  var sections = SDPUtils.splitSections(
+      videoSDP.replace('c=IN IP4 0.0.0.0\r\n',
+                       'c=IN IP4 0.0.0.0\r\nb=AS:512\r\n')
+  );
+  var data = SDPUtils.parseRtpEncodingParameters(sections[1]);
+
+  t.ok(data[0].maxBitrate === 512, 'parsed b=AS:512');
+  t.end();
+});
+
+test('parseRtpEncodingParameters with b=TIAS', function(t) {
+  var sections = SDPUtils.splitSections(
+      videoSDP.replace('c=IN IP4 0.0.0.0\r\n',
+                       'c=IN IP4 0.0.0.0\r\nb=TIAS:512\r\n')
+  );
+  var data = SDPUtils.parseRtpEncodingParameters(sections[1]);
+
+  t.ok(data[1].maxBitrate === 512, 'parsed b=AS:512');
   t.end();
 });
