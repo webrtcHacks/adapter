@@ -365,7 +365,8 @@ SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
   var ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
   .map(function(line) {
     return SDPUtils.parseSsrcMedia(line);
-  }).filter(function(parts) {
+  })
+  .filter(function(parts) {
     return parts.attribute === 'cname';
   });
   var primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
