@@ -63,15 +63,15 @@ module.exports = function() {
   };
 
   var getUserMedia_ = function(constraints, onSuccess, onError) {
-    var constraintsCopy = JSON.parse(JSON.stringify(constraints));
-    if (constraintsCopy.audio) {
-      constraintsCopy.audio = constraintsToChrome_(constraintsCopy.audio);
+    constraints = JSON.parse(JSON.stringify(constraints));
+    if (constraints.audio) {
+      constraints.audio = constraintsToChrome_(constraints.audio);
     }
-    if (constraintsCopy.video) {
-      constraintsCopy.video = constraintsToChrome_(constraintsCopy.video);
+    if (constraints.video) {
+      constraints.video = constraintsToChrome_(constraints.video);
     }
-    logging('chrome: ' + JSON.stringify(constraintsCopy));
-    return navigator.webkitGetUserMedia(constraintsCopy, onSuccess, onError);
+    logging('chrome: ' + JSON.stringify(constraints));
+    return navigator.webkitGetUserMedia(constraints, onSuccess, onError);
   };
   navigator.getUserMedia = getUserMedia_;
 
