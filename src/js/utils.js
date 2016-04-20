@@ -76,11 +76,7 @@ var utils = {
     } else if (navigator.webkitGetUserMedia) {
       // Chrome, Chromium, Webview, Opera, all use the chrome shim for now
       if (window.webkitRTCPeerConnection) {
-        if (navigator.userAgent.match(/OPR/)) {
-          result.browser = 'opera';
-        } else {
-          result.browser = 'chrome';
-        }
+        result.browser = 'chrome';
         result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
         result.minVersion = 38;
@@ -107,8 +103,8 @@ var utils = {
 
         // unknown webkit-based browser
         } else {
-          result.browser = 'Unsupported webkit-based browser \
-            with GUM support but no WebRTC support.';
+          result.browser = 'Unsupported webkit-based browser ' +
+              'with GUM support but no WebRTC support.';
           return result;
         }
       }
