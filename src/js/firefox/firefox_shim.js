@@ -113,6 +113,23 @@ var firefoxShim = {
             return nativeMethod.apply(this, arguments);
           };
         });
+
+    // shim getStats with maplike support
+    var makeMapStats = stats => {
+      var map = new Map();
+      Object.keys(stats).forEach(key => {
+        map.set(key, stats[key]);
+        map[key] = stats[key];
+      });
+      return map;
+    };
+
+    var nativeGetStats = RTCPeerConnection.prototype.getStats;
+    RTCPeerConnection.prototype.getStats = function(selector, onSucc, onErr) {
+      return nativeGetStats.apply(this, [selector || null])
+        .then(stats => makeMapStats(stats))
+        .then(onSucc, onErr);
+    };
   },
 
   shimGetUserMedia: function() {
