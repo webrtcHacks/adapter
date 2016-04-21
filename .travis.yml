@@ -12,6 +12,7 @@ env:
     - BROWSER=firefox BVER=beta
     - BROWSER=firefox BVER=nightly
     - BROWSER=firefox BVER=esr
+    - BROWSER=MicrosoftEdge BVER=stable
 
 matrix:
   fast_finish: true
@@ -20,6 +21,7 @@ matrix:
     - env: BROWSER=chrome  BVER=unstable
     - env: BROWSER=firefox BVER=beta
     - env: BROWSER=firefox BVER=nightly
+    - env: BROWSER=MicrosoftEdge BVER=stable
 
 before_script:
   - ./node_modules/travis-multirunner/setup.sh
