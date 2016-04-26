@@ -147,6 +147,7 @@ test('parseRtpEncodingParameters', function(t) {
 
   t.ok(data[0].ssrc === 1734522595, 'parsed primary SSRC');
   t.ok(data[0].rtx, 'has RTX encoding');
+  t.ok(data[0].rtx.payloadType === 96, 'parsed rtx payloadType');
   t.ok(data[0].rtx.ssrc === 2715962409, 'parsed secondary SSRC for RTX');
   t.end();
 });
