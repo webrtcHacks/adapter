@@ -18,7 +18,9 @@
     "prepublish": "grunt build",
     "test": "grunt && node test/run-tests.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "sdp": "^1.0.0"
+  },
   "devDependencies": {
     "chromedriver": "^2.16.0",
     "grunt": "^0.4.5",

@@ -8,7 +8,7 @@
  /* eslint-env node */
 'use strict';
 
-var SDPUtils = require('./edge_sdp');
+var SDPUtils = require('sdp');
 var logging = require('../utils').log;
 
 var edgeShim = {
