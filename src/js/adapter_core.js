@@ -44,6 +44,7 @@
       module.exports.browserShim = chromeShim;
 
       chromeShim.shimGetUserMedia();
+      chromeShim.shimMediaStream();
       chromeShim.shimSourceObject();
       chromeShim.shimPeerConnection();
       chromeShim.shimOnTrack();

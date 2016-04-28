@@ -11,6 +11,10 @@ var logging = require('../utils.js').log;
 var browserDetails = require('../utils.js').browserDetails;
 
 var chromeShim = {
+  shimMediaStream: function() {
+    window.MediaStream = window.MediaStream || window.webkitMediaStream;
+  },
+
   shimOnTrack: function() {
     if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
         window.RTCPeerConnection.prototype)) {
@@ -247,6 +251,7 @@ var chromeShim = {
 
 // Expose public methods.
 module.exports = {
+  shimMediaStream: chromeShim.shimMediaStream,
   shimOnTrack: chromeShim.shimOnTrack,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,

@@ -271,6 +271,26 @@ test('navigator.mediaDevices eventlisteners', function(t) {
   });
 });
 
+test('MediaStream shim', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Run test.
+  seleniumHelpers.loadTestPage(driver)
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(
+      'return window.MediaStream !== \'undefined\'');
+  })
+  .then(function(isMediaStreamDefined) {
+    t.ok(isMediaStreamDefined, 'MediaStream is defined');
+    t.end();
+  })
+  .then(null, function(err) {
+    t.fail(err);
+    t.end();
+  });
+});
+
 test('RTCPeerConnection shim', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
