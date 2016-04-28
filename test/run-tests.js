@@ -51,9 +51,6 @@ if (os.platform() === 'win32') {
 // Checks that the tests can start and that execution finishes.
 require('./test');
 
-// Edge SDP tests. Run in node.
-require('./sdp');
-
 // This is run as a test so it is executed after all tests
 // have completed.
 test('Shutdown', function(t) {
