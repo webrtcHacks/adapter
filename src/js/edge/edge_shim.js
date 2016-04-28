@@ -165,6 +165,24 @@ var edgeShim = {
       }
     };
 
+    window.RTCPeerConnection.prototype.getSenders = function() {
+      return this.transceivers.filter(function(transceiver) {
+        return !!transceiver.rtpSender;
+      })
+      .map(function(transceiver) {
+        return transceiver.rtpSender;
+      });
+    };
+
+    window.RTCPeerConnection.prototype.getReceivers = function() {
+      return this.transceivers.filter(function(transceiver) {
+        return !!transceiver.rtpReceiver;
+      })
+      .map(function(transceiver) {
+        return transceiver.rtpReceiver;
+      });
+    };
+
     // Determines the intersection of local and remote capabilities.
     window.RTCPeerConnection.prototype._getCommonCapabilities =
         function(localCapabilities, remoteCapabilities) {
