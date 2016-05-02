@@ -49,21 +49,10 @@
       "browser": true,
       "node": true
   },
-  "extends": "eslint:recommended",
+  "extends": ["eslint:recommended", "webrtc"],
   "globals": {
-    "MediaStream": true,
     "module": true,
-    "mozRTCPeerConnection": true,
-    "mozRTCSessionDescription": true,
-    "mozRTCIceCandidate": true,
     "require": true,
-    "RTCPeerConnection": true,
-    "RTCRtpSender": true,
-    "RTCRtpReceiver": true,
-    "RTCIceTransport": true,
-    "RTCDtlsTransport": true,
-    "RTCIceGatherer": true,
-    "webkitRTCPeerConnection": true,
     "process": true
   }
 }
