@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "chromedriver": "^2.16.0",
+    "eslint-config-webrtc": "^1.0.0",
+    "faucet": "0.0.1",
     "grunt": "^0.4.5",
     "grunt-browserify": "^4.0.1",
     "grunt-cli": ">=0.1.9",
@@ -30,7 +32,6 @@
     "grunt-githooks": "^0.3.1",
     "selenium-webdriver": "^2.52.0",
     "tape": "^4.0.0",
-    "travis-multirunner": "^3.0.1",
-    "faucet": "0.0.1"
+    "travis-multirunner": "^3.0.1"
   }
 }
