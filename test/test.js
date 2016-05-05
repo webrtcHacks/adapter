@@ -1336,7 +1336,7 @@ test('Basic connection establishment', function(t) {
         var cand = new RTCIceCandidate(event.candidate);
         pc.addIceCandidate(cand,
           function() {
-            // TODO: Decide if we are intereted in adding all candidates
+            // TODO: Decide if we are interested in adding all candidates
             // as passed tests.
             tc.pass('addIceCandidate ' + counter++);
           },

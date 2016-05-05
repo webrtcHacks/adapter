@@ -206,22 +206,20 @@ var chromeShim = {
             var self = this;
             args[0] = new ((method === 'addIceCandidate')?
                 RTCIceCandidate : RTCSessionDescription)(args[0]);
-            return new Promise(function(resolve, reject) {
-              nativeMethod.apply(self, [args[0],
-                  function() {
-                    resolve();
-                    if (args.length >= 2) {
-                      args[1].apply(null, []);
-                    }
-                  },
-                  function(err) {
-                    reject(err);
-                    if (args.length >= 3) {
-                      args[2].apply(null, [err]);
-                    }
-                  }]
-                );
+            var promise = new Promise(function(resolve, reject) {
+              nativeMethod.apply(self, [args[0], resolve, reject]);
             });
+            if (args.length >= 2) {
+              promise.then(function() {
+                args[1].apply(null, []);
+              });
+              if (args.length >= 3) {
+                promise.catch(function(err) {
+                  args[2].apply(null, [err]);
+                });
+              }
+            }
+            return promise;
           };
         });
   },
