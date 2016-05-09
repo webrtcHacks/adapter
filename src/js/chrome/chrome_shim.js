@@ -1,3 +1,4 @@
+
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -209,17 +210,17 @@ var chromeShim = {
             var promise = new Promise(function(resolve, reject) {
               nativeMethod.apply(self, [args[0], resolve, reject]);
             });
-            if (args.length >= 2) {
-              promise.then(function() {
-                args[1].apply(null, []);
-              });
-              if (args.length >= 3) {
-                promise.catch(function(err) {
-                  args[2].apply(null, [err]);
-                });
-              }
+            if (args.length < 2) {
+              return promise;
             }
-            return promise;
+            return promise.then(function() {
+              args[1].apply(null, []);
+            },
+            function(err) {
+              if (args.length >= 3) {
+                args[2].apply(null, [err]);
+              }
+            });
           };
         });
   },
