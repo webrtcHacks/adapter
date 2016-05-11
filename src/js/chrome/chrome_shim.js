@@ -190,7 +190,7 @@ var chromeShim = {
         webkitRTCPeerConnection.prototype[method] = function() {
           var self = this;
           if (arguments.length < 1 || (arguments.length === 1 &&
-              typeof(arguments[0]) === 'object')) {
+              typeof arguments[0] === 'object')) {
             var opts = arguments.length === 1 ? arguments[0] : undefined;
             return new Promise(function(resolve, reject) {
               nativeMethod.apply(self, [resolve, reject, opts]);
