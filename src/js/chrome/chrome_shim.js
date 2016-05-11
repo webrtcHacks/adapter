@@ -206,7 +206,7 @@ var chromeShim = {
             webkitRTCPeerConnection.prototype[method] = function() {
               var args = arguments;
               var self = this;
-              args[0] = new ((method === 'addIceCandidate')?
+              args[0] = new ((method === 'addIceCandidate') ?
                   RTCIceCandidate : RTCSessionDescription)(args[0]);
               var promise = new Promise(function(resolve, reject) {
                 nativeMethod.apply(self, [args[0], resolve, reject]);
