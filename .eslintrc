@@ -41,6 +41,8 @@
     "space-after-keywords": 2,
     "space-before-blocks": 2,
     "space-before-function-paren": [2, "never"],
+    "space-unary-ops": 2,
+    "space-infix-ops": 2,
     "spaced-comment": 2,
     "valid-typeof": 2
   },

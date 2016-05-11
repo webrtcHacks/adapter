@@ -189,7 +189,7 @@ var chromeShim = {
       webkitRTCPeerConnection.prototype[method] = function() {
         var self = this;
         if (arguments.length < 1 || (arguments.length === 1 &&
-            typeof(arguments[0]) === 'object')) {
+            typeof arguments[0] === 'object')) {
           var opts = arguments.length === 1 ? arguments[0] : undefined;
           return new Promise(function(resolve, reject) {
             nativeMethod.apply(self, [resolve, reject, opts]);
@@ -205,7 +205,7 @@ var chromeShim = {
           webkitRTCPeerConnection.prototype[method] = function() {
             var args = arguments;
             var self = this;
-            args[0] = new ((method === 'addIceCandidate')?
+            args[0] = new ((method === 'addIceCandidate') ?
                 RTCIceCandidate : RTCSessionDescription)(args[0]);
             var promise = new Promise(function(resolve, reject) {
               nativeMethod.apply(self, [args[0], resolve, reject]);
