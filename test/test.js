@@ -1759,7 +1759,7 @@ test('getStats', function(t) {
       pc1.getStats(null, resolve, reject);
     })
     .then(function(report) {
-      window.testsEqualArray.push([typeof(report), 'object',
+      window.testsEqualArray.push([typeof report, 'object',
           'report is an object.']);
       report.forEach((stat, key) => {
         window.testsEqualArray.push([stat.id, key,
@@ -1771,7 +1771,7 @@ test('getStats', function(t) {
       // Test legacy behavior
       for (var key in report) {
         // This avoids problems with Firefox
-        if (typeof(report[key]) === 'function') {
+        if (typeof report[key] === 'function') {
           continue;
         }
         window.testsEqualArray.push([report[key].id, key,
