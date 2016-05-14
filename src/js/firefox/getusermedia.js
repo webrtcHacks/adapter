@@ -20,7 +20,7 @@ module.exports = function() {
     }[e.name] || e.name,
     message: {
       'The operation is insecure.': 'The request is not allowed by the user ' +
-      'agent or the platform in the current context.',
+      'agent or the platform in the current context.'
     }[e.message] || e.message,
     constraint: e.constraint,
     toString: function() {
