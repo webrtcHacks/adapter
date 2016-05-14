@@ -8,9 +8,6 @@
  /* eslint-env node */
 'use strict';
 
-var logging = require('../utils').log;
-var browserDetails = require('../utils').browserDetails;
-
 // Expose public methods.
 module.exports = function() {
   var shimError_ = e => ({
