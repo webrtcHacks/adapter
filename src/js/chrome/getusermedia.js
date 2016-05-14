@@ -115,7 +115,7 @@ module.exports = function() {
   var getUserMedia_ = (constraints, onSuccess, onError) =>
     shimConstraints_(constraints,
                      c => navigator.webkitGetUserMedia(c, onSuccess,
-                         e => Promise.reject(shimError_(e))));
+                         e => onError(shimError_(e))));
 
   navigator.getUserMedia = getUserMedia_;
 
