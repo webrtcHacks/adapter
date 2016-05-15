@@ -1332,19 +1332,17 @@ test('Basic connection establishment', function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand,
-          function() {
-            // TODO: Decide if we are interested in adding all candidates
-            // as passed tests.
-            tc.pass('addIceCandidate ' + counter++);
-          },
-          function(err) {
-            tc.fail('addIceCandidate ' + err.toString());
-          }
-        );
-      }
+      var cand = new RTCIceCandidate(event.candidate);
+      pc.addIceCandidate(cand,
+        function() {
+          // TODO: Decide if we are interested in adding all candidates
+          // as passed tests.
+          tc.pass('addIceCandidate ' + counter++);
+        },
+        function(err) {
+          tc.fail('addIceCandidate ' + err.toString());
+        }
+      );
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);
@@ -1483,16 +1481,14 @@ test('Basic connection establishment with promise', function(t) {
     var dictionary = obj => JSON.parse(JSON.stringify(obj));
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        pc.addIceCandidate(dictionary(event.candidate)).then(function() {
-          // TODO: Decide if we are interested in adding all candidates
-          // as passed tests.
-          tc.pass('addIceCandidate ' + counter++);
-        })
-        .catch(function(err) {
-          tc.fail('addIceCandidate ' + err.toString());
-        });
-      }
+      pc.addIceCandidate(dictionary(event.candidate)).then(function() {
+        // TODO: Decide if we are interested in adding all candidates
+        // as passed tests.
+        tc.pass('addIceCandidate ' + counter++);
+      })
+      .catch(function(err) {
+        tc.fail('addIceCandidate ' + err.toString());
+      });
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);
@@ -1611,17 +1607,15 @@ test('Basic connection establishment with datachannel', function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand).then(function() {
-          // TODO: Decide if we are interested in adding all candidates
-          // as passed tests.
-          tc.pass('addIceCandidate ' + counter++);
-        })
-        .catch(function(err) {
-          tc.fail('addIceCandidate ' + err.toString());
-        });
-      }
+      var cand = new RTCIceCandidate(event.candidate);
+      pc.addIceCandidate(cand).then(function() {
+        // TODO: Decide if we are interested in adding all candidates
+        // as passed tests.
+        tc.pass('addIceCandidate ' + counter++);
+      })
+      .catch(function(err) {
+        tc.fail('addIceCandidate ' + err.toString());
+      });
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);
@@ -2014,8 +2008,12 @@ test('iceTransportPolicy relay functionality', function(t) {
     // Since we try to gather only relay candidates without specifying
     // a TURN server, we should not get any candidates.
     pc1.onicecandidate = function(event) {
-      window.candidates.push([event.candidate]);
-      callback(new Error('Candidate found'));
+      if (event.candidate) {
+        window.candidates.push([event.candidate]);
+        callback(new Error('Candidate found'), event.candidate);
+      } else {
+        callback(null);
+      }
     };
 
     var constraints = {video: true, fake: true};
@@ -2023,10 +2021,7 @@ test('iceTransportPolicy relay functionality', function(t) {
     .then(function(stream) {
       pc1.addStream(stream);
       pc1.createOffer().then(function(offer) {
-        return pc1.setLocalDescription(offer).then(function() {
-          // We are done.
-          return callback(null);
-        });
+        return pc1.setLocalDescription(offer);
       })
       .catch(function(error) {
         callback(error);
@@ -2145,12 +2140,10 @@ test('ontrack', {skip: process.env.BROWSER === 'firefox'}, function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand).catch(function(err) {
-          tc.fail('addIceCandidate ' + err.toString());
-        });
-      }
+      var cand = new RTCIceCandidate(event.candidate);
+      pc.addIceCandidate(cand).catch(function(err) {
+        tc.fail('addIceCandidate ' + err.toString());
+      });
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);
