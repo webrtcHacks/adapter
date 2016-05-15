@@ -225,6 +225,14 @@ var chromeShim = {
             };
           });
     }
+
+    // support for addIceCandidate(null)
+    var nativeAddIceCandidate =
+        RTCPeerConnection.prototype.addIceCandidate;
+    RTCPeerConnection.prototype.addIceCandidate = function() {
+      return arguments[0] === null ? Promise.resolve
+          : nativeAddIceCandidate.apply(this, arguments);
+    };
   },
 
   // Attach a media stream to an element.
