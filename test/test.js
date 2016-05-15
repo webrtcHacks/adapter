@@ -1332,8 +1332,7 @@ test('Basic connection establishment', function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      var cand = new RTCIceCandidate(event.candidate);
-      pc.addIceCandidate(cand,
+      pc.addIceCandidate(event.candidate,
         function() {
           // TODO: Decide if we are interested in adding all candidates
           // as passed tests.
@@ -1607,8 +1606,7 @@ test('Basic connection establishment with datachannel', function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      var cand = new RTCIceCandidate(event.candidate);
-      pc.addIceCandidate(cand).then(function() {
+      pc.addIceCandidate(event.candidate).then(function() {
         // TODO: Decide if we are interested in adding all candidates
         // as passed tests.
         tc.pass('addIceCandidate ' + counter++);
@@ -2140,8 +2138,7 @@ test('ontrack', {skip: process.env.BROWSER === 'firefox'}, function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      var cand = new RTCIceCandidate(event.candidate);
-      pc.addIceCandidate(cand).catch(function(err) {
+      pc.addIceCandidate(event.candidate).catch(function(err) {
         tc.fail('addIceCandidate ' + err.toString());
       });
     };
