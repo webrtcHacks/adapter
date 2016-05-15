@@ -230,7 +230,7 @@ var chromeShim = {
     var nativeAddIceCandidate =
         RTCPeerConnection.prototype.addIceCandidate;
     RTCPeerConnection.prototype.addIceCandidate = function() {
-      return arguments[0] === null ? Promise.resolve
+      return arguments[0] === null ? Promise.resolve()
           : nativeAddIceCandidate.apply(this, arguments);
     };
   },
