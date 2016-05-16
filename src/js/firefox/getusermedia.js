@@ -13,6 +13,22 @@ var browserDetails = require('../utils').browserDetails;
 
 // Expose public methods.
 module.exports = function() {
+  var shimError_ = e => ({
+    name: {
+      SecurityError: 'NotAllowedError',
+      PermissionDeniedError: 'NotAllowedError'
+    }[e.name] || e.name,
+    message: {
+      'The operation is insecure.': 'The request is not allowed by the user ' +
+      'agent or the platform in the current context.'
+    }[e.message] || e.message,
+    constraint: e.constraint,
+    toString: function() {
+      return this.name + (this.message && ': ') + this.message;
+    }
+  });
+
+
   // getUserMedia constraints shim.
   var getUserMedia_ = function(constraints, onSuccess, onError) {
     var constraintsToFF37_ = function(c) {
@@ -69,7 +85,8 @@ module.exports = function() {
       }
       logging('ff37: ' + JSON.stringify(constraints));
     }
-    return navigator.mozGetUserMedia(constraints, onSuccess, onError);
+    return navigator.mozGetUserMedia(constraints, onSuccess,
+                                     e => onError(shimError_(e)));
   };
 
   navigator.getUserMedia = getUserMedia_;
@@ -111,5 +128,11 @@ module.exports = function() {
         throw e;
       });
     };
+  }
+  if (browserDetails.version < 49) {
+    var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+        bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = c =>
+        origGetUserMedia(c).catch(e => Promise.reject(shimError_(e)));
   }
 };

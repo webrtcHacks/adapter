@@ -206,8 +206,6 @@ var chromeShim = {
             webkitRTCPeerConnection.prototype[method] = function() {
               var args = arguments;
               var self = this;
-              args[0] = new ((method === 'addIceCandidate') ?
-                  RTCIceCandidate : RTCSessionDescription)(args[0]);
               var promise = new Promise(function(resolve, reject) {
                 nativeMethod.apply(self, [args[0], resolve, reject]);
               });
@@ -233,6 +231,17 @@ var chromeShim = {
       return arguments[0] === null ? Promise.resolve()
           : nativeAddIceCandidate.apply(this, arguments);
     };
+
+    // shim implicit creation of RTCSessionDescription/RTCIceCandidate
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          var nativeMethod = webkitRTCPeerConnection.prototype[method];
+          webkitRTCPeerConnection.prototype[method] = function() {
+            arguments[0] = new ((method === 'addIceCandidate') ?
+                RTCIceCandidate : RTCSessionDescription)(arguments[0]);
+            return nativeMethod.apply(this, arguments);
+          };
+        });
   },
 
   // Attach a media stream to an element.
