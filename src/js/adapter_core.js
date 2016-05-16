@@ -72,6 +72,7 @@
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = edgeShim;
 
+      edgeShim.shimGetUserMedia();
       edgeShim.shimPeerConnection();
       break;
     case 'safari':

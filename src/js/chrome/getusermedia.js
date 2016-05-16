@@ -101,9 +101,21 @@ module.exports = function() {
     return func(constraints);
   };
 
+  var shimError_ = e => ({
+    name: {PermissionDeniedError: 'NotAllowedError',
+           ConstraintNotSatisfiedError: 'OverconstrainedError'
+          }[e.name] || e.name,
+    message: e.message,
+    constraint: e.constraintName,
+    toString: function() {
+      return this.name + (this.message && ': ') + this.message;
+    }
+  });
+
   var getUserMedia_ = (constraints, onSuccess, onError) =>
     shimConstraints_(constraints,
-                     c => navigator.webkitGetUserMedia(c, onSuccess, onError));
+                     c => navigator.webkitGetUserMedia(c, onSuccess,
+                         e => onError(shimError_(e))));
 
   navigator.getUserMedia = getUserMedia_;
 
@@ -145,8 +157,8 @@ module.exports = function() {
     // constraints.
     var origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
-    navigator.mediaDevices.getUserMedia = constraints =>
-        shimConstraints_(constraints, c => origGetUserMedia(c));
+    navigator.mediaDevices.getUserMedia = cs => shimConstraints_(cs,
+        c => origGetUserMedia(c).catch(e => Promise.reject(shimError_(e))));
   }
 
   // Dummy devicechange event methods.
