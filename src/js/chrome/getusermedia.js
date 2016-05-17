@@ -80,11 +80,13 @@ module.exports = function() {
         if (face.exact === 'environment' || face.ideal === 'environment') {
           // Look for "back" in label, or use last cam (typically back cam).
           return navigator.mediaDevices.enumerateDevices()
-          .then(devices => {
-            devices = devices.filter(d => d.kind === 'videoinput');
-            var back = devices.find(d =>
-                d.label.toLowerCase().indexOf('back') !== -1) ||
-                (devices.length && devices[devices.length - 1]);
+          .then(function(devices) {
+            devices = devices.filter(function(d) {
+              return d.kind === 'videoinput';
+            });
+            var back = devices.find(function(d) {
+              return d.label.toLowerCase().indexOf('back') !== -1;
+            }) || (devices.length && devices[devices.length - 1]);
             if (back) {
               constraints.video.deviceId = face.exact ? {exact: back.deviceId} :
                                                         {ideal: back.deviceId};
@@ -101,21 +103,27 @@ module.exports = function() {
     return func(constraints);
   };
 
-  var shimError_ = e => ({
-    name: {PermissionDeniedError: 'NotAllowedError',
-           ConstraintNotSatisfiedError: 'OverconstrainedError'
-          }[e.name] || e.name,
-    message: e.message,
-    constraint: e.constraintName,
-    toString: function() {
-      return this.name + (this.message && ': ') + this.message;
-    }
-  });
+  var shimError_ = function(e) {
+    return {
+      name: {
+        PermissionDeniedError: 'NotAllowedError',
+        ConstraintNotSatisfiedError: 'OverconstrainedError'
+      }[e.name] || e.name,
+      message: e.message,
+      constraint: e.constraintName,
+      toString: function() {
+        return this.name + (this.message && ': ') + this.message;
+      }
+    };
+  };
 
-  var getUserMedia_ = (constraints, onSuccess, onError) =>
-    shimConstraints_(constraints,
-                     c => navigator.webkitGetUserMedia(c, onSuccess,
-                         e => onError(shimError_(e))));
+  var getUserMedia_ = function(constraints, onSuccess, onError) {
+    shimConstraints_(constraints, function(c) {
+      navigator.webkitGetUserMedia(c, onSuccess, function(e) {
+        onError(shimError_(e));
+      });
+    });
+  };
 
   navigator.getUserMedia = getUserMedia_;
 
@@ -157,8 +165,13 @@ module.exports = function() {
     // constraints.
     var origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
-    navigator.mediaDevices.getUserMedia = cs => shimConstraints_(cs,
-        c => origGetUserMedia(c).catch(e => Promise.reject(shimError_(e))));
+    navigator.mediaDevices.getUserMedia = function(cs) {
+      return shimConstraints_(cs, function(c) {
+        return origGetUserMedia(c).catch(function(e) {
+          return Promise.reject(shimError_(e));
+        });
+      });
+    };
   }
 
   // Dummy devicechange event methods.

@@ -119,9 +119,9 @@ var firefoxShim = {
         });
 
     // shim getStats with maplike support
-    var makeMapStats = stats => {
+    var makeMapStats = function(stats) {
       var map = new Map();
-      Object.keys(stats).forEach(key => {
+      Object.keys(stats).forEach(function(key) {
         map.set(key, stats[key]);
         map[key] = stats[key];
       });
@@ -131,7 +131,9 @@ var firefoxShim = {
     var nativeGetStats = RTCPeerConnection.prototype.getStats;
     RTCPeerConnection.prototype.getStats = function(selector, onSucc, onErr) {
       return nativeGetStats.apply(this, [selector || null])
-        .then(stats => makeMapStats(stats))
+        .then(function(stats) {
+          return makeMapStats(stats);
+        })
         .then(onSucc, onErr);
     };
   },
