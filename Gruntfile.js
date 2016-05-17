@@ -1,8 +1,5 @@
 'use strict';
 
-/* For jshint: */
-/* globals module, require */
-
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -14,8 +11,6 @@ module.exports = function(grunt) {
           browserifyOptions: {
             // Exposes shim methods in a global object to the browser.
             // The tests require this.
-            // TODO: Replace adapter with <%= pkg.name %>' which uses the name
-            // from package.json once we have a better NPM name.
             standalone: 'adapter'
           }
         }
@@ -38,9 +33,6 @@ module.exports = function(grunt) {
           ],
           browserifyOptions: {
             // Exposes the shim in a global object to the browser.
-            // The tests require this.
-            // TODO: Replace adapter with <%= pkg.name %>' which uses the name
-            // from package.json once we have a better NPM name.
             standalone: 'adapter'
           }
         }
@@ -65,9 +57,6 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: {
             // Exposes shim methods in a global object to the browser.
-            // The tests require this.
-            // TODO: Replace adapter with <%= pkg.name %>' which uses the name
-            // from package.json once we have a better NPM name.
             standalone: 'adapter',
             transform: 'babelify'
           }
@@ -96,9 +85,6 @@ module.exports = function(grunt) {
           ],
           browserifyOptions: {
             // Exposes the shim in a global object to the browser.
-            // The tests require this.
-            // TODO: Replace adapter with <%= pkg.name %>' which uses the name
-            // from package.json once we have a better NPM name.
             standalone: 'adapter',
             transform: 'babelify'
           }
