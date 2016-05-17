@@ -19,11 +19,11 @@
   module.exports.extractVersion = require('./utils').extractVersion;
   module.exports.disableLog = require('./utils').disableLog;
 
-  // Comment out the line below if you want logging to occur, including logging
+  // Uncomment the line below if you want logging to occur, including logging
   // for the switch statement below. Can also be turned on in the browser via
   // adapter.disableLog(false), but then logging from the switch statement below
   // will not appear.
-  require('./utils').disableLog(true);
+  // require('./utils').disableLog(false);
 
   // Browser shims.
   var chromeShim = require('./chrome/chrome_shim') || null;
