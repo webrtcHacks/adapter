@@ -1332,19 +1332,16 @@ test('Basic connection establishment', function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand,
-          function() {
-            // TODO: Decide if we are interested in adding all candidates
-            // as passed tests.
-            tc.pass('addIceCandidate ' + counter++);
-          },
-          function(err) {
-            tc.fail('addIceCandidate ' + err.toString());
-          }
-        );
-      }
+      pc.addIceCandidate(event.candidate,
+        function() {
+          // TODO: Decide if we are interested in adding all candidates
+          // as passed tests.
+          tc.pass('addIceCandidate ' + counter++);
+        },
+        function(err) {
+          tc.fail('addIceCandidate ' + err.toString());
+        }
+      );
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);
@@ -1483,16 +1480,14 @@ test('Basic connection establishment with promise', function(t) {
     var dictionary = obj => JSON.parse(JSON.stringify(obj));
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        pc.addIceCandidate(dictionary(event.candidate)).then(function() {
-          // TODO: Decide if we are interested in adding all candidates
-          // as passed tests.
-          tc.pass('addIceCandidate ' + counter++);
-        })
-        .catch(function(err) {
-          tc.fail('addIceCandidate ' + err.toString());
-        });
-      }
+      pc.addIceCandidate(dictionary(event.candidate)).then(function() {
+        // TODO: Decide if we are interested in adding all candidates
+        // as passed tests.
+        tc.pass('addIceCandidate ' + counter++);
+      })
+      .catch(function(err) {
+        tc.fail('addIceCandidate ' + err.toString());
+      });
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);
@@ -1611,17 +1606,14 @@ test('Basic connection establishment with datachannel', function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand).then(function() {
-          // TODO: Decide if we are interested in adding all candidates
-          // as passed tests.
-          tc.pass('addIceCandidate ' + counter++);
-        })
-        .catch(function(err) {
-          tc.fail('addIceCandidate ' + err.toString());
-        });
-      }
+      pc.addIceCandidate(event.candidate).then(function() {
+        // TODO: Decide if we are interested in adding all candidates
+        // as passed tests.
+        tc.pass('addIceCandidate ' + counter++);
+      })
+      .catch(function(err) {
+        tc.fail('addIceCandidate ' + err.toString());
+      });
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);
@@ -1999,77 +1991,80 @@ test('getStats promise', function(t) {
 // iceTransportPolicy is renamed to iceTransports in Chrome by
 // adapter, this tests that when not setting any TURN server,
 // no candidates are generated.
-test('iceTransportPolicy relay functionality', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+test('iceTransportPolicy relay functionality',
+    {skip: process.env.BROWSER !== 'chrome'},
+    function(t) {
+      var driver = seleniumHelpers.buildDriver();
 
-  // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+      // Define test.
+      var testDefinition = function() {
+        var callback = arguments[arguments.length - 1];
 
-    window.candidates = [];
+        window.candidates = [];
 
-    var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
-        iceServers: []});
+        var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
+            iceServers: []});
 
-    // Since we try to gather only relay candidates without specifying
-    // a TURN server, we should not get any candidates.
-    pc1.onicecandidate = function(event) {
-      window.candidates.push([event.candidate]);
-      callback(new Error('Candidate found'));
-    };
+        // Since we try to gather only relay candidates without specifying
+        // a TURN server, we should not get any candidates.
+        pc1.onicecandidate = function(event) {
+          if (event.candidate) {
+            window.candidates.push([event.candidate]);
+            callback(new Error('Candidate found'), event.candidate);
+          } else {
+            callback(null);
+          }
+        };
 
-    var constraints = {video: true, fake: true};
-    navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      pc1.addStream(stream);
-      pc1.createOffer().then(function(offer) {
-        return pc1.setLocalDescription(offer).then(function() {
-          // We are done.
-          return callback(null);
+        var constraints = {video: true, fake: true};
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+          pc1.addStream(stream);
+          pc1.createOffer().then(function(offer) {
+            return pc1.setLocalDescription(offer);
+          })
+          .catch(function(error) {
+            callback(error);
+          });
+        })
+        .catch(function(error) {
+          callback(error);
         });
-      })
-      .catch(function(error) {
-        callback(error);
-      });
-    })
-    .catch(function(error) {
-      callback(error);
-    });
-  };
+      };
 
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.pass('Page loaded');
-    return driver.executeAsyncScript(testDefinition);
-  })
-  .then(function(error) {
-    var errorMessage = (error) ? 'error: ' + error.toString() : 'no errors';
-    t.ok(!error, 'Result:  ' + errorMessage);
-    // We should not really need this due to using an error callback if a
-    // candidate is found but I'm not sure we will catch due to async nature
-    // of this, hence why this is kept.
-    return driver.executeScript('return window.candidates');
-  })
-  .then(function(candidates) {
-    if (candidates.length === 0) {
-      t.pass('No candidates generated');
-    } else {
-      candidates.forEach(function(candidate) {
-        t.fail('Candidate found: ' + candidate);
+      // Run test.
+      seleniumHelpers.loadTestPage(driver)
+      .then(function() {
+        t.pass('Page loaded');
+        return driver.executeAsyncScript(testDefinition);
+      })
+      .then(function(error) {
+        var errorMessage = (error) ? 'error: ' + error.toString() : 'no errors';
+        t.ok(!error, 'Result:  ' + errorMessage);
+        // We should not really need this due to using an error callback if a
+        // candidate is found but I'm not sure we will catch due to async nature
+        // of this, hence why this is kept.
+        return driver.executeScript('return window.candidates');
+      })
+      .then(function(candidates) {
+        if (candidates.length === 0) {
+          t.pass('No candidates generated');
+        } else {
+          candidates.forEach(function(candidate) {
+            t.fail('Candidate found: ' + candidate);
+          });
+        }
+      })
+      .then(function() {
+        t.end();
+      })
+      .then(null, function(err) {
+        if (err !== 'skip-test') {
+          t.fail(err);
+        }
+        t.end();
       });
-    }
-  })
-  .then(function() {
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
+    });
 
 test('static generateCertificate method', function(t) {
   var driver = seleniumHelpers.buildDriver();
@@ -2145,12 +2140,9 @@ test('ontrack', {skip: process.env.BROWSER === 'firefox'}, function(t) {
     };
 
     var addCandidate = function(pc, event) {
-      if (event.candidate) {
-        var cand = new RTCIceCandidate(event.candidate);
-        pc.addIceCandidate(cand).catch(function(err) {
-          tc.fail('addIceCandidate ' + err.toString());
-        });
-      }
+      pc.addIceCandidate(event.candidate).catch(function(err) {
+        tc.fail('addIceCandidate ' + err.toString());
+      });
     };
     pc1.onicecandidate = function(event) {
       addCandidate(pc2, event);

@@ -118,6 +118,14 @@ var firefoxShim = {
           };
         });
 
+    // support for addIceCandidate(null)
+    var nativeAddIceCandidate =
+        RTCPeerConnection.prototype.addIceCandidate;
+    RTCPeerConnection.prototype.addIceCandidate = function() {
+      return arguments[0] === null ? Promise.resolve()
+          : nativeAddIceCandidate.apply(this, arguments);
+    };
+
     // shim getStats with maplike support
     var makeMapStats = function(stats) {
       var map = new Map();
