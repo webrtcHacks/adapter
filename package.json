@@ -8,11 +8,6 @@
     "type": "git",
     "url": "https://github.com/webrtc/adapter.git"
   },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
-  },
   "authors": [
     "The WebRTC project authors (https://www.webrtc.org/)"
   ],
