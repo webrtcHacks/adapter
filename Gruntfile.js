@@ -69,7 +69,7 @@ module.exports = function(grunt) {
             // TODO: Replace adapter with <%= pkg.name %>' which uses the name
             // from package.json once we have a better NPM name.
             standalone: 'adapter',
-            transform: 'babelify'
+            transform: [['babelify', {"presets": ["es2015"]}]]
           }
         }
       },
@@ -80,7 +80,7 @@ module.exports = function(grunt) {
         dest: './out/adapter_no_global_es5.js',
         options: {
           browserifyOptions: {
-            transform: 'babelify'
+            transform: [['babelify', {"presets": ["es2015"]}]]
           }
         }
       },
@@ -100,7 +100,7 @@ module.exports = function(grunt) {
             // TODO: Replace adapter with <%= pkg.name %>' which uses the name
             // from package.json once we have a better NPM name.
             standalone: 'adapter',
-            transform: 'babelify'
+            transform: [['babelify', {"presets": ["es2015"]}]]
           }
         }
       },
@@ -115,7 +115,7 @@ module.exports = function(grunt) {
             './src/js/edge/edge_sdp.js'
           ],
           browserifyOptions: {
-            transform: 'babelify'
+            transform: [['babelify', {"presets": ["es2015"]}]]
           }
         }
       }
