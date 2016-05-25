@@ -8,7 +8,7 @@
  /* eslint-env node */
 'use strict';
 
-var logDisabled_ = false;
+var logDisabled_ = true;
 
 // Utility methods.
 var utils = {
