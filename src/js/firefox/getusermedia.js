@@ -135,7 +135,7 @@ module.exports = function() {
     var origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
-      origGetUserMedia(c).catch(function(e) {
+      return origGetUserMedia(c).catch(function(e) {
         return Promise.reject(shimError_(e));
       });
     };
