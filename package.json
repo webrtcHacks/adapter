@@ -18,6 +18,9 @@
     "prepublish": "grunt build",
     "test": "grunt && node test/run-tests.js"
   },
+  "babel": {
+    "presets": ["es2015"]
+  },
   "dependencies": {
     "sdp": "^1.0.0"
   },
