@@ -91,12 +91,10 @@ module.exports = function() {
     });
   };
 
-  navigator.getUserMedia = getUserMedia_;
-
   // Returns the result of getUserMedia as a Promise.
   var getUserMediaPromise_ = function(constraints) {
     return new Promise(function(resolve, reject) {
-      navigator.getUserMedia(constraints, resolve, reject);
+      getUserMedia_(constraints, resolve, reject);
     });
   };
 
@@ -139,5 +137,15 @@ module.exports = function() {
         return Promise.reject(shimError_(e));
       });
     };
+  }
+  if (browserDetails.version < 44) {
+    navigator.getUserMedia = getUserMedia_;
+  } else {
+    navigator.getUserMedia = function(constraints, onSuccess, onError) {
+      // Replace Firefox 44+'s deprecation warning with unprefixed version.
+      console.warn("navigator.getUserMedia has been replaced by " +
+                   "navigator.mediaDevices.getUserMedia");
+      navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
+    }
   }
 };
