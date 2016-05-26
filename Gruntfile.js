@@ -58,7 +58,7 @@ module.exports = function(grunt) {
           browserifyOptions: {
             // Exposes shim methods in a global object to the browser.
             standalone: 'adapter',
-            transform: 'babelify'
+            transform: [['babelify', {'presets': ['es2015']}]]
           }
         }
       },
@@ -69,7 +69,7 @@ module.exports = function(grunt) {
         dest: './out/adapter_no_global_es5.js',
         options: {
           browserifyOptions: {
-            transform: [['babelify', {"presets": ["es2015"]}]]
+            transform: [['babelify', {'presets': ['es2015']}]]
           }
         }
       },
@@ -86,7 +86,7 @@ module.exports = function(grunt) {
           browserifyOptions: {
             // Exposes the shim in a global object to the browser.
             standalone: 'adapter',
-            transform: [['babelify', {"presets": ["es2015"]}]]
+            transform: [['babelify', {'presets': ['es2015']}]]
           }
         }
       },
@@ -101,7 +101,7 @@ module.exports = function(grunt) {
             './src/js/edge/edge_sdp.js'
           ],
           browserifyOptions: {
-            transform: [['babelify', {"presets": ["es2015"]}]]
+            transform: [['babelify', {'presets': ['es2015']}]]
           }
         }
       }
