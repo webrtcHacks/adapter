@@ -18,11 +18,6 @@
     "prepublish": "grunt build",
     "test": "grunt && node test/run-tests.js"
   },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
-  },
   "dependencies": {
     "sdp": "^1.0.0"
   },
@@ -30,8 +25,6 @@
     "npm": "~3.0.0"
   },
   "devDependencies": {
-    "babel-preset-es2015": "^6.6.0",
-    "babelify": "^7.3.0",
     "chromedriver": "^2.16.0",
     "eslint-config-webrtc": "^1.0.0",
     "faucet": "0.0.1",
