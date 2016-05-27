@@ -138,14 +138,13 @@ module.exports = function() {
       });
     };
   }
-  if (browserDetails.version < 44) {
-    navigator.getUserMedia = getUserMedia_;
-  } else {
-    navigator.getUserMedia = function(constraints, onSuccess, onError) {
-      // Replace Firefox 44+'s deprecation warning with unprefixed version.
-      console.warn('navigator.getUserMedia has been replaced by ' +
-                   'navigator.mediaDevices.getUserMedia');
-      navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
-    };
-  }
+  navigator.getUserMedia = function(constraints, onSuccess, onError) {
+    if (browserDetails.version < 44) {
+      return getUserMedia_(constraints, onSuccess, onError);
+    }
+    // Replace Firefox 44+'s deprecation warning with unprefixed version.
+    console.warn('navigator.getUserMedia has been replaced by ' +
+                 'navigator.mediaDevices.getUserMedia');
+    navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
+  };
 };
