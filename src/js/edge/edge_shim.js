@@ -907,7 +907,7 @@ var edgeShim = {
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
       if (candidate === null) {
         this.transceivers.forEach(function(transceiver) {
-          transceiver.iceTransport.addIceCandidate({});
+          transceiver.iceTransport.addRemoteCandidate({});
         });
       } else {
         var mLineIndex = candidate.sdpMLineIndex;
