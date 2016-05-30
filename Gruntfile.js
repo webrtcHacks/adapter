@@ -48,62 +48,6 @@ module.exports = function(grunt) {
             './src/js/edge/edge_sdp.js'
           ]
         }
-      },
-      // The following entries duplicate the entries above but use babelify
-      // to create versions safe for old browsers.
-      adapterGlobalObjectES5: {
-        src: ['./src/js/adapter_core.js'],
-        dest: './out/adapter_es5.js',
-        options: {
-          browserifyOptions: {
-            // Exposes shim methods in a global object to the browser.
-            standalone: 'adapter',
-            transform: [['babelify', {'presets': ['es2015']}]]
-          }
-        }
-      },
-      // Use this if you do not want adapter to expose anything to the global
-      // scope.
-      adapterAndNoGlobalObjectES5: {
-        src: ['./src/js/adapter_core.js'],
-        dest: './out/adapter_no_global_es5.js',
-        options: {
-          browserifyOptions: {
-            transform: [['babelify', {'presets': ['es2015']}]]
-          }
-        }
-      },
-      // Use this if you do not want MS edge shim to be included.
-      adapterNoEdgeES5: {
-        src: ['./src/js/adapter_core.js'],
-        dest: './out/adapter_no_edge_es5.js',
-        options: {
-          // These files will be skipped.
-          ignore: [
-            './src/js/edge/edge_shim.js',
-            './src/js/edge/edge_sdp.js'
-          ],
-          browserifyOptions: {
-            // Exposes the shim in a global object to the browser.
-            standalone: 'adapter',
-            transform: [['babelify', {'presets': ['es2015']}]]
-          }
-        }
-      },
-      // Use this if you do not want MS edge shim to be included and do not
-      // want adapter to expose anything to the global scope.
-      adapterNoEdgeAndNoGlobalObjectES5: {
-        src: ['./src/js/adapter_core.js'],
-        dest: './out/adapter_no_edge_no_global_es5.js',
-        options: {
-          ignore: [
-            './src/js/edge/edge_shim.js',
-            './src/js/edge/edge_sdp.js'
-          ],
-          browserifyOptions: {
-            transform: [['babelify', {'presets': ['es2015']}]]
-          }
-        }
       }
     },
     githooks: {
