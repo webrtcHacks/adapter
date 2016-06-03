@@ -402,7 +402,9 @@ var edgeShim = {
                   // ice-lite only includes host candidates in the SDP so we can
                   // use setRemoteCandidates (which implies an
                   // RTCIceCandidateComplete)
-                  iceTransport.setRemoteCandidates(cands);
+                  if (cands.length) {
+                    iceTransport.setRemoteCandidates(cands);
+                  }
                 }
                 iceTransport.start(iceGatherer, remoteIceParameters,
                     isIceLite ? 'controlling' : 'controlled');
@@ -607,7 +609,7 @@ var edgeShim = {
                   remoteCapabilities;
               self.transceivers[sdpMLineIndex].cname = cname;
 
-              if (isIceLite || isComplete) {
+              if ((isIceLite || isComplete) && cands.length) {
                 iceTransport.setRemoteCandidates(cands);
               }
               iceTransport.start(iceGatherer, remoteIceParameters,
