@@ -1686,6 +1686,35 @@ test('Basic connection establishment with datachannel', function(t) {
   });
 });
 
+test('addIceCandidate with null', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    var pc1 = new RTCPeerConnection(null);
+    pc1.addIceCandidate(null)
+    .then(callback)
+    .catch(callback);
+  };
+  // Run test.
+  seleniumHelpers.loadTestPage(driver)
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(function(err) {
+    t.ok(err === null, 'addIceCandidate(null) resolves');
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
 test('call enumerateDevices', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
