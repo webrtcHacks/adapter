@@ -8,7 +8,6 @@
  /* eslint-env node */
 'use strict';
 
-var logging = require('../utils').log;
 var browserDetails = require('../utils').browserDetails;
 
 var firefoxShim = {
@@ -144,17 +143,6 @@ var firefoxShim = {
         })
         .then(onSucc, onErr);
     };
-  },
-
-  // Attach a media stream to an element.
-  attachMediaStream: function(element, stream) {
-    logging('DEPRECATED, attachMediaStream will soon be removed.');
-    element.srcObject = stream;
-  },
-
-  reattachMediaStream: function(to, from) {
-    logging('DEPRECATED, reattachMediaStream will soon be removed.');
-    to.srcObject = from.srcObject;
   }
 };
 
@@ -163,7 +151,5 @@ module.exports = {
   shimOnTrack: firefoxShim.shimOnTrack,
   shimSourceObject: firefoxShim.shimSourceObject,
   shimPeerConnection: firefoxShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia'),
-  attachMediaStream: firefoxShim.attachMediaStream,
-  reattachMediaStream: firefoxShim.reattachMediaStream
+  shimGetUserMedia: require('./getusermedia')
 };
