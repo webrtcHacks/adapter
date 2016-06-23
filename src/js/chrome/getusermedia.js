@@ -11,6 +11,9 @@ var logging = require('../utils.js').log;
 
 // Expose public methods.
 module.exports = function() {
+  if (navigator.getUserMedia) {
+    return;
+  }
   var constraintsToChrome_ = function(c) {
     if (typeof c !== 'object' || c.mandatory || c.optional) {
       return c;
