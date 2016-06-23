@@ -9,7 +9,6 @@
 'use strict';
 
 var SDPUtils = require('sdp');
-var logging = require('../utils').log;
 
 var edgeShim = {
   shimPeerConnection: function() {
@@ -1031,24 +1030,11 @@ var edgeShim = {
         });
       });
     };
-  },
-
-  // Attach a media stream to an element.
-  attachMediaStream: function(element, stream) {
-    logging('DEPRECATED, attachMediaStream will soon be removed.');
-    element.srcObject = stream;
-  },
-
-  reattachMediaStream: function(to, from) {
-    logging('DEPRECATED, reattachMediaStream will soon be removed.');
-    to.srcObject = from.srcObject;
   }
 };
 
 // Expose public methods.
 module.exports = {
   shimPeerConnection: edgeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia'),
-  attachMediaStream: edgeShim.attachMediaStream,
-  reattachMediaStream: edgeShim.reattachMediaStream
+  shimGetUserMedia: require('./getusermedia')
 };

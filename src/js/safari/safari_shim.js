@@ -10,10 +10,6 @@ var safariShim = {
   // TODO: DrAlex, should be here, double check against LayoutTests
   // shimOnTrack: function() { },
 
-  // TODO: DrAlex
-  // attachMediaStream: function(element, stream) { },
-  // reattachMediaStream: function(to, from) { },
-
   // TODO: once the back-end for the mac port is done, add.
   // TODO: check for webkitGTK+
   // shimPeerConnection: function() { },
@@ -28,7 +24,5 @@ module.exports = {
   shimGetUserMedia: safariShim.shimGetUserMedia
   // TODO
   // shimOnTrack: safariShim.shimOnTrack,
-  // shimPeerConnection: safariShim.shimPeerConnection,
-  // attachMediaStream: safariShim.attachMediaStream,
-  // reattachMediaStream: safariShim.reattachMediaStream
+  // shimPeerConnection: safariShim.shimPeerConnection
 };

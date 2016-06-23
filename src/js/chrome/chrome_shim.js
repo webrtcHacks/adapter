@@ -246,27 +246,6 @@ var chromeShim = {
       return arguments[0] === null ? Promise.resolve()
           : nativeAddIceCandidate.apply(this, arguments);
     };
-  },
-
-  // Attach a media stream to an element.
-  attachMediaStream: function(element, stream) {
-    logging('DEPRECATED, attachMediaStream will soon be removed.');
-    if (browserDetails.version >= 43) {
-      element.srcObject = stream;
-    } else if (typeof element.src !== 'undefined') {
-      element.src = URL.createObjectURL(stream);
-    } else {
-      logging('Error attaching stream to element.');
-    }
-  },
-
-  reattachMediaStream: function(to, from) {
-    logging('DEPRECATED, reattachMediaStream will soon be removed.');
-    if (browserDetails.version >= 43) {
-      to.srcObject = from.srcObject;
-    } else {
-      to.src = from.src;
-    }
   }
 };
 
@@ -277,7 +256,5 @@ module.exports = {
   shimOnTrack: chromeShim.shimOnTrack,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia'),
-  attachMediaStream: chromeShim.attachMediaStream,
-  reattachMediaStream: chromeShim.reattachMediaStream
+  shimGetUserMedia: require('./getusermedia')
 };
