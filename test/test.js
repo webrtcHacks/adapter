@@ -100,7 +100,7 @@ test('Browser identified', function(t) {
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {
-    t.plan(4);
+    t.plan(3);
     t.pass('Page loaded');
     return driver.executeScript('return adapter.browserDetails.version');
   })
@@ -111,38 +111,6 @@ test('Browser identified', function(t) {
   .then(function(webrtcDetectVersion) {
     t.ok(webrtcDetectVersion, 'Browser version detected: ' +
         webrtcDetectVersion);
-    return driver.executeScript('return adapter.browserDetails.minVersion');
-  })
-  .then(function(webrtcMinimumVersion) {
-    t.ok(webrtcMinimumVersion, 'Minimum Browser version detected: ' +
-        webrtcMinimumVersion);
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
-test('Browser supported by adapter.js', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.plan(2);
-    t.pass('Page loaded');
-  })
-  .then(function() {
-    return driver.executeScript(
-      'return adapter.browserDetails.version ' +
-          '>= adapter.browserDetails.minVersion');
-  })
-  .then(function(webrtcVersionIsGreaterOrEqual) {
-    t.ok(webrtcVersionIsGreaterOrEqual,
-        'Browser version supported by adapter.js');
     t.end();
   })
   .then(null, function(err) {
