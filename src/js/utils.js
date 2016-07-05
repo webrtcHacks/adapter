@@ -49,7 +49,7 @@ var utils = {
   /**
    * Browser detector.
    *
-   * @return {object} result containing browser, version and minVersion
+   * @return {object} result containing browser and version
    *     properties.
    */
   detectBrowser: function() {
@@ -57,7 +57,6 @@ var utils = {
     var result = {};
     result.browser = null;
     result.version = null;
-    result.minVersion = null;
 
     // Fail early if it's not a browser
     if (typeof window === 'undefined' || !window.navigator) {
@@ -70,7 +69,6 @@ var utils = {
       result.browser = 'firefox';
       result.version = this.extractVersion(navigator.userAgent,
           /Firefox\/([0-9]+)\./, 1);
-      result.minVersion = 31;
 
     // all webkit-based browsers
     } else if (navigator.webkitGetUserMedia) {
@@ -79,7 +77,6 @@ var utils = {
         result.browser = 'chrome';
         result.version = this.extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/([0-9]+)\./, 2);
-        result.minVersion = 38;
 
       // Safari or unknown webkit-based
       // for the time being Safari has support for MediaStreams but not webRTC
@@ -99,7 +96,6 @@ var utils = {
           result.browser = 'safari';
           result.version = this.extractVersion(navigator.userAgent,
             /AppleWebKit\/([0-9]+)\./, 1);
-          result.minVersion = 602;
 
         // unknown webkit-based browser
         } else {
@@ -115,19 +111,11 @@ var utils = {
       result.browser = 'edge';
       result.version = this.extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
-      result.minVersion = 10547;
 
     // Default fallthrough: not supported.
     } else {
       result.browser = 'Not a supported browser.';
       return result;
-    }
-
-    // Warn if version is less than minVersion.
-    if (result.version < result.minVersion) {
-      utils.log('Browser: ' + result.browser + ' Version: ' + result.version +
-          ' < minimum supported version: ' + result.minVersion +
-          '\n some things might not work!');
     }
 
     return result;
