@@ -9,7 +9,6 @@
 'use strict';
 
 var SDPUtils = require('sdp');
-var logging = require('../utils').log;
 
 var edgeShim = {
   shimPeerConnection: function() {
@@ -88,17 +87,24 @@ var edgeShim = {
             break;
         }
       }
+      this.usingBundle = config && config.bundlePolicy === 'max-bundle';
+
       if (config && config.iceServers) {
         // Edge does not like
         // 1) stun:
         // 2) turn: that does not have all of turn:host:port?transport=udp
-        this.iceOptions.iceServers = config.iceServers.filter(function(server) {
+        var iceServers = JSON.parse(JSON.stringify(config.iceServers));
+        this.iceOptions.iceServers = iceServers.filter(function(server) {
           if (server && server.urls) {
-            server.urls = server.urls.filter(function(url) {
+            var urls = server.urls;
+            if (typeof urls === 'string') {
+              urls = [urls];
+            }
+            urls = urls.filter(function(url) {
               return url.indexOf('turn:') === 0 &&
                   url.indexOf('transport=udp') !== -1;
             })[0];
-            return !!server.urls;
+            return !!urls;
           }
           return false;
         });
@@ -256,6 +262,18 @@ var edgeShim = {
               event.candidate.candidate = SDPUtils.writeCandidate(cand);
             }
 
+            // update local description.
+            var sections = SDPUtils.splitSections(self.localDescription.sdp);
+            if (event.candidate.candidate.indexOf('typ endOfCandidates')
+                === -1) {
+              sections[event.candidate.sdpMLineIndex + 1] +=
+                  'a=' + event.candidate.candidate + '\r\n';
+            } else {
+              sections[event.candidate.sdpMLineIndex + 1] +=
+                  'a=end-of-candidates\r\n';
+            }
+            self.localDescription.sdp = sections.join('');
+
             var complete = self.transceivers.every(function(transceiver) {
               return transceiver.iceGatherer &&
                   transceiver.iceGatherer.state === 'completed';
@@ -390,17 +408,21 @@ var edgeShim = {
                   // ice-lite only includes host candidates in the SDP so we can
                   // use setRemoteCandidates (which implies an
                   // RTCIceCandidateComplete)
-                  iceTransport.setRemoteCandidates(cands);
+                  if (cands.length) {
+                    iceTransport.setRemoteCandidates(cands);
+                  }
                 }
-                iceTransport.start(iceGatherer, remoteIceParameters,
-                    isIceLite ? 'controlling' : 'controlled');
-
                 var remoteDtlsParameters = SDPUtils.getDtlsParameters(
                     mediaSection, sessionpart);
                 if (isIceLite) {
                   remoteDtlsParameters.role = 'server';
                 }
-                dtlsTransport.start(remoteDtlsParameters);
+
+                if (!self.usingBundle || sdpMLineIndex === 0) {
+                  iceTransport.start(iceGatherer, remoteIceParameters,
+                      isIceLite ? 'controlling' : 'controlled');
+                  dtlsTransport.start(remoteDtlsParameters);
+                }
 
                 // Calculate intersection of capabilities.
                 var params = self._getCommonCapabilities(localCapabilities,
@@ -468,6 +490,8 @@ var edgeShim = {
           var sessionpart = sections.shift();
           var isIceLite = SDPUtils.matchPrefix(sessionpart,
               'a=ice-lite').length > 0;
+          this.usingBundle = SDPUtils.matchPrefix(sessionpart,
+              'a=group:BUNDLE ').length > 0;
           sections.forEach(function(mediaSection, sdpMLineIndex) {
             var lines = SDPUtils.splitLines(mediaSection);
             var mline = lines[0].substr(2).split(' ');
@@ -531,8 +555,12 @@ var edgeShim = {
                   return cand.component === '1';
                 });
             if (description.type === 'offer' && !rejected) {
-              var transports = self._createIceAndDtlsTransports(mid,
-                  sdpMLineIndex);
+              var transports = self.usingBundle && sdpMLineIndex > 0 ? {
+                iceGatherer: self.transceivers[0].iceGatherer,
+                iceTransport: self.transceivers[0].iceTransport,
+                dtlsTransport: self.transceivers[0].dtlsTransport
+              } : self._createIceAndDtlsTransports(mid, sdpMLineIndex);
+
               if (isComplete) {
                 transports.iceTransport.setRemoteCandidates(cands);
               }
@@ -553,11 +581,16 @@ var edgeShim = {
               // FIXME: look at direction.
               if (self.localStreams.length > 0 &&
                   self.localStreams[0].getTracks().length >= sdpMLineIndex) {
-                // FIXME: actually more complicated, needs to match types etc
-                var localtrack = self.localStreams[0]
-                    .getTracks()[sdpMLineIndex];
-                rtpSender = new RTCRtpSender(localtrack,
-                    transports.dtlsTransport);
+                var localTrack;
+                if (kind === 'audio') {
+                  localTrack = self.localStreams[0].getAudioTracks()[0];
+                } else if (kind === 'video') {
+                  localTrack = self.localStreams[0].getVideoTracks()[0];
+                }
+                if (localTrack) {
+                  rtpSender = new RTCRtpSender(localTrack,
+                      transports.dtlsTransport);
+                }
               }
 
               self.transceivers[sdpMLineIndex] = {
@@ -595,12 +628,14 @@ var edgeShim = {
                   remoteCapabilities;
               self.transceivers[sdpMLineIndex].cname = cname;
 
-              if (isIceLite || isComplete) {
+              if ((isIceLite || isComplete) && cands.length) {
                 iceTransport.setRemoteCandidates(cands);
               }
-              iceTransport.start(iceGatherer, remoteIceParameters,
-                  'controlling');
-              dtlsTransport.start(remoteDtlsParameters);
+              if (!self.usingBundle || sdpMLineIndex === 0) {
+                iceTransport.start(iceGatherer, remoteIceParameters,
+                    'controlling');
+                dtlsTransport.start(remoteDtlsParameters);
+              }
 
               self._transceive(transceiver,
                   direction === 'sendrecv' || direction === 'recvonly',
@@ -833,7 +868,11 @@ var edgeShim = {
         var kind = mline.kind;
         var mid = SDPUtils.generateIdentifier();
 
-        var transports = self._createIceAndDtlsTransports(mid, sdpMLineIndex);
+        var transports = self.usingBundle && sdpMLineIndex > 0 ? {
+          iceGatherer: transceivers[0].iceGatherer,
+          iceTransport: transceivers[0].iceTransport,
+          dtlsTransport: transceivers[0].dtlsTransport
+        } : self._createIceAndDtlsTransports(mid, sdpMLineIndex);
 
         var localCapabilities = RTCRtpSender.getCapabilities(kind);
         var rtpSender;
@@ -864,6 +903,13 @@ var edgeShim = {
           sendEncodingParameters: sendEncodingParameters,
           recvEncodingParameters: null
         };
+      });
+      if (this.usingBundle) {
+        sdp += 'a=group:BUNDLE ' + transceivers.map(function(t) {
+          return t.mid;
+        }).join(' ') + '\r\n';
+      }
+      tracks.forEach(function(mline, sdpMLineIndex) {
         var transceiver = transceivers[sdpMLineIndex];
         sdp += SDPUtils.writeMediaSection(transceiver,
             transceiver.localCapabilities, 'offer', self.localStreams[0]);
@@ -884,6 +930,11 @@ var edgeShim = {
       var self = this;
 
       var sdp = SDPUtils.writeSessionBoilerplate();
+      if (this.usingBundle) {
+        sdp += 'a=group:BUNDLE ' + this.transceivers.map(function(t) {
+          return t.mid;
+        }).join(' ') + '\r\n';
+      }
       this.transceivers.forEach(function(transceiver) {
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(
@@ -907,7 +958,7 @@ var edgeShim = {
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
       if (candidate === null) {
         this.transceivers.forEach(function(transceiver) {
-          transceiver.iceTransport.addIceCandidate({});
+          transceiver.iceTransport.addRemoteCandidate({});
         });
       } else {
         var mLineIndex = candidate.sdpMLineIndex;
@@ -979,24 +1030,11 @@ var edgeShim = {
         });
       });
     };
-  },
-
-  // Attach a media stream to an element.
-  attachMediaStream: function(element, stream) {
-    logging('DEPRECATED, attachMediaStream will soon be removed.');
-    element.srcObject = stream;
-  },
-
-  reattachMediaStream: function(to, from) {
-    logging('DEPRECATED, reattachMediaStream will soon be removed.');
-    to.srcObject = from.srcObject;
   }
 };
 
 // Expose public methods.
 module.exports = {
   shimPeerConnection: edgeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia'),
-  attachMediaStream: edgeShim.attachMediaStream,
-  reattachMediaStream: edgeShim.reattachMediaStream
+  shimGetUserMedia: require('./getusermedia')
 };

@@ -13,21 +13,22 @@ var browserDetails = require('../utils').browserDetails;
 
 // Expose public methods.
 module.exports = function() {
-  var shimError_ = e => ({
-    name: {
-      SecurityError: 'NotAllowedError',
-      PermissionDeniedError: 'NotAllowedError'
-    }[e.name] || e.name,
-    message: {
-      'The operation is insecure.': 'The request is not allowed by the user ' +
-      'agent or the platform in the current context.'
-    }[e.message] || e.message,
-    constraint: e.constraint,
-    toString: function() {
-      return this.name + (this.message && ': ') + this.message;
-    }
-  });
-
+  var shimError_ = function(e) {
+    return {
+      name: {
+        SecurityError: 'NotAllowedError',
+        PermissionDeniedError: 'NotAllowedError'
+      }[e.name] || e.name,
+      message: {
+        'The operation is insecure.': 'The request is not allowed by the ' +
+        'user agent or the platform in the current context.'
+      }[e.message] || e.message,
+      constraint: e.constraint,
+      toString: function() {
+        return this.name + (this.message && ': ') + this.message;
+      }
+    };
+  };
 
   // getUserMedia constraints shim.
   var getUserMedia_ = function(constraints, onSuccess, onError) {
@@ -85,16 +86,15 @@ module.exports = function() {
       }
       logging('ff37: ' + JSON.stringify(constraints));
     }
-    return navigator.mozGetUserMedia(constraints, onSuccess,
-                                     e => onError(shimError_(e)));
+    return navigator.mozGetUserMedia(constraints, onSuccess, function(e) {
+      onError(shimError_(e));
+    });
   };
-
-  navigator.getUserMedia = getUserMedia_;
 
   // Returns the result of getUserMedia as a Promise.
   var getUserMediaPromise_ = function(constraints) {
     return new Promise(function(resolve, reject) {
-      navigator.getUserMedia(constraints, resolve, reject);
+      getUserMedia_(constraints, resolve, reject);
     });
   };
 
@@ -132,7 +132,19 @@ module.exports = function() {
   if (browserDetails.version < 49) {
     var origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
-    navigator.mediaDevices.getUserMedia = c =>
-        origGetUserMedia(c).catch(e => Promise.reject(shimError_(e)));
+    navigator.mediaDevices.getUserMedia = function(c) {
+      return origGetUserMedia(c).catch(function(e) {
+        return Promise.reject(shimError_(e));
+      });
+    };
   }
+  navigator.getUserMedia = function(constraints, onSuccess, onError) {
+    if (browserDetails.version < 44) {
+      return getUserMedia_(constraints, onSuccess, onError);
+    }
+    // Replace Firefox 44+'s deprecation warning with unprefixed version.
+    console.warn('navigator.getUserMedia has been replaced by ' +
+                 'navigator.mediaDevices.getUserMedia');
+    navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
+  };
 };
