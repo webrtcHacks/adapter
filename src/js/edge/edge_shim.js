@@ -206,8 +206,18 @@ var edgeShim = {
                 // push rCodec so we reply with offerer payload type
                 commonCapabilities.codecs.push(rCodec);
 
-                // FIXME: also need to determine intersection between
-                // .rtcpFeedback and .parameters
+                // determine common feedback mechanisms
+                rCodec.rtcpFeedback = rCodec.rtcpFeedback.filter(function(fb) {
+                  for (var j = 0; j < lCodec.rtcpFeedback.length; j++) {
+                    if (lCodec.rtcpFeedback[j].type === fb.type &&
+                        lCodec.rtcpFeedback[j].parameter === fb.parameter) {
+                      return true;
+                    }
+                  }
+                  return false;
+                });
+                // FIXME: also need to determine .parameters
+                //  see https://github.com/openpeer/ortc/issues/569
                 break;
               }
             }
