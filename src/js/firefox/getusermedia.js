@@ -137,6 +137,9 @@ module.exports = function() {
         // Work around https://bugzil.la/802326
         if (c.audio && !stream.getAudioTracks().length ||
             c.video && !stream.getVideoTracks().length) {
+          stream.getTracks().forEach(function(track) {
+            track.stop();
+          });
           throw new DOMException('The object can not be found here.',
                                  'NotFoundError');
         }
