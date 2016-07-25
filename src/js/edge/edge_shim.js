@@ -975,7 +975,7 @@ var edgeShim = {
           var cand = Object.keys(candidate.candidate).length > 0 ?
               SDPUtils.parseCandidate(candidate.candidate) : {};
           // Ignore Chrome's invalid candidates since Edge does not like them.
-          if (cand.protocol === 'tcp' && cand.port === 0) {
+          if (cand.protocol === 'tcp' && (cand.port === 0 || cand.port === 9)) {
             return;
           }
           // Ignore RTCP candidates, we assume RTCP-MUX.
