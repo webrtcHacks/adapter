@@ -93,6 +93,7 @@ var edgeShim = {
         // Edge does not like
         // 1) stun:
         // 2) turn: that does not have all of turn:host:port?transport=udp
+        // 3) turn: with ipv6 addresses
         var iceServers = JSON.parse(JSON.stringify(config.iceServers));
         this.iceOptions.iceServers = iceServers.filter(function(server) {
           if (server && server.urls) {
@@ -102,7 +103,8 @@ var edgeShim = {
             }
             urls = urls.filter(function(url) {
               return url.indexOf('turn:') === 0 &&
-                  url.indexOf('transport=udp') !== -1;
+                  url.indexOf('transport=udp') !== -1 &&
+                  url.indexOf('turn:[') === -1;
             })[0];
             return !!urls;
           }
