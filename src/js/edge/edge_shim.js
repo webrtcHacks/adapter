@@ -546,7 +546,7 @@ var edgeShim = {
             }
 
             var isComplete = SDPUtils.matchPrefix(mediaSection,
-                'a=end-of-candidates').length > 0;
+                'a=end-of-candidates', sessionpart).length > 0;
             var cands = SDPUtils.matchPrefix(mediaSection, 'a=candidate:')
                 .map(function(cand) {
                   return SDPUtils.parseCandidate(cand);
