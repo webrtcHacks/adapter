@@ -1,6 +1,6 @@
 {
-  "name": "webrtc-adapter",
-  "version": "1.4.0",
+  "name": "webrtc-adapter-testingPublish",
+  "version": "2.0.0",
   "description": "A shim to insulate apps from WebRTC spec changes and browser prefix differences",
   "license": "BSD-3-Clause",
   "main": "./src/js/adapter_core.js",
@@ -12,9 +12,9 @@
     "The WebRTC project authors (https://www.webrtc.org/)"
   ],
   "scripts": {
-    "preversion": "git stash && git checkout master && git pull && npm test | faucet && git checkout -B bumpVersion",
-    "version": "grunt build",
-    "postversion": "git push --force --set-upstream origin bumpVersion --follow-tags && export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git checkout gh-pages && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
+    "preversion": "git stash && git checkout fixBowerHandling && git pull && npm test | faucet && git checkout -B bumpVersion",
+    "version": "grunt build && grunt copyForPublish && git add release/",
+    "postversion": "export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\"  && git commit -m `$GITTAG` && git push --force --set-upstream origin bumpVersion --follow-tags && git checkout testBranch && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin testBranch && git checkout fixBowerHandling",
     "prepublish": "grunt build",
     "test": "grunt && node test/run-tests.js"
   },
@@ -31,6 +31,7 @@
     "grunt": "^0.4.5",
     "grunt-browserify": "^4.0.1",
     "grunt-cli": ">=0.1.9",
+    "grunt-contrib-copy": "^1.0.0",
     "grunt-eslint": "^17.2.0",
     "grunt-githooks": "^0.3.1",
     "selenium-webdriver": "^2.52.0",
