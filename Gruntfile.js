@@ -63,27 +63,28 @@ module.exports = function(grunt) {
     },
     copy: {
       build: {
-        cwd: '.',
-        files: [
-          {src: [
-            'out/'
-            ],
-            dest: 'release',
-            nonull: true,
-            expand: true
-          }
-        ]
+        dest: 'release/',
+        cwd: 'out',
+        src: '**',
+        nonull: true,
+        expand: true
       }
     },
+    clean: {
+      build: {
+        src: ['release/']
+      }
+    }
   });
 
   grunt.loadNpmTasks('grunt-githooks');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-clean');
 
   grunt.registerTask('default', ['eslint', 'browserify']);
   grunt.registerTask('lint', ['eslint']);
   grunt.registerTask('build', ['browserify']);
-  grunt.registerTask('copyForPublish', ['copy']);
+  grunt.registerTask('copyForPublish', ['clean', 'copy']);
 };
