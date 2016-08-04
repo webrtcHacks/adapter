@@ -63,16 +63,11 @@ module.exports = function(grunt) {
     },
     copy: {
       build: {
-        cwd: '.',
-        files: [
-          {src: [
-            'out/'
-            ],
-            dest: 'release',
-            nonull: true,
-            expand: true
-          }
-        ]
+        dest: 'release/',
+        cwd: 'out',
+        src: '**',
+        nonull: true,
+        expand: true
       }
     },
   });
