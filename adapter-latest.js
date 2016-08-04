@@ -1,1 +1,1 @@
-adapter-1.4.0.js
+adapter-2.0.0.js
