@@ -9,6 +9,7 @@
 'use strict';
 
 var SDPUtils = require('sdp');
+var browserDetails = require('../utils').browserDetails;
 
 var edgeShim = {
   shimPeerConnection: function() {
@@ -102,9 +103,11 @@ var edgeShim = {
               urls = [urls];
             }
             urls = urls.filter(function(url) {
-              return url.indexOf('turn:') === 0 &&
+              return (url.indexOf('turn:') === 0 &&
                   url.indexOf('transport=udp') !== -1 &&
-                  url.indexOf('turn:[') === -1;
+                  url.indexOf('turn:[') === -1) ||
+                  (url.indexOf('stun:') === 0 &&
+                    browserDetails.version >= 14393);
             })[0];
             return !!urls;
           }
