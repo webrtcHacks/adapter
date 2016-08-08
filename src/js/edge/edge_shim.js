@@ -539,6 +539,18 @@ var edgeShim = {
             recvEncodingParameters =
                 SDPUtils.parseRtpEncodingParameters(mediaSection);
 
+            // Chrome does announce its SSRCs for recvonly streams.
+            // https://bugs.chromium.org/p/webrtc/issues/detail?id=4740
+            if (recvEncodingParameters.length === 0
+                && SDPUtils.matchPrefix(sessionpart,
+                'a=msid-semantic: WMS').length) {
+              if (kind === 'audio') {
+                recvEncodingParameters.push({ssrc: 0xfa17fa17});
+              } else if (kind === 'video') {
+                recvEncodingParameters.push({ssrc: 0x1});
+              }
+            }
+
             var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
             if (mid.length) {
               mid = mid[0].substr(6);
