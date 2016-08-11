@@ -406,10 +406,11 @@ var edgeShim = {
               var dtlsTransport = transceiver.dtlsTransport;
               var localCapabilities = transceiver.localCapabilities;
               var remoteCapabilities = transceiver.remoteCapabilities;
+
               var rejected = mediaSection.split('\n', 1)[0]
                   .split(' ', 2)[1] === '0';
 
-              if (!rejected) {
+              if (!rejected && !transceiver.isDatachannel) {
                 var remoteIceParameters = SDPUtils.getIceParameters(
                     mediaSection, sessionpart);
                 if (isIceLite) {
@@ -514,6 +515,22 @@ var edgeShim = {
             var rejected = mline[1] === '0';
             var direction = SDPUtils.getDirection(mediaSection, sessionpart);
 
+            var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
+            if (mid.length) {
+              mid = mid[0].substr(6);
+            } else {
+              mid = SDPUtils.generateIdentifier();
+            }
+
+            // Reject datachannels which are not implemented yet.
+            if (kind === 'application' && mline[2] === 'DTLS/SCTP') {
+              self.transceivers[sdpMLineIndex] = {
+                mid: mid,
+                isDatachannel: true
+              };
+              return;
+            }
+
             var transceiver;
             var iceGatherer;
             var iceTransport;
@@ -538,13 +555,6 @@ var edgeShim = {
             }
             recvEncodingParameters =
                 SDPUtils.parseRtpEncodingParameters(mediaSection);
-
-            var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
-            if (mid.length) {
-              mid = mid[0].substr(6);
-            } else {
-              mid = SDPUtils.generateIdentifier();
-            }
 
             var cname;
             // Gets the first SSRC. Note that with RTX there might be multiple
@@ -951,6 +961,12 @@ var edgeShim = {
         }).join(' ') + '\r\n';
       }
       this.transceivers.forEach(function(transceiver) {
+        if (transceiver.isDatachannel) {
+          sdp += 'm=application 0 DTLS/SCTP 5000\r\n' +
+              'c=IN IP4 0.0.0.0\r\n' +
+              'a=mid:' + transceiver.mid + '\r\n';
+          return;
+        }
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(
             transceiver.localCapabilities,
