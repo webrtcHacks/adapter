@@ -1,6 +1,5 @@
 {
   "name": "webrtc-adapter",
-  "version": "2.0.2",
   "description": "A shim to insulate apps from WebRTC spec changes and browser prefix differences",
   "license": "BSD-3-Clause",
   "main": "./release/adapter.js",
