@@ -5,14 +5,14 @@
 
 ## Install ##
 
-#### Bower
-```bash
-bower install webrtc-adapter
-```
-
 #### NPM
 ```bash
 npm install webrtc-adapter
+```
+
+#### Bower
+```bash
+bower install webrtc-adapter
 ```
 
 ## Usage ##
