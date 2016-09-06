@@ -1251,8 +1251,7 @@ test('Check getUserMedia legacy constraints converter', function(t) {
     // decision if the test should be run or not is in the Test definition
     // rather than the preferred Run test section (Webdriver).
     // FIXME: Move the decision to // Run test.
-    if (window.adapter.browserDetails.browser === 'chrome'
-        && window.adapter.browserDetails.browserVersion < 53) {
+    if (window.adapter.browserDetails.browser === 'chrome') {
       testChrome();
     } else if (window.adapter.browserDetails.browser === 'firefox') {
       testFirefox();

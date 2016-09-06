@@ -11,9 +11,6 @@ var logging = require('../utils.js').log;
 
 // Expose public methods.
 module.exports = function() {
-  if (navigator.getUserMedia) {
-    return;
-  }
   var constraintsToChrome_ = function(c) {
     if (typeof c !== 'object' || c.mandatory || c.optional) {
       return c;
@@ -120,15 +117,15 @@ module.exports = function() {
     };
   };
 
-  var getUserMedia_ = function(constraints, onSuccess, onError) {
-    shimConstraints_(constraints, function(c) {
-      navigator.webkitGetUserMedia(c, onSuccess, function(e) {
-        onError(shimError_(e));
+  if (!navigator.getUserMedia) {
+    navigator.getUserMedia = function(constraints, onSuccess, onError) {
+      shimConstraints_(constraints, function(c) {
+        navigator.webkitGetUserMedia(c, onSuccess, function(e) {
+          onError(shimError_(e));
+        });
       });
-    });
-  };
-
-  navigator.getUserMedia = getUserMedia_;
+    };
+  }
 
   // Returns the result of getUserMedia as a Promise.
   var getUserMediaPromise_ = function(constraints) {
