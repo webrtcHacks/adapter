@@ -9,6 +9,7 @@
 'use strict';
 
 var SDPUtils = require('sdp');
+var browserDetails = require('../utils').browserDetails;
 
 var edgeShim = {
   shimPeerConnection: function() {
@@ -93,6 +94,7 @@ var edgeShim = {
         // Edge does not like
         // 1) stun:
         // 2) turn: that does not have all of turn:host:port?transport=udp
+        // 3) turn: with ipv6 addresses
         var iceServers = JSON.parse(JSON.stringify(config.iceServers));
         this.iceOptions.iceServers = iceServers.filter(function(server) {
           if (server && server.urls) {
@@ -101,8 +103,11 @@ var edgeShim = {
               urls = [urls];
             }
             urls = urls.filter(function(url) {
-              return url.indexOf('turn:') === 0 &&
-                  url.indexOf('transport=udp') !== -1;
+              return (url.indexOf('turn:') === 0 &&
+                  url.indexOf('transport=udp') !== -1 &&
+                  url.indexOf('turn:[') === -1) ||
+                  (url.indexOf('stun:') === 0 &&
+                    browserDetails.version >= 14393);
             })[0];
             return !!urls;
           }
@@ -206,8 +211,18 @@ var edgeShim = {
                 // push rCodec so we reply with offerer payload type
                 commonCapabilities.codecs.push(rCodec);
 
-                // FIXME: also need to determine intersection between
-                // .rtcpFeedback and .parameters
+                // determine common feedback mechanisms
+                rCodec.rtcpFeedback = rCodec.rtcpFeedback.filter(function(fb) {
+                  for (var j = 0; j < lCodec.rtcpFeedback.length; j++) {
+                    if (lCodec.rtcpFeedback[j].type === fb.type &&
+                        lCodec.rtcpFeedback[j].parameter === fb.parameter) {
+                      return true;
+                    }
+                  }
+                  return false;
+                });
+                // FIXME: also need to determine .parameters
+                //  see https://github.com/openpeer/ortc/issues/569
                 break;
               }
             }
@@ -391,10 +406,11 @@ var edgeShim = {
               var dtlsTransport = transceiver.dtlsTransport;
               var localCapabilities = transceiver.localCapabilities;
               var remoteCapabilities = transceiver.remoteCapabilities;
+
               var rejected = mediaSection.split('\n', 1)[0]
                   .split(' ', 2)[1] === '0';
 
-              if (!rejected) {
+              if (!rejected && !transceiver.isDatachannel) {
                 var remoteIceParameters = SDPUtils.getIceParameters(
                     mediaSection, sessionpart);
                 if (isIceLite) {
@@ -499,6 +515,22 @@ var edgeShim = {
             var rejected = mline[1] === '0';
             var direction = SDPUtils.getDirection(mediaSection, sessionpart);
 
+            var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
+            if (mid.length) {
+              mid = mid[0].substr(6);
+            } else {
+              mid = SDPUtils.generateIdentifier();
+            }
+
+            // Reject datachannels which are not implemented yet.
+            if (kind === 'application' && mline[2] === 'DTLS/SCTP') {
+              self.transceivers[sdpMLineIndex] = {
+                mid: mid,
+                isDatachannel: true
+              };
+              return;
+            }
+
             var transceiver;
             var iceGatherer;
             var iceTransport;
@@ -524,13 +556,6 @@ var edgeShim = {
             recvEncodingParameters =
                 SDPUtils.parseRtpEncodingParameters(mediaSection);
 
-            var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
-            if (mid.length) {
-              mid = mid[0].substr(6);
-            } else {
-              mid = SDPUtils.generateIdentifier();
-            }
-
             var cname;
             // Gets the first SSRC. Note that with RTX there might be multiple
             // SSRCs.
@@ -546,7 +571,7 @@ var edgeShim = {
             }
 
             var isComplete = SDPUtils.matchPrefix(mediaSection,
-                'a=end-of-candidates').length > 0;
+                'a=end-of-candidates', sessionpart).length > 0;
             var cands = SDPUtils.matchPrefix(mediaSection, 'a=candidate:')
                 .map(function(cand) {
                   return SDPUtils.parseCandidate(cand);
@@ -936,6 +961,12 @@ var edgeShim = {
         }).join(' ') + '\r\n';
       }
       this.transceivers.forEach(function(transceiver) {
+        if (transceiver.isDatachannel) {
+          sdp += 'm=application 0 DTLS/SCTP 5000\r\n' +
+              'c=IN IP4 0.0.0.0\r\n' +
+              'a=mid:' + transceiver.mid + '\r\n';
+          return;
+        }
         // Calculate intersection of capabilities.
         var commonCapabilities = self._getCommonCapabilities(
             transceiver.localCapabilities,
@@ -975,7 +1006,7 @@ var edgeShim = {
           var cand = Object.keys(candidate.candidate).length > 0 ?
               SDPUtils.parseCandidate(candidate.candidate) : {};
           // Ignore Chrome's invalid candidates since Edge does not like them.
-          if (cand.protocol === 'tcp' && cand.port === 0) {
+          if (cand.protocol === 'tcp' && (cand.port === 0 || cand.port === 9)) {
             return;
           }
           // Ignore RTCP candidates, we assume RTCP-MUX.

@@ -61,13 +61,24 @@ module.exports = function(grunt) {
       },
       target: ['src/**/*.js', 'test/*.js']
     },
+    copy: {
+      build: {
+        dest: 'release/',
+        cwd: 'out',
+        src: '**',
+        nonull: true,
+        expand: true
+      }
+    },
   });
 
   grunt.loadNpmTasks('grunt-githooks');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-copy');
 
   grunt.registerTask('default', ['eslint', 'browserify']);
   grunt.registerTask('lint', ['eslint']);
   grunt.registerTask('build', ['browserify']);
+  grunt.registerTask('copyForPublish', ['copy']);
 };

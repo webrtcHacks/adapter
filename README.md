@@ -5,16 +5,14 @@
 
 ## Install ##
 
-#### Bower
-```bash
-bower install webrtc-adapter#gh-pages
-```
-
-One caveat is that the version is gh-pages hence you will get the latest adapter.js unless you manually specify a version. See Usage instructions for more details.
-
 #### NPM
 ```bash
 npm install webrtc-adapter
+```
+
+#### Bower
+```bash
+bower install webrtc-adapter
 ```
 
 ## Usage ##
