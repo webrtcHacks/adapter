@@ -591,6 +591,14 @@ var edgeShim = {
               }
 
               localCapabilities = RTCRtpReceiver.getCapabilities(kind);
+
+              // filter RTX until additional stuff needed for RTX is implemented
+              // in adapter.js
+              localCapabilities.codecs = localCapabilities.codecs.filter(
+                  function(codec) {
+                    return codec.name !== 'rtx';
+                  });
+
               sendEncodingParameters = [{
                 ssrc: (2 * sdpMLineIndex + 2) * 1001
               }];
@@ -900,6 +908,13 @@ var edgeShim = {
         } : self._createIceAndDtlsTransports(mid, sdpMLineIndex);
 
         var localCapabilities = RTCRtpSender.getCapabilities(kind);
+        // filter RTX until additional stuff needed for RTX is implemented
+        // in adapter.js
+        localCapabilities.codecs = localCapabilities.codecs.filter(
+            function(codec) {
+              return codec.name !== 'rtx';
+            });
+
         var rtpSender;
         var rtpReceiver;
 
