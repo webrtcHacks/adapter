@@ -612,7 +612,7 @@ test('Attach mediaStream directly', function(t) {
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {
-    t.plan(6);
+    t.plan(4);
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
   })
@@ -635,20 +635,14 @@ test('Attach mediaStream directly', function(t) {
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video')), 3000);
   })
-  .then(function(videoElement) {
-    t.pass('Stream attached directly succesfully to a video element');
-    videoElement.getAttribute('videoWidth')
-    .then(function(width) {
-      videoElement.getAttribute('videoHeight')
-      .then(function(height) {
-        // Chrome sets the stream dimensions to 2x2 if something is wrong
-        // with the stream/frames from the camera.
-        t.ok(width > 2, 'Video width is: ' + width);
-        t.ok(height > 2, 'Video height is: ' + height);
-      });
-    });
+  .then(function() {
+    return driver.wait(function() {
+      return driver.executeScript(
+          'return document.getElementById("video").readyState === 4');
+    }, 3000);
   })
   .then(function() {
+    t.pass('Stream attached directly succesfully to a video element');
     t.end();
   })
   .then(null, function(err) {
@@ -700,7 +694,7 @@ test('Re-attaching mediaStream directly', function(t) {
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {
-    t.plan(9);
+    t.plan(5);
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
   })
@@ -726,36 +720,26 @@ test('Re-attaching mediaStream directly', function(t) {
       webdriver.By.id('video')), 3000);
   })
   .then(function(videoElement) {
+    return driver.wait(function() {
+      return driver.executeScript(
+          'return document.querySelector("video").readyState === 4');
+    }, 3000);
+  })
+  .then(function() {
     t.pass('Stream attached directly succesfully to a video element');
-    videoElement.getAttribute('videoWidth')
-    .then(function(width) {
-      videoElement.getAttribute('videoHeight')
-      .then(function(height) {
-        // Chrome sets the stream dimensions to 2x2 if something is wrong
-        // with the stream/frames from the camera.
-        t.ok(width > 2, 'Video width is: ' + width);
-        t.ok(height > 2, 'Video height is: ' + height);
-      });
-    });
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
     return driver.wait(webdriver.until.elementLocated(
       webdriver.By.id('video2')), 3000);
   })
-  .then(function(videoElement2) {
-    t.pass('Stream re-attached directly succesfully to a video element');
-    videoElement2.getAttribute('videoWidth')
-    .then(function(width) {
-      videoElement2.getAttribute('videoHeight')
-      .then(function(height) {
-        // Chrome sets the stream dimensions to 2x2 if something is wrong
-        // with the stream/frames from the camera.
-        t.ok(width > 2, 'Video 2 width is: ' + width);
-        t.ok(height > 2, 'Video 2 height is: ' + height);
-      });
-    });
+  .then(function() {
+    return driver.wait(function() {
+      return driver.executeScript(
+          'return document.getElementById("video2").readyState === 4');
+    }, 3000);
   })
   .then(function() {
+    t.pass('Stream re-attached directly succesfully to a video element');
     t.end();
   })
   .then(null, function(err) {
