@@ -121,8 +121,13 @@ var firefoxShim = {
     var nativeAddIceCandidate =
         RTCPeerConnection.prototype.addIceCandidate;
     RTCPeerConnection.prototype.addIceCandidate = function() {
-      return arguments[0] === null ? Promise.resolve()
-          : nativeAddIceCandidate.apply(this, arguments);
+      if (arguments[0] === null) {
+        if (arguments[1]) {
+          arguments[1].apply(null);
+        }
+        return Promise.resolve();
+      }
+      return nativeAddIceCandidate.apply(this, arguments);
     };
 
     // shim getStats with maplike support
