@@ -114,6 +114,7 @@ var edgeShim = {
           return false;
         });
       }
+      this._config = config;
 
       // per-track iceGathers, iceTransports, dtlsTransports, rtpSenders, ...
       // everything that is needed to describe a SDP m-line.
@@ -159,6 +160,10 @@ var edgeShim = {
         }
       });
       this._localIceCandidatesBuffer = [];
+    };
+
+    window.RTCPeerConnection.prototype.getConfiguration = function() {
+      return this._config;
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
