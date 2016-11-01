@@ -831,8 +831,13 @@ var chromeShim = {
     var nativeAddIceCandidate =
         RTCPeerConnection.prototype.addIceCandidate;
     RTCPeerConnection.prototype.addIceCandidate = function() {
-      return arguments[0] === null ? Promise.resolve()
-          : nativeAddIceCandidate.apply(this, arguments);
+      if (arguments[0] === null) {
+        if (arguments[1]) {
+          arguments[1].apply(null);
+        }
+        return Promise.resolve();
+      }
+      return nativeAddIceCandidate.apply(this, arguments);
     };
   }
 };
@@ -1164,6 +1169,7 @@ var edgeShim = {
           return false;
         });
       }
+      this._config = config;
 
       // per-track iceGathers, iceTransports, dtlsTransports, rtpSenders, ...
       // everything that is needed to describe a SDP m-line.
@@ -1209,6 +1215,10 @@ var edgeShim = {
         }
       });
       this._localIceCandidatesBuffer = [];
+    };
+
+    window.RTCPeerConnection.prototype.getConfiguration = function() {
+      return this._config;
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
@@ -1971,6 +1981,14 @@ var edgeShim = {
             function(codec) {
               return codec.name !== 'rtx';
             });
+        localCapabilities.codecs.forEach(function(codec) {
+          // work around https://bugs.chromium.org/p/webrtc/issues/detail?id=6552
+          // by adding level-asymmetry-allowed=1
+          if (codec.name === 'H264' &&
+              codec.parameters['level-asymmetry-allowed'] === undefined) {
+            codec.parameters['level-asymmetry-allowed'] = '1';
+          }
+        });
 
         var rtpSender;
         var rtpReceiver;
@@ -2300,8 +2318,13 @@ var firefoxShim = {
     var nativeAddIceCandidate =
         RTCPeerConnection.prototype.addIceCandidate;
     RTCPeerConnection.prototype.addIceCandidate = function() {
-      return arguments[0] === null ? Promise.resolve()
-          : nativeAddIceCandidate.apply(this, arguments);
+      if (arguments[0] === null) {
+        if (arguments[1]) {
+          arguments[1].apply(null);
+        }
+        return Promise.resolve();
+      }
+      return nativeAddIceCandidate.apply(this, arguments);
     };
 
     // shim getStats with maplike support
