@@ -1084,6 +1084,18 @@ var edgeShim = {
           return args;
         };
       }
+      // this adds an additional event listener to MediaStrackTrack that signals
+      // when a tracks enabled property was changed.
+      var origMSTEnabled = Object.getOwnPropertyDescriptor(
+          MediaStreamTrack.prototype, 'enabled');
+      Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
+        set: function(value) {
+          origMSTEnabled.set.call(this, value);
+          var ev = new Event('enabled');
+          ev.enabled = value;
+          this.dispatchEvent(ev);
+        }
+      });
     }
 
     window.RTCPeerConnection = function(config) {
@@ -1224,7 +1236,14 @@ var edgeShim = {
     window.RTCPeerConnection.prototype.addStream = function(stream) {
       // Clone is necessary for local demos mostly, attaching directly
       // to two different senders does not work (build 10547).
-      this.localStreams.push(stream.clone());
+      var clonedStream = stream.clone();
+      stream.getTracks().forEach(function(track, idx) {
+        var clonedTrack = clonedStream.getTracks()[idx];
+        track.addEventListener('enabled', function(event) {
+          clonedTrack.enabled = event.enabled;
+        });
+      });
+      this.localStreams.push(clonedStream);
       this._maybeFireNegotiationNeeded();
     };
 
@@ -1266,8 +1285,10 @@ var edgeShim = {
             for (var i = 0; i < remoteCapabilities.codecs.length; i++) {
               var rCodec = remoteCapabilities.codecs[i];
               if (lCodec.name.toLowerCase() === rCodec.name.toLowerCase() &&
-                  lCodec.clockRate === rCodec.clockRate &&
-                  lCodec.numChannels === rCodec.numChannels) {
+                  lCodec.clockRate === rCodec.clockRate) {
+                // number of channels is the highest common number of channels
+                rCodec.numChannels = Math.min(lCodec.numChannels,
+                    rCodec.numChannels);
                 // push rCodec so we reply with offerer payload type
                 commonCapabilities.codecs.push(rCodec);
 
