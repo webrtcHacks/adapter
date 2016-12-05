@@ -117,11 +117,11 @@ var firefoxShim = {
           };
         });
 
-    // support for addIceCandidate(null)
+    // support for addIceCandidate(null or undefined)
     var nativeAddIceCandidate =
         RTCPeerConnection.prototype.addIceCandidate;
     RTCPeerConnection.prototype.addIceCandidate = function() {
-      if (arguments[0] === null) {
+      if (!arguments[0]) {
         if (arguments[1]) {
           arguments[1].apply(null);
         }

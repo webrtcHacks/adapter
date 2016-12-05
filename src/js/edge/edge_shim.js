@@ -1043,7 +1043,7 @@ var edgeShim = {
     };
 
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
-      if (candidate === null) {
+      if (!candidate) {
         this.transceivers.forEach(function(transceiver) {
           transceiver.iceTransport.addRemoteCandidate({});
         });
