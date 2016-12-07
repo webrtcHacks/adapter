@@ -336,11 +336,11 @@ var chromeShim = {
           };
         });
 
-    // support for addIceCandidate(null)
+    // support for addIceCandidate(null or undefined)
     var nativeAddIceCandidate =
         RTCPeerConnection.prototype.addIceCandidate;
     RTCPeerConnection.prototype.addIceCandidate = function() {
-      if (arguments[0] === null) {
+      if (!arguments[0]) {
         if (arguments[1]) {
           arguments[1].apply(null);
         }
@@ -681,11 +681,11 @@ var firefoxShim = {
           };
         });
 
-    // support for addIceCandidate(null)
+    // support for addIceCandidate(null or undefined)
     var nativeAddIceCandidate =
         RTCPeerConnection.prototype.addIceCandidate;
     RTCPeerConnection.prototype.addIceCandidate = function() {
-      if (arguments[0] === null) {
+      if (!arguments[0]) {
         if (arguments[1]) {
           arguments[1].apply(null);
         }
@@ -694,24 +694,26 @@ var firefoxShim = {
       return nativeAddIceCandidate.apply(this, arguments);
     };
 
-    // shim getStats with maplike support
-    var makeMapStats = function(stats) {
-      var map = new Map();
-      Object.keys(stats).forEach(function(key) {
-        map.set(key, stats[key]);
-        map[key] = stats[key];
-      });
-      return map;
-    };
+    if (browserDetails.version < 48) {
+      // shim getStats with maplike support
+      var makeMapStats = function(stats) {
+        var map = new Map();
+        Object.keys(stats).forEach(function(key) {
+          map.set(key, stats[key]);
+          map[key] = stats[key];
+        });
+        return map;
+      };
 
-    var nativeGetStats = RTCPeerConnection.prototype.getStats;
-    RTCPeerConnection.prototype.getStats = function(selector, onSucc, onErr) {
-      return nativeGetStats.apply(this, [selector || null])
-        .then(function(stats) {
-          return makeMapStats(stats);
-        })
-        .then(onSucc, onErr);
-    };
+      var nativeGetStats = RTCPeerConnection.prototype.getStats;
+      RTCPeerConnection.prototype.getStats = function(selector, onSucc, onErr) {
+        return nativeGetStats.apply(this, [selector || null])
+          .then(function(stats) {
+            return makeMapStats(stats);
+          })
+          .then(onSucc, onErr);
+      };
+    }
   }
 };
 
