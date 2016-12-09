@@ -112,7 +112,7 @@ var chromeShim = {
       };
       window.RTCPeerConnection.prototype = webkitRTCPeerConnection.prototype;
       // wrap static methods. Currently just generateCertificate.
-      if (!RTCPeerConnection.generateCertificate) {
+      if (webkitRTCPeerConnection.generateCertificate) {
         Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
           get: function() {
             return webkitRTCPeerConnection.generateCertificate;
