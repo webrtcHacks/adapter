@@ -151,8 +151,7 @@ var edgeShim = {
               sections[j] += 'a=end-of-candidates\r\n';
             }
           }
-        } else if (event.candidate.candidate.indexOf('typ endOfCandidates')
-            === -1) {
+        } else {
           sections[event.candidate.sdpMLineIndex + 1] +=
               'a=' + event.candidate.candidate + '\r\n';
         }
@@ -289,14 +288,6 @@ var edgeShim = {
               if (iceGatherer.state === undefined) {
                 iceGatherer.state = 'completed';
               }
-
-              // Emit a candidate with type endOfCandidates to make the samples
-              // work. Edge requires addIceCandidate with this empty candidate
-              // to start checking. The real solution is to signal
-              // end-of-candidates to the other side when getting the null
-              // candidate but some apps (like the samples) don't do that.
-              event.candidate.candidate =
-                  'candidate:1 1 udp 1 0.0.0.0 9 typ endOfCandidates';
             } else {
               // RTCIceCandidate doesn't have a component, needs to be added
               cand.component = iceTransport.component === 'RTCP' ? 2 : 1;
@@ -305,8 +296,7 @@ var edgeShim = {
 
             // update local description.
             var sections = SDPUtils.splitSections(self.localDescription.sdp);
-            if (event.candidate.candidate.indexOf('typ endOfCandidates')
-                === -1) {
+            if (!end) {
               sections[event.candidate.sdpMLineIndex + 1] +=
                   'a=' + event.candidate.candidate + '\r\n';
             } else {
@@ -1068,10 +1058,6 @@ var edgeShim = {
           // Ignore RTCP candidates, we assume RTCP-MUX.
           if (cand.component !== '1') {
             return;
-          }
-          // A dirty hack to make samples work.
-          if (cand.type === 'endOfCandidates') {
-            cand = {};
           }
           transceiver.iceTransport.addRemoteCandidate(cand);
 
