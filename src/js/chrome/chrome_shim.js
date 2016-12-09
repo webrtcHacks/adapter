@@ -100,83 +100,84 @@ var chromeShim = {
     window.RTCPeerConnection = function(pcConfig, pcConstraints) {
       // Translate iceTransportPolicy to iceTransports,
       // see https://code.google.com/p/webrtc/issues/detail?id=4869
+      // this was fixed in M56 along with unprefixing RTCPeerConnection.
       logging('PeerConnection');
       if (pcConfig && pcConfig.iceTransportPolicy) {
         pcConfig.iceTransports = pcConfig.iceTransportPolicy;
       }
 
-      var pc = new webkitRTCPeerConnection(pcConfig, pcConstraints);
-      var origGetStats = pc.getStats.bind(pc);
-      pc.getStats = function(selector, successCallback, errorCallback) {
-        var self = this;
-        var args = arguments;
-
-        // If selector is a function then we are in the old style stats so just
-        // pass back the original getStats format to avoid breaking old users.
-        if (arguments.length > 0 && typeof selector === 'function') {
-          return origGetStats(selector, successCallback);
-        }
-
-        var fixChromeStats_ = function(response) {
-          var standardReport = {};
-          var reports = response.result();
-          reports.forEach(function(report) {
-            var standardStats = {
-              id: report.id,
-              timestamp: report.timestamp,
-              type: report.type
-            };
-            report.names().forEach(function(name) {
-              standardStats[name] = report.stat(name);
-            });
-            standardReport[standardStats.id] = standardStats;
-          });
-
-          return standardReport;
-        };
-
-        // shim getStats with maplike support
-        var makeMapStats = function(stats, legacyStats) {
-          var map = new Map(Object.keys(stats).map(function(key) {
-            return[key, stats[key]];
-          }));
-          legacyStats = legacyStats || stats;
-          Object.keys(legacyStats).forEach(function(key) {
-            map[key] = legacyStats[key];
-          });
-          return map;
-        };
-
-        if (arguments.length >= 2) {
-          var successCallbackWrapper_ = function(response) {
-            args[1](makeMapStats(fixChromeStats_(response)));
-          };
-
-          return origGetStats.apply(this, [successCallbackWrapper_,
-              arguments[0]]);
-        }
-
-        // promise-support
-        return new Promise(function(resolve, reject) {
-          if (args.length === 1 && typeof selector === 'object') {
-            origGetStats.apply(self, [
-              function(response) {
-                resolve(makeMapStats(fixChromeStats_(response)));
-              }, reject]);
-          } else {
-            // Preserve legacy chrome stats only on legacy access of stats obj
-            origGetStats.apply(self, [
-              function(response) {
-                resolve(makeMapStats(fixChromeStats_(response),
-                    response.result()));
-              }, reject]);
-          }
-        }).then(successCallback, errorCallback);
-      };
-
-      return pc;
+      return new webkitRTCPeerConnection(pcConfig, pcConstraints);
     };
     window.RTCPeerConnection.prototype = webkitRTCPeerConnection.prototype;
+
+    var origGetStats = webkitRTCPeerConnection.prototype.getStats;
+    webkitRTCPeerConnection.prototype.getStats = function(selector,
+        successCallback, errorCallback) {
+      var self = this;
+      var args = arguments;
+
+      // If selector is a function then we are in the old style stats so just
+      // pass back the original getStats format to avoid breaking old users.
+      if (arguments.length > 0 && typeof selector === 'function') {
+        return origGetStats.apply(this, arguments);
+      }
+
+      var fixChromeStats_ = function(response) {
+        var standardReport = {};
+        var reports = response.result();
+        reports.forEach(function(report) {
+          var standardStats = {
+            id: report.id,
+            timestamp: report.timestamp,
+            type: report.type
+          };
+          report.names().forEach(function(name) {
+            standardStats[name] = report.stat(name);
+          });
+          standardReport[standardStats.id] = standardStats;
+        });
+
+        return standardReport;
+      };
+
+      // shim getStats with maplike support
+      var makeMapStats = function(stats, legacyStats) {
+        var map = new Map(Object.keys(stats).map(function(key) {
+          return[key, stats[key]];
+        }));
+        legacyStats = legacyStats || stats;
+        Object.keys(legacyStats).forEach(function(key) {
+          map[key] = legacyStats[key];
+        });
+        return map;
+      };
+
+      if (arguments.length >= 2) {
+        var successCallbackWrapper_ = function(response) {
+          args[1](makeMapStats(fixChromeStats_(response)));
+        };
+
+        return origGetStats.apply(this, [successCallbackWrapper_,
+            arguments[0]]);
+      }
+
+      // promise-support
+      return new Promise(function(resolve, reject) {
+        if (args.length === 1 && typeof selector === 'object') {
+          origGetStats.apply(self, [
+            function(response) {
+              resolve(makeMapStats(fixChromeStats_(response)));
+            }, reject]);
+        } else {
+          // Preserve legacy chrome stats only on legacy access of stats obj
+          origGetStats.apply(self, [
+            function(response) {
+              resolve(makeMapStats(fixChromeStats_(response),
+                  response.result()));
+            }, reject]);
+        }
+      }).then(successCallback, errorCallback);
+    };
 
     // wrap static methods. Currently just generateCertificate.
     if (webkitRTCPeerConnection.generateCertificate) {
