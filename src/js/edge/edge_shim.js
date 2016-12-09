@@ -1118,7 +1118,6 @@ var edgeShim = {
             Object.keys(result).forEach(function(id) {
               result[id].type = fixStatsType(result[id]);
               results.set(id, result[id]);
-              results[id] = result[id];
             });
           });
           if (cb) {
