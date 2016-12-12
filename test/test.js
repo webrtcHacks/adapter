@@ -1939,7 +1939,7 @@ test('static generateCertificate method', function(t) {
 });
 
 // ontrack is shimmed in Chrome so we test that it is called.
-test('ontrack', {skip: process.env.BROWSER === 'firefox'}, function(t) {
+test('ontrack', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   var testDefinition = function() {
@@ -2023,8 +2023,8 @@ test('ontrack', {skip: process.env.BROWSER === 'firefox'}, function(t) {
     });
   };
 
-  // plan for 7 tests.
-  t.plan(7);
+  // plan for 7 tests in Chrome (no getReceivers), 8 in FF and Edge.
+  t.plan(process.env.BROWSER === 'chrome' ? 7 : 8);
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {
