@@ -162,15 +162,10 @@ var chromeShim = {
       };
 
       // shim getStats with maplike support
-      var makeMapStats = function(stats, legacyStats) {
-        var map = new Map(Object.keys(stats).map(function(key) {
+      var makeMapStats = function(stats) {
+        return new Map(Object.keys(stats).map(function(key) {
           return[key, stats[key]];
         }));
-        legacyStats = legacyStats || stats;
-        Object.keys(legacyStats).forEach(function(key) {
-          map[key] = legacyStats[key];
-        });
-        return map;
       };
 
       if (arguments.length >= 2) {
@@ -184,19 +179,10 @@ var chromeShim = {
 
       // promise-support
       return new Promise(function(resolve, reject) {
-        if (args.length === 1 && typeof selector === 'object') {
-          origGetStats.apply(self, [
-            function(response) {
-              resolve(makeMapStats(fixChromeStats_(response)));
-            }, reject]);
-        } else {
-          // Preserve legacy chrome stats only on legacy access of stats obj
-          origGetStats.apply(self, [
-            function(response) {
-              resolve(makeMapStats(fixChromeStats_(response),
-                  response.result()));
-            }, reject]);
-        }
+        origGetStats.apply(self, [
+          function(response) {
+            resolve(makeMapStats(fixChromeStats_(response)));
+          }, reject]);
       }).then(successCallback, errorCallback);
     };
 
