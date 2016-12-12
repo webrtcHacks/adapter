@@ -1085,14 +1085,24 @@ var edgeShim = {
       });
       var cb = arguments.length > 1 && typeof arguments[1] === 'function' &&
           arguments[1];
+      var fixStatsType = function(stat) {
+        stat.type = {
+          inboundrtp: 'inbound-rtp',
+          outboundrtp: 'outbound-rtp',
+          candidatepair: 'candidate-pair',
+          localcandidate: 'local-candidate',
+          remotecandidate: 'remote-candidate'
+        }[stat.type] || stat.type;
+        return stat;
+      };
       return new Promise(function(resolve) {
         // shim getStats with maplike support
         var results = new Map();
         Promise.all(promises).then(function(res) {
           res.forEach(function(result) {
             Object.keys(result).forEach(function(id) {
+              result[id].type = fixStatsType(result[id]);
               results.set(id, result[id]);
-              results[id] = result[id];
             });
           });
           if (cb) {
