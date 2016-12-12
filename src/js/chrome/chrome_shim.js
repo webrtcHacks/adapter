@@ -144,7 +144,13 @@ var chromeShim = {
           var standardStats = {
             id: report.id,
             timestamp: report.timestamp,
-            type: report.type
+            type: {
+              inboundrtp: 'inbound-rtp',
+              outboundrtp: 'outbound-rtp',
+              candidatepair: 'candidate-pair',
+              localcandidate: 'local-candidate',
+              remotecandidate: 'remote-candidate'
+            }[report.type] || report.type
           };
           report.names().forEach(function(name) {
             standardStats[name] = report.stat(name);
