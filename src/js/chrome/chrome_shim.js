@@ -97,8 +97,7 @@ var chromeShim = {
 
   shimPeerConnection: function() {
     // The RTCPeerConnection object.
-    var unprefixedRTCPeerConnection = !!window.RTCPeerConnection;
-    if (!unprefixedRTCPeerConnection) {
+    if (!window.RTCPeerConnection) {
       window.RTCPeerConnection = function(pcConfig, pcConstraints) {
         // Translate iceTransportPolicy to iceTransports,
         // see https://code.google.com/p/webrtc/issues/detail?id=4869
@@ -195,47 +194,45 @@ var chromeShim = {
       }).then(successCallback, errorCallback);
     };
 
-    if (!unprefixedRTCPeerConnection) {
-      ['createOffer', 'createAnswer'].forEach(function(method) {
-        var nativeMethod = RTCPeerConnection.prototype[method];
-        RTCPeerConnection.prototype[method] = function() {
-          var self = this;
-          if (arguments.length < 1 || (arguments.length === 1 &&
-              typeof arguments[0] === 'object')) {
-            var opts = arguments.length === 1 ? arguments[0] : undefined;
-            return new Promise(function(resolve, reject) {
-              nativeMethod.apply(self, [resolve, reject, opts]);
-            });
-          }
-          return nativeMethod.apply(this, arguments);
-        };
-      });
+    ['createOffer', 'createAnswer'].forEach(function(method) {
+      var nativeMethod = RTCPeerConnection.prototype[method];
+      RTCPeerConnection.prototype[method] = function() {
+        var self = this;
+        if (arguments.length < 1 || (arguments.length === 1 &&
+            typeof arguments[0] === 'object')) {
+          var opts = arguments.length === 1 ? arguments[0] : undefined;
+          return new Promise(function(resolve, reject) {
+            nativeMethod.apply(self, [resolve, reject, opts]);
+          });
+        }
+        return nativeMethod.apply(this, arguments);
+      };
+    });
 
-      // add promise support -- natively available in Chrome 51
-      if (browserDetails.version < 51) {
-        ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-            .forEach(function(method) {
-              var nativeMethod = RTCPeerConnection.prototype[method];
-              RTCPeerConnection.prototype[method] = function() {
-                var args = arguments;
-                var self = this;
-                var promise = new Promise(function(resolve, reject) {
-                  nativeMethod.apply(self, [args[0], resolve, reject]);
-                });
-                if (args.length < 2) {
-                  return promise;
+    // add promise support -- natively available in Chrome 51
+    if (browserDetails.version < 51) {
+      ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+          .forEach(function(method) {
+            var nativeMethod = RTCPeerConnection.prototype[method];
+            RTCPeerConnection.prototype[method] = function() {
+              var args = arguments;
+              var self = this;
+              var promise = new Promise(function(resolve, reject) {
+                nativeMethod.apply(self, [args[0], resolve, reject]);
+              });
+              if (args.length < 2) {
+                return promise;
+              }
+              return promise.then(function() {
+                args[1].apply(null, []);
+              },
+              function(err) {
+                if (args.length >= 3) {
+                  args[2].apply(null, [err]);
                 }
-                return promise.then(function() {
-                  args[1].apply(null, []);
-                },
-                function(err) {
-                  if (args.length >= 3) {
-                    args[2].apply(null, [err]);
-                  }
-                });
-              };
-            });
-      }
+              });
+            };
+          });
     }
 
     // shim implicit creation of RTCSessionDescription/RTCIceCandidate
