@@ -133,6 +133,11 @@ var chromeShim = {
         return origGetStats.apply(this, arguments);
       }
 
+      // When spec-style getStats is supported, return those.
+      if (origGetStats.length === 0) {
+        return origGetStats.apply(this, arguments);
+      }
+
       var fixChromeStats_ = function(response) {
         var standardReport = {};
         var reports = response.result();
