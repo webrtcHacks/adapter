@@ -446,21 +446,6 @@ var edgeShim = {
               if (!rejected && !transceiver.isDatachannel) {
                 var remoteIceParameters = SDPUtils.getIceParameters(
                     mediaSection, sessionpart);
-                if (isIceLite) {
-                  var cands = SDPUtils.matchPrefix(mediaSection, 'a=candidate:')
-                  .map(function(cand) {
-                    return SDPUtils.parseCandidate(cand);
-                  })
-                  .filter(function(cand) {
-                    return cand.component === '1';
-                  });
-                  // ice-lite only includes host candidates in the SDP so we can
-                  // use setRemoteCandidates (which implies an
-                  // RTCIceCandidateComplete)
-                  if (cands.length) {
-                    iceTransport.setRemoteCandidates(cands);
-                  }
-                }
                 var remoteDtlsParameters = SDPUtils.getDtlsParameters(
                     mediaSection, sessionpart);
                 if (isIceLite) {
