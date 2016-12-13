@@ -29,8 +29,6 @@ Specific versions can be found at http://webrtc.github.io/adapter/adapter-N.N.N.
 ##### Bower
 You will find `adapter.js` in `bower_components/webrtc-adapter/`.
 
-Due to using the `gh-pages` branch as a version, you cannot use the bower package version for making sure you are using the correct version, rather you have to statically link the `adapter-version` file yourself, e.g. if you want version 1.0.5 you have to use the following file: `bower_components/webrtc-adapter/adapter-1.0.5.js`.
-
 ##### NPM
 In node_modules/webrtc-adapter/out/ folder you will find 4 files:
 * `adapter.js` - includes all the shims and is visible in the browser under the global `adapter` object (window.adapter).
