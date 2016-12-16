@@ -1019,8 +1019,8 @@ var edgeShim = {
 
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
       if (!candidate) {
-        for (var i = 0; i < this.transceivers.length; i++) {
-          transceivers[i].iceTransport.addRemoteCandidate({});
+        for (var j = 0; j < this.transceivers.length; j++) {
+          this.transceivers[j].iceTransport.addRemoteCandidate({});
           if (this.usingBundle) {
             return;
           }
