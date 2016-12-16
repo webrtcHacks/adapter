@@ -1019,9 +1019,12 @@ var edgeShim = {
 
     window.RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
       if (!candidate) {
-        this.transceivers.forEach(function(transceiver) {
-          transceiver.iceTransport.addRemoteCandidate({});
-        });
+        for (var i = 0; i < this.transceivers.length; i++) {
+          transceivers[i].iceTransport.addRemoteCandidate({});
+          if (this.usingBundle) {
+            return;
+          }
+        }
       } else {
         var mLineIndex = candidate.sdpMLineIndex;
         if (candidate.sdpMid) {
