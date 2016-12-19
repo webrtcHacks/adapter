@@ -728,7 +728,7 @@ var edgeShim = {
                 trackEvent.track = track;
                 trackEvent.receiver = receiver;
                 trackEvent.streams = [stream];
-                self.dispatchEvent(event);
+                self.dispatchEvent(trackEvent);
                 if (self.ontrack !== null) {
                   window.setTimeout(function() {
                     self.ontrack(trackEvent);
