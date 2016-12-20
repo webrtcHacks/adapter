@@ -145,9 +145,6 @@ var chromeShim = {
             id: report.id,
             timestamp: report.timestamp,
             type: {
-              inboundrtp: 'inbound-rtp',
-              outboundrtp: 'outbound-rtp',
-              candidatepair: 'candidate-pair',
               localcandidate: 'local-candidate',
               remotecandidate: 'remote-candidate'
             }[report.type] || report.type
