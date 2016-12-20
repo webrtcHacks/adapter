@@ -59,7 +59,7 @@ module.exports = function(grunt) {
       options: {
         configFile: '.eslintrc'
       },
-      target: ['src/**/*.js', 'test/*.js']
+      target: ['src/**/*.js', 'test/*.js', 'test/unit/*.js']
     },
     copy: {
       build: {
