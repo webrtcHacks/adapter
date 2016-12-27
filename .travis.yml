@@ -36,6 +36,6 @@ after_failure:
 notifications:
   email:
     recipients:
-      webrtc-github@webrtc.org
+      forward-webrtc-github@webrtc.org
     on_success: always
     on_failure: always
