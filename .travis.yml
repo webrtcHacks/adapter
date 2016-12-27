@@ -33,3 +33,9 @@ script:
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
 
+notifications:
+  email:
+    recipients:
+      webrtc-github@webrtc.org
+    on_success: always
+    on_failure: always
