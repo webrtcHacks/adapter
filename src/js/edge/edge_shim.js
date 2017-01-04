@@ -304,8 +304,9 @@ var edgeShim = {
                   'a=end-of-candidates\r\n';
             }
             self.localDescription.sdp = sections.join('');
-
-            var complete = self.transceivers.every(function(transceiver) {
+            var transceivers = self._pendingOffer ? self._pendingOffer :
+                self.transceivers;
+            var complete = transceivers.every(function(transceiver) {
               return transceiver.iceGatherer &&
                   transceiver.iceGatherer.state === 'completed';
             });
