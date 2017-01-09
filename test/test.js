@@ -1250,6 +1250,9 @@ test('Basic connection establishment with promise', function(t) {
     var dictionary = obj => JSON.parse(JSON.stringify(obj));
 
     var addCandidate = function(pc, event) {
+      if (event.candidate) {
+        event.candidate = dictionary(event.candidate);
+      }
       pc.addIceCandidate(dictionary(event.candidate)).then(function() {
         // TODO: Decide if we are interested in adding all candidates
         // as passed tests.

@@ -304,8 +304,9 @@ var edgeShim = {
                   'a=end-of-candidates\r\n';
             }
             self.localDescription.sdp = sections.join('');
-
-            var complete = self.transceivers.every(function(transceiver) {
+            var transceivers = self._pendingOffer ? self._pendingOffer :
+                self.transceivers;
+            var complete = transceivers.every(function(transceiver) {
               return transceiver.iceGatherer &&
                   transceiver.iceGatherer.state === 'completed';
             });
@@ -314,7 +315,9 @@ var edgeShim = {
             // Also emits null candidate when all gatherers are complete.
             switch (self.iceGatheringState) {
               case 'new':
-                self._localIceCandidatesBuffer.push(event);
+                if (!end) {
+                  self._localIceCandidatesBuffer.push(event);
+                }
                 if (end && complete) {
                   self._localIceCandidatesBuffer.push(
                       new Event('icecandidate'));
@@ -322,9 +325,11 @@ var edgeShim = {
                 break;
               case 'gathering':
                 self._emitBufferedCandidates();
-                self.dispatchEvent(event);
-                if (self.onicecandidate !== null) {
-                  self.onicecandidate(event);
+                if (!end) {
+                  self.dispatchEvent(event);
+                  if (self.onicecandidate !== null) {
+                    self.onicecandidate(event);
+                  }
                 }
                 if (complete) {
                   self.dispatchEvent(new Event('icecandidate'));
