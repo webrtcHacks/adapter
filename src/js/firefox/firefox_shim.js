@@ -161,8 +161,8 @@ var firefoxShim = {
             stats.forEach(function(stat) {
               stat.type = modernStatsTypes[stat.type] || stat.type;
             });
-            return stats;
           }
+          return stats;
         })
         .then(onSucc, onErr);
     };
