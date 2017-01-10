@@ -140,15 +140,12 @@ var firefoxShim = {
       return map;
     };
 
-    var fixStatsType = function(stat) {
-      stat.type = {
-        inboundrtp: 'inbound-rtp',
-        outboundrtp: 'outbound-rtp',
-        candidatepair: 'candidate-pair',
-        localcandidate: 'local-candidate',
-        remotecandidate: 'remote-candidate'
-      }[stat.type] || stat.type;
-      return stat;
+    var modernStatsTypes = {
+      inboundrtp: 'inbound-rtp',
+      outboundrtp: 'outbound-rtp',
+      candidatepair: 'candidate-pair',
+      localcandidate: 'local-candidate',
+      remotecandidate: 'remote-candidate'
     };
 
     var nativeGetStats = RTCPeerConnection.prototype.getStats;
@@ -158,9 +155,14 @@ var firefoxShim = {
           if (browserDetails.version < 48) {
             stats = makeMapStats(stats);
           }
-          // fix https://bugzilla.mozilla.org/show_bug.cgi?id=1322503
-          stats.forEach(fixStatsType);
-          return stats;
+          if (browserDetails.version < 53 && !onSucc) {
+            // Shim only promise getStats with spec-hyphens in type names
+            // Leave callback version alone; misc old uses of forEach before Map
+            stats.forEach(function(stat) {
+              stat.type = modernStatsTypes[stat.type] || stat.type;
+            });
+            return stats;
+          }
         })
         .then(onSucc, onErr);
     };
