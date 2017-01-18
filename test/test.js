@@ -360,9 +360,6 @@ test('Video srcObject getter/setter test', function(t) {
     return driver.executeScript(
         'return document.getElementById(\'video\').srcObject.id')
     .then(function(srcObjectId) {
-      return srcObjectId;
-    })
-    .then(function(srcObjectId) {
       driver.executeScript('return window.stream.id')
       .then(function(streamId) {
         t.ok(srcObjectId === streamId,
@@ -436,6 +433,79 @@ test('Audio srcObject getter/setter test', function(t) {
   })
   .then(function() {
     t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+test('createObjectURL shim test', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Define test.
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    ['audio', 'video'].reduce(function(p, type) {
+      return p.then(function() {
+        var constraints = {fake: true};
+        constraints[type] = true;
+        return navigator.mediaDevices.getUserMedia(constraints);
+      })
+      .then(function(stream) {
+        var element = document.createElement(type);
+        window[type] = element;
+        window[type + 'Stream'] = stream;
+        element.id = type;
+        element.autoplay = true;
+        element.src = URL.createObjectURL(stream);
+        return new Promise(function(resolve) {
+          element.addEventListener('loadedmetadata', resolve);
+        });
+      });
+    }, Promise.resolve())
+    .then(function() {
+      document.body.appendChild(window.audio);
+      document.body.appendChild(window.video);
+      callback(null);
+    })
+    .catch(function(err) {
+      callback(err.name);
+    });
+  };
+
+  // Run test.
+  seleniumHelpers.loadTestPage(driver)
+  .then(function() {
+    t.plan(5);
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(function(error) {
+    var gumResult = error ? 'error: ' + error : 'no errors';
+    t.ok(!error, 'getUserMedia result:  ' + gumResult);
+    // Wait until loadedmetadata event has fired and appended video element.
+    return driver.wait(webdriver.until.elementLocated(
+      webdriver.By.id('video')), 3000);
+  })
+  .then(function() {
+    return Promise.all([
+      'return document.getElementById("audio").srcObject.id',
+      'return window.audioStream.id',
+      'return document.getElementById("video").srcObject.id',
+      'return window.videoStream.id'
+    ].map(function(script) {
+      return driver.executeScript(script);
+    }))
+    .then(function(ids) {
+      t.ok(ids[0] === ids[1], 'audio srcObject getter returns audio stream');
+      t.ok(ids[2] === ids[3], 'video srcObject getter returns video stream');
+      t.ok(ids[0] !== ids[2], 'audio and video streams are different');
+      t.end();
+    });
   })
   .then(null, function(err) {
     if (err !== 'skip-test') {
