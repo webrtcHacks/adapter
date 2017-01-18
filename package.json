@@ -22,8 +22,8 @@
     "sdp": "^1.0.0"
   },
   "engines": {
-    "npm": "^3.10.0",
-    "node": "^6.0.0"
+    "npm": ">=3.10.0",
+    "node": ">=6.0.0"
   },
   "devDependencies": {
     "chromedriver": "^2.16.0",
