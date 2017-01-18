@@ -480,7 +480,7 @@ test('createObjectURL shim test', function(t) {
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {
-    t.plan(4);
+    t.plan(5);
     t.pass('Page loaded');
     return driver.executeAsyncScript(testDefinition);
   })
