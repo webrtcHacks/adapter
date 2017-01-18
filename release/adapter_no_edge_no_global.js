@@ -15,12 +15,13 @@
 // Shimming starts here.
 (function() {
   // Utils.
-  var logging = require('./utils').log;
-  var browserDetails = require('./utils').browserDetails;
+  var utils = require('./utils');
+  var logging = utils.log;
+  var browserDetails = utils.browserDetails;
   // Export to the adapter global object visible in the browser.
   module.exports.browserDetails = browserDetails;
-  module.exports.extractVersion = require('./utils').extractVersion;
-  module.exports.disableLog = require('./utils').disableLog;
+  module.exports.extractVersion = utils.extractVersion;
+  module.exports.disableLog = utils.disableLog;
 
   // Uncomment the line below if you want logging to occur, including logging
   // for the switch statement below. Can also be turned on in the browser via
@@ -49,6 +50,7 @@
       chromeShim.shimGetUserMedia();
       chromeShim.shimMediaStream();
       chromeShim.shimSourceObject();
+      utils.shimCreateObjectURL();
       chromeShim.shimPeerConnection();
       chromeShim.shimOnTrack();
       break;
@@ -62,6 +64,7 @@
       module.exports.browserShim = firefoxShim;
 
       firefoxShim.shimGetUserMedia();
+      utils.shimCreateObjectURL();
       firefoxShim.shimSourceObject();
       firefoxShim.shimPeerConnection();
       firefoxShim.shimOnTrack();
@@ -76,6 +79,7 @@
       module.exports.browserShim = edgeShim;
 
       edgeShim.shimGetUserMedia();
+      utils.shimCreateObjectURL();
       edgeShim.shimPeerConnection();
       break;
     case 'safari':
@@ -1056,6 +1060,39 @@ var utils = {
     }
 
     return result;
+  },
+
+  shimCreateObjectURL: function() {
+    var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
+    var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+    var streams = new Map(), newId = 0;
+
+    URL.createObjectURL = function(stream) {
+      if ('getTracks' in stream) {
+        var url = 'polyblob:' + (++newId);
+        streams.set(url, stream);
+        console.log('URL.createObjectURL(stream) is deprecated! ' +
+                    'Use elem.srcObject = stream instead!');
+        return url;
+      }
+      return nativeCreateObjectURL(stream);
+    };
+    URL.revokeObjectURL = function(url) {
+      nativeRevokeObjectURL(url);
+      streams.delete(url);
+    };
+
+    var dsc = Object.getOwnPropertyDescriptor(window.HTMLMediaElement.prototype,
+                                              'src');
+    Object.defineProperty(window.HTMLMediaElement.prototype, 'src', {
+      get: function() {
+        return dsc.get.apply(this);
+      },
+      set: function(url) {
+        this.srcObject = streams.get(url) || null;
+        return dsc.set.apply(this, [url]);
+      }
+    });
   }
 };
 
@@ -1064,7 +1101,8 @@ module.exports = {
   log: utils.log,
   disableLog: utils.disableLog,
   browserDetails: utils.detectBrowser(),
-  extractVersion: utils.extractVersion
+  extractVersion: utils.extractVersion,
+  shimCreateObjectURL: utils.shimCreateObjectURL
 };
 
 },{}]},{},[2]);
