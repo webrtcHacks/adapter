@@ -385,7 +385,8 @@ var edgeShim = {
       if (recv && transceiver.rtpReceiver) {
         // remove RTX field in Edge 14942
         if (transceiver.kind === 'video'
-            && transceiver.recvEncodingParameters) {
+            && transceiver.recvEncodingParameters
+            && browserDetails.version < 15019) {
           transceiver.recvEncodingParameters.forEach(function(p) {
             delete p.rtx;
           });
