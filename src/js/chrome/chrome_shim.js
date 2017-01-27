@@ -72,7 +72,7 @@ var chromeShim = {
 
             if (!stream) {
               this.src = '';
-              return;
+              return undefined;
             }
             this.src = URL.createObjectURL(stream);
             // We need to recreate the blob url when a track is added or
