@@ -34,7 +34,6 @@
 
   // Shim browser if found.
   switch (browserDetails.browser) {
-    case 'opera': // fallthrough as it uses chrome shims
     case 'chrome':
       if (!chromeShim || !chromeShim.shimPeerConnection) {
         logging('Chrome shim is not included in this adapter release.');
