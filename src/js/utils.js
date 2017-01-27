@@ -127,7 +127,7 @@ var utils = {
     if (!(typeof window === 'object' && window.HTMLMediaElement &&
           'srcObject' in window.HTMLMediaElement.prototype)) {
       // Only shim CreateObjectURL using srcObject if srcObject exists.
-      return;
+      return undefined;
     }
 
     var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
