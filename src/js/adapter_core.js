@@ -46,8 +46,8 @@
 
       chromeShim.shimGetUserMedia();
       chromeShim.shimMediaStream();
-      chromeShim.shimSourceObject();
       utils.shimCreateObjectURL();
+      chromeShim.shimSourceObject();
       chromeShim.shimPeerConnection();
       chromeShim.shimOnTrack();
       break;

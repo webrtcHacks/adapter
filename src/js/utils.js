@@ -121,7 +121,15 @@ var utils = {
     return result;
   },
 
+  // shimCreateObjectURL must be called before shimSourceObject to avoid loop!
+
   shimCreateObjectURL: function() {
+    if (!(typeof window === 'object' && window.HTMLMediaElement &&
+          'srcObject' in window.HTMLMediaElement.prototype)) {
+      // Only shim CreateObjectURL using srcObject if srcObject exists.
+      return;
+    }
+
     var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
     var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
     var streams = new Map(), newId = 0;
