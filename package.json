@@ -16,7 +16,7 @@
     "version": "",
     "postversion": "export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git push --force --set-upstream origin bumpVersion --follow-tags && git checkout gh-pages && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepublish": "grunt build",
-    "test": "grunt && node test/run-tests.js"
+    "test": "grunt && mocha test/unit && node test/run-tests.js"
   },
   "dependencies": {
     "sdp": "^1.0.0"
@@ -26,6 +26,7 @@
     "node": ">=6.0.0"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "chromedriver": "^2.16.0",
     "eslint-config-webrtc": "^1.0.0",
     "faucet": "0.0.1",
@@ -37,6 +38,7 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-eslint": "^17.2.0",
     "grunt-githooks": "^0.3.1",
+    "mocha": "^3.2.0",
     "selenium-webdriver": "^3.0.0-beta-3",
     "tape": "^4.0.0",
     "travis-multirunner": "^3.0.1"
