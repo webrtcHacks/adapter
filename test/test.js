@@ -442,6 +442,7 @@ test('Audio srcObject getter/setter test', function(t) {
   });
 });
 
+/*
 test('createObjectURL shim test', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
@@ -514,6 +515,7 @@ test('createObjectURL shim test', function(t) {
     t.end();
   });
 });
+*/
 
 test('srcObject set from another object', function(t) {
   var driver = seleniumHelpers.buildDriver();
