@@ -13,8 +13,7 @@ var browserDetails = require('../utils.js').browserDetails;
 // Expose public methods.
 module.exports = function() {
   var constraintsToChrome_ = function(c) {
-    if (browserDetails.version >= 53 ||
-        typeof c !== 'object' || c.mandatory || c.optional) {
+    if (typeof c !== 'object' || c.mandatory || c.optional) {
       return c;
     }
     var cc = {};
