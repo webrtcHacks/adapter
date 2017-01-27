@@ -121,7 +121,7 @@ var utils = {
     return result;
   },
 
-  // shimCreateObjectURL must be called before shimSourceObject to avoid loop!
+  // shimCreateObjectURL must be called before shimSourceObject to avoid loop.
 
   shimCreateObjectURL: function() {
     if (!(typeof window === 'object' && window.HTMLMediaElement &&
