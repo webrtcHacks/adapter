@@ -1039,7 +1039,7 @@ var edgeShim = {
         for (var j = 0; j < this.transceivers.length; j++) {
           this.transceivers[j].iceTransport.addRemoteCandidate({});
           if (this.usingBundle) {
-            return;
+            return Promise.resolve();
           }
         }
       } else {
@@ -1058,11 +1058,11 @@ var edgeShim = {
               SDPUtils.parseCandidate(candidate.candidate) : {};
           // Ignore Chrome's invalid candidates since Edge does not like them.
           if (cand.protocol === 'tcp' && (cand.port === 0 || cand.port === 9)) {
-            return;
+            return Promise.resolve();
           }
           // Ignore RTCP candidates, we assume RTCP-MUX.
           if (cand.component !== '1') {
-            return;
+            return Promise.resolve();
           }
           transceiver.iceTransport.addRemoteCandidate(cand);
 
