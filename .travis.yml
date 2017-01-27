@@ -9,6 +9,7 @@ env:
     - BROWSER=chrome  BVER=beta
     - BROWSER=chrome  BVER=unstable
     - BROWSER=firefox BVER=stable
+    - BROWSER=firefox BVER=beta
     - BROWSER=firefox BVER=nightly
     - BROWSER=firefox BVER=esr
 
