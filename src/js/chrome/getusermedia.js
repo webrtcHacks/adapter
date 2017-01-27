@@ -72,7 +72,7 @@ module.exports = function() {
       // Shim facingMode for mobile, where it defaults to "user".
       var face = constraints.video.facingMode;
       face = face && ((typeof face === 'object') ? face : {ideal: face});
-      var getSupportedFacingModeLies = browserDetails.version < 57;
+      var getSupportedFacingModeLies = browserDetails.version < 59;
 
       if ((face && (face.exact === 'user' || face.exact === 'environment' ||
                     face.ideal === 'user' || face.ideal === 'environment')) &&
