@@ -1323,7 +1323,7 @@ test('Basic connection establishment with promise', function(t) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
-      pc.addIceCandidate(dictionary(event.candidate)).then(function() {
+      pc.addIceCandidate(event.candidate).then(function() {
         // TODO: Decide if we are interested in adding all candidates
         // as passed tests.
         tc.pass('addIceCandidate ' + counter++);
