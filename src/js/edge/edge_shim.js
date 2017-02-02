@@ -593,26 +593,6 @@ var edgeShim = {
                 .filter(function(cand) {
                   return cand.component === '1';
                 });
-            localCapabilities = RTCRtpReceiver.getCapabilities(kind);
-
-            // filter RTX until additional stuff needed for RTX is implemented
-            // in adapter.js
-            localCapabilities.codecs = localCapabilities.codecs.filter(
-                function(codec) {
-                  return codec.name !== 'rtx';
-                });
-            var commonCodecs = self._getCommonCapabilities(
-                localCapabilities,
-                remoteCapabilities).codecs;
-            commonCodecs = commonCodecs.map(function(codec) {
-              return codec.name;
-            });
-            if (commonCodecs.length === 0 ||
-                (commonCodecs.indexOf('H264') === -1 &&
-                commonCodecs.indexOf('VP8') === -1)) {
-              rejected = true;
-            }
-
             if (description.type === 'offer' && !rejected) {
               var transports = self.usingBundle && sdpMLineIndex > 0 ? {
                 iceGatherer: self.transceivers[0].iceGatherer,
@@ -624,6 +604,14 @@ var edgeShim = {
                 transports.iceTransport.setRemoteCandidates(cands);
               }
 
+              localCapabilities = RTCRtpReceiver.getCapabilities(kind);
+
+              // filter RTX until additional stuff needed for RTX is implemented
+              // in adapter.js
+              localCapabilities.codecs = localCapabilities.codecs.filter(
+                  function(codec) {
+                    return codec.name !== 'rtx';
+                  });
 
               sendEncodingParameters = [{
                 ssrc: (2 * sdpMLineIndex + 2) * 1001
