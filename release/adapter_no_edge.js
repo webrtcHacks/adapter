@@ -37,7 +37,6 @@
 
   // Shim browser if found.
   switch (browserDetails.browser) {
-    case 'opera': // fallthrough as it uses chrome shims
     case 'chrome':
       if (!chromeShim || !chromeShim.shimPeerConnection) {
         logging('Chrome shim is not included in this adapter release.');
@@ -49,8 +48,8 @@
 
       chromeShim.shimGetUserMedia();
       chromeShim.shimMediaStream();
-      chromeShim.shimSourceObject();
       utils.shimCreateObjectURL();
+      chromeShim.shimSourceObject();
       chromeShim.shimPeerConnection();
       chromeShim.shimOnTrack();
       break;
@@ -173,7 +172,7 @@ var chromeShim = {
 
             if (!stream) {
               this.src = '';
-              return;
+              return undefined;
             }
             this.src = URL.createObjectURL(stream);
             // We need to recreate the blob url when a track is added or
@@ -233,9 +232,11 @@ var chromeShim = {
         return origGetStats.apply(this, arguments);
       }
 
-      // When spec-style getStats is supported, return those.
-      if (origGetStats.length === 0) {
-        return origGetStats.apply(this, arguments);
+      // When spec-style getStats is supported, return those when called with
+      // either no arguments or the selector argument is null.
+      if (origGetStats.length === 0 && (arguments.length === 0 ||
+          typeof arguments[0] !== 'function')) {
+        return origGetStats.apply(this, []);
       }
 
       var fixChromeStats_ = function(response) {
@@ -1062,7 +1063,15 @@ var utils = {
     return result;
   },
 
+  // shimCreateObjectURL must be called before shimSourceObject to avoid loop.
+
   shimCreateObjectURL: function() {
+    if (!(typeof window === 'object' && window.HTMLMediaElement &&
+          'srcObject' in window.HTMLMediaElement.prototype)) {
+      // Only shim CreateObjectURL using srcObject if srcObject exists.
+      return undefined;
+    }
+
     var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
     var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
     var streams = new Map(), newId = 0;
