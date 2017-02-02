@@ -264,11 +264,39 @@ var edgeShim = {
             headerExtensions: [],
             fecMechanisms: []
           };
+
+          var findCodecByPayloadType = function(pt, codecs) {
+            pt = parseInt(pt, 10);
+            for (var i = 0; i < codecs.length; i++) {
+              if (codecs[i].payloadType === pt ||
+                  codecs[i].preferredPayloadType === pt) {
+                return codecs[i];
+              }
+            }
+          };
+
+          var rtxCapabilityMatches = function(lRtx, rRtx, lCodecs, rCodecs) {
+            var lCodec = findCodecByPayloadType(lRtx.parameters.apt, lCodecs);
+            var rCodec = findCodecByPayloadType(rRtx.parameters.apt, rCodecs);
+            return lCodec && rCodec &&
+                lCodec.name.toLowerCase() === rCodec.name.toLowerCase();
+          };
+
           localCapabilities.codecs.forEach(function(lCodec) {
             for (var i = 0; i < remoteCapabilities.codecs.length; i++) {
               var rCodec = remoteCapabilities.codecs[i];
               if (lCodec.name.toLowerCase() === rCodec.name.toLowerCase() &&
                   lCodec.clockRate === rCodec.clockRate) {
+                if (lCodec.name.toLowerCase() === 'rtx' &&
+                    lCodec.parameters && rCodec.parameters.apt) {
+                  // for RTX we need to find the local rtx that has a apt
+                  // which points to the same local codec as the remote one.
+                  if (!rtxCapabilityMatches(lCodec, rCodec,
+                      localCapabilities.codecs, remoteCapabilities.codecs)) {
+                    continue;
+                  }
+                }
+                rCodec = JSON.parse(JSON.stringify(rCodec)); // deepcopy
                 // number of channels is the highest common number of channels
                 rCodec.numChannels = Math.min(lCodec.numChannels,
                     rCodec.numChannels);
@@ -425,7 +453,8 @@ var edgeShim = {
       if (recv && transceiver.rtpReceiver) {
         // remove RTX field in Edge 14942
         if (transceiver.kind === 'video'
-            && transceiver.recvEncodingParameters) {
+            && transceiver.recvEncodingParameters
+            && browserDetails.version < 15019) {
           transceiver.recvEncodingParameters.forEach(function(p) {
             delete p.rtx;
           });
@@ -647,10 +676,12 @@ var edgeShim = {
 
               // filter RTX until additional stuff needed for RTX is implemented
               // in adapter.js
-              localCapabilities.codecs = localCapabilities.codecs.filter(
-                  function(codec) {
-                    return codec.name !== 'rtx';
-                  });
+              if (browserDetails.version < 15019) {
+                localCapabilities.codecs = localCapabilities.codecs.filter(
+                    function(codec) {
+                      return codec.name !== 'rtx';
+                    });
+              }
 
               sendEncodingParameters = [{
                 ssrc: (2 * sdpMLineIndex + 2) * 1001
@@ -674,6 +705,12 @@ var edgeShim = {
                   localTrack = self.localStreams[0].getVideoTracks()[0];
                 }
                 if (localTrack) {
+                  // add RTX
+                  if (browserDetails.version >= 15019 && kind === 'video') {
+                    sendEncodingParameters[0].rtx = {
+                      ssrc: (2 * sdpMLineIndex + 2) * 1001 + 1
+                    };
+                  }
                   rtpSender = new RTCRtpSender(localTrack,
                       transports.dtlsTransport);
                 }
@@ -965,10 +1002,12 @@ var edgeShim = {
         var localCapabilities = RTCRtpSender.getCapabilities(kind);
         // filter RTX until additional stuff needed for RTX is implemented
         // in adapter.js
-        localCapabilities.codecs = localCapabilities.codecs.filter(
-            function(codec) {
-              return codec.name !== 'rtx';
-            });
+        if (browserDetails.version < 15019) {
+          localCapabilities.codecs = localCapabilities.codecs.filter(
+              function(codec) {
+                return codec.name !== 'rtx';
+              });
+        }
         localCapabilities.codecs.forEach(function(codec) {
           // work around https://bugs.chromium.org/p/webrtc/issues/detail?id=6552
           // by adding level-asymmetry-allowed=1
@@ -986,6 +1025,12 @@ var edgeShim = {
           ssrc: (2 * sdpMLineIndex + 1) * 1001
         }];
         if (track) {
+          // add RTX
+          if (browserDetails.version >= 15019 && kind === 'video') {
+            sendEncodingParameters[0].rtx = {
+              ssrc: (2 * sdpMLineIndex + 1) * 1001 + 1
+            };
+          }
           rtpSender = new RTCRtpSender(track, transports.dtlsTransport);
         }
 

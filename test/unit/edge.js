@@ -83,16 +83,24 @@ function mockORTC() {
       preferredPayloadType: 100,
       numChannels: 1
     };
+    var rtx = {
+      name: 'rtx',
+      kind: 'video',
+      clockRate: 90000,
+      preferredPayloadType: 101,
+      numChannels: 1,
+      parameters: {apt: 100}
+    };
     var codecs;
     switch (kind) {
       case 'audio':
         codecs = [opus];
         break;
       case 'video':
-        codecs = [vp8];
+        codecs = [vp8, rtx];
         break;
       default:
-        codecs = [opus, vp8];
+        codecs = [opus, vp8, rtx];
         break;
     }
     return {
@@ -750,6 +758,65 @@ describe('Edge shim', () => {
           .then((answer) => {
             const sections = SDPUtils.splitSections(answer.sdp);
             expect(SDPUtils.getDirection(sections[1])).to.equal('inactive');
+            done();
+          });
+        });
+      });
+    });
+
+    describe('after a video offer with RTX', () => {
+      const sdp = 'v=0\r\no=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
+          's=-\r\nt=0 0\r\na=msid-semantic: WMS\r\n' +
+          'm=video 9 UDP/TLS/RTP/SAVPF 102 103\r\n' +
+          'c=IN IP4 0.0.0.0\r\n' +
+          'a=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:foo\r\na=ice-pwd:bar\r\n' +
+          'a=fingerprint:sha-256 so:me:co:lo:ns\r\n' +
+          'a=setup:actpass\r\n' +
+          'a=mid:video1\r\n' +
+          'a=sendrecv\r\na=rtcp-mux\r\n' +
+          'a=rtcp-rsize\r\n' +
+          'a=rtpmap:102 vp8/90000\r\n' +
+          'a=rtpmap:103 rtx/90000\r\n' +
+          'a=fmtp:103 apt=102\r\n' +
+          'a=ssrc-group:FID 1001 1002\r\n' +
+          'a=ssrc:1001 msid:stream1 track1\r\n' +
+          'a=ssrc:1001 cname:some\r\n' +
+          'a=ssrc:1002 msid:stream1 track1\r\n' +
+          'a=ssrc:1002 cname:some\r\n';
+      describe('with no local track', () => {
+        it('creates an answer with RTX but no FID group', (done) => {
+          pc.setRemoteDescription({type: 'offer', sdp: sdp})
+          .then(() => {
+            return pc.createAnswer();
+          })
+          .then((answer) => {
+            expect(answer.sdp).to.contain('a=rtpmap:102 vp8');
+            expect(answer.sdp).to.contain('a=rtpmap:103 rtx');
+            expect(answer.sdp).to.contain('a=fmtp:103 apt=102');
+            expect(answer.sdp).not.to.contain('a=ssrc-group:FID');
+            done();
+          });
+        });
+      });
+
+      describe('with a local track', () => {
+        beforeEach(() => {
+          const videoTrack = new MediaStreamTrack();
+          videoTrack.kind = 'video';
+          const stream = new MediaStream([videoTrack]);
+
+          pc.addStream(stream);
+        });
+        it('creates an answer with RTX', (done) => {
+          pc.setRemoteDescription({type: 'offer', sdp: sdp})
+          .then(() => {
+            return pc.createAnswer();
+          })
+          .then((answer) => {
+            expect(answer.sdp).to.contain('a=rtpmap:102 vp8');
+            expect(answer.sdp).to.contain('a=rtpmap:103 rtx');
+            expect(answer.sdp).to.contain('a=fmtp:103 apt=102');
+            expect(answer.sdp).to.contain('a=ssrc-group:FID 2002 2003');
             done();
           });
         });
