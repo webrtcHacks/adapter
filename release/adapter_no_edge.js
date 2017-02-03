@@ -727,9 +727,21 @@ var firefoxShim = {
           if (browserDetails.version < 53 && !onSucc) {
             // Shim only promise getStats with spec-hyphens in type names
             // Leave callback version alone; misc old uses of forEach before Map
-            stats.forEach(function(stat) {
-              stat.type = modernStatsTypes[stat.type] || stat.type;
-            });
+            try {
+              stats.forEach(function(stat) {
+                stat.type = modernStatsTypes[stat.type] || stat.type;
+              });
+            } catch (e) {
+              if (e.name !== 'TypeError') {
+                throw e;
+              }
+              // Avoid TypeError: "type" is read-only, in old versions. 34-43ish
+              stats.forEach(function(stat, i) {
+                stats.set(i, Object.assign({}, stat, {
+                  type: modernStatsTypes[stat.type] || stat.type
+                }));
+              });
+            }
           }
           return stats;
         })
