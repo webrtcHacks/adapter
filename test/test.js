@@ -1971,6 +1971,48 @@ test('iceTransportPolicy relay functionality',
       });
     });
 
+test('icegatheringstatechange event',
+    {skip: process.env.BROWSER !== 'MicrosoftEdge'},
+    function(t) {
+      var driver = seleniumHelpers.buildDriver();
+
+      // Define test.
+      var testDefinition = function() {
+        var callback = arguments[arguments.length - 1];
+
+        var pc1 = new RTCPeerConnection();
+        pc1.onicegatheringstatechange = function(event) {
+          callback(pc1.iceGatheringState);
+        };
+
+        var constraints = {video: true, fake: true};
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+          pc1.addStream(stream);
+          pc1.createOffer().then(function(offer) {
+            return pc1.setLocalDescription(offer);
+          });
+        });
+      };
+
+      // Run test.
+      seleniumHelpers.loadTestPage(driver)
+      .then(function() {
+        return driver.executeAsyncScript(testDefinition);
+      })
+      .then(function(iceGatheringState) {
+        t.ok(iceGatheringState === 'complete',
+            'gatheringstatechange fired and is \'complete\'');
+        t.end();
+      })
+      .then(null, function(err) {
+        if (err !== 'skip-test') {
+          t.fail(err);
+        }
+        t.end();
+      });
+    });
+
 test('static generateCertificate method', function(t) {
   var driver = seleniumHelpers.buildDriver();
 

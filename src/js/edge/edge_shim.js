@@ -58,6 +58,7 @@ var edgeShim = {
       this.onremovestream = null;
       this.onsignalingstatechange = null;
       this.oniceconnectionstatechange = null;
+      this.onicegatheringstatechange = null;
       this.onnegotiationneeded = null;
       this.ondatachannel = null;
 
@@ -138,6 +139,14 @@ var edgeShim = {
       this._localIceCandidatesBuffer = [];
     };
 
+    window.RTCPeerConnection.prototype._emitGatheringStateChange = function() {
+      var event = new Event('icegatheringstatechange');
+      this.dispatchEvent(event);
+      if (this.onicegatheringstatechange !== null) {
+        this.onicegatheringstatechange(event);
+      }
+    };
+
     window.RTCPeerConnection.prototype._emitBufferedCandidates = function() {
       var self = this;
       var sections = SDPUtils.splitSections(self.localDescription.sdp);
@@ -165,8 +174,9 @@ var edgeShim = {
             return transceiver.iceGatherer &&
                 transceiver.iceGatherer.state === 'completed';
           });
-          if (complete) {
+          if (complete && self.iceGatheringStateChange !== 'complete') {
             self.iceGatheringState = 'complete';
+            self._emitGatheringStateChange();
           }
         }
       });
@@ -337,6 +347,7 @@ var edgeShim = {
                     self.onicecandidate(new Event('icecandidate'));
                   }
                   self.iceGatheringState = 'complete';
+                  self._emitGatheringStateChange();
                 }
                 break;
               case 'complete':
