@@ -1094,17 +1094,20 @@ var edgeShim = {
         };
       }
       // this adds an additional event listener to MediaStrackTrack that signals
-      // when a tracks enabled property was changed.
-      var origMSTEnabled = Object.getOwnPropertyDescriptor(
-          MediaStreamTrack.prototype, 'enabled');
-      Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
-        set: function(value) {
-          origMSTEnabled.set.call(this, value);
-          var ev = new Event('enabled');
-          ev.enabled = value;
-          this.dispatchEvent(ev);
-        }
-      });
+      // when a tracks enabled property was changed. Workaround for a bug in
+      // addStream, see below. No longer required in 15025+
+      if (browserDetails.version < 15025) {
+        var origMSTEnabled = Object.getOwnPropertyDescriptor(
+            MediaStreamTrack.prototype, 'enabled');
+        Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
+          set: function(value) {
+            origMSTEnabled.set.call(this, value);
+            var ev = new Event('enabled');
+            ev.enabled = value;
+            this.dispatchEvent(ev);
+          }
+        });
+      }
     }
 
     window.RTCPeerConnection = function(config) {
@@ -1122,6 +1125,7 @@ var edgeShim = {
       this.onremovestream = null;
       this.onsignalingstatechange = null;
       this.oniceconnectionstatechange = null;
+      this.onicegatheringstatechange = null;
       this.onnegotiationneeded = null;
       this.ondatachannel = null;
 
@@ -1202,6 +1206,14 @@ var edgeShim = {
       this._localIceCandidatesBuffer = [];
     };
 
+    window.RTCPeerConnection.prototype._emitGatheringStateChange = function() {
+      var event = new Event('icegatheringstatechange');
+      this.dispatchEvent(event);
+      if (this.onicegatheringstatechange !== null) {
+        this.onicegatheringstatechange(event);
+      }
+    };
+
     window.RTCPeerConnection.prototype._emitBufferedCandidates = function() {
       var self = this;
       var sections = SDPUtils.splitSections(self.localDescription.sdp);
@@ -1229,8 +1241,9 @@ var edgeShim = {
             return transceiver.iceGatherer &&
                 transceiver.iceGatherer.state === 'completed';
           });
-          if (complete) {
+          if (complete && self.iceGatheringStateChange !== 'complete') {
             self.iceGatheringState = 'complete';
+            self._emitGatheringStateChange();
           }
         }
       });
@@ -1242,16 +1255,21 @@ var edgeShim = {
     };
 
     window.RTCPeerConnection.prototype.addStream = function(stream) {
-      // Clone is necessary for local demos mostly, attaching directly
-      // to two different senders does not work (build 10547).
-      var clonedStream = stream.clone();
-      stream.getTracks().forEach(function(track, idx) {
-        var clonedTrack = clonedStream.getTracks()[idx];
-        track.addEventListener('enabled', function(event) {
-          clonedTrack.enabled = event.enabled;
+      if (browserDetails.version >= 15025) {
+        this.localStreams.push(stream);
+      } else {
+        // Clone is necessary for local demos mostly, attaching directly
+        // to two different senders does not work (build 10547).
+        // Fixed in 15025 (or earlier)
+        var clonedStream = stream.clone();
+        stream.getTracks().forEach(function(track, idx) {
+          var clonedTrack = clonedStream.getTracks()[idx];
+          track.addEventListener('enabled', function(event) {
+            clonedTrack.enabled = event.enabled;
+          });
         });
-      });
-      this.localStreams.push(clonedStream);
+        this.localStreams.push(clonedStream);
+      }
       this._maybeFireNegotiationNeeded();
     };
 
@@ -1401,6 +1419,7 @@ var edgeShim = {
                     self.onicecandidate(new Event('icecandidate'));
                   }
                   self.iceGatheringState = 'complete';
+                  self._emitGatheringStateChange();
                 }
                 break;
               case 'complete':
