@@ -1529,6 +1529,62 @@ test('Basic connection establishment with datachannel', function(t) {
   });
 });
 
+test('dtmf', t => {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    var pc1 = new RTCPeerConnection(null);
+    var pc2 = new RTCPeerConnection(null);
+
+    pc1.onicecandidate = e => pc2.addIceCandidate(e.candidate);
+    pc2.onicecandidate = e => pc1.addIceCandidate(e.candidate);
+    pc1.onnegotiationneeded = e => pc1.createOffer()
+      .then(offer => pc1.setLocalDescription(offer))
+      .then(() => pc2.setRemoteDescription(pc1.localDescription))
+      .then(() => pc2.createAnswer())
+      .then(answer => pc2.setLocalDescription(answer))
+      .then(() => pc1.setRemoteDescription(pc2.localDescription));
+
+    navigator.mediaDevices.getUserMedia({audio: true})
+    .then(stream => {
+      pc1.addStream(stream);
+      return new Promise(resolve => pc1.oniceconnectionstatechange =
+        e => pc1.iceConnectionState === 'connected' && resolve());
+    })
+    .then(() => {
+      let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+      if (!sender.dtmf) {
+        throw 'skip-test';
+      }
+      sender.dtmf.insertDTMF('1');
+      return new Promise(resolve => sender.dtmf.ontonechange = resolve);
+    })
+    .then(e => callback({tone: e.tone}),
+          err => callback({error: err.toString()}));
+  };
+
+  // Run test.
+  seleniumHelpers.loadTestPage(driver).then(() => {
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(({tone, error}) => {
+    if (error) {
+      if (error === 'skip-test') {
+        t.skip('No sender.dtmf support in this browser.');
+      } else {
+        t.fail('PeerConnection failure: ' + error);
+      }
+      return;
+    }
+    t.is(tone, '1', 'DTMF sent');
+  })
+  .then(null, err => t.fail(err))
+  .then(() => t.end());
+});
+
 test('addIceCandidate with null', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
