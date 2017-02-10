@@ -163,8 +163,8 @@ var utils = {
 
     var nativeSetAttribute = Element.prototype.setAttribute;
     Element.prototype.setAttribute = function() {
-      if (arguments.length == 2 &&
-          ("" + arguments[0]).toLowerCase() === 'src') {
+      if (arguments.length === 2 &&
+          ('' + arguments[0]).toLowerCase() === 'src') {
         this.src = arguments[1];
         return;
       }
