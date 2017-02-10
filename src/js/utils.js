@@ -160,6 +160,16 @@ var utils = {
         return dsc.set.apply(this, [url]);
       }
     });
+
+    var nativeSetAttribute = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function() {
+      if (arguments.length == 2 &&
+          ("" + arguments[0]).toLowerCase() === 'src') {
+        this.src = arguments[1];
+        return;
+      }
+      return nativeSetAttribute.apply(this, arguments);
+    };
   }
 };
 
