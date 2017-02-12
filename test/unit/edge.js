@@ -395,7 +395,7 @@ describe('Edge shim', () => {
       });
     });
 
-    describe.skip('when called with an offer containing multiple streams ' +
+    describe('when called with an offer containing multiple streams ' +
         '/ tracks', () => {
       const sdp = 'v=0\r\no=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
           's=-\r\nt=0 0\r\na=msid-semantic: WMS\r\n' +
@@ -641,7 +641,7 @@ describe('Edge shim', () => {
         });
       });
 
-      describe.skip('with an audio track and two video tracks', () => {
+      describe('with an audio track and two video tracks', () => {
         it('the generated SDP should contain an audio and ' +
             'video m-line', (done) => {
           const audioTrack = new MediaStreamTrack();
