@@ -68,18 +68,18 @@ var utils = {
     if (navigator.mozGetUserMedia) {
       result.browser = 'firefox';
       result.version = this.extractVersion(navigator.userAgent,
-          /Firefox\/([0-9]+)\./, 1);
+          /Firefox\/(\d+)\./, 1);
     } else if (navigator.webkitGetUserMedia) {
       // Chrome, Chromium, Webview, Opera, all use the chrome shim for now
       if (window.webkitRTCPeerConnection) {
         result.browser = 'chrome';
         result.version = this.extractVersion(navigator.userAgent,
-          /Chrom(e|ium)\/([0-9]+)\./, 2);
+          /Chrom(e|ium)\/(\d+)\./, 2);
       } else { // Safari (in an unpublished version) or unknown webkit-based.
         if (navigator.userAgent.match(/Version\/(\d+).(\d+)/)) {
           result.browser = 'safari';
           result.version = this.extractVersion(navigator.userAgent,
-            /AppleWebKit\/([0-9]+)\./, 1);
+            /AppleWebKit\/(\d+)\./, 1);
         } else { // unknown webkit-based browser.
           result.browser = 'Unsupported webkit-based browser ' +
               'with GUM support but no WebRTC support.';
