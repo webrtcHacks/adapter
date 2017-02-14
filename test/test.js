@@ -461,7 +461,12 @@ test('createObjectURL shim test', function(t) {
         window[type + 'Stream'] = stream;
         element.id = type;
         element.autoplay = true;
-        element.src = URL.createObjectURL(stream);
+        // Test both ways of setting src
+        if (type === 'audio') {
+          element.src = URL.createObjectURL(stream);
+        } else {
+          element.setAttribute('src', URL.createObjectURL(stream));
+        }
         return new Promise(function(resolve) {
           element.addEventListener('loadedmetadata', resolve);
         });
