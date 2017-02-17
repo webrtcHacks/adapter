@@ -162,6 +162,7 @@ var chromeShim = {
         return this._senders;
       };
       var origAddStream = RTCPeerConnection.prototype.addStream;
+      var origRemoveStream = RTCPeerConnection.prototype.removeStream;
 
       RTCPeerConnection.prototype.addStream = function(stream) {
         var pc = this;
@@ -171,12 +172,30 @@ var chromeShim = {
           pc._senders.push({
             track: track,
             get dtmf() {
-              if (!this._dtmf) {
-                this._dtmf = pc.createDTMFSender(track);
+              if (this._dtmf === undefined) {
+                if (track.kind === 'audio') {
+                  this._dtmf = pc.createDTMFSender(track);
+                } else {
+                  this._dtmf = null;
+                }
               }
               return this._dtmf;
             }
           });
+        });
+      };
+
+      RTCPeerConnection.prototype.removeStream = function(stream) {
+        var pc = this;
+        pc._senders = pc._senders || [];
+        origRemoveStream.apply(pc, [stream]);
+        stream.getTracks().forEach(function(track) {
+          var sender = pc._senders.find(function(s) {
+            return s.track === track;
+          });
+          if (sender) {
+            pc._senders.splice(pc._senders.indexOf(sender), 1); // remove sender
+          }
         });
       };
     }
