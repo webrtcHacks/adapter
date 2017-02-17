@@ -1502,17 +1502,27 @@ test('dtmf', t => {
     .then(stream => {
       pc1.addStream(stream);
       return new Promise(resolve => pc1.oniceconnectionstatechange =
-        e => pc1.iceConnectionState === 'connected' && resolve());
+        e => pc1.iceConnectionState === 'connected' && resolve())
+      .then(() => {
+        let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+        if (!sender.dtmf) {
+          throw 'skip-test';
+        }
+        sender.dtmf.insertDTMF('1');
+        return new Promise(resolve => sender.dtmf.ontonechange = resolve);
+      })
+      .then(e => {
+        pc1.removeStream(stream);
+        stream.getTracks().forEach(track => {
+          let sender = pc1.getSenders().find(s => s.track === track);
+          if (sender) {
+            throw new Error('sender was not removed when it should have been');
+          }
+        });
+        return e.tone;
+      });
     })
-    .then(() => {
-      let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
-      if (!sender.dtmf) {
-        throw 'skip-test';
-      }
-      sender.dtmf.insertDTMF('1');
-      return new Promise(resolve => sender.dtmf.ontonechange = resolve);
-    })
-    .then(e => callback({tone: e.tone}),
+    .then(tone => callback({tone: tone}),
           err => callback({error: err.toString()}));
   };
 
