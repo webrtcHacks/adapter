@@ -1099,14 +1099,13 @@ var edgeShim = {
       var cb = arguments.length > 1 && typeof arguments[1] === 'function' &&
           arguments[1];
       var fixStatsType = function(stat) {
-        stat.type = {
+        return {
           inboundrtp: 'inbound-rtp',
           outboundrtp: 'outbound-rtp',
           candidatepair: 'candidate-pair',
           localcandidate: 'local-candidate',
           remotecandidate: 'remote-candidate'
         }[stat.type] || stat.type;
-        return stat;
       };
       return new Promise(function(resolve) {
         // shim getStats with maplike support
