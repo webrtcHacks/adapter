@@ -426,6 +426,7 @@ module.exports = {
  /* eslint-env node */
 'use strict';
 var logging = require('../utils.js').log;
+var browserDetails = require('../utils.js').browserDetails;
 
 // Expose public methods.
 module.exports = function() {
@@ -489,11 +490,13 @@ module.exports = function() {
       // Shim facingMode for mobile, where it defaults to "user".
       var face = constraints.video.facingMode;
       face = face && ((typeof face === 'object') ? face : {ideal: face});
+      var getSupportedFacingModeLies = browserDetails.version < 59;
 
       if ((face && (face.exact === 'user' || face.exact === 'environment' ||
                     face.ideal === 'user' || face.ideal === 'environment')) &&
           !(navigator.mediaDevices.getSupportedConstraints &&
-            navigator.mediaDevices.getSupportedConstraints().facingMode)) {
+            navigator.mediaDevices.getSupportedConstraints().facingMode &&
+            !getSupportedFacingModeLies)) {
         delete constraints.video.facingMode;
         if (face.exact === 'environment' || face.ideal === 'environment') {
           // Look for "back" in label, or use last cam (typically back cam).
@@ -567,6 +570,12 @@ module.exports = function() {
             }));
           });
         });
+      },
+      getSupportedConstraints: function() {
+        return {
+          deviceId: true, echoCancellation: true, facingMode: true,
+          frameRate: true, height: true, width: true
+        };
       }
     };
   }
