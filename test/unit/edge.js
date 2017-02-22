@@ -12,12 +12,13 @@ const expect = chai.expect;
 const SDPUtils = require('sdp');
 const EventEmitter = require('events');
 
-// make sure the browser detection gets the right information.
 const utils = require('../../src/js/utils');
-utils.browserDetails.browser = 'edge';
-utils.browserDetails.version = 15025;
 
 function mockORTC() {
+  // make sure the browser detection gets the right information.
+  utils.browserDetails.browser = 'edge';
+  utils.browserDetails.version = 15025;
+
   // required by the shim to mock an EventEmitter.
   global.document = {
     createDocumentFragment: () => {
@@ -146,6 +147,45 @@ describe('Edge shim', () => {
     global.window.RTCPeerConnection = true;
     shim.shimPeerConnection();
     expect(window.RTCPeerConnection).not.to.equal(true);
+  });
+
+  describe('filtering of STUN and TURN servers', () => {
+    let pc;
+    it('filters STUN before r14393', () => {
+      utils.browserDetails.version = 14392;
+      pc = new RTCPeerConnection({
+        iceServers: [{urls: 'stun:stun.l.google.com'}]
+      });
+      expect(pc.iceOptions.iceServers).to.deep.equal([]);
+    });
+
+    it('does not filter STUN after r14393', () => {
+      pc = new RTCPeerConnection({
+        iceServers: [{urls: 'stun:stun.l.google.com'}]
+      });
+      expect(pc.iceOptions.iceServers).to.deep.equal([
+        {urls: 'stun:stun.l.google.com'}
+      ]);
+    });
+
+    it('filters incomplete TURN urls', () => {
+      pc = new RTCPeerConnection({
+        iceServers: [
+          {urls: 'turn:stun.l.google.com'},
+          {urls: 'turn:stun.l.google.com:19302'}
+        ]
+      });
+      expect(pc.iceOptions.iceServers).to.deep.equal([]);
+    });
+
+    it('filters TURN TCP', () => {
+      pc = new RTCPeerConnection({
+        iceServers: [
+          {urls: 'turn:stun.l.google.com:19302?transport=tcp'}
+        ]
+      });
+      expect(pc.iceOptions.iceServers).to.deep.equal([]);
+    });
   });
 
   describe('setLocalDescription', () => {
