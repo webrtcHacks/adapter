@@ -117,9 +117,6 @@ var edgeShim = {
           case 'relay':
             this.iceOptions.gatherPolicy = config.iceTransportPolicy;
             break;
-          case 'none':
-            // FIXME: remove once implementation and spec have added this.
-            throw new TypeError('iceTransportPolicy "none" not supported');
           default:
             // don't set iceTransportPolicy.
             break;
