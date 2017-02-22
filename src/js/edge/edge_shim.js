@@ -11,6 +11,27 @@
 var SDPUtils = require('sdp');
 var browserDetails = require('../utils').browserDetails;
 
+// sort tracks such that they follow an a-v-a-v...
+// pattern.
+function sortTracks(tracks) {
+  let audioTracks = tracks.filter(function(track) {
+    return track.kind === 'audio';
+  });
+  let videoTracks = tracks.filter(function(track) {
+    return track.kind === 'video';
+  });
+  tracks = [];
+  while (audioTracks.length || videoTracks.length) {
+    if (audioTracks.length) {
+      tracks.push(audioTracks.shift());
+    }
+    if (videoTracks.length) {
+      tracks.push(videoTracks.shift());
+    }
+  }
+  return tracks;
+}
+
 var edgeShim = {
   shimPeerConnection: function() {
     if (window.RTCIceGatherer) {
@@ -923,6 +944,8 @@ var edgeShim = {
           numVideoTracks--;
         }
       }
+      // reorder tracks
+      tracks = sortTracks(tracks);
 
       var sdp = SDPUtils.writeSessionBoilerplate();
       var transceivers = [];
