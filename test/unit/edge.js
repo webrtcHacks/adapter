@@ -186,6 +186,36 @@ describe('Edge shim', () => {
       });
       expect(pc.iceOptions.iceServers).to.deep.equal([]);
     });
+
+    it('removes all but the first server of a type in separate entries', () => {
+      pc = new RTCPeerConnection({
+        iceServers: [
+          {urls: 'stun:stun.l.google.com'},
+          {urls: 'turn:stun.l.google.com:19301?transport=udp'},
+          {urls: 'turn:stun.l.google.com:19302?transport=udp'}
+        ]
+      });
+      expect(pc.iceOptions.iceServers).to.deep.equal([
+        {urls: 'stun:stun.l.google.com'},
+        {urls: 'turn:stun.l.google.com:19301?transport=udp'}
+      ]);
+    });
+
+    it('removes all but the first server of a type in urls entry', () => {
+      pc = new RTCPeerConnection({
+        iceServers: [
+          {urls: 'stun:stun.l.google.com'},
+          {urls: [
+            'turn:stun.l.google.com:19301?transport=udp',
+            'turn:stun.l.google.com:19302?transport=udp'
+          ]}
+        ]
+      });
+      expect(pc.iceOptions.iceServers).to.deep.equal([
+        {urls: 'stun:stun.l.google.com'},
+        {urls: ['turn:stun.l.google.com:19301?transport=udp']}
+      ]);
+    });
   });
 
   describe('setLocalDescription', () => {
