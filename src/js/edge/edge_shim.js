@@ -656,13 +656,16 @@ var edgeShim = {
                 ssrc: (2 * sdpMLineIndex + 2) * 1001
               }];
 
-              rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
+              if (direction === 'sendrecv' || direction === 'sendonly') {
+                rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport,
+                    kind);
 
-              track = rtpReceiver.track;
-              receiverList.push([track, rtpReceiver]);
-              // FIXME: not correct when there are multiple streams but that is
-              // not currently supported in this shim.
-              stream.addTrack(track);
+                track = rtpReceiver.track;
+                receiverList.push([track, rtpReceiver]);
+                // FIXME: not correct when there are multiple streams but that
+                // is not currently supported in this shim.
+                stream.addTrack(track);
+              }
 
               // FIXME: look at direction.
               if (self.localStreams.length > 0 &&
