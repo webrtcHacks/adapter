@@ -707,13 +707,6 @@ describe('Edge shim', () => {
         });
 
         it('responds with a sendonly answer to recvonly', (done) => {
-          const audioTrack = new MediaStreamTrack();
-          audioTrack.kind = 'audio';
-          const videoTrack = new MediaStreamTrack();
-          videoTrack.kind = 'video';
-          const stream = new MediaStream([audioTrack, videoTrack]);
-
-          pc.addStream(stream);
           pc.setRemoteDescription({type: 'offer', sdp: sdp.replace('sendrecv',
               'recvonly')})
           .then(() => {
