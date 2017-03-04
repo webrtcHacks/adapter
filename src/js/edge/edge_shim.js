@@ -14,10 +14,10 @@ var browserDetails = require('../utils').browserDetails;
 // sort tracks such that they follow an a-v-a-v...
 // pattern.
 function sortTracks(tracks) {
-  let audioTracks = tracks.filter(function(track) {
+  var audioTracks = tracks.filter(function(track) {
     return track.kind === 'audio';
   });
-  let videoTracks = tracks.filter(function(track) {
+  var videoTracks = tracks.filter(function(track) {
     return track.kind === 'video';
   });
   tracks = [];
