@@ -343,6 +343,15 @@ SDPUtils.writeRtpDescription = function(kind, caps) {
     sdp += SDPUtils.writeFmtp(codec);
     sdp += SDPUtils.writeRtcpFb(codec);
   });
+  var maxptime = 0;
+  caps.codecs.forEach(function(codec) {
+    if (codec.maxptime > maxptime) {
+      maxptime = codec.maxptime;
+    }
+  });
+  if (maxptime > 0) {
+    sdp += 'a=maxptime:' + maxptime + '\r\n';
+  }
   sdp += 'a=rtcp-mux\r\n';
 
   caps.headerExtensions.forEach(function(extension) {
@@ -389,7 +398,6 @@ SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
         ssrc: primarySsrc,
         codecPayloadType: parseInt(codec.parameters.apt, 10),
         rtx: {
-          payloadType: codec.payloadType,
           ssrc: secondarySsrc
         }
       };
@@ -425,6 +433,61 @@ SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
   return encodingParameters;
 };
 
+// parses http://draft.ortc.org/#rtcrtcpparameters*
+SDPUtils.parseRtcpParameters = function(mediaSection) {
+  var rtcpParameters = {};
+
+  var cname;
+  // Gets the first SSRC. Note that with RTX there might be multiple
+  // SSRCs.
+  var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
+      .map(function(line) {
+        return SDPUtils.parseSsrcMedia(line);
+      })
+      .filter(function(obj) {
+        return obj.attribute === 'cname';
+      })[0];
+  if (remoteSsrc) {
+    rtcpParameters.cname = remoteSsrc.value;
+    rtcpParameters.ssrc = remoteSsrc.ssrc;
+  }
+
+  // Edge uses the compound attribute instead of reducedSize
+  // compound is !reducedSize
+  var rsize = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-rsize');
+  rtcpParameters.reducedSize = rsize.length > 0;
+  rtcpParameters.compound = rsize.length === 0;
+
+  // parses the rtcp-mux attrіbute.
+  // Note that Edge does not support unmuxed RTCP.
+  var mux = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-mux');
+  rtcpParameters.mux = mux.length > 0;
+
+  return rtcpParameters;
+};
+
+// parses either a=msid: or a=ssrc:... msid lines an returns
+// the id of the MediaStream and MediaStreamTrack.
+SDPUtils.parseMsid = function(mediaSection) {
+  var parts;
+  var spec = SDPUtils.matchPrefix(mediaSection, 'a=msid:');
+  if (spec.length === 1) {
+    parts = spec[0].substr(7).split(' ');
+    return {stream: parts[0], track: parts[1]};
+  }
+  var planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
+  .map(function(line) {
+    return SDPUtils.parseSsrcMedia(line);
+  })
+  .filter(function(parts) {
+    return parts.attribute === 'msid';
+  });
+  if (planB.length > 0) {
+    parts = planB[0].value.split(' ');
+    return {stream: parts[0], track: parts[1]};
+  }
+};
+
 SDPUtils.writeSessionBoilerplate = function() {
   // FIXME: sess-id should be an NTP timestamp.
   return 'v=0\r\n' +
@@ -457,17 +520,31 @@ SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
     sdp += 'a=inactive\r\n';
   }
 
-  // FIXME: for RTX there might be multiple SSRCs. Not implemented in Edge yet.
   if (transceiver.rtpSender) {
+    // spec.
     var msid = 'msid:' + stream.id + ' ' +
         transceiver.rtpSender.track.id + '\r\n';
     sdp += 'a=' + msid;
+
+    // for Chrome.
     sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
         ' ' + msid;
+    if (transceiver.sendEncodingParameters[0].rtx) {
+      sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
+          ' ' + msid;
+      sdp += 'a=ssrc-group:FID ' +
+          transceiver.sendEncodingParameters[0].ssrc + ' ' +
+          transceiver.sendEncodingParameters[0].rtx.ssrc +
+          '\r\n';
+    }
   }
   // FIXME: this should be written by writeRtpDescription.
   sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
       ' cname:' + SDPUtils.localCName + '\r\n';
+  if (transceiver.rtpSender && transceiver.sendEncodingParameters[0].rtx) {
+    sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
+        ' cname:' + SDPUtils.localCName + '\r\n';
+  }
   return sdp;
 };
 
@@ -490,6 +567,16 @@ SDPUtils.getDirection = function(mediaSection, sessionpart) {
     return SDPUtils.getDirection(sessionpart);
   }
   return 'sendrecv';
+};
+
+SDPUtils.getKind = function(mediaSection) {
+  var lines = SDPUtils.splitLines(mediaSection);
+  var mline = lines[0].split(' ');
+  return mline[0].substr(2);
+};
+
+SDPUtils.isRejected = function(mediaSection) {
+  return mediaSection.split(' ', 2)[1] === '0';
 };
 
 // Expose public methods.
@@ -1133,6 +1220,64 @@ module.exports = function() {
 var SDPUtils = require('sdp');
 var browserDetails = require('../utils').browserDetails;
 
+// sort tracks such that they follow an a-v-a-v...
+// pattern.
+function sortTracks(tracks) {
+  var audioTracks = tracks.filter(function(track) {
+    return track.kind === 'audio';
+  });
+  var videoTracks = tracks.filter(function(track) {
+    return track.kind === 'video';
+  });
+  tracks = [];
+  while (audioTracks.length || videoTracks.length) {
+    if (audioTracks.length) {
+      tracks.push(audioTracks.shift());
+    }
+    if (videoTracks.length) {
+      tracks.push(videoTracks.shift());
+    }
+  }
+  return tracks;
+}
+
+// Edge does not like
+// 1) stun:
+// 2) turn: that does not have all of turn:host:port?transport=udp
+// 3) turn: with ipv6 addresses
+// 4) turn: occurring muliple times
+function filterIceServers(iceServers) {
+  var hasTurn = false;
+  iceServers = JSON.parse(JSON.stringify(iceServers));
+  return iceServers.filter(function(server) {
+    if (server && (server.urls || server.url)) {
+      var urls = server.urls || server.url;
+      var isString = typeof urls === 'string';
+      if (isString) {
+        urls = [urls];
+      }
+      urls = urls.filter(function(url) {
+        var validTurn = url.indexOf('turn:') === 0 &&
+            url.indexOf('transport=udp') !== -1 &&
+            url.indexOf('turn:[') === -1 &&
+            !hasTurn;
+
+        if (validTurn) {
+          hasTurn = true;
+          return true;
+        }
+        return url.indexOf('stun:') === 0 &&
+            browserDetails.version >= 14393;
+      });
+
+      delete server.url;
+      server.urls = isString ? urls[0] : urls;
+      return !!urls.length;
+    }
+    return false;
+  });
+}
+
 var edgeShim = {
   shimPeerConnection: function() {
     if (window.RTCIceGatherer) {
@@ -1218,9 +1363,6 @@ var edgeShim = {
           case 'relay':
             this.iceOptions.gatherPolicy = config.iceTransportPolicy;
             break;
-          case 'none':
-            // FIXME: remove once implementation and spec have added this.
-            throw new TypeError('iceTransportPolicy "none" not supported');
           default:
             // don't set iceTransportPolicy.
             break;
@@ -1229,28 +1371,7 @@ var edgeShim = {
       this.usingBundle = config && config.bundlePolicy === 'max-bundle';
 
       if (config && config.iceServers) {
-        // Edge does not like
-        // 1) stun:
-        // 2) turn: that does not have all of turn:host:port?transport=udp
-        // 3) turn: with ipv6 addresses
-        var iceServers = JSON.parse(JSON.stringify(config.iceServers));
-        this.iceOptions.iceServers = iceServers.filter(function(server) {
-          if (server && server.urls) {
-            var urls = server.urls;
-            if (typeof urls === 'string') {
-              urls = [urls];
-            }
-            urls = urls.filter(function(url) {
-              return (url.indexOf('turn:') === 0 &&
-                  url.indexOf('transport=udp') !== -1 &&
-                  url.indexOf('turn:[') === -1) ||
-                  (url.indexOf('stun:') === 0 &&
-                    browserDetails.version >= 14393);
-            })[0];
-            return !!urls;
-          }
-          return false;
-        });
+        this.iceOptions.iceServers = filterIceServers(config.iceServers);
       }
       this._config = config;
 
@@ -1634,6 +1755,7 @@ var edgeShim = {
               cb();
               if (self.iceGatheringState === 'new') {
                 self.iceGatheringState = 'gathering';
+                self._emitGatheringStateChange();
               }
               self._emitBufferedCandidates();
             }, 0);
@@ -1643,6 +1765,7 @@ var edgeShim = {
             if (!hasCallback) {
               if (self.iceGatheringState === 'new') {
                 self.iceGatheringState = 'gathering';
+                self._emitGatheringStateChange();
               }
               // Usually candidates will be emitted earlier.
               window.setTimeout(self._emitBufferedCandidates.bind(self), 500);
@@ -2045,6 +2168,8 @@ var edgeShim = {
           numVideoTracks--;
         }
       }
+      // reorder tracks
+      tracks = sortTracks(tracks);
 
       var sdp = SDPUtils.writeSessionBoilerplate();
       var transceivers = [];
