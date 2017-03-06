@@ -751,7 +751,7 @@ describe('Edge shim', () => {
           'a=ssrc:1001 msid:stream1 track1\r\n' +
           'a=ssrc:1001 cname:some\r\n';
 
-      it.skip('responds with a inactive answer to inactive', (done) => {
+      it('responds with a inactive answer to inactive', (done) => {
         pc.setRemoteDescription({type: 'offer', sdp: sdp.replace('sendrecv',
             'recvonly')})
         .then(() => {
@@ -786,14 +786,7 @@ describe('Edge shim', () => {
           });
         });
 
-        it.skip('responds with a sendonly answer to recvonly', (done) => {
-          const audioTrack = new MediaStreamTrack();
-          audioTrack.kind = 'audio';
-          const videoTrack = new MediaStreamTrack();
-          videoTrack.kind = 'video';
-          const stream = new MediaStream([audioTrack, videoTrack]);
-
-          pc.addStream(stream);
+        it('responds with a sendonly answer to recvonly', (done) => {
           pc.setRemoteDescription({type: 'offer', sdp: sdp.replace('sendrecv',
               'recvonly')})
           .then(() => {
@@ -821,7 +814,7 @@ describe('Edge shim', () => {
           });
         });
 
-        it.skip('responds with a inactive answer to recvonly', (done) => {
+        it('responds with a inactive answer to recvonly', (done) => {
           pc.setRemoteDescription({type: 'offer', sdp: sdp.replace('sendrecv',
               'recvonly')})
           .then(() => {
