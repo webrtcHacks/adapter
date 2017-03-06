@@ -568,7 +568,7 @@ var edgeShim = {
     window.RTCPeerConnection.prototype.setRemoteDescription =
         function(description) {
           var self = this;
-          var stream = new MediaStream();
+          var streams = {};
           var receiverList = [];
           var sections = SDPUtils.splitSections(description.sdp);
           var sessionpart = sections.shift();
@@ -582,6 +582,7 @@ var edgeShim = {
             var kind = mline[0];
             var rejected = mline[1] === '0';
             var direction = SDPUtils.getDirection(mediaSection, sessionpart);
+            var remoteMsid = SDPUtils.parseMsid(mediaSection);
 
             var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
             if (mid.length) {
@@ -674,10 +675,31 @@ var edgeShim = {
               rtpReceiver = new RTCRtpReceiver(transports.dtlsTransport, kind);
 
               track = rtpReceiver.track;
-              receiverList.push([track, rtpReceiver]);
-              // FIXME: not correct when there are multiple streams but that is
-              // not currently supported in this shim.
-              stream.addTrack(track);
+              // FIXME: does not work with Plan B.
+              if (remoteMsid) {
+                if (!streams[remoteMsid.stream]) {
+                  streams[remoteMsid.stream] = new MediaStream();
+                  Object.defineProperty(streams[remoteMsid.stream], 'id', {
+                    get: function() {
+                      return remoteMsid.stream;
+                    }
+                  });
+                }
+                Object.defineProperty(track, 'id', {
+                  get: function() {
+                    return remoteMsid.track;
+                  }
+                });
+                streams[remoteMsid.stream].addTrack(track);
+                receiverList.push([track, rtpReceiver,
+                    streams[remoteMsid.stream]]);
+              } else {
+                if (!streams.default) {
+                  streams.default = new MediaStream();
+                }
+                streams.default.addTrack(track);
+                receiverList.push([track, rtpReceiver, streams.default]);
+              }
 
               // FIXME: look at direction.
               if (self.localStreams.length > 0 &&
@@ -746,7 +768,17 @@ var edgeShim = {
                   (direction === 'sendrecv' || direction === 'sendonly')) {
                 track = rtpReceiver.track;
                 receiverList.push([track, rtpReceiver]);
-                stream.addTrack(track);
+                if (remoteMsid) {
+                  if (!streams[remoteMsid.stream]) {
+                    streams[remoteMsid.stream] = new MediaStream();
+                  }
+                  streams[remoteMsid.stream].addTrack(track);
+                } else {
+                  if (!streams.default) {
+                    streams.default = new MediaStream();
+                  }
+                  streams.default.addTrack(track);
+                }
               } else {
                 // FIXME: actually the receiver should be created later.
                 delete transceiver.rtpReceiver;
@@ -769,34 +801,40 @@ var edgeShim = {
               throw new TypeError('unsupported type "' + description.type +
                   '"');
           }
-          if (stream.getTracks().length) {
-            self.remoteStreams.push(stream);
-            window.setTimeout(function() {
-              var event = new Event('addstream');
-              event.stream = stream;
-              self.dispatchEvent(event);
-              if (self.onaddstream !== null) {
-                window.setTimeout(function() {
-                  self.onaddstream(event);
-                }, 0);
-              }
-
-              receiverList.forEach(function(item) {
-                var track = item[0];
-                var receiver = item[1];
-                var trackEvent = new Event('track');
-                trackEvent.track = track;
-                trackEvent.receiver = receiver;
-                trackEvent.streams = [stream];
-                self.dispatchEvent(trackEvent);
-                if (self.ontrack !== null) {
+          Object.keys(streams).forEach(function(sid) {
+            var stream = streams[sid];
+            if (stream.getTracks().length) {
+              self.remoteStreams.push(stream);
+              window.setTimeout(function() {
+                var event = new Event('addstream');
+                event.stream = stream;
+                self.dispatchEvent(event);
+                if (self.onaddstream !== null) {
                   window.setTimeout(function() {
-                    self.ontrack(trackEvent);
+                    self.onaddstream(event);
                   }, 0);
                 }
-              });
-            }, 0);
-          }
+
+                receiverList.forEach(function(item) {
+                  var track = item[0];
+                  var receiver = item[1];
+                  if (stream.id !== item[2].id) {
+                    return;
+                  }
+                  var trackEvent = new Event('track');
+                  trackEvent.track = track;
+                  trackEvent.receiver = receiver;
+                  trackEvent.streams = [stream];
+                  self.dispatchEvent(trackEvent);
+                  if (self.ontrack !== null) {
+                    window.setTimeout(function() {
+                      self.ontrack(trackEvent);
+                    }, 0);
+                  }
+                });
+              }, 0);
+            }
+          });
           if (arguments.length > 1 && typeof arguments[1] === 'function') {
             window.setTimeout(arguments[1], 0);
           }
@@ -909,8 +947,12 @@ var edgeShim = {
       var numVideoTracks = 0;
       // Default to sendrecv.
       if (this.localStreams.length) {
-        numAudioTracks = this.localStreams[0].getAudioTracks().length;
-        numVideoTracks = this.localStreams[0].getVideoTracks().length;
+        numAudioTracks = this.localStreams.reduce(function(numTracks, stream) {
+          return numTracks + stream.getAudioTracks().length;
+        }, 0);
+        numVideoTracks = this.localStreams.reduce(function(numTracks, stream) {
+          return numTracks + stream.getVideoTracks().length;
+        }, 0);
       }
       // Determine number of audio and video tracks we need to send/recv.
       if (offerOptions) {
@@ -926,12 +968,14 @@ var edgeShim = {
           numVideoTracks = offerOptions.offerToReceiveVideo;
         }
       }
-      if (this.localStreams.length) {
-        // Push local streams.
-        this.localStreams[0].getTracks().forEach(function(track) {
+
+      // Push local streams.
+      this.localStreams.forEach(function(localStream) {
+        localStream.getTracks().forEach(function(track) {
           tracks.push({
             kind: track.kind,
             track: track,
+            stream: localStream,
             wantReceive: track.kind === 'audio' ?
                 numAudioTracks > 0 : numVideoTracks > 0
           });
@@ -941,7 +985,8 @@ var edgeShim = {
             numVideoTracks--;
           }
         });
-      }
+      });
+
       // Create M-lines for recvonly streams.
       while (numAudioTracks > 0 || numVideoTracks > 0) {
         if (numAudioTracks > 0) {
@@ -1030,7 +1075,7 @@ var edgeShim = {
       tracks.forEach(function(mline, sdpMLineIndex) {
         var transceiver = transceivers[sdpMLineIndex];
         sdp += SDPUtils.writeMediaSection(transceiver,
-            transceiver.localCapabilities, 'offer', self.localStreams[0]);
+            transceiver.localCapabilities, 'offer', mline.stream);
       });
 
       this._pendingOffer = transceivers;
