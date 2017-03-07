@@ -888,4 +888,26 @@ describe('Edge shim', () => {
       });
     });
   });
+
+  describe('bundlePolicy', () => {
+    it('creates an offer with a=group:BUNDLE by default', (done) => {
+      const pc = new RTCPeerConnection();
+
+      pc.createOffer({offerToReceiveAudio: 1})
+      .then((offer) => {
+        expect(offer.sdp).to.contain('a=group:BUNDLE');
+        done();
+      });
+    });
+
+    it('max-compat creates an offer without a=group:BUNDLE', (done) => {
+      const pc = new RTCPeerConnection({bundlePolicy: 'max-compat'});
+
+      pc.createOffer({offerToReceiveAudio: 1})
+      .then((offer) => {
+        expect(offer.sdp).not.to.contain('a=group:BUNDLE');
+        done();
+      });
+    });
+  });
 });
