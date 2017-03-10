@@ -1,7 +1,7 @@
 sudo: false
 language: node_js
 node_js:
-- 4.1
+- 6
 
 env:
   matrix:
@@ -9,20 +9,17 @@ env:
     - BROWSER=chrome  BVER=beta
     - BROWSER=chrome  BVER=unstable
     - BROWSER=firefox BVER=stable
-    - BROWSER=firefox BVER=beta
     - BROWSER=firefox BVER=nightly
     - BROWSER=firefox BVER=esr
-    - BROWSER=MicrosoftEdge BVER=stable
 
 matrix:
   fast_finish: true
 
   allow_failures:
     - env: BROWSER=chrome  BVER=unstable
-    - env: BROWSER=firefox BVER=stable
     - env: BROWSER=firefox BVER=beta
     - env: BROWSER=firefox BVER=nightly
-    - env: BROWSER=MicrosoftEdge BVER=stable
+    - env: BROWSER=firefox BVER=esr
 
 before_script:
   - ./node_modules/travis-multirunner/setup.sh
@@ -36,3 +33,9 @@ script:
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
 
+notifications:
+  email:
+    recipients:
+      forward-webrtc-github@webrtc.org
+    on_success: change
+    on_failure: always

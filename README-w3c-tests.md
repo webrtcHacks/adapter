@@ -2,7 +2,7 @@ How to use adapter with W3C tests
 ---------------------------------
 
 If you want to test that the adapter works with the W3C tests, execute
-the following (where TESTDIR is the root of the web-platform-tests repo):
+the following (where TESTDIR is the root of the [web-platform-tests](https://github.com/w3c/web-platform-tests) repo):
 
 - (cd $TESTDIR; git checkout master; git checkout -b some-unused-branch-name)
 - cat adapter.js > $TESTDIR/common/vendor-prefix.js

@@ -79,7 +79,7 @@ function buildDriver() {
   }
 
   // Only enable this for Chrome >= 49.
-  if (process.env.BROWSER === 'chrome' && getBrowserVersion >= '49') {
+  if (process.env.BROWSER === 'chrome' && getBrowserVersion >= 49) {
     chromeOptions.addArguments('--enable-experimental-web-platform-features');
   }
 
@@ -98,6 +98,8 @@ function buildDriver() {
       throw new Error('MicrosoftEdge is only supported on Windows or via ' +
           'a selenium server');
     }
+  } else if (process.env.BROWSER === 'firefox' && getBrowserVersion >= 47) {
+    sharedDriver.getCapabilities().set('marionette', true);
   }
 
   sharedDriver = sharedDriver.build();
