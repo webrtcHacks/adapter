@@ -1999,7 +1999,9 @@ test('icegatheringstatechange event',
 
         var pc1 = new RTCPeerConnection();
         pc1.onicegatheringstatechange = function(event) {
-          callback(pc1.iceGatheringState);
+          if (pc1.iceGatheringState === 'complete') {
+            callback();
+          }
         };
 
         var constraints = {video: true, fake: true};
@@ -2017,9 +2019,8 @@ test('icegatheringstatechange event',
       .then(function() {
         return driver.executeAsyncScript(testDefinition);
       })
-      .then(function(iceGatheringState) {
-        t.ok(iceGatheringState === 'complete',
-            'gatheringstatechange fired and is \'complete\'');
+      .then(function() {
+        t.pass('gatheringstatechange fired and is \'complete\'');
         t.end();
       })
       .then(null, function(err) {
