@@ -887,5 +887,37 @@ describe('Edge shim', () => {
         });
       });
     });
+
+    describe('after a video offer without RTX', () => {
+      const sdp = 'v=0\r\no=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
+          's=-\r\nt=0 0\r\na=msid-semantic: WMS\r\n' +
+          'm=video 9 UDP/TLS/RTP/SAVPF 102\r\n' +
+          'c=IN IP4 0.0.0.0\r\n' +
+          'a=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:foo\r\na=ice-pwd:bar\r\n' +
+          'a=fingerprint:sha-256 so:me:co:lo:ns\r\n' +
+          'a=setup:actpass\r\n' +
+          'a=mid:video1\r\n' +
+          'a=sendrecv\r\na=rtcp-mux\r\n' +
+          'a=rtcp-rsize\r\n' +
+          'a=rtpmap:102 vp8/90000\r\n' +
+          'a=ssrc:1001 msid:stream1 track1\r\n' +
+          'a=ssrc:1001 cname:some\r\n';
+      it('there is no ssrc-group in the answer', (done) => {
+        const videoTrack = new MediaStreamTrack();
+        videoTrack.kind = 'video';
+        const stream = new MediaStream([videoTrack]);
+
+        pc.addStream(stream);
+
+        pc.setRemoteDescription({type: 'offer', sdp: sdp})
+        .then(() => {
+          return pc.createAnswer();
+        })
+        .then((answer) => {
+          expect(answer.sdp).not.to.contain('a=ssrc-group:FID ');
+          done();
+        });
+      });
+    });
   });
 });
