@@ -164,7 +164,7 @@ var edgeShim = {
       if (config && config.iceServers) {
         this.iceOptions.iceServers = filterIceServers(config.iceServers);
       }
-      this._config = config;
+      this._config = config || {};
 
       // per-track iceGathers, iceTransports, dtlsTransports, rtpSenders, ...
       // everything that is needed to describe a SDP m-line.
@@ -448,6 +448,29 @@ var edgeShim = {
           };
         };
 
+    // Destroy ICE gatherer, ICE transport and DTLS transport.
+    // Without triggering the callbacks.
+    window.RTCPeerConnection.prototype._disposeIceAndDtlsTransports =
+        function(sdpMLineIndex) {
+          var iceGatherer = this.transceivers[sdpMLineIndex].iceGatherer;
+          if (iceGatherer) {
+            delete iceGatherer.onlocalcandidate;
+            delete this.transceivers[sdpMLineIndex].iceGatherer;
+          }
+          var iceTransport = this.transceivers[sdpMLineIndex].iceTransport;
+          if (iceTransport) {
+            delete iceTransport.onicestatechange;
+            delete this.transceivers[sdpMLineIndex].iceTransport;
+          }
+          var dtlsTransport = this.transceivers[sdpMLineIndex].dtlsTransport;
+          if (dtlsTransport) {
+            delete dtlsTransport.ondtlssttatechange;
+            delete dtlsTransport.onerror;
+            delete this.transceivers[sdpMLineIndex].dtlsTransport;
+          }
+        };
+
+
     // Start the RTP Sender and Receiver for a transceiver.
     window.RTCPeerConnection.prototype._transceive = function(transceiver,
         send, recv) {
@@ -603,7 +626,7 @@ var edgeShim = {
           var sessionpart = sections.shift();
           var isIceLite = SDPUtils.matchPrefix(sessionpart,
               'a=ice-lite').length > 0;
-          this.usingBundle = SDPUtils.matchPrefix(sessionpart,
+          var usingBundle = SDPUtils.matchPrefix(sessionpart,
               'a=group:BUNDLE ').length > 0;
           sections.forEach(function(mediaSection, sdpMLineIndex) {
             var lines = SDPUtils.splitLines(mediaSection);
@@ -677,13 +700,13 @@ var edgeShim = {
                   return cand.component === '1';
                 });
             if (description.type === 'offer' && !rejected) {
-              var transports = self.usingBundle && sdpMLineIndex > 0 ? {
+              var transports = usingBundle && sdpMLineIndex > 0 ? {
                 iceGatherer: self.transceivers[0].iceGatherer,
                 iceTransport: self.transceivers[0].iceTransport,
                 dtlsTransport: self.transceivers[0].dtlsTransport
               } : self._createIceAndDtlsTransports(mid, sdpMLineIndex);
 
-              if (isComplete && (!self.usingBundle || sdpMLineIndex === 0)) {
+              if (isComplete && (!usingBundle || sdpMLineIndex === 0)) {
                 transports.iceTransport.setRemoteCandidates(cands);
               }
 
@@ -754,6 +777,15 @@ var edgeShim = {
                   false,
                   direction === 'sendrecv' || direction === 'sendonly');
             } else if (description.type === 'answer' && !rejected) {
+              if (usingBundle && sdpMLineIndex > 0) {
+                self._disposeIceAndDtlsTransports(sdpMLineIndex);
+                self.transceivers[sdpMLineIndex].iceGatherer =
+                    self.transceivers[0].iceGatherer;
+                self.transceivers[sdpMLineIndex].iceTransport =
+                    self.transceivers[0].iceTransport;
+                self.transceivers[sdpMLineIndex].dtlsTransport =
+                    self.transceivers[0].dtlsTransport;
+              }
               transceiver = self.transceivers[sdpMLineIndex];
               iceGatherer = transceiver.iceGatherer;
               iceTransport = transceiver.iceTransport;
@@ -772,7 +804,7 @@ var edgeShim = {
               if ((isIceLite || isComplete) && cands.length) {
                 iceTransport.setRemoteCandidates(cands);
               }
-              if (!self.usingBundle || sdpMLineIndex === 0) {
+              if (!usingBundle || sdpMLineIndex === 0) {
                 iceTransport.start(iceGatherer, remoteIceParameters,
                     'controlling');
                 dtlsTransport.start(remoteDtlsParameters);
@@ -793,6 +825,7 @@ var edgeShim = {
               }
             }
           });
+          this.usingBundle = usingBundle;
 
           this.remoteDescription = {
             type: description.type,
@@ -1070,11 +1103,14 @@ var edgeShim = {
           recvEncodingParameters: null
         };
       });
-      if (this.usingBundle) {
+
+      // always offer BUNDLE and dispose on return if not supported.
+      if (this._config.bundlePolicy !== 'max-compat') {
         sdp += 'a=group:BUNDLE ' + transceivers.map(function(t) {
           return t.mid;
         }).join(' ') + '\r\n';
       }
+
       tracks.forEach(function(mline, sdpMLineIndex) {
         var transceiver = transceivers[sdpMLineIndex];
         sdp += SDPUtils.writeMediaSection(transceiver,
