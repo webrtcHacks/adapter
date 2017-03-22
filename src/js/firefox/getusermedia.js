@@ -16,6 +16,7 @@ module.exports = function() {
   var shimError_ = function(e) {
     return {
       name: {
+        NotSupportedError: 'TypeError',
         SecurityError: 'NotAllowedError',
         PermissionDeniedError: 'NotAllowedError'
       }[e.name] || e.name,
