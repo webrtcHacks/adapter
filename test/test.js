@@ -1659,7 +1659,7 @@ test('call enumerateDevices', function(t) {
 });
 
 // Test polyfill for getStats.
-test('getStats', function(t) {
+test('getStats', {skip: true}, function(t) {
   var driver = seleniumHelpers.buildDriver();
 
   var testDefinition = function() {
