@@ -16,6 +16,7 @@ matrix:
   fast_finish: true
 
   allow_failures:
+    - env: BROWSER=firefox BVER=stable
     - env: BROWSER=chrome  BVER=unstable
     - env: BROWSER=firefox BVER=beta
     - env: BROWSER=firefox BVER=nightly
