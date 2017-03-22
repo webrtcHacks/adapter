@@ -1489,7 +1489,20 @@ test('dtmf', t => {
         return new Promise(resolve => sender.dtmf.ontonechange = resolve);
       })
       .then(e => {
-        pc1.removeStream(stream);
+        // Test getSenders Chrome polyfill
+        try {
+          // FF51+ doesn't have removeStream
+          if (!('removeStream' in pc1)) {
+            throw new DOMException('', 'NotSupportedError');
+          }
+          // Avoid <FF51 throwing NotSupportedError - https://bugzil.la/1213441
+          pc1.removeStream(stream);
+        } catch (err) {
+          if (err.name !== 'NotSupportedError') {
+            throw err;
+          }
+          pc1.getSenders().forEach(sender => pc1.removeTrack(sender));
+        }
         stream.getTracks().forEach(track => {
           let sender = pc1.getSenders().find(s => s.track === track);
           if (sender) {
