@@ -1253,6 +1253,12 @@ var edgeShim = {
         });
       });
     };
+  },
+  shimReplaceTrack: function() {
+    // ORTC has replaceTrack -- https://github.com/w3c/ortc/issues/614
+    if (window.RTCRtpSender && !('replaceTrack' in RTCRtpSender.prototype)) {
+      RTCRtpSender.prototype.replaceTrack = RTCRtpSender.prototype.setTrack;
+    }
   }
 };
 

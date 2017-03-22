@@ -78,6 +78,7 @@
       edgeShim.shimGetUserMedia();
       utils.shimCreateObjectURL();
       edgeShim.shimPeerConnection();
+      edgeShim.shimReplaceTrack();
       break;
     case 'safari':
       if (!safariShim) {
