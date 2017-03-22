@@ -17,29 +17,6 @@ var webdriver = require('selenium-webdriver');
 var seleniumHelpers = require('./selenium-lib');
 
 // Start of tests.
-
-// Due to loading adapter.js as a module, there is no need to use webdriver for
-// this test (note that this uses Node.js's require import function).
-test('Log suppression', function(t) {
-  // Define test
-  var logCount = 0;
-  var saveConsole = console.log.bind(console);
-  console.log = function() {
-    logCount++;
-    saveConsole.apply(saveConsole, arguments);
-  };
-  var adapter = require('../out/adapter.js');
-  var utils = require('../src/js/utils.js');
-
-  utils.log('test');
-  console.log = saveConsole;
-
-  // Run test.
-  t.ok(adapter, 'adapter.js loaded as a module');
-  t.ok(logCount === 0, 'adapter.js does not use console.log');
-  t.end();
-});
-
 test('Browser identified', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
