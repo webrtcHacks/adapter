@@ -2071,29 +2071,30 @@ test('ontrack', function(t) {
         this.ok(false, msg);
       }
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    var sdp = 'v=0\r\n' +
+        'o=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
+        's=-\r\n' +
+        't=0 0\r\n' +
+        'a=msid-semantic:WMS *\r\n' +
+        'm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n' +
+        'c=IN IP4 0.0.0.0\r\n' +
+        'a=rtcp:9 IN IP4 0.0.0.0\r\n' +
+        'a=ice-ufrag:someufrag\r\n' +
+        'a=ice-pwd:somelongpwdwithenoughrandomness\r\n' +
+        'a=fingerprint:sha-256 8C:71:B3:8D:A5:38:FD:8F:A4:2E:A2:65:6C:86:52' +
+        ':BC:E0:6E:94:F2:9F:7C:4D:B5:DF:AF:AA:6F:44:90:8D:F4\r\n' +
+        'a=setup:actpass\r\n' +
+        'a=rtcp-mux\r\n' +
+        'a=mid:mid1\r\n' +
+        'a=sendonly\r\n' +
+        'a=rtpmap:111 opus/48000/2\r\n' +
+        'a=msid:stream1 track1\r\n' +
+        'a=ssrc:1001 cname:some\r\n';
 
-    pc1.oniceconnectionstatechange = function() {
-      if (pc1.iceConnectionState === 'connected' ||
-          pc1.iceConnectionState === 'completed') {
-        callback(pc1.iceConnectionState);
-      }
-    };
+    var pc = new RTCPeerConnection(null);
 
-    var addCandidate = function(pc, event) {
-      pc.addIceCandidate(event.candidate).catch(function(err) {
-        tc.fail('addIceCandidate ' + err.toString());
-      });
-    };
-    pc1.onicecandidate = function(event) {
-      addCandidate(pc2, event);
-    };
-    pc2.onicecandidate = function(event) {
-      addCandidate(pc1, event);
-    };
-    pc2.ontrack = function(e) {
-      tc.ok(true, 'pc2.ontrack called');
+    pc.ontrack = function(e) {
+      tc.ok(true, 'pc.ontrack called');
       tc.ok(typeof e.track === 'object', 'trackEvent.track is an object');
       tc.ok(typeof e.receiver === 'object',
           'trackEvent.receiver is object');
@@ -2102,39 +2103,24 @@ test('ontrack', function(t) {
       tc.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
           'trackEvent.track is in stream');
 
-      var receivers = pc2.getReceivers();
-      if (receivers && receivers.length) {
-        tc.ok(receivers.indexOf(e.receiver) !== -1,
-            'trackEvent.receiver matches a known receiver');
+      if (pc.getReceivers) {
+        var receivers = pc.getReceivers();
+        if (receivers && receivers.length) {
+          tc.ok(receivers.indexOf(e.receiver) !== -1,
+              'trackEvent.receiver matches a known receiver');
+        }
       }
+      callback({});
     };
 
-    var constraints = {video: true, fake: true};
-    navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      pc1.addStream(stream);
-      pc1.createOffer().then(function(offer) {
-        return pc1.setLocalDescription(offer);
-      }).then(function() {
-        return pc2.setRemoteDescription(pc1.localDescription);
-      }).then(function() {
-        return pc2.createAnswer();
-      }).then(function(answer) {
-        return pc2.setLocalDescription(answer);
-      }).then(function() {
-        return pc1.setRemoteDescription(pc2.localDescription);
-      }).then(function() {
-      }).catch(function(err) {
-        t.fail(err.toString());
-      });
-    })
+    pc.setRemoteDescription({type: 'offer', sdp: sdp})
     .catch(function(error) {
       callback(error);
     });
   };
 
-  // plan for 7 tests in Chrome (no getReceivers), 8 in FF and Edge.
-  t.plan(process.env.BROWSER === 'chrome' ? 7 : 8);
+  // plan for 6 tests in Chrome (no getReceivers), 7 in FF and Edge.
+  t.plan(process.env.BROWSER === 'chrome' ? 6 : 7);
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {
@@ -2148,9 +2134,7 @@ test('ontrack', function(t) {
       return callback;
     }
   })
-  .then(function(pc1ConnectionStatus) {
-    t.ok(pc1ConnectionStatus === 'completed' || 'connected',
-      'P2P connection established');
+  .then(function() {
     return driver.executeScript('return window.testPassed');
   })
   .then(function(testPassed) {
