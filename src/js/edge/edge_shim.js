@@ -1265,5 +1265,6 @@ var edgeShim = {
 // Expose public methods.
 module.exports = {
   shimPeerConnection: edgeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
+  shimGetUserMedia: require('./getusermedia'),
+  shimReplaceTrack: edgeShim.shimReplaceTrack
 };
