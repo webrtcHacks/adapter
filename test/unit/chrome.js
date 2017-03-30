@@ -23,12 +23,5 @@ describe('Chrome shim', () => {
       shim.shimPeerConnection();
       expect(window.RTCPeerConnection).not.to.equal(undefined);
     });
-
-    it('does not override window.RTCPeerConnection if it exists', () => {
-      const pc = function() {};
-      global.window.RTCPeerConnection = pc;
-      shim.shimPeerConnection();
-      expect(window.RTCPeerConnection).to.equal(pc);
-    });
   });
 });
