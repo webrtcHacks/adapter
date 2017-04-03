@@ -43,6 +43,9 @@ function filterIceServers(iceServers) {
   return iceServers.filter(function(server) {
     if (server && (server.urls || server.url)) {
       var urls = server.urls || server.url;
+      if (server.url && !server.urls) {
+        console.warn('RTCIceServer.url is deprecated! Use urls instead.');
+      }
       var isString = typeof urls === 'string';
       if (isString) {
         urls = [urls];
