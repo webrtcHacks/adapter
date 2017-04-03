@@ -479,7 +479,8 @@ var edgeShim = {
       if (send && transceiver.rtpSender) {
         params.encodings = transceiver.sendEncodingParameters;
         params.rtcp = {
-          cname: SDPUtils.localCName
+          cname: SDPUtils.localCName,
+          compound: transceiver.rtcpParameters.compound
         };
         if (transceiver.recvEncodingParameters.length) {
           params.rtcp.ssrc = transceiver.recvEncodingParameters[0].ssrc;
@@ -497,7 +498,8 @@ var edgeShim = {
         }
         params.encodings = transceiver.recvEncodingParameters;
         params.rtcp = {
-          cname: transceiver.cname
+          cname: transceiver.rtcpParameters.cname,
+          compound: transceiver.rtcpParameters.compound
         };
         if (transceiver.sendEncodingParameters.length) {
           params.rtcp.ssrc = transceiver.sendEncodingParameters[0].ssrc;
@@ -676,19 +678,7 @@ var edgeShim = {
             recvEncodingParameters =
                 SDPUtils.parseRtpEncodingParameters(mediaSection);
 
-            var cname;
-            // Gets the first SSRC. Note that with RTX there might be multiple
-            // SSRCs.
-            var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-                .map(function(line) {
-                  return SDPUtils.parseSsrcMedia(line);
-                })
-                .filter(function(obj) {
-                  return obj.attribute === 'cname';
-                })[0];
-            if (remoteSsrc) {
-              cname = remoteSsrc.value;
-            }
+            var rtcpParameters = SDPUtils.parseRtcpParameters(mediaSection);
 
             var isComplete = SDPUtils.matchPrefix(mediaSection,
                 'a=end-of-candidates', sessionpart).length > 0;
@@ -767,7 +757,7 @@ var edgeShim = {
                 rtpReceiver: rtpReceiver,
                 kind: kind,
                 mid: mid,
-                cname: cname,
+                rtcpParameters: rtcpParameters,
                 sendEncodingParameters: sendEncodingParameters,
                 recvEncodingParameters: recvEncodingParameters
               };
@@ -799,7 +789,7 @@ var edgeShim = {
                   recvEncodingParameters;
               self.transceivers[sdpMLineIndex].remoteCapabilities =
                   remoteCapabilities;
-              self.transceivers[sdpMLineIndex].cname = cname;
+              self.transceivers[sdpMLineIndex].rtcpParameters = rtcpParameters;
 
               if ((isIceLite || isComplete) && cands.length) {
                 iceTransport.setRemoteCandidates(cands);
@@ -1115,6 +1105,7 @@ var edgeShim = {
         var transceiver = transceivers[sdpMLineIndex];
         sdp += SDPUtils.writeMediaSection(transceiver,
             transceiver.localCapabilities, 'offer', self.localStreams[0]);
+        sdp += 'a=rtcp-rsize\r\n';
       });
 
       this._pendingOffer = transceivers;
@@ -1158,6 +1149,10 @@ var edgeShim = {
 
         sdp += SDPUtils.writeMediaSection(transceiver, commonCapabilities,
             'answer', self.localStreams[0]);
+        if (transceiver.rtcpParameters &&
+            transceiver.rtcpParameters.reducedSize) {
+          sdp += 'a=rtcp-rsize\r\n';
+        }
       });
 
       var desc = new RTCSessionDescription({

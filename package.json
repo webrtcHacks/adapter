@@ -19,7 +19,7 @@
     "test": "grunt && mocha test/unit && node test/run-tests.js"
   },
   "dependencies": {
-    "sdp": "^1.3.0"
+    "sdp": "^1.4.0"
   },
   "engines": {
     "npm": ">=3.10.0",

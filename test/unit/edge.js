@@ -919,6 +919,46 @@ describe('Edge shim', () => {
         });
       });
     });
+
+    describe('rtcp-rsize is', () => {
+      const sdp = 'v=0\r\no=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
+          's=-\r\nt=0 0\r\na=msid-semantic: WMS\r\n' +
+          'm=audio 9 UDP/TLS/RTP/SAVPF 98\r\n' +
+          'c=IN IP4 0.0.0.0\r\n' +
+          'a=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:foo\r\na=ice-pwd:bar\r\n' +
+          'a=fingerprint:sha-256 so:me:co:lo:ns\r\n' +
+          'a=setup:actpass\r\n' +
+          'a=mid:audio1\r\n' +
+          'a=sendrecv\r\na=rtcp-mux\r\n' +
+          'a=rtcp-rsize\r\n' +
+          'a=rtpmap:98 opus/48000\r\n' +
+          'a=ssrc:1001 msid:stream1 track1\r\n' +
+          'a=ssrc:1001 cname:some\r\n';
+
+      it('set if the offer contained rtcp-rsize', (done) => {
+        pc.setRemoteDescription({type: 'offer', sdp: sdp})
+        .then(() => {
+          return pc.createAnswer();
+        })
+        .then((answer) => {
+          console.log(answer.sdp);
+          expect(answer.sdp).to.contain('a=rtcp-rsize\r\n');
+          done();
+        });
+      });
+
+      it('not set if the offer did not contain rtcp-rsize', (done) => {
+        pc.setRemoteDescription({type: 'offer',
+            sdp: sdp.replace('a=rtcp-rsize\r\n', '')})
+        .then(() => {
+          return pc.createAnswer();
+        })
+        .then((answer) => {
+          expect(answer.sdp).not.to.contain('a=rtcp-rsize\r\n');
+          done();
+        });
+      });
+    });
   });
 
   describe('bundlePolicy', () => {
