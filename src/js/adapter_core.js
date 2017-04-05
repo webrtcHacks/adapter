@@ -89,6 +89,7 @@
       // Export to the adapter global object visible in the browser.
       module.exports.browserShim = safariShim;
 
+      safariShim.shimOnAddStream();
       safariShim.shimGetUserMedia();
       break;
     default:
