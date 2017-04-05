@@ -125,6 +125,7 @@ var edgeShim = {
       this.onicegatheringstatechange = null;
       this.onnegotiationneeded = null;
       this.ondatachannel = null;
+      this.canTrickleIceCandidates = null;
 
       this.localStreams = [];
       this.remoteStreams = [];
@@ -633,6 +634,15 @@ var edgeShim = {
               'a=ice-lite').length > 0;
           var usingBundle = SDPUtils.matchPrefix(sessionpart,
               'a=group:BUNDLE ').length > 0;
+          var iceOptions = SDPUtils.matchPrefix(sessionpart,
+              'a=ice-options:')[0];
+          if (iceOptions) {
+            this.canTrickleIceCandidates = iceOptions.substr(14).split(' ')
+                .indexOf('trickle') >= 0;
+          } else {
+            this.canTrickleIceCandidates = false;
+          }
+
           sections.forEach(function(mediaSection, sdpMLineIndex) {
             var lines = SDPUtils.splitLines(mediaSection);
             var mline = lines[0].substr(2).split(' ');
@@ -1146,6 +1156,7 @@ var edgeShim = {
           return t.mid;
         }).join(' ') + '\r\n';
       }
+      sdp += 'a=ice-options:trickle\r\n';
 
       tracks.forEach(function(mline, sdpMLineIndex) {
         var transceiver = transceivers[sdpMLineIndex];
