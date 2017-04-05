@@ -449,6 +449,31 @@ describe('Edge shim', () => {
 
     // TODO: add a test for recvonly to show it doesn't trigger the callback.
     //   probably easiest done using a sinon.stub
+    //
+    describe('sets the canTrickleIceCandidates property', () => {
+      it('to true when called with an offer that contains ' +
+          'a=ice-options:trickle', (done) => {
+        const sdp = 'v=0\r\no=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
+            's=-\r\nt=0 0\r\na=msid-semantic: WMS\r\n' +
+            'a=ice-options:trickle\r\n';
+        pc.setRemoteDescription({type: 'offer', sdp: sdp})
+        .then(() => {
+          expect(pc.canTrickleIceCandidates).to.equal(true);
+          done();
+        });
+      });
+
+      it('to false when called with an offer that does not contain ' +
+          'a=ice-options:trickle', (done) => {
+        const sdp = 'v=0\r\no=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
+            's=-\r\nt=0 0\r\na=msid-semantic: WMS\r\n';
+        pc.setRemoteDescription({type: 'offer', sdp: sdp})
+        .then(() => {
+          expect(pc.canTrickleIceCandidates).to.equal(false);
+          done();
+        });
+      });
+    });
   });
 
   describe('createOffer', () => {
@@ -941,7 +966,6 @@ describe('Edge shim', () => {
           return pc.createAnswer();
         })
         .then((answer) => {
-          console.log(answer.sdp);
           expect(answer.sdp).to.contain('a=rtcp-rsize\r\n');
           done();
         });
