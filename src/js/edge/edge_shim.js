@@ -37,7 +37,7 @@ function sortTracks(tracks) {
 // 2) turn: that does not have all of turn:host:port?transport=udp
 // 3) turn: with ipv6 addresses
 // 4) turn: occurring muliple times
-function filterIceServers(iceServers) {
+function filterIceServers(iceServers, edgeVersion) {
   var hasTurn = false;
   iceServers = JSON.parse(JSON.stringify(iceServers));
   return iceServers.filter(function(server) {
@@ -60,8 +60,7 @@ function filterIceServers(iceServers) {
           hasTurn = true;
           return true;
         }
-        return url.indexOf('stun:') === 0 &&
-            browserDetails.version >= 14393;
+        return url.indexOf('stun:') === 0 && edgeVersion >= 14393;
       });
 
       delete server.url;
@@ -166,7 +165,8 @@ var edgeShim = {
       this.usingBundle = config && config.bundlePolicy === 'max-bundle';
 
       if (config && config.iceServers) {
-        this.iceOptions.iceServers = filterIceServers(config.iceServers);
+        this.iceOptions.iceServers = filterIceServers(config.iceServers,
+            browserDetails.version);
       }
       this._config = config || {};
 
