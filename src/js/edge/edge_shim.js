@@ -775,6 +775,14 @@ var edgeShim = {
                     self.transceivers[0].iceTransport;
                 self.transceivers[sdpMLineIndex].dtlsTransport =
                     self.transceivers[0].dtlsTransport;
+                if (self.transceivers[sdpMLineIndex].rtpSender) {
+                  self.transceivers[sdpMLineIndex].rtpSender.setTransport(
+                      self.transceivers[0].dtlsTransport);
+                }
+                if (self.transceivers[sdpMLineIndex].rtpReceiver) {
+                  self.transceivers[sdpMLineIndex].rtpReceiver.setTransport(
+                      self.transceivers[0].dtlsTransport);
+                }
               }
               transceiver = self.transceivers[sdpMLineIndex];
               iceGatherer = transceiver.iceGatherer;
