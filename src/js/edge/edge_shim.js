@@ -132,7 +132,7 @@ function shimRTCPeerConnection(edgeVersion) {
 
     if (config && config.iceServers) {
       this.iceOptions.iceServers = filterIceServers(config.iceServers,
-          browserDetails.version);
+          edgeVersion);
     }
     this._config = config || {};
 
@@ -195,7 +195,7 @@ function shimRTCPeerConnection(edgeVersion) {
   };
 
   RTCPeerConnection.prototype.addStream = function(stream) {
-    if (browserDetails.version >= 15025) {
+    if (edgeVersion >= 15025) {
       this.localStreams.push(stream);
     } else {
       // Clone is necessary for local demos mostly, attaching directly
@@ -461,7 +461,7 @@ function shimRTCPeerConnection(edgeVersion) {
       // remove RTX field in Edge 14942
       if (transceiver.kind === 'video'
           && transceiver.recvEncodingParameters
-          && browserDetails.version < 15019) {
+          && edgeVersion < 15019) {
         transceiver.recvEncodingParameters.forEach(function(p) {
           delete p.rtx;
         });
@@ -684,7 +684,7 @@ function shimRTCPeerConnection(edgeVersion) {
 
             // filter RTX until additional stuff needed for RTX is implemented
             // in adapter.js
-            if (browserDetails.version < 15019) {
+            if (edgeVersion < 15019) {
               localCapabilities.codecs = localCapabilities.codecs.filter(
                   function(codec) {
                     return codec.name !== 'rtx';
@@ -738,7 +738,7 @@ function shimRTCPeerConnection(edgeVersion) {
               }
               if (localTrack) {
                 // add RTX
-                if (browserDetails.version >= 15019 && kind === 'video') {
+                if (edgeVersion >= 15019 && kind === 'video') {
                   sendEncodingParameters[0].rtx = {
                     ssrc: (2 * sdpMLineIndex + 2) * 1001 + 1
                   };
@@ -1073,7 +1073,7 @@ function shimRTCPeerConnection(edgeVersion) {
       var localCapabilities = RTCRtpSender.getCapabilities(kind);
       // filter RTX until additional stuff needed for RTX is implemented
       // in adapter.js
-      if (browserDetails.version < 15019) {
+      if (edgeVersion < 15019) {
         localCapabilities.codecs = localCapabilities.codecs.filter(
             function(codec) {
               return codec.name !== 'rtx';
@@ -1097,7 +1097,7 @@ function shimRTCPeerConnection(edgeVersion) {
       }];
       if (track) {
         // add RTX
-        if (browserDetails.version >= 15019 && kind === 'video') {
+        if (edgeVersion >= 15019 && kind === 'video') {
           sendEncodingParameters[0].rtx = {
             ssrc: (2 * sdpMLineIndex + 1) * 1001 + 1
           };
