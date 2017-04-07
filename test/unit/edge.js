@@ -161,6 +161,8 @@ describe('Edge shim', () => {
     let pc;
     it('filters STUN before r14393', () => {
       utils.browserDetails.version = 14392;
+      // need to re-evaluate after changing the browser version.
+      shim.shimPeerConnection();
       pc = new RTCPeerConnection({
         iceServers: [{urls: 'stun:stun.l.google.com'}]
       });
