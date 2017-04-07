@@ -557,7 +557,9 @@ var edgeShim = {
                 if (isIceLite) {
                   remoteDtlsParameters.role = 'server';
                 }
-
+                remoteDtlsParameters.fingerprints.forEach(function(fprint) {
+                  fprint.algorithm = fprint.algorithm.toLowerCase();
+                });
                 if (!self.usingBundle || sdpMLineIndex === 0) {
                   iceTransport.start(iceGatherer, remoteIceParameters,
                       isIceLite ? 'controlling' : 'controlled');
@@ -688,6 +690,9 @@ var edgeShim = {
               remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
                   sessionpart);
               remoteDtlsParameters.role = 'client';
+              remoteDtlsParameters.fingerprints.forEach(function(fprint) {
+                fprint.algorithm = fprint.algorithm.toLowerCase();
+              });
             }
             recvEncodingParameters =
                 SDPUtils.parseRtpEncodingParameters(mediaSection);
