@@ -613,12 +613,7 @@ module.exports = function(edgeVersion) {
       var direction = SDPUtils.getDirection(mediaSection, sessionpart);
       var remoteMsid = SDPUtils.parseMsid(mediaSection);
 
-      var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
-      if (mid.length) {
-        mid = mid[0].substr(6);
-      } else {
-        mid = SDPUtils.generateIdentifier();
-      }
+      var mid = SDPUtils.getMid(mediaSection) || SDPUtils.generateIdentifier();
 
       // Reject datachannels which are not implemented yet.
       if (kind === 'application' && mline[2] === 'DTLS/SCTP') {
