@@ -266,6 +266,30 @@ describe('Edge shim', () => {
         done();
       });
     });
+
+    describe('ІnvalidStateError is thrown when called with', () => {
+      it('an answer in signalingState stable', (done) => {
+        pc.setRemoteDescription({type: 'answer'})
+        .catch((e) => {
+          expect(e.name).to.equal('InvalidStateError');
+          done();
+        });
+      });
+
+      it('an offer in signalingState have-local-offer', (done) => {
+        pc.createOffer({offerToReceiveAudio: 1})
+        .then((offer) => {
+          return pc.setLocalDescription(offer);
+        })
+        .then(() => {
+          return pc.setRemoteDescription({type: 'offer'});
+        })
+        .catch((e) => {
+          expect(e.name).to.equal('InvalidStateError');
+          done();
+        });
+      });
+    });
   });
 
   describe('setRemoteDescription', () => {
@@ -476,6 +500,30 @@ describe('Edge shim', () => {
         pc.setRemoteDescription({type: 'offer', sdp: sdp})
         .then(() => {
           expect(pc.canTrickleIceCandidates).to.equal(false);
+          done();
+        });
+      });
+    });
+
+    describe('ІnvalidStateError is thrown when called with', () => {
+      it('an answer in signalingState stable', (done) => {
+        pc.setRemoteDescription({type: 'answer'})
+        .catch((e) => {
+          expect(e.name).to.equal('InvalidStateError');
+          done();
+        });
+      });
+
+      it('an offer in signalingState have-local-offer', (done) => {
+        pc.createOffer({offerToReceiveAudio: 1})
+        .then((offer) => {
+          return pc.setLocalDescription(offer);
+        })
+        .then(() => {
+          return pc.setRemoteDescription({type: 'offer'});
+        })
+        .catch((e) => {
+          expect(e.name).to.equal('InvalidStateError');
           done();
         });
       });
