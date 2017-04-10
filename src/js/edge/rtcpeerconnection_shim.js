@@ -509,8 +509,7 @@ module.exports = function(edgeVersion) {
         var localCapabilities = transceiver.localCapabilities;
         var remoteCapabilities = transceiver.remoteCapabilities;
 
-        var rejected = mediaSection.split('\n', 1)[0]
-            .split(' ', 2)[1] === '0';
+        var rejected = SDPUtils.isRejected(mediaSection);
 
         if (!rejected && !transceiver.isDatachannel) {
           var remoteIceParameters = SDPUtils.getIceParameters(
@@ -607,9 +606,10 @@ module.exports = function(edgeVersion) {
 
     sections.forEach(function(mediaSection, sdpMLineIndex) {
       var lines = SDPUtils.splitLines(mediaSection);
-      var mline = lines[0].substr(2).split(' ');
-      var kind = mline[0];
-      var rejected = mline[1] === '0';
+      var kind = SDPUtils.getKind(mediaSection);
+      var rejected = SDPUtils.isRejected(mediaSection);
+      var protocol = lines[0].substr(2).split(' ')[2];
+
       var direction = SDPUtils.getDirection(mediaSection, sessionpart);
       var remoteMsid = SDPUtils.parseMsid(mediaSection);
 
@@ -621,7 +621,7 @@ module.exports = function(edgeVersion) {
       }
 
       // Reject datachannels which are not implemented yet.
-      if (kind === 'application' && mline[2] === 'DTLS/SCTP') {
+      if (kind === 'application' && protocol === 'DTLS/SCTP') {
         self.transceivers[sdpMLineIndex] = {
           mid: mid,
           isDatachannel: true
