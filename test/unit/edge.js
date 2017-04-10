@@ -524,6 +524,30 @@ describe('Edge shim', () => {
           done();
         });
       });
+      it('= true the generated SDP should contain one audio m-line', (done) => {
+        pc.createOffer({offerToReceiveAudio: true})
+        .then((offer) => {
+          const sections = SDPUtils.splitSections(offer.sdp);
+          expect(sections.length).to.equal(2);
+          expect(SDPUtils.getDirection(sections[1])).to.equal('recvonly');
+          done();
+        });
+      });
+      it('= false the generated SDP should not offer to receive ' +
+          'audio', (done) => {
+        const audioTrack = new MediaStreamTrack();
+        audioTrack.kind = 'audio';
+        const stream = new MediaStream([audioTrack]);
+
+        pc.addStream(stream);
+        pc.createOffer({offerToReceiveAudio: false})
+        .then((offer) => {
+          const sections = SDPUtils.splitSections(offer.sdp);
+          expect(sections.length).to.equal(2);
+          expect(SDPUtils.getDirection(sections[1])).to.equal('sendonly');
+          done();
+        });
+      });
     });
 
     describe('when called with offerToReceiveVideo', () => {
