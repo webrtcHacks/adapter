@@ -529,22 +529,27 @@ module.exports = function() {
             navigator.mediaDevices.getSupportedConstraints().facingMode &&
             !getSupportedFacingModeLies)) {
         delete constraints.video.facingMode;
-        var match;
+        var matches;
         if (face.exact === 'environment' || face.ideal === 'environment') {
-          match = 'back';
+          matches = ['back', 'rear'];
         } else if (face.exact === 'user' || face.ideal === 'user') {
-          match = 'front';
+          matches = ['front'];
         }
-        if (match) {
-          // Look for match in label.
+        if (matches) {
+          // Look for matches in label, or use last cam for back (typical).
           return navigator.mediaDevices.enumerateDevices()
           .then(function(devices) {
             devices = devices.filter(function(d) {
               return d.kind === 'videoinput';
             });
             var dev = devices.find(function(d) {
-              return d.label.toLowerCase().indexOf(match) !== -1;
+              return matches.some(function(match) {
+                return d.label.toLowerCase().indexOf(match) !== -1;
+              });
             });
+            if (!dev && devices.length && matches.indexOf('back') !== -1) {
+              dev = devices[devices.length - 1]; // more likely the back cam
+            }
             if (dev) {
               constraints.video.deviceId = face.exact ? {exact: dev.deviceId} :
                                                         {ideal: dev.deviceId};
