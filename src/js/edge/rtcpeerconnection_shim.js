@@ -999,10 +999,22 @@ module.exports = function(edgeVersion) {
             'Legacy mandatory/optional constraints not supported.');
       }
       if (offerOptions.offerToReceiveAudio !== undefined) {
-        numAudioTracks = offerOptions.offerToReceiveAudio;
+        if (offerOptions.offerToReceiveAudio === true) {
+          numAudioTracks = 1;
+        } else if (offerOptions.offerToReceiveAudio === false) {
+          numAudioTracks = 0;
+        } else {
+          numAudioTracks = offerOptions.offerToReceiveAudio;
+        }
       }
       if (offerOptions.offerToReceiveVideo !== undefined) {
-        numVideoTracks = offerOptions.offerToReceiveVideo;
+        if (offerOptions.offerToReceiveVideo === true) {
+          numVideoTracks = 1;
+        } else if (offerOptions.offerToReceiveVideo === false) {
+          numVideoTracks = 0;
+        } else {
+          numVideoTracks = offerOptions.offerToReceiveVideo;
+        }
       }
     }
 
