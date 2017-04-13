@@ -68,7 +68,8 @@ var chromeShim = {
       var origAddStream = RTCPeerConnection.prototype.addStream;
       var origRemoveStream = RTCPeerConnection.prototype.removeStream;
 
-      RTCPeerConnection.prototype.addTrack = function(track, ...streams) {
+      RTCPeerConnection.prototype.addTrack = function(track) {
+        var streams = [].slice.call(arguments, 1);
         var pc = this;
         if (pc.signalingState === 'closed') {
           throw new DOMException(
