@@ -53,8 +53,13 @@ var chromeShim = {
     }
   },
 
-  shimGetSendersWithDtmf: function() {
+  // This shim is only sufficient to substitute existing addStream use with
+  // addTrack in existing samples. It does not add the full power of addTrack,
+  // and tries to fail if used that way.
+
+  shimAddTrackAndSendersWithDtmf: function() {
     if (typeof window === 'object' && window.RTCPeerConnection &&
+        !('addTrack' in RTCPeerConnection.prototype) &&
         !('getSenders' in RTCPeerConnection.prototype) &&
         'createDTMFSender' in RTCPeerConnection.prototype) {
       RTCPeerConnection.prototype.getSenders = function() {
@@ -63,24 +68,62 @@ var chromeShim = {
       var origAddStream = RTCPeerConnection.prototype.addStream;
       var origRemoveStream = RTCPeerConnection.prototype.removeStream;
 
+      RTCPeerConnection.prototype.addTrack = function(track, ...streams) {
+        var pc = this;
+        if (pc.signalingState === 'closed') {
+          throw new DOMException(
+            'The RTCPeerConnection\'s signalingState is \'closed\'.',
+            'InvalidStateError');
+        }
+        if (streams.length !== 1 ||
+            !streams[0].getTracks().find(t => t === track)) {
+          throw new DOMException(
+            'The adapter.js addTrack polyfill only has addStream to work with.',
+            'NotSupportedError');
+        }
+        pc._senders = pc._senders || [];
+        if (pc._senders.find(t => t === track)) {
+          throw new DOMException('Track already exists.', 'InvalidAccessError');
+        }
+        var sender = {
+          track: track,
+          get dtmf() {
+            if (this._dtmf === undefined) {
+              if (track.kind === 'audio') {
+                this._dtmf = pc.createDTMFSender(track);
+              } else {
+                this._dtmf = null;
+              }
+            }
+            return this._dtmf;
+          }
+        };
+        pc._senders.push(sender);
+        // Only call addStream once all tracks of a stream have been added.
+        var stream = streams[0];
+        var tracks = stream.getTracks();
+        if (tracks.every(t => pc._senders.find(sndr => sndr.track === t))) {
+          origAddStream.apply(pc, [stream]);
+        }
+        // Emit an error if this doesn't happen by the end of this run.
+        Promise.resolve().then(() => {
+          if (!tracks.every(t => pc._senders.find(sndr => sndr.track === t))) {
+            throw new DOMException(
+              'The adapter.js addTrack polyfill requires all tracks be added.',
+              'NotSupportedError');
+          }
+        })
+        .catch(e => setTimeout(() => {
+          throw e;
+        }));
+        return sender;
+      };
+
       RTCPeerConnection.prototype.addStream = function(stream) {
         var pc = this;
         pc._senders = pc._senders || [];
         origAddStream.apply(pc, [stream]);
         stream.getTracks().forEach(function(track) {
-          pc._senders.push({
-            track: track,
-            get dtmf() {
-              if (this._dtmf === undefined) {
-                if (track.kind === 'audio') {
-                  this._dtmf = pc.createDTMFSender(track);
-                } else {
-                  this._dtmf = null;
-                }
-              }
-              return this._dtmf;
-            }
-          });
         });
       };
 
@@ -337,7 +380,7 @@ var chromeShim = {
 module.exports = {
   shimMediaStream: chromeShim.shimMediaStream,
   shimOnTrack: chromeShim.shimOnTrack,
-  shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
+  shimAddTrackAndSendersWithDtmf: chromeShim.shimAddTrackAndSendersWithDtmf,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
   shimGetUserMedia: require('./getusermedia')

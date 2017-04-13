@@ -49,7 +49,7 @@
       chromeShim.shimSourceObject();
       chromeShim.shimPeerConnection();
       chromeShim.shimOnTrack();
-      chromeShim.shimGetSendersWithDtmf();
+      chromeShim.shimAddTrackAndSendersWithDtmf();
       break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection) {
