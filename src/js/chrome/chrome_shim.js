@@ -120,11 +120,7 @@ var chromeShim = {
       };
 
       RTCPeerConnection.prototype.addStream = function(stream) {
-        var pc = this;
-        pc._senders = pc._senders || [];
-        origAddStream.apply(pc, [stream]);
-        stream.getTracks().forEach(function(track) {
-        });
+        stream.getTracks().forEach(track => this.addTrack(track, stream));
       };
 
       RTCPeerConnection.prototype.removeStream = function(stream) {
