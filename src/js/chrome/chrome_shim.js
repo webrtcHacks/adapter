@@ -80,6 +80,65 @@ var chromeShim = {
       var origAddStream = RTCPeerConnection.prototype.addStream;
       var origRemoveStream = RTCPeerConnection.prototype.removeStream;
 
+      if (!RTCPeerConnection.prototype.addTrack) {
+        RTCPeerConnection.prototype.addTrack = function(track, stream) {
+          var pc = this;
+          if (pc.signalingState === 'closed') {
+            throw new DOMException(
+              'The RTCPeerConnection\'s signalingState is \'closed\'.',
+              'InvalidStateError');
+          }
+          var streams = [].slice.call(arguments, 1);
+          if (streams.length !== 1 ||
+              !streams[0].getTracks().find(function(t) {
+                return t === track;
+              })) {
+            // this is not fully correct but all we can manage without
+            // [[associated MediaStreams]] internal slot.
+            throw new DOMException(
+              'The adapter.js addTrack polyfill only supports a single ' +
+              ' stream which is associated with the specified track.',
+              'NotSupportedError');
+          }
+
+          pc._senders = pc._senders || [];
+          var alreadyExists = pc._senders.find(function(t) {
+            return t.track === track;
+          });
+          if (alreadyExists) {
+            throw new DOMException('Track already exists.',
+                'InvalidAccessError');
+          }
+
+          pc._streams = pc._streams || {};
+          var oldStream = pc._streams[stream.id];
+          if (oldStream) {
+            oldStream.addTrack(track);
+            pc.removeStream(oldStream);
+            pc.addStream(oldStream);
+          } else {
+            var newStream = new MediaStream([track]);
+            pc._streams[stream.id] = newStream;
+            pc.addStream(newStream);
+          }
+
+          var sender = {
+            track: track,
+            get dtmf() {
+              if (this._dtmf === undefined) {
+                if (track.kind === 'audio') {
+                  this._dtmf = pc.createDTMFSender(track);
+                } else {
+                  this._dtmf = null;
+                }
+              }
+              return this._dtmf;
+            }
+          };
+          pc._senders.push(sender);
+          return sender;
+        };
+      }
       RTCPeerConnection.prototype.addStream = function(stream) {
         var pc = this;
         pc._senders = pc._senders || [];
