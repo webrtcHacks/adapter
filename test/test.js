@@ -1121,7 +1121,7 @@ test('Basic connection establishment', function(t) {
     var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
-      pc1.addStream(stream);
+      stream.getTracks().forEach(track => pc1.addTrack(track, stream));
 
       pc1.createOffer(
         function(offer) {
@@ -1270,7 +1270,7 @@ test('Basic connection establishment with promise', function(t) {
     var constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
-      pc1.addStream(stream);
+      stream.getTracks().forEach(track => pc1.addTrack(track, stream));
       pc1.createOffer().then(function(offer) {
         tc.pass('pc1.createOffer');
         return pc1.setLocalDescription(dictionary(offer));
@@ -1517,7 +1517,7 @@ test('video loadedmetadata is called for a video call', function(t) {
     var constraints = {audio: true, video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
-      pc1.addStream(stream);
+      stream.getTracks().forEach(track => pc1.addTrack(track, stream));
       pc1.createOffer().then(function(offer) {
         tc.pass('pc1.createOffer');
         return pc1.setLocalDescription(dictionary(offer));
@@ -1599,7 +1599,7 @@ test('dtmf', t => {
 
     navigator.mediaDevices.getUserMedia({audio: true})
     .then(stream => {
-      pc1.addStream(stream);
+      stream.getTracks().forEach(track => pc1.addTrack(track, stream));
       return new Promise(resolve => pc1.oniceconnectionstatechange =
         e => pc1.iceConnectionState === 'connected' && resolve())
       .then(() => {
@@ -2053,7 +2053,7 @@ test('iceTransportPolicy relay functionality',
         var constraints = {video: true, fake: true};
         navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
-          pc1.addStream(stream);
+          stream.getTracks().forEach(track => pc1.addTrack(track, stream));
           pc1.createOffer().then(function(offer) {
             return pc1.setLocalDescription(offer);
           })
@@ -2119,7 +2119,7 @@ test('icegatheringstatechange event',
         var constraints = {video: true, fake: true};
         navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
-          pc1.addStream(stream);
+          stream.getTracks().forEach(track => pc1.addTrack(track, stream));
           pc1.createOffer().then(function(offer) {
             return pc1.setLocalDescription(offer);
           });
