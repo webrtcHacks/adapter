@@ -143,6 +143,8 @@ module.exports = function(edgeVersion) {
     // must not emit candidates until after setLocalDescription we buffer
     // them in this array.
     this._localIceCandidatesBuffer = [];
+
+    this._tracks = [];
   };
 
   RTCPeerConnection.prototype._emitGatheringStateChange = function() {
@@ -193,7 +195,38 @@ module.exports = function(edgeVersion) {
     return this._config;
   };
 
+  RTCPeerConnection.prototype.addTrack = function(track, stream) {
+    if (edgeVersion >= 15025) {
+      this.localStreams.push(stream);
+    } else {
+      // Clone is necessary for local demos mostly, attaching directly
+      // to two different senders does not work (build 10547).
+      // Fixed in 15025 (or earlier)
+      var clonedStream = stream.clone();
+      stream.getTracks().forEach(function(t, idx) {
+        var clonedTrack = clonedStream.getTracks()[idx];
+        t.addEventListener('enabled', function(event) {
+          clonedTrack.enabled = event.enabled;
+        });
+      });
+      this.localStreams.push(clonedStream);
+      stream = clonedStream;
+    }
+
+    var sender = new RTCRtpSender(track, null);
+    this._tracks.push({
+      kind: track.kind,
+      track: track,
+      stream: stream,
+      wantReceive: true,
+      sender: sender
+    });
+    this._maybeFireNegotiationNeeded();
+    return track;
+  };
+
   RTCPeerConnection.prototype.addStream = function(stream) {
+    var self = this;
     if (edgeVersion >= 15025) {
       this.localStreams.push(stream);
     } else {
@@ -208,7 +241,17 @@ module.exports = function(edgeVersion) {
         });
       });
       this.localStreams.push(clonedStream);
+      stream = clonedStream;
     }
+    stream.getTracks().forEach(function(track) {
+      self._tracks.push({
+        kind: track.kind,
+        track: track,
+        stream: stream,
+        wantReceive: true,
+        sender: new RTCRtpSender(track, null)
+      });
+    });
     this._maybeFireNegotiationNeeded();
   };
 
@@ -221,11 +264,8 @@ module.exports = function(edgeVersion) {
   };
 
   RTCPeerConnection.prototype.getSenders = function() {
-    return this.transceivers.filter(function(transceiver) {
-      return !!transceiver.rtpSender;
-    })
-    .map(function(transceiver) {
-      return transceiver.rtpSender;
+    return this._tracks.map(function(track) {
+      return track.sender;
     });
   };
 
@@ -982,15 +1022,14 @@ module.exports = function(edgeVersion) {
     var tracks = [];
     var numAudioTracks = 0;
     var numVideoTracks = 0;
-    // Default to sendrecv.
-    if (this.localStreams.length) {
-      numAudioTracks = this.localStreams.reduce(function(numTracks, stream) {
-        return numTracks + stream.getAudioTracks().length;
-      }, 0);
-      numVideoTracks = this.localStreams.reduce(function(numTracks, stream) {
-        return numTracks + stream.getVideoTracks().length;
-      }, 0);
-    }
+    this._tracks.forEach(function(track) {
+      if (track.kind === 'audio') {
+        numAudioTracks++;
+      } else {
+        numVideoTracks++;
+      }
+    });
+
     // Determine number of audio and video tracks we need to send/recv.
     if (offerOptions) {
       // Reject Chrome legacy constraints.
@@ -1018,22 +1057,20 @@ module.exports = function(edgeVersion) {
       }
     }
 
-    // Push local streams.
-    this.localStreams.forEach(function(localStream) {
-      localStream.getTracks().forEach(function(track) {
-        tracks.push({
-          kind: track.kind,
-          track: track,
-          stream: localStream,
-          wantReceive: track.kind === 'audio' ?
-              numAudioTracks > 0 : numVideoTracks > 0
-        });
-        if (track.kind === 'audio') {
-          numAudioTracks--;
-        } else if (track.kind === 'video') {
-          numVideoTracks--;
-        }
+    this._tracks.forEach(function(track) {
+      tracks.push({
+        kind: track.kind,
+        track: track.track,
+        stream: track.stream,
+        sender: track.sender,
+        wantReceive: track.kind === 'audio' ?
+            numAudioTracks > 0 : numVideoTracks > 0
       });
+      if (track.kind === 'audio') {
+        numAudioTracks--;
+      } else if (track.kind === 'video') {
+        numVideoTracks--;
+      }
     });
 
     // Create M-lines for recvonly streams.
@@ -1089,7 +1126,7 @@ module.exports = function(edgeVersion) {
         }
       });
 
-      var rtpSender;
+      var rtpSender = mline.sender;
       var rtpReceiver;
 
       // generate an ssrc now, to be used later in rtpSender.send
@@ -1103,7 +1140,12 @@ module.exports = function(edgeVersion) {
             ssrc: (2 * sdpMLineIndex + 1) * 1001 + 1
           };
         }
-        rtpSender = new RTCRtpSender(track, transports.dtlsTransport);
+        if (rtpSender) {
+          rtpSender.setTransport(transports.dtlsTransport);
+        } else {
+          // TODO: can this still happen?
+          rtpSender = new RTCRtpSender(track, transports.dtlsTransport);
+        }
       }
 
       if (mline.wantReceive) {
