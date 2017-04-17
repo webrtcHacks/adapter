@@ -114,6 +114,7 @@ function mockORTC() {
   global.RTCRtpSender = function(track, transport) {
     this.track = track;
     this.transport = transport;
+    this.setTransport = function() {};
   };
   RTCRtpSender.getCapabilities = getCapabilities;
 
@@ -718,6 +719,149 @@ describe('Edge shim', () => {
         });
       });
     });
+
+    describe('when called after addTrack', () => {
+      describe('with an audio track', () => {
+        it('the generated SDP should contain an audio m-line', (done) => {
+          const audioTrack = new MediaStreamTrack();
+          audioTrack.kind = 'audio';
+          const stream = new MediaStream([audioTrack]);
+
+          pc.addTrack(audioTrack, stream);
+          pc.createOffer()
+          .then((offer) => {
+            const sections = SDPUtils.splitSections(offer.sdp);
+            expect(sections.length).to.equal(2);
+            expect(SDPUtils.getDirection(sections[1])).to.equal('sendrecv');
+            done();
+          });
+        });
+      });
+
+      describe('with an audio track not offering to receive audio', () => {
+        it('the generated SDP should contain a sendonly audio ' +
+            'm-line', (done) => {
+          const audioTrack = new MediaStreamTrack();
+          audioTrack.kind = 'audio';
+          const stream = new MediaStream([audioTrack]);
+
+          pc.addTrack(audioTrack, stream);
+          pc.createOffer({offerToReceiveAudio: 0})
+          .then((offer) => {
+            const sections = SDPUtils.splitSections(offer.sdp);
+            expect(sections.length).to.equal(2);
+            expect(SDPUtils.getDirection(sections[1])).to.equal('sendonly');
+            done();
+          });
+        });
+      });
+
+      describe('with an audio track and offering to receive video', () => {
+        it('the generated SDP should contain a recvonly m-line', (done) => {
+          const audioTrack = new MediaStreamTrack();
+          audioTrack.kind = 'audio';
+          const stream = new MediaStream([audioTrack]);
+
+          pc.addTrack(audioTrack, stream);
+          pc.createOffer({offerToReceiveVideo: 1})
+          .then((offer) => {
+            const sections = SDPUtils.splitSections(offer.sdp);
+            expect(sections.length).to.equal(3);
+            expect(SDPUtils.getKind(sections[1])).to.equal('audio');
+            expect(SDPUtils.getDirection(sections[1])).to.equal('sendrecv');
+            expect(SDPUtils.getKind(sections[2])).to.equal('video');
+            expect(SDPUtils.getDirection(sections[2])).to.equal('recvonly');
+            done();
+          });
+        });
+      });
+
+      describe('with a video track', () => {
+        it('the generated SDP should contain an video m-line', (done) => {
+          const videoTrack = new MediaStreamTrack();
+          videoTrack.kind = 'video';
+          const stream = new MediaStream([videoTrack]);
+
+          pc.addTrack(videoTrack, stream);
+          pc.createOffer()
+          .then((offer) => {
+            const sections = SDPUtils.splitSections(offer.sdp);
+            expect(sections.length).to.equal(2);
+            expect(SDPUtils.getKind(sections[1])).to.equal('video');
+            done();
+          });
+        });
+      });
+
+      describe('with a video track and offerToReceiveAudio', () => {
+        it('the generated SDP should contain an audio and a ' +
+            'video m-line', (done) => {
+          const videoTrack = new MediaStreamTrack();
+          videoTrack.kind = 'video';
+          const stream = new MediaStream([videoTrack]);
+
+          pc.addTrack(videoTrack, stream);
+          pc.createOffer({offerToReceiveAudio: 1})
+          .then((offer) => {
+            const sections = SDPUtils.splitSections(offer.sdp);
+            expect(sections.length).to.equal(3);
+            expect(SDPUtils.getKind(sections[1])).to.equal('audio');
+            expect(SDPUtils.getKind(sections[2])).to.equal('video');
+            done();
+          });
+        });
+      });
+
+
+      describe('with an audio track and a video track', () => {
+        it('the generated SDP should contain an audio and video ' +
+            'm-line', (done) => {
+          const audioTrack = new MediaStreamTrack();
+          audioTrack.kind = 'audio';
+          const videoTrack = new MediaStreamTrack();
+          videoTrack.kind = 'video';
+          const stream = new MediaStream([audioTrack, videoTrack]);
+
+          pc.addTrack(audioTrack, stream);
+          pc.addTrack(videoTrack, stream);
+          pc.createOffer()
+          .then((offer) => {
+            const sections = SDPUtils.splitSections(offer.sdp);
+            expect(sections.length).to.equal(3);
+            expect(SDPUtils.getKind(sections[1])).to.equal('audio');
+            expect(SDPUtils.getKind(sections[2])).to.equal('video');
+            done();
+          });
+        });
+      });
+
+      describe('with an audio track and two video tracks', () => {
+        it('the generated SDP should contain an audio and ' +
+            'video m-line', (done) => {
+          const audioTrack = new MediaStreamTrack();
+          audioTrack.kind = 'audio';
+          const videoTrack = new MediaStreamTrack();
+          videoTrack.kind = 'video';
+          const videoTrack2 = new MediaStreamTrack();
+          videoTrack2.kind = 'video';
+          const stream = new MediaStream([audioTrack, videoTrack]);
+          const stream2 = new MediaStream([videoTrack2]);
+
+          pc.addTrack(audioTrack, stream);
+          pc.addTrack(videoTrack, stream);
+          pc.addTrack(videoTrack2, stream2);
+          pc.createOffer()
+          .then((offer) => {
+            const sections = SDPUtils.splitSections(offer.sdp);
+            expect(sections.length).to.equal(4);
+            expect(SDPUtils.getKind(sections[1])).to.equal('audio');
+            expect(SDPUtils.getKind(sections[2])).to.equal('video');
+            expect(SDPUtils.getKind(sections[3])).to.equal('video');
+            done();
+          });
+        });
+      });
+    });
   });
 
   describe('createAnswer', () => {
@@ -1030,6 +1174,50 @@ describe('Edge shim', () => {
         expect(offer.sdp).not.to.contain('a=group:BUNDLE');
         done();
       });
+    });
+  });
+
+  describe('negotationneeded', () => {
+    it('fires asynchronously after addTrack', (done) => {
+      const pc = new RTCPeerConnection();
+
+      const audioTrack = new MediaStreamTrack();
+      audioTrack.kind = 'audio';
+      const videoTrack = new MediaStreamTrack();
+      videoTrack.kind = 'video';
+      const stream = new MediaStream([audioTrack, videoTrack]);
+
+      pc.onnegotiationneeded = function(e) {
+        pc.createOffer()
+        .then((offer) => {
+          const sections = SDPUtils.splitSections(offer.sdp);
+          expect(sections.length).to.equal(3);
+          done();
+        });
+      };
+      stream.getTracks().forEach((t) => {
+        pc.addTrack(t, stream);
+      });
+    });
+
+    it('fires asynchronously after addStream', (done) => {
+      const pc = new RTCPeerConnection();
+
+      const audioTrack = new MediaStreamTrack();
+      audioTrack.kind = 'audio';
+      const videoTrack = new MediaStreamTrack();
+      videoTrack.kind = 'video';
+      const stream = new MediaStream([audioTrack, videoTrack]);
+
+      pc.onnegotiationneeded = function(e) {
+        pc.createOffer()
+        .then((offer) => {
+          const sections = SDPUtils.splitSections(offer.sdp);
+          expect(sections.length).to.equal(3);
+          done();
+        });
+      };
+      pc.addStream(stream);
     });
   });
 });
