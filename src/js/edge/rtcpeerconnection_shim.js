@@ -71,6 +71,10 @@ function filterIceServers(iceServers, edgeVersion) {
 }
 
 module.exports = function(edgeVersion) {
+  if (window.RTCPeerConnection) {
+    return RTCPeerConnection;
+  }
+
   var RTCPeerConnection = function(config) {
     var self = this;
 
