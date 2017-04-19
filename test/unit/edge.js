@@ -47,8 +47,11 @@ function mockORTC() {
       };
     };
   };
-  global.RTCIceTransport = function() {};
+  global.RTCIceTransport = function() {
+    this.start = function() {};
+  };
   global.RTCDtlsTransport = function() {
+    this.start = function() {};
     this.getLocalParameters = function() {
       return {
         role: 'auto',
@@ -67,7 +70,7 @@ function mockORTC() {
     this.track.kind = kind;
     this.transport = transport;
 
-    this.receive = function(params) {};
+    this.receive = function() {};
   };
   function getCapabilities(kind) {
     var opus = {
@@ -114,6 +117,7 @@ function mockORTC() {
   global.RTCRtpSender = function(track, transport) {
     this.track = track;
     this.transport = transport;
+    this.send = function() {};
   };
   RTCRtpSender.getCapabilities = getCapabilities;
 
@@ -1007,6 +1011,36 @@ describe('Edge shim', () => {
           expect(answer.sdp).not.to.contain('a=rtcp-rsize\r\n');
           done();
         });
+      });
+    });
+  });
+
+  describe('full cycle', () => {
+    let pc1;
+    let pc2;
+    beforeEach(() => {
+      pc1 = new RTCPeerConnection();
+      pc2 = new RTCPeerConnection();
+    });
+    it('completes a full createOffer-SLD-SRD-createAnswer-SLD-SRD ' +
+       'cycle', (done) => {
+      const audioTrack = new MediaStreamTrack();
+      audioTrack.kind = 'audio';
+      const stream = new MediaStream([audioTrack]);
+
+      pc1.addStream(stream);
+      pc2.addStream(stream);
+
+      pc1.createOffer()
+      .then((offer) => pc1.setLocalDescription(offer))
+      .then(() => pc2.setRemoteDescription(pc1.localDescription))
+      .then(() => pc2.createAnswer())
+      .then((answer) => pc2.setLocalDescription(answer))
+      .then(() => pc1.setRemoteDescription(pc2.localDescription))
+      .then(() => {
+        expect(pc1.signalingState).to.equal('stable');
+        expect(pc2.signalingState).to.equal('stable');
+        done();
       });
     });
   });
