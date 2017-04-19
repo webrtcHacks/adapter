@@ -223,6 +223,15 @@ SDPUtils.parseSsrcMedia = function(line) {
   return parts;
 };
 
+// Extracts the MID (RFC 5888) from a media section.
+// returns the MID or undefined if no mid line was found.
+SDPUtils.getMid = function(mediaSection) {
+  var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0];
+  if (mid) {
+    return mid.substr(6);
+  }
+}
+
 // Extracts DTLS parameters from SDP media section or sessionpart.
 // FIXME: for consistency with other functions this should only
 //   get the fingerprint line as input. See also getIceParameters.
@@ -1854,8 +1863,7 @@ module.exports = function(edgeVersion) {
         var localCapabilities = transceiver.localCapabilities;
         var remoteCapabilities = transceiver.remoteCapabilities;
 
-        var rejected = mediaSection.split('\n', 1)[0]
-            .split(' ', 2)[1] === '0';
+        var rejected = SDPUtils.isRejected(mediaSection);
 
         if (!rejected && !transceiver.isDatachannel) {
           var remoteIceParameters = SDPUtils.getIceParameters(
@@ -1952,21 +1960,17 @@ module.exports = function(edgeVersion) {
 
     sections.forEach(function(mediaSection, sdpMLineIndex) {
       var lines = SDPUtils.splitLines(mediaSection);
-      var mline = lines[0].substr(2).split(' ');
-      var kind = mline[0];
-      var rejected = mline[1] === '0';
+      var kind = SDPUtils.getKind(mediaSection);
+      var rejected = SDPUtils.isRejected(mediaSection);
+      var protocol = lines[0].substr(2).split(' ')[2];
+
       var direction = SDPUtils.getDirection(mediaSection, sessionpart);
       var remoteMsid = SDPUtils.parseMsid(mediaSection);
 
-      var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:');
-      if (mid.length) {
-        mid = mid[0].substr(6);
-      } else {
-        mid = SDPUtils.generateIdentifier();
-      }
+      var mid = SDPUtils.getMid(mediaSection) || SDPUtils.generateIdentifier();
 
       // Reject datachannels which are not implemented yet.
-      if (kind === 'application' && mline[2] === 'DTLS/SCTP') {
+      if (kind === 'application' && protocol === 'DTLS/SCTP') {
         self.transceivers[sdpMLineIndex] = {
           mid: mid,
           isDatachannel: true
@@ -2157,17 +2161,18 @@ module.exports = function(edgeVersion) {
         if (rtpReceiver &&
             (direction === 'sendrecv' || direction === 'sendonly')) {
           track = rtpReceiver.track;
-          receiverList.push([track, rtpReceiver]);
           if (remoteMsid) {
             if (!streams[remoteMsid.stream]) {
               streams[remoteMsid.stream] = new MediaStream();
             }
             streams[remoteMsid.stream].addTrack(track);
+            receiverList.push([track, rtpReceiver, streams[remoteMsid.stream]]);
           } else {
             if (!streams.default) {
               streams.default = new MediaStream();
             }
             streams.default.addTrack(track);
+            receiverList.push([track, rtpReceiver, streams.default]);
           }
         } else {
           // FIXME: actually the receiver should be created later.
@@ -2349,10 +2354,22 @@ module.exports = function(edgeVersion) {
             'Legacy mandatory/optional constraints not supported.');
       }
       if (offerOptions.offerToReceiveAudio !== undefined) {
-        numAudioTracks = offerOptions.offerToReceiveAudio;
+        if (offerOptions.offerToReceiveAudio === true) {
+          numAudioTracks = 1;
+        } else if (offerOptions.offerToReceiveAudio === false) {
+          numAudioTracks = 0;
+        } else {
+          numAudioTracks = offerOptions.offerToReceiveAudio;
+        }
       }
       if (offerOptions.offerToReceiveVideo !== undefined) {
-        numVideoTracks = offerOptions.offerToReceiveVideo;
+        if (offerOptions.offerToReceiveVideo === true) {
+          numVideoTracks = 1;
+        } else if (offerOptions.offerToReceiveVideo === false) {
+          numVideoTracks = 0;
+        } else {
+          numVideoTracks = offerOptions.offerToReceiveVideo;
+        }
       }
     }
 
