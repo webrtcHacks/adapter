@@ -807,17 +807,18 @@ module.exports = function(edgeVersion) {
         if (rtpReceiver &&
             (direction === 'sendrecv' || direction === 'sendonly')) {
           track = rtpReceiver.track;
-          receiverList.push([track, rtpReceiver]);
           if (remoteMsid) {
             if (!streams[remoteMsid.stream]) {
               streams[remoteMsid.stream] = new MediaStream();
             }
             streams[remoteMsid.stream].addTrack(track);
+            receiverList.push([track, rtpReceiver, streams[remoteMsid.stream]]);
           } else {
             if (!streams.default) {
               streams.default = new MediaStream();
             }
             streams.default.addTrack(track);
+            receiverList.push([track, rtpReceiver, streams.default]);
           }
         } else {
           // FIXME: actually the receiver should be created later.
