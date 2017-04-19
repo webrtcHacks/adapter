@@ -1338,6 +1338,133 @@ test('Basic connection establishment with promise', function(t) {
   });
 });
 
+test('Basic connection establishment with bidirectional streams', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    var counter = 1;
+    window.testPassed = [];
+    window.testFailed = [];
+    var tc = {
+      ok: function(ok, msg) {
+        window[ok ? 'testPassed' : 'testFailed'].push(msg);
+      },
+      is: function(a, b, msg) {
+        this.ok((a === b), msg + ' - got ' + b);
+      },
+      pass: function(msg) {
+        this.ok(true, msg);
+      },
+      fail: function(msg) {
+        this.ok(false, msg);
+      }
+    };
+    var pc1 = new RTCPeerConnection(null);
+    var pc2 = new RTCPeerConnection(null);
+
+    pc1.oniceconnectionstatechange = function() {
+      if (pc1.iceConnectionState === 'connected' ||
+          pc1.iceConnectionState === 'completed') {
+        callback(pc1.iceConnectionState);
+      }
+    };
+
+    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+
+    var addCandidate = function(pc, event) {
+      if (event.candidate) {
+        event.candidate = dictionary(event.candidate);
+      }
+      pc.addIceCandidate(event.candidate).then(function() {
+        // TODO: Decide if we are interested in adding all candidates
+        // as passed tests.
+        tc.pass('addIceCandidate ' + counter++);
+      })
+      .catch(function(err) {
+        tc.fail('addIceCandidate ' + err.toString());
+      });
+    };
+    pc1.onicecandidate = function(event) {
+      addCandidate(pc2, event);
+    };
+    pc2.onicecandidate = function(event) {
+      addCandidate(pc1, event);
+    };
+
+    var constraints = {video: true, fake: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      pc1.addStream(stream);
+      pc2.addStream(stream);
+      pc1.createOffer().then(function(offer) {
+        tc.pass('pc1.createOffer');
+        return pc1.setLocalDescription(dictionary(offer));
+      }).then(function() {
+        tc.pass('pc1.setLocalDescription');
+        return pc2.setRemoteDescription(dictionary(pc1.localDescription));
+      }).then(function() {
+        tc.pass('pc2.setRemoteDescription');
+        return pc2.createAnswer();
+      }).then(function(answer) {
+        tc.pass('pc2.createAnswer');
+        return pc2.setLocalDescription(dictionary(answer));
+      }).then(function() {
+        tc.pass('pc2.setLocalDescription');
+        return pc1.setRemoteDescription(dictionary(pc2.localDescription));
+      }).then(function() {
+        tc.pass('pc1.setRemoteDescription');
+      }).catch(function(err) {
+        tc.fail(err.toString());
+      });
+    })
+    .catch(function(error) {
+      callback(error);
+    });
+  };
+
+  // Run test.
+  seleniumHelpers.loadTestPage(driver)
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(function(callback) {
+    // Callback will either return an error object or pc1ConnectionStatus.
+    if (callback.name === 'Error') {
+      t.fail('getUserMedia failure: ' + callback.toString());
+    } else {
+      return callback;
+    }
+  })
+  .then(function(pc1ConnectionStatus) {
+    t.ok(pc1ConnectionStatus === 'completed' || 'connected',
+      'P2P connection established');
+    return driver.executeScript('return window.testPassed');
+  })
+  .then(function(testPassed) {
+    return driver.executeScript('return window.testFailed')
+    .then(function(testFailed) {
+      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+        t.pass(testPassed[testPass]);
+      }
+      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+        t.fail(testFailed[testFail]);
+      }
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
 test('Basic connection establishment with datachannel', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
