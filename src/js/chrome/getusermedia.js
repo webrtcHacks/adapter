@@ -7,11 +7,14 @@
  */
  /* eslint-env node */
 'use strict';
-var logging = require('../utils.js').log;
-var browserDetails = require('../utils.js').browserDetails;
+
+import {
+  log as logging,
+  browserDetails
+} from '../utils';
 
 // Expose public methods.
-module.exports = function() {
+export default function() {
   var constraintsToChrome_ = function(c) {
     if (typeof c !== 'object' || c.mandatory || c.optional) {
       return c;
@@ -215,4 +218,4 @@ module.exports = function() {
       logging('Dummy mediaDevices.removeEventListener called.');
     };
   }
-};
+}

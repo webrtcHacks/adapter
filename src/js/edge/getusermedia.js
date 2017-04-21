@@ -9,7 +9,7 @@
 'use strict';
 
 // Expose public methods.
-module.exports = function() {
+export default function() {
   var shimError_ = function(e) {
     return {
       name: {PermissionDeniedError: 'NotAllowedError'}[e.name] || e.name,
@@ -29,4 +29,4 @@ module.exports = function() {
       return Promise.reject(shimError_(e));
     });
   };
-};
+}

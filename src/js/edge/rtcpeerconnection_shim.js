@@ -8,7 +8,7 @@
  /* eslint-env node */
 'use strict';
 
-var SDPUtils = require('sdp');
+import SDPUtils from 'sdp';
 
 // sort tracks such that they follow an a-v-a-v...
 // pattern.
@@ -70,7 +70,7 @@ function filterIceServers(iceServers, edgeVersion) {
   });
 }
 
-module.exports = function(edgeVersion) {
+export default function(edgeVersion) {
   var RTCPeerConnection = function(config) {
     var self = this;
 
@@ -1282,4 +1282,4 @@ module.exports = function(edgeVersion) {
     });
   };
   return RTCPeerConnection;
-};
+}
