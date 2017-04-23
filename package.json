@@ -39,7 +39,7 @@
     "grunt-eslint": "^17.2.0",
     "grunt-githooks": "^0.3.1",
     "mocha": "^3.2.0",
-    "selenium-webdriver": "^3.3.0",
+    "selenium-webdriver": "3.3.0",
     "tape": "^4.0.0",
     "travis-multirunner": "^3.0.1"
   }
