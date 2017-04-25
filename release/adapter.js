@@ -1,7 +1,711 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.adapter = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
- /* eslint-env node */
-'use strict';
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.adapter = global.adapter || {})));
+}(this, (function (exports) { 'use strict';
 
+/*
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+ /* eslint-env node */
+var logDisabled_ = true;
+var browserDetails = detectBrowser();
+
+// Utility methods.
+function disableLog(bool) {
+  if (typeof bool !== 'boolean') {
+    return new Error('Argument type: ' + typeof bool +
+        '. Please use a boolean.');
+  }
+  logDisabled_ = bool;
+  return (bool) ? 'adapter.js logging disabled' :
+      'adapter.js logging enabled';
+}
+
+function log() {
+  if (typeof window === 'object') {
+    if (logDisabled_) {
+      return;
+    }
+    if (typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log.apply(console, arguments);
+    }
+  }
+}
+
+/**
+ * Extract browser version out of the provided user agent string.
+ *
+ * @param {!string} uastring userAgent string.
+ * @param {!string} expr Regular expression used as match criteria.
+ * @param {!number} pos position in the version string to be returned.
+ * @return {!number} browser version.
+ */
+function extractVersion(uastring, expr, pos) {
+  var match = uastring.match(expr);
+  return match && match.length >= pos && parseInt(match[pos], 10);
+}
+
+/**
+ * Browser detector.
+ *
+ * @return {object} result containing browser and version
+ *     properties.
+ */
+function detectBrowser() {
+  // Returned result object.
+  var result = {};
+  result.browser = null;
+  result.version = null;
+
+  // Fail early if it's not a browser
+  if (typeof window === 'undefined' || !window.navigator) {
+    result.browser = 'Not a browser.';
+    return result;
+  }
+
+  // Firefox.
+  if (navigator.mozGetUserMedia) {
+    result.browser = 'firefox';
+    result.version = extractVersion(navigator.userAgent,
+        /Firefox\/(\d+)\./, 1);
+  } else if (navigator.webkitGetUserMedia) {
+    // Chrome, Chromium, Webview, Opera, all use the chrome shim for now
+    if (window.webkitRTCPeerConnection) {
+      result.browser = 'chrome';
+      result.version = extractVersion(navigator.userAgent,
+        /Chrom(e|ium)\/(\d+)\./, 2);
+    } else { // Safari (in an unpublished version) or unknown webkit-based.
+      if (navigator.userAgent.match(/Version\/(\d+).(\d+)/)) {
+        result.browser = 'safari';
+        result.version = extractVersion(navigator.userAgent,
+          /AppleWebKit\/(\d+)\./, 1);
+      } else { // unknown webkit-based browser.
+        result.browser = 'Unsupported webkit-based browser ' +
+            'with GUM support but no WebRTC support.';
+        return result;
+      }
+    }
+  } else if (navigator.mediaDevices &&
+      navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) { // Edge.
+    result.browser = 'edge';
+    result.version = extractVersion(navigator.userAgent,
+        /Edge\/(\d+).(\d+)$/, 2);
+  } else if (navigator.mediaDevices &&
+      navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) {
+      // Safari, with webkitGetUserMedia removed.
+    result.browser = 'safari';
+    result.version = extractVersion(navigator.userAgent,
+        /AppleWebKit\/(\d+)\./, 1);
+  } else { // Default fallthrough: not supported.
+    result.browser = 'Not a supported browser.';
+    return result;
+  }
+
+  return result;
+}
+
+  // shimCreateObjectURL must be called before shimSourceObject to avoid loop.
+
+function shimCreateObjectURL() {
+  if (!(typeof window === 'object' && window.HTMLMediaElement &&
+        'srcObject' in window.HTMLMediaElement.prototype)) {
+    // Only shim CreateObjectURL using srcObject if srcObject exists.
+    return undefined;
+  }
+
+  var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
+  var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+  var streams = new Map(), newId = 0;
+
+  URL.createObjectURL = function(stream) {
+    if ('getTracks' in stream) {
+      var url = 'polyblob:' + (++newId);
+      streams.set(url, stream);
+      console.log('URL.createObjectURL(stream) is deprecated! ' +
+                  'Use elem.srcObject = stream instead!');
+      return url;
+    }
+    return nativeCreateObjectURL(stream);
+  };
+  URL.revokeObjectURL = function(url) {
+    nativeRevokeObjectURL(url);
+    streams.delete(url);
+  };
+
+  var dsc = Object.getOwnPropertyDescriptor(window.HTMLMediaElement.prototype,
+                                            'src');
+  Object.defineProperty(window.HTMLMediaElement.prototype, 'src', {
+    get: function() {
+      return dsc.get.apply(this);
+    },
+    set: function(url) {
+      this.srcObject = streams.get(url) || null;
+      return dsc.set.apply(this, [url]);
+    }
+  });
+
+  var nativeSetAttribute = HTMLMediaElement.prototype.setAttribute;
+  HTMLMediaElement.prototype.setAttribute = function() {
+    if (arguments.length === 2 &&
+        ('' + arguments[0]).toLowerCase() === 'src') {
+      this.srcObject = streams.get(arguments[1]) || null;
+    }
+    return nativeSetAttribute.apply(this, arguments);
+  };
+}
+
+/*
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+ /* eslint-env node */
+// Expose public methods.
+var getusermedia = function() {
+  var constraintsToChrome_ = function(c) {
+    if (typeof c !== 'object' || c.mandatory || c.optional) {
+      return c;
+    }
+    var cc = {};
+    Object.keys(c).forEach(function(key) {
+      if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
+        return;
+      }
+      var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
+      if (r.exact !== undefined && typeof r.exact === 'number') {
+        r.min = r.max = r.exact;
+      }
+      var oldname_ = function(prefix, name) {
+        if (prefix) {
+          return prefix + name.charAt(0).toUpperCase() + name.slice(1);
+        }
+        return (name === 'deviceId') ? 'sourceId' : name;
+      };
+      if (r.ideal !== undefined) {
+        cc.optional = cc.optional || [];
+        var oc = {};
+        if (typeof r.ideal === 'number') {
+          oc[oldname_('min', key)] = r.ideal;
+          cc.optional.push(oc);
+          oc = {};
+          oc[oldname_('max', key)] = r.ideal;
+          cc.optional.push(oc);
+        } else {
+          oc[oldname_('', key)] = r.ideal;
+          cc.optional.push(oc);
+        }
+      }
+      if (r.exact !== undefined && typeof r.exact !== 'number') {
+        cc.mandatory = cc.mandatory || {};
+        cc.mandatory[oldname_('', key)] = r.exact;
+      } else {
+        ['min', 'max'].forEach(function(mix) {
+          if (r[mix] !== undefined) {
+            cc.mandatory = cc.mandatory || {};
+            cc.mandatory[oldname_(mix, key)] = r[mix];
+          }
+        });
+      }
+    });
+    if (c.advanced) {
+      cc.optional = (cc.optional || []).concat(c.advanced);
+    }
+    return cc;
+  };
+
+  var shimConstraints_ = function(constraints, func) {
+    constraints = JSON.parse(JSON.stringify(constraints));
+    if (constraints && constraints.audio) {
+      constraints.audio = constraintsToChrome_(constraints.audio);
+    }
+    if (constraints && typeof constraints.video === 'object') {
+      // Shim facingMode for mobile & surface pro.
+      var face = constraints.video.facingMode;
+      face = face && ((typeof face === 'object') ? face : {ideal: face});
+      var getSupportedFacingModeLies = browserDetails.version < 61;
+
+      if ((face && (face.exact === 'user' || face.exact === 'environment' ||
+                    face.ideal === 'user' || face.ideal === 'environment')) &&
+          !(navigator.mediaDevices.getSupportedConstraints &&
+            navigator.mediaDevices.getSupportedConstraints().facingMode &&
+            !getSupportedFacingModeLies)) {
+        delete constraints.video.facingMode;
+        var matches;
+        if (face.exact === 'environment' || face.ideal === 'environment') {
+          matches = ['back', 'rear'];
+        } else if (face.exact === 'user' || face.ideal === 'user') {
+          matches = ['front'];
+        }
+        if (matches) {
+          // Look for matches in label, or use last cam for back (typical).
+          return navigator.mediaDevices.enumerateDevices()
+          .then(function(devices) {
+            devices = devices.filter(function(d) {
+              return d.kind === 'videoinput';
+            });
+            var dev = devices.find(function(d) {
+              return matches.some(function(match) {
+                return d.label.toLowerCase().indexOf(match) !== -1;
+              });
+            });
+            if (!dev && devices.length && matches.indexOf('back') !== -1) {
+              dev = devices[devices.length - 1]; // more likely the back cam
+            }
+            if (dev) {
+              constraints.video.deviceId = face.exact ? {exact: dev.deviceId} :
+                                                        {ideal: dev.deviceId};
+            }
+            constraints.video = constraintsToChrome_(constraints.video);
+            log('chrome: ' + JSON.stringify(constraints));
+            return func(constraints);
+          });
+        }
+      }
+      constraints.video = constraintsToChrome_(constraints.video);
+    }
+    log('chrome: ' + JSON.stringify(constraints));
+    return func(constraints);
+  };
+
+  var shimError_ = function(e) {
+    return {
+      name: {
+        PermissionDeniedError: 'NotAllowedError',
+        ConstraintNotSatisfiedError: 'OverconstrainedError'
+      }[e.name] || e.name,
+      message: e.message,
+      constraint: e.constraintName,
+      toString: function() {
+        return this.name + (this.message && ': ') + this.message;
+      }
+    };
+  };
+
+  var getUserMedia_ = function(constraints, onSuccess, onError) {
+    shimConstraints_(constraints, function(c) {
+      navigator.webkitGetUserMedia(c, onSuccess, function(e) {
+        onError(shimError_(e));
+      });
+    });
+  };
+
+  navigator.getUserMedia = getUserMedia_;
+
+  // Returns the result of getUserMedia as a Promise.
+  var getUserMediaPromise_ = function(constraints) {
+    return new Promise(function(resolve, reject) {
+      navigator.getUserMedia(constraints, resolve, reject);
+    });
+  };
+
+  if (!navigator.mediaDevices) {
+    navigator.mediaDevices = {
+      getUserMedia: getUserMediaPromise_,
+      enumerateDevices: function() {
+        return new Promise(function(resolve) {
+          var kinds = {audio: 'audioinput', video: 'videoinput'};
+          return MediaStreamTrack.getSources(function(devices) {
+            resolve(devices.map(function(device) {
+              return {label: device.label,
+                      kind: kinds[device.kind],
+                      deviceId: device.id,
+                      groupId: ''};
+            }));
+          });
+        });
+      },
+      getSupportedConstraints: function() {
+        return {
+          deviceId: true, echoCancellation: true, facingMode: true,
+          frameRate: true, height: true, width: true
+        };
+      }
+    };
+  }
+
+  // A shim for getUserMedia method on the mediaDevices object.
+  // TODO(KaptenJansson) remove once implemented in Chrome stable.
+  if (!navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia = function(constraints) {
+      return getUserMediaPromise_(constraints);
+    };
+  } else {
+    // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
+    // function which returns a Promise, it does not accept spec-style
+    // constraints.
+    var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+        bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = function(cs) {
+      return shimConstraints_(cs, function(c) {
+        return origGetUserMedia(c).then(function(stream) {
+          if (c.audio && !stream.getAudioTracks().length ||
+              c.video && !stream.getVideoTracks().length) {
+            stream.getTracks().forEach(function(track) {
+              track.stop();
+            });
+            throw new DOMException('', 'NotFoundError');
+          }
+          return stream;
+        }, function(e) {
+          return Promise.reject(shimError_(e));
+        });
+      });
+    };
+  }
+
+  // Dummy devicechange event methods.
+  // TODO(KaptenJansson) remove once implemented in Chrome stable.
+  if (typeof navigator.mediaDevices.addEventListener === 'undefined') {
+    navigator.mediaDevices.addEventListener = function() {
+      log('Dummy mediaDevices.addEventListener called.');
+    };
+  }
+  if (typeof navigator.mediaDevices.removeEventListener === 'undefined') {
+    navigator.mediaDevices.removeEventListener = function() {
+      log('Dummy mediaDevices.removeEventListener called.');
+    };
+  }
+};
+
+function shimMediaStream() {
+  window.MediaStream = window.MediaStream || window.webkitMediaStream;
+}
+
+function shimOnTrack() {
+  if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
+      window.RTCPeerConnection.prototype)) {
+    Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
+      get: function() {
+        return this._ontrack;
+      },
+      set: function(f) {
+        var self = this;
+        if (this._ontrack) {
+          this.removeEventListener('track', this._ontrack);
+          this.removeEventListener('addstream', this._ontrackpoly);
+        }
+        this.addEventListener('track', this._ontrack = f);
+        this.addEventListener('addstream', this._ontrackpoly = function(e) {
+          // onaddstream does not fire when a track is added to an existing
+          // stream. But stream.onaddtrack is implemented so we use that.
+          e.stream.addEventListener('addtrack', function(te) {
+            var event = new Event('track');
+            event.track = te.track;
+            event.receiver = {track: te.track};
+            event.streams = [e.stream];
+            self.dispatchEvent(event);
+          });
+          e.stream.getTracks().forEach(function(track) {
+            var event = new Event('track');
+            event.track = track;
+            event.receiver = {track: track};
+            event.streams = [e.stream];
+            this.dispatchEvent(event);
+          }.bind(this));
+        }.bind(this));
+      }
+    });
+  }
+}
+
+function shimGetSendersWithDtmf() {
+  if (typeof window === 'object' && window.RTCPeerConnection &&
+      !('getSenders' in RTCPeerConnection.prototype) &&
+      'createDTMFSender' in RTCPeerConnection.prototype) {
+    RTCPeerConnection.prototype.getSenders = function() {
+      return this._senders;
+    };
+    var origAddStream = RTCPeerConnection.prototype.addStream;
+    var origRemoveStream = RTCPeerConnection.prototype.removeStream;
+
+    RTCPeerConnection.prototype.addStream = function(stream) {
+      var pc = this;
+      pc._senders = pc._senders || [];
+      origAddStream.apply(pc, [stream]);
+      stream.getTracks().forEach(function(track) {
+        pc._senders.push({
+          track: track,
+          get dtmf() {
+            if (this._dtmf === undefined) {
+              if (track.kind === 'audio') {
+                this._dtmf = pc.createDTMFSender(track);
+              } else {
+                this._dtmf = null;
+              }
+            }
+            return this._dtmf;
+          }
+        });
+      });
+    };
+
+    RTCPeerConnection.prototype.removeStream = function(stream) {
+      var pc = this;
+      pc._senders = pc._senders || [];
+      origRemoveStream.apply(pc, [stream]);
+      stream.getTracks().forEach(function(track) {
+        var sender = pc._senders.find(function(s) {
+          return s.track === track;
+        });
+        if (sender) {
+          pc._senders.splice(pc._senders.indexOf(sender), 1); // remove sender
+        }
+      });
+    };
+  }
+}
+
+function shimSourceObject() {
+  if (typeof window === 'object') {
+    if (window.HTMLMediaElement &&
+      !('srcObject' in window.HTMLMediaElement.prototype)) {
+      // Shim the srcObject property, once, when HTMLMediaElement is found.
+      Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
+        get: function() {
+          return this._srcObject;
+        },
+        set: function(stream) {
+          var self = this;
+          // Use _srcObject as a private property for this shim
+          this._srcObject = stream;
+          if (this.src) {
+            URL.revokeObjectURL(this.src);
+          }
+
+          if (!stream) {
+            this.src = '';
+            return undefined;
+          }
+          this.src = URL.createObjectURL(stream);
+          // We need to recreate the blob url when a track is added or
+          // removed. Doing it manually since we want to avoid a recursion.
+          stream.addEventListener('addtrack', function() {
+            if (self.src) {
+              URL.revokeObjectURL(self.src);
+            }
+            self.src = URL.createObjectURL(stream);
+          });
+          stream.addEventListener('removetrack', function() {
+            if (self.src) {
+              URL.revokeObjectURL(self.src);
+            }
+            self.src = URL.createObjectURL(stream);
+          });
+        }
+      });
+    }
+  }
+}
+
+function shimPeerConnection() {
+  // The RTCPeerConnection object.
+  if (!window.RTCPeerConnection) {
+    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
+      // Translate iceTransportPolicy to iceTransports,
+      // see https://code.google.com/p/webrtc/issues/detail?id=4869
+      // this was fixed in M56 along with unprefixing RTCPeerConnection.
+      log('PeerConnection');
+      if (pcConfig && pcConfig.iceTransportPolicy) {
+        pcConfig.iceTransports = pcConfig.iceTransportPolicy;
+      }
+
+      return new webkitRTCPeerConnection(pcConfig, pcConstraints);
+    };
+    window.RTCPeerConnection.prototype = webkitRTCPeerConnection.prototype;
+    // wrap static methods. Currently just generateCertificate.
+    if (webkitRTCPeerConnection.generateCertificate) {
+      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
+        get: function() {
+          return webkitRTCPeerConnection.generateCertificate;
+        }
+      });
+    }
+  } else {
+    // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
+    var OrigPeerConnection = RTCPeerConnection;
+    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
+      if (pcConfig && pcConfig.iceServers) {
+        var newIceServers = [];
+        for (var i = 0; i < pcConfig.iceServers.length; i++) {
+          var server = pcConfig.iceServers[i];
+          if (!server.hasOwnProperty('urls') &&
+              server.hasOwnProperty('url')) {
+            console.warn('RTCIceServer.url is deprecated! Use urls instead.');
+            server = JSON.parse(JSON.stringify(server));
+            server.urls = server.url;
+            newIceServers.push(server);
+          } else {
+            newIceServers.push(pcConfig.iceServers[i]);
+          }
+        }
+        pcConfig.iceServers = newIceServers;
+      }
+      return new OrigPeerConnection(pcConfig, pcConstraints);
+    };
+    window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
+    // wrap static methods. Currently just generateCertificate.
+    Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
+      get: function() {
+        return OrigPeerConnection.generateCertificate;
+      }
+    });
+  }
+
+  var origGetStats = RTCPeerConnection.prototype.getStats;
+  RTCPeerConnection.prototype.getStats = function(selector,
+      successCallback, errorCallback) {
+    var self = this;
+    var args = arguments;
+
+    // If selector is a function then we are in the old style stats so just
+    // pass back the original getStats format to avoid breaking old users.
+    if (arguments.length > 0 && typeof selector === 'function') {
+      return origGetStats.apply(this, arguments);
+    }
+
+    // When spec-style getStats is supported, return those when called with
+    // either no arguments or the selector argument is null.
+    if (origGetStats.length === 0 && (arguments.length === 0 ||
+        typeof arguments[0] !== 'function')) {
+      return origGetStats.apply(this, []);
+    }
+
+    var fixChromeStats_ = function(response) {
+      var standardReport = {};
+      var reports = response.result();
+      reports.forEach(function(report) {
+        var standardStats = {
+          id: report.id,
+          timestamp: report.timestamp,
+          type: {
+            localcandidate: 'local-candidate',
+            remotecandidate: 'remote-candidate'
+          }[report.type] || report.type
+        };
+        report.names().forEach(function(name) {
+          standardStats[name] = report.stat(name);
+        });
+        standardReport[standardStats.id] = standardStats;
+      });
+
+      return standardReport;
+    };
+
+    // shim getStats with maplike support
+    var makeMapStats = function(stats) {
+      return new Map(Object.keys(stats).map(function(key) {
+        return[key, stats[key]];
+      }));
+    };
+
+    if (arguments.length >= 2) {
+      var successCallbackWrapper_ = function(response) {
+        args[1](makeMapStats(fixChromeStats_(response)));
+      };
+
+      return origGetStats.apply(this, [successCallbackWrapper_,
+          arguments[0]]);
+    }
+
+    // promise-support
+    return new Promise(function(resolve, reject) {
+      origGetStats.apply(self, [
+        function(response) {
+          resolve(makeMapStats(fixChromeStats_(response)));
+        }, reject]);
+    }).then(successCallback, errorCallback);
+  };
+
+  // add promise support -- natively available in Chrome 51
+  if (browserDetails.version < 51) {
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          var nativeMethod = RTCPeerConnection.prototype[method];
+          RTCPeerConnection.prototype[method] = function() {
+            var args = arguments;
+            var self = this;
+            var promise = new Promise(function(resolve, reject) {
+              nativeMethod.apply(self, [args[0], resolve, reject]);
+            });
+            if (args.length < 2) {
+              return promise;
+            }
+            return promise.then(function() {
+              args[1].apply(null, []);
+            },
+            function(err) {
+              if (args.length >= 3) {
+                args[2].apply(null, [err]);
+              }
+            });
+          };
+        });
+  }
+
+  // promise support for createOffer and createAnswer. Available (without
+  // bugs) since M52: crbug/619289
+  if (browserDetails.version < 52) {
+    ['createOffer', 'createAnswer'].forEach(function(method) {
+      var nativeMethod = RTCPeerConnection.prototype[method];
+      RTCPeerConnection.prototype[method] = function() {
+        var self = this;
+        if (arguments.length < 1 || (arguments.length === 1 &&
+            typeof arguments[0] === 'object')) {
+          var opts = arguments.length === 1 ? arguments[0] : undefined;
+          return new Promise(function(resolve, reject) {
+            nativeMethod.apply(self, [resolve, reject, opts]);
+          });
+        }
+        return nativeMethod.apply(this, arguments);
+      };
+    });
+  }
+
+  // shim implicit creation of RTCSessionDescription/RTCIceCandidate
+  ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+      .forEach(function(method) {
+        var nativeMethod = RTCPeerConnection.prototype[method];
+        RTCPeerConnection.prototype[method] = function() {
+          arguments[0] = new ((method === 'addIceCandidate') ?
+              RTCIceCandidate : RTCSessionDescription)(arguments[0]);
+          return nativeMethod.apply(this, arguments);
+        };
+      });
+
+  // support for addIceCandidate(null or undefined)
+  var nativeAddIceCandidate =
+      RTCPeerConnection.prototype.addIceCandidate;
+  RTCPeerConnection.prototype.addIceCandidate = function() {
+    if (!arguments[0]) {
+      if (arguments[1]) {
+        arguments[1].apply(null);
+      }
+      return Promise.resolve();
+    }
+    return nativeAddIceCandidate.apply(this, arguments);
+  };
+}
+
+
+
+
+var chromeShim = Object.freeze({
+	shimMediaStream: shimMediaStream,
+	shimOnTrack: shimOnTrack,
+	shimGetSendersWithDtmf: shimGetSendersWithDtmf,
+	shimSourceObject: shimSourceObject,
+	shimPeerConnection: shimPeerConnection,
+	shimGetUserMedia: getusermedia
+});
+
+/* eslint-env node */
 // SDP helpers.
 var SDPUtils = {};
 
@@ -230,7 +934,7 @@ SDPUtils.getMid = function(mediaSection) {
   if (mid) {
     return mid.substr(6);
   }
-}
+};
 
 // Extracts DTLS parameters from SDP media section or sessionpart.
 // FIXME: for consistency with other functions this should only
@@ -590,768 +1294,8 @@ SDPUtils.isRejected = function(mediaSection) {
 };
 
 // Expose public methods.
-module.exports = SDPUtils;
+var sdp = SDPUtils;
 
-},{}],2:[function(require,module,exports){
-/*
- *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
- /* eslint-env node */
-
-'use strict';
-
-// Shimming starts here.
-(function() {
-  // Utils.
-  var utils = require('./utils');
-  var logging = utils.log;
-  var browserDetails = utils.browserDetails;
-  // Export to the adapter global object visible in the browser.
-  module.exports.browserDetails = browserDetails;
-  module.exports.extractVersion = utils.extractVersion;
-  module.exports.disableLog = utils.disableLog;
-
-  // Uncomment the line below if you want logging to occur, including logging
-  // for the switch statement below. Can also be turned on in the browser via
-  // adapter.disableLog(false), but then logging from the switch statement below
-  // will not appear.
-  // require('./utils').disableLog(false);
-
-  // Browser shims.
-  var chromeShim = require('./chrome/chrome_shim') || null;
-  var edgeShim = require('./edge/edge_shim') || null;
-  var firefoxShim = require('./firefox/firefox_shim') || null;
-  var safariShim = require('./safari/safari_shim') || null;
-
-  // Shim browser if found.
-  switch (browserDetails.browser) {
-    case 'chrome':
-      if (!chromeShim || !chromeShim.shimPeerConnection) {
-        logging('Chrome shim is not included in this adapter release.');
-        return;
-      }
-      logging('adapter.js shimming chrome.');
-      // Export to the adapter global object visible in the browser.
-      module.exports.browserShim = chromeShim;
-
-      chromeShim.shimGetUserMedia();
-      chromeShim.shimMediaStream();
-      utils.shimCreateObjectURL();
-      chromeShim.shimSourceObject();
-      chromeShim.shimPeerConnection();
-      chromeShim.shimOnTrack();
-      chromeShim.shimGetSendersWithDtmf();
-      break;
-    case 'firefox':
-      if (!firefoxShim || !firefoxShim.shimPeerConnection) {
-        logging('Firefox shim is not included in this adapter release.');
-        return;
-      }
-      logging('adapter.js shimming firefox.');
-      // Export to the adapter global object visible in the browser.
-      module.exports.browserShim = firefoxShim;
-
-      firefoxShim.shimGetUserMedia();
-      utils.shimCreateObjectURL();
-      firefoxShim.shimSourceObject();
-      firefoxShim.shimPeerConnection();
-      firefoxShim.shimOnTrack();
-      break;
-    case 'edge':
-      if (!edgeShim || !edgeShim.shimPeerConnection) {
-        logging('MS edge shim is not included in this adapter release.');
-        return;
-      }
-      logging('adapter.js shimming edge.');
-      // Export to the adapter global object visible in the browser.
-      module.exports.browserShim = edgeShim;
-
-      edgeShim.shimGetUserMedia();
-      utils.shimCreateObjectURL();
-      edgeShim.shimPeerConnection();
-      edgeShim.shimReplaceTrack();
-      break;
-    case 'safari':
-      if (!safariShim) {
-        logging('Safari shim is not included in this adapter release.');
-        return;
-      }
-      logging('adapter.js shimming safari.');
-      // Export to the adapter global object visible in the browser.
-      module.exports.browserShim = safariShim;
-
-      safariShim.shimOnAddStream();
-      safariShim.shimGetUserMedia();
-      break;
-    default:
-      logging('Unsupported browser!');
-  }
-})();
-
-},{"./chrome/chrome_shim":3,"./edge/edge_shim":5,"./firefox/firefox_shim":8,"./safari/safari_shim":10,"./utils":11}],3:[function(require,module,exports){
-
-/*
- *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
- /* eslint-env node */
-'use strict';
-var logging = require('../utils.js').log;
-var browserDetails = require('../utils.js').browserDetails;
-
-var chromeShim = {
-  shimMediaStream: function() {
-    window.MediaStream = window.MediaStream || window.webkitMediaStream;
-  },
-
-  shimOnTrack: function() {
-    if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
-        window.RTCPeerConnection.prototype)) {
-      Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-        get: function() {
-          return this._ontrack;
-        },
-        set: function(f) {
-          var self = this;
-          if (this._ontrack) {
-            this.removeEventListener('track', this._ontrack);
-            this.removeEventListener('addstream', this._ontrackpoly);
-          }
-          this.addEventListener('track', this._ontrack = f);
-          this.addEventListener('addstream', this._ontrackpoly = function(e) {
-            // onaddstream does not fire when a track is added to an existing
-            // stream. But stream.onaddtrack is implemented so we use that.
-            e.stream.addEventListener('addtrack', function(te) {
-              var event = new Event('track');
-              event.track = te.track;
-              event.receiver = {track: te.track};
-              event.streams = [e.stream];
-              self.dispatchEvent(event);
-            });
-            e.stream.getTracks().forEach(function(track) {
-              var event = new Event('track');
-              event.track = track;
-              event.receiver = {track: track};
-              event.streams = [e.stream];
-              this.dispatchEvent(event);
-            }.bind(this));
-          }.bind(this));
-        }
-      });
-    }
-  },
-
-  shimGetSendersWithDtmf: function() {
-    if (typeof window === 'object' && window.RTCPeerConnection &&
-        !('getSenders' in RTCPeerConnection.prototype) &&
-        'createDTMFSender' in RTCPeerConnection.prototype) {
-      RTCPeerConnection.prototype.getSenders = function() {
-        return this._senders;
-      };
-      var origAddStream = RTCPeerConnection.prototype.addStream;
-      var origRemoveStream = RTCPeerConnection.prototype.removeStream;
-
-      RTCPeerConnection.prototype.addStream = function(stream) {
-        var pc = this;
-        pc._senders = pc._senders || [];
-        origAddStream.apply(pc, [stream]);
-        stream.getTracks().forEach(function(track) {
-          pc._senders.push({
-            track: track,
-            get dtmf() {
-              if (this._dtmf === undefined) {
-                if (track.kind === 'audio') {
-                  this._dtmf = pc.createDTMFSender(track);
-                } else {
-                  this._dtmf = null;
-                }
-              }
-              return this._dtmf;
-            }
-          });
-        });
-      };
-
-      RTCPeerConnection.prototype.removeStream = function(stream) {
-        var pc = this;
-        pc._senders = pc._senders || [];
-        origRemoveStream.apply(pc, [stream]);
-        stream.getTracks().forEach(function(track) {
-          var sender = pc._senders.find(function(s) {
-            return s.track === track;
-          });
-          if (sender) {
-            pc._senders.splice(pc._senders.indexOf(sender), 1); // remove sender
-          }
-        });
-      };
-    }
-  },
-
-  shimSourceObject: function() {
-    if (typeof window === 'object') {
-      if (window.HTMLMediaElement &&
-        !('srcObject' in window.HTMLMediaElement.prototype)) {
-        // Shim the srcObject property, once, when HTMLMediaElement is found.
-        Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-          get: function() {
-            return this._srcObject;
-          },
-          set: function(stream) {
-            var self = this;
-            // Use _srcObject as a private property for this shim
-            this._srcObject = stream;
-            if (this.src) {
-              URL.revokeObjectURL(this.src);
-            }
-
-            if (!stream) {
-              this.src = '';
-              return undefined;
-            }
-            this.src = URL.createObjectURL(stream);
-            // We need to recreate the blob url when a track is added or
-            // removed. Doing it manually since we want to avoid a recursion.
-            stream.addEventListener('addtrack', function() {
-              if (self.src) {
-                URL.revokeObjectURL(self.src);
-              }
-              self.src = URL.createObjectURL(stream);
-            });
-            stream.addEventListener('removetrack', function() {
-              if (self.src) {
-                URL.revokeObjectURL(self.src);
-              }
-              self.src = URL.createObjectURL(stream);
-            });
-          }
-        });
-      }
-    }
-  },
-
-  shimPeerConnection: function() {
-    // The RTCPeerConnection object.
-    if (!window.RTCPeerConnection) {
-      window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-        // Translate iceTransportPolicy to iceTransports,
-        // see https://code.google.com/p/webrtc/issues/detail?id=4869
-        // this was fixed in M56 along with unprefixing RTCPeerConnection.
-        logging('PeerConnection');
-        if (pcConfig && pcConfig.iceTransportPolicy) {
-          pcConfig.iceTransports = pcConfig.iceTransportPolicy;
-        }
-
-        return new webkitRTCPeerConnection(pcConfig, pcConstraints);
-      };
-      window.RTCPeerConnection.prototype = webkitRTCPeerConnection.prototype;
-      // wrap static methods. Currently just generateCertificate.
-      if (webkitRTCPeerConnection.generateCertificate) {
-        Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-          get: function() {
-            return webkitRTCPeerConnection.generateCertificate;
-          }
-        });
-      }
-    } else {
-      // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
-      var OrigPeerConnection = RTCPeerConnection;
-      window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-        if (pcConfig && pcConfig.iceServers) {
-          var newIceServers = [];
-          for (var i = 0; i < pcConfig.iceServers.length; i++) {
-            var server = pcConfig.iceServers[i];
-            if (!server.hasOwnProperty('urls') &&
-                server.hasOwnProperty('url')) {
-              console.warn('RTCIceServer.url is deprecated! Use urls instead.');
-              server = JSON.parse(JSON.stringify(server));
-              server.urls = server.url;
-              newIceServers.push(server);
-            } else {
-              newIceServers.push(pcConfig.iceServers[i]);
-            }
-          }
-          pcConfig.iceServers = newIceServers;
-        }
-        return new OrigPeerConnection(pcConfig, pcConstraints);
-      };
-      window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
-      // wrap static methods. Currently just generateCertificate.
-      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-        get: function() {
-          return OrigPeerConnection.generateCertificate;
-        }
-      });
-    }
-
-    var origGetStats = RTCPeerConnection.prototype.getStats;
-    RTCPeerConnection.prototype.getStats = function(selector,
-        successCallback, errorCallback) {
-      var self = this;
-      var args = arguments;
-
-      // If selector is a function then we are in the old style stats so just
-      // pass back the original getStats format to avoid breaking old users.
-      if (arguments.length > 0 && typeof selector === 'function') {
-        return origGetStats.apply(this, arguments);
-      }
-
-      // When spec-style getStats is supported, return those when called with
-      // either no arguments or the selector argument is null.
-      if (origGetStats.length === 0 && (arguments.length === 0 ||
-          typeof arguments[0] !== 'function')) {
-        return origGetStats.apply(this, []);
-      }
-
-      var fixChromeStats_ = function(response) {
-        var standardReport = {};
-        var reports = response.result();
-        reports.forEach(function(report) {
-          var standardStats = {
-            id: report.id,
-            timestamp: report.timestamp,
-            type: {
-              localcandidate: 'local-candidate',
-              remotecandidate: 'remote-candidate'
-            }[report.type] || report.type
-          };
-          report.names().forEach(function(name) {
-            standardStats[name] = report.stat(name);
-          });
-          standardReport[standardStats.id] = standardStats;
-        });
-
-        return standardReport;
-      };
-
-      // shim getStats with maplike support
-      var makeMapStats = function(stats) {
-        return new Map(Object.keys(stats).map(function(key) {
-          return[key, stats[key]];
-        }));
-      };
-
-      if (arguments.length >= 2) {
-        var successCallbackWrapper_ = function(response) {
-          args[1](makeMapStats(fixChromeStats_(response)));
-        };
-
-        return origGetStats.apply(this, [successCallbackWrapper_,
-            arguments[0]]);
-      }
-
-      // promise-support
-      return new Promise(function(resolve, reject) {
-        origGetStats.apply(self, [
-          function(response) {
-            resolve(makeMapStats(fixChromeStats_(response)));
-          }, reject]);
-      }).then(successCallback, errorCallback);
-    };
-
-    // add promise support -- natively available in Chrome 51
-    if (browserDetails.version < 51) {
-      ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-          .forEach(function(method) {
-            var nativeMethod = RTCPeerConnection.prototype[method];
-            RTCPeerConnection.prototype[method] = function() {
-              var args = arguments;
-              var self = this;
-              var promise = new Promise(function(resolve, reject) {
-                nativeMethod.apply(self, [args[0], resolve, reject]);
-              });
-              if (args.length < 2) {
-                return promise;
-              }
-              return promise.then(function() {
-                args[1].apply(null, []);
-              },
-              function(err) {
-                if (args.length >= 3) {
-                  args[2].apply(null, [err]);
-                }
-              });
-            };
-          });
-    }
-
-    // promise support for createOffer and createAnswer. Available (without
-    // bugs) since M52: crbug/619289
-    if (browserDetails.version < 52) {
-      ['createOffer', 'createAnswer'].forEach(function(method) {
-        var nativeMethod = RTCPeerConnection.prototype[method];
-        RTCPeerConnection.prototype[method] = function() {
-          var self = this;
-          if (arguments.length < 1 || (arguments.length === 1 &&
-              typeof arguments[0] === 'object')) {
-            var opts = arguments.length === 1 ? arguments[0] : undefined;
-            return new Promise(function(resolve, reject) {
-              nativeMethod.apply(self, [resolve, reject, opts]);
-            });
-          }
-          return nativeMethod.apply(this, arguments);
-        };
-      });
-    }
-
-    // shim implicit creation of RTCSessionDescription/RTCIceCandidate
-    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-        .forEach(function(method) {
-          var nativeMethod = RTCPeerConnection.prototype[method];
-          RTCPeerConnection.prototype[method] = function() {
-            arguments[0] = new ((method === 'addIceCandidate') ?
-                RTCIceCandidate : RTCSessionDescription)(arguments[0]);
-            return nativeMethod.apply(this, arguments);
-          };
-        });
-
-    // support for addIceCandidate(null or undefined)
-    var nativeAddIceCandidate =
-        RTCPeerConnection.prototype.addIceCandidate;
-    RTCPeerConnection.prototype.addIceCandidate = function() {
-      if (!arguments[0]) {
-        if (arguments[1]) {
-          arguments[1].apply(null);
-        }
-        return Promise.resolve();
-      }
-      return nativeAddIceCandidate.apply(this, arguments);
-    };
-  }
-};
-
-
-// Expose public methods.
-module.exports = {
-  shimMediaStream: chromeShim.shimMediaStream,
-  shimOnTrack: chromeShim.shimOnTrack,
-  shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
-  shimSourceObject: chromeShim.shimSourceObject,
-  shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
-};
-
-},{"../utils.js":11,"./getusermedia":4}],4:[function(require,module,exports){
-/*
- *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
- /* eslint-env node */
-'use strict';
-var logging = require('../utils.js').log;
-var browserDetails = require('../utils.js').browserDetails;
-
-// Expose public methods.
-module.exports = function() {
-  var constraintsToChrome_ = function(c) {
-    if (typeof c !== 'object' || c.mandatory || c.optional) {
-      return c;
-    }
-    var cc = {};
-    Object.keys(c).forEach(function(key) {
-      if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
-        return;
-      }
-      var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
-      if (r.exact !== undefined && typeof r.exact === 'number') {
-        r.min = r.max = r.exact;
-      }
-      var oldname_ = function(prefix, name) {
-        if (prefix) {
-          return prefix + name.charAt(0).toUpperCase() + name.slice(1);
-        }
-        return (name === 'deviceId') ? 'sourceId' : name;
-      };
-      if (r.ideal !== undefined) {
-        cc.optional = cc.optional || [];
-        var oc = {};
-        if (typeof r.ideal === 'number') {
-          oc[oldname_('min', key)] = r.ideal;
-          cc.optional.push(oc);
-          oc = {};
-          oc[oldname_('max', key)] = r.ideal;
-          cc.optional.push(oc);
-        } else {
-          oc[oldname_('', key)] = r.ideal;
-          cc.optional.push(oc);
-        }
-      }
-      if (r.exact !== undefined && typeof r.exact !== 'number') {
-        cc.mandatory = cc.mandatory || {};
-        cc.mandatory[oldname_('', key)] = r.exact;
-      } else {
-        ['min', 'max'].forEach(function(mix) {
-          if (r[mix] !== undefined) {
-            cc.mandatory = cc.mandatory || {};
-            cc.mandatory[oldname_(mix, key)] = r[mix];
-          }
-        });
-      }
-    });
-    if (c.advanced) {
-      cc.optional = (cc.optional || []).concat(c.advanced);
-    }
-    return cc;
-  };
-
-  var shimConstraints_ = function(constraints, func) {
-    constraints = JSON.parse(JSON.stringify(constraints));
-    if (constraints && constraints.audio) {
-      constraints.audio = constraintsToChrome_(constraints.audio);
-    }
-    if (constraints && typeof constraints.video === 'object') {
-      // Shim facingMode for mobile & surface pro.
-      var face = constraints.video.facingMode;
-      face = face && ((typeof face === 'object') ? face : {ideal: face});
-      var getSupportedFacingModeLies = browserDetails.version < 61;
-
-      if ((face && (face.exact === 'user' || face.exact === 'environment' ||
-                    face.ideal === 'user' || face.ideal === 'environment')) &&
-          !(navigator.mediaDevices.getSupportedConstraints &&
-            navigator.mediaDevices.getSupportedConstraints().facingMode &&
-            !getSupportedFacingModeLies)) {
-        delete constraints.video.facingMode;
-        var matches;
-        if (face.exact === 'environment' || face.ideal === 'environment') {
-          matches = ['back', 'rear'];
-        } else if (face.exact === 'user' || face.ideal === 'user') {
-          matches = ['front'];
-        }
-        if (matches) {
-          // Look for matches in label, or use last cam for back (typical).
-          return navigator.mediaDevices.enumerateDevices()
-          .then(function(devices) {
-            devices = devices.filter(function(d) {
-              return d.kind === 'videoinput';
-            });
-            var dev = devices.find(function(d) {
-              return matches.some(function(match) {
-                return d.label.toLowerCase().indexOf(match) !== -1;
-              });
-            });
-            if (!dev && devices.length && matches.indexOf('back') !== -1) {
-              dev = devices[devices.length - 1]; // more likely the back cam
-            }
-            if (dev) {
-              constraints.video.deviceId = face.exact ? {exact: dev.deviceId} :
-                                                        {ideal: dev.deviceId};
-            }
-            constraints.video = constraintsToChrome_(constraints.video);
-            logging('chrome: ' + JSON.stringify(constraints));
-            return func(constraints);
-          });
-        }
-      }
-      constraints.video = constraintsToChrome_(constraints.video);
-    }
-    logging('chrome: ' + JSON.stringify(constraints));
-    return func(constraints);
-  };
-
-  var shimError_ = function(e) {
-    return {
-      name: {
-        PermissionDeniedError: 'NotAllowedError',
-        ConstraintNotSatisfiedError: 'OverconstrainedError'
-      }[e.name] || e.name,
-      message: e.message,
-      constraint: e.constraintName,
-      toString: function() {
-        return this.name + (this.message && ': ') + this.message;
-      }
-    };
-  };
-
-  var getUserMedia_ = function(constraints, onSuccess, onError) {
-    shimConstraints_(constraints, function(c) {
-      navigator.webkitGetUserMedia(c, onSuccess, function(e) {
-        onError(shimError_(e));
-      });
-    });
-  };
-
-  navigator.getUserMedia = getUserMedia_;
-
-  // Returns the result of getUserMedia as a Promise.
-  var getUserMediaPromise_ = function(constraints) {
-    return new Promise(function(resolve, reject) {
-      navigator.getUserMedia(constraints, resolve, reject);
-    });
-  };
-
-  if (!navigator.mediaDevices) {
-    navigator.mediaDevices = {
-      getUserMedia: getUserMediaPromise_,
-      enumerateDevices: function() {
-        return new Promise(function(resolve) {
-          var kinds = {audio: 'audioinput', video: 'videoinput'};
-          return MediaStreamTrack.getSources(function(devices) {
-            resolve(devices.map(function(device) {
-              return {label: device.label,
-                      kind: kinds[device.kind],
-                      deviceId: device.id,
-                      groupId: ''};
-            }));
-          });
-        });
-      },
-      getSupportedConstraints: function() {
-        return {
-          deviceId: true, echoCancellation: true, facingMode: true,
-          frameRate: true, height: true, width: true
-        };
-      }
-    };
-  }
-
-  // A shim for getUserMedia method on the mediaDevices object.
-  // TODO(KaptenJansson) remove once implemented in Chrome stable.
-  if (!navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia = function(constraints) {
-      return getUserMediaPromise_(constraints);
-    };
-  } else {
-    // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
-    // function which returns a Promise, it does not accept spec-style
-    // constraints.
-    var origGetUserMedia = navigator.mediaDevices.getUserMedia.
-        bind(navigator.mediaDevices);
-    navigator.mediaDevices.getUserMedia = function(cs) {
-      return shimConstraints_(cs, function(c) {
-        return origGetUserMedia(c).then(function(stream) {
-          if (c.audio && !stream.getAudioTracks().length ||
-              c.video && !stream.getVideoTracks().length) {
-            stream.getTracks().forEach(function(track) {
-              track.stop();
-            });
-            throw new DOMException('', 'NotFoundError');
-          }
-          return stream;
-        }, function(e) {
-          return Promise.reject(shimError_(e));
-        });
-      });
-    };
-  }
-
-  // Dummy devicechange event methods.
-  // TODO(KaptenJansson) remove once implemented in Chrome stable.
-  if (typeof navigator.mediaDevices.addEventListener === 'undefined') {
-    navigator.mediaDevices.addEventListener = function() {
-      logging('Dummy mediaDevices.addEventListener called.');
-    };
-  }
-  if (typeof navigator.mediaDevices.removeEventListener === 'undefined') {
-    navigator.mediaDevices.removeEventListener = function() {
-      logging('Dummy mediaDevices.removeEventListener called.');
-    };
-  }
-};
-
-},{"../utils.js":11}],5:[function(require,module,exports){
-/*
- *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
- /* eslint-env node */
-'use strict';
-
-var browserDetails = require('../utils').browserDetails;
-var shimRTCPeerConnection = require('./rtcpeerconnection_shim');
-
-module.exports = {
-  shimGetUserMedia: require('./getusermedia'),
-  shimPeerConnection: function() {
-    if (window.RTCIceGatherer) {
-      // ORTC defines an RTCIceCandidate object but no constructor.
-      // Not implemented in Edge.
-      if (!window.RTCIceCandidate) {
-        window.RTCIceCandidate = function(args) {
-          return args;
-        };
-      }
-      // ORTC does not have a session description object but
-      // other browsers (i.e. Chrome) that will support both PC and ORTC
-      // in the future might have this defined already.
-      if (!window.RTCSessionDescription) {
-        window.RTCSessionDescription = function(args) {
-          return args;
-        };
-      }
-      // this adds an additional event listener to MediaStrackTrack that signals
-      // when a tracks enabled property was changed. Workaround for a bug in
-      // addStream, see below. No longer required in 15025+
-      if (browserDetails.version < 15025) {
-        var origMSTEnabled = Object.getOwnPropertyDescriptor(
-            MediaStreamTrack.prototype, 'enabled');
-        Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
-          set: function(value) {
-            origMSTEnabled.set.call(this, value);
-            var ev = new Event('enabled');
-            ev.enabled = value;
-            this.dispatchEvent(ev);
-          }
-        });
-      }
-    }
-    window.RTCPeerConnection = shimRTCPeerConnection(browserDetails.version);
-  },
-  shimReplaceTrack: function() {
-    // ORTC has replaceTrack -- https://github.com/w3c/ortc/issues/614
-    if (window.RTCRtpSender && !('replaceTrack' in RTCRtpSender.prototype)) {
-      RTCRtpSender.prototype.replaceTrack = RTCRtpSender.prototype.setTrack;
-    }
-  }
-};
-
-},{"../utils":11,"./getusermedia":6,"./rtcpeerconnection_shim":7}],6:[function(require,module,exports){
-/*
- *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
- /* eslint-env node */
-'use strict';
-
-// Expose public methods.
-module.exports = function() {
-  var shimError_ = function(e) {
-    return {
-      name: {PermissionDeniedError: 'NotAllowedError'}[e.name] || e.name,
-      message: e.message,
-      constraint: e.constraint,
-      toString: function() {
-        return this.name;
-      }
-    };
-  };
-
-  // getUserMedia error shim.
-  var origGetUserMedia = navigator.mediaDevices.getUserMedia.
-      bind(navigator.mediaDevices);
-  navigator.mediaDevices.getUserMedia = function(c) {
-    return origGetUserMedia(c).catch(function(e) {
-      return Promise.reject(shimError_(e));
-    });
-  };
-};
-
-},{}],7:[function(require,module,exports){
 /*
  *  Copyright (c) 2017 The WebRTC project authors. All Rights Reserved.
  *
@@ -1360,10 +1304,6 @@ module.exports = function() {
  *  tree.
  */
  /* eslint-env node */
-'use strict';
-
-var SDPUtils = require('sdp');
-
 // sort tracks such that they follow an a-v-a-v...
 // pattern.
 function sortTracks(tracks) {
@@ -1424,7 +1364,7 @@ function filterIceServers(iceServers, edgeVersion) {
   });
 }
 
-module.exports = function(edgeVersion) {
+var shimRTCPeerConnection = function(edgeVersion) {
   var RTCPeerConnection = function(config) {
     var self = this;
 
@@ -1509,7 +1449,7 @@ module.exports = function(edgeVersion) {
 
   RTCPeerConnection.prototype._emitBufferedCandidates = function() {
     var self = this;
-    var sections = SDPUtils.splitSections(self.localDescription.sdp);
+    var sections = sdp.splitSections(self.localDescription.sdp);
     // FIXME: need to apply ice candidates in a way which is async but
     // in-order
     this._localIceCandidatesBuffer.forEach(function(event) {
@@ -1694,11 +1634,11 @@ module.exports = function(edgeVersion) {
       } else {
         // RTCIceCandidate doesn't have a component, needs to be added
         cand.component = iceTransport.component === 'RTCP' ? 2 : 1;
-        event.candidate.candidate = SDPUtils.writeCandidate(cand);
+        event.candidate.candidate = sdp.writeCandidate(cand);
       }
 
       // update local description.
-      var sections = SDPUtils.splitSections(self.localDescription.sdp);
+      var sections = sdp.splitSections(self.localDescription.sdp);
       if (!end) {
         sections[event.candidate.sdpMLineIndex + 1] +=
             'a=' + event.candidate.candidate + '\r\n';
@@ -1801,7 +1741,7 @@ module.exports = function(edgeVersion) {
     if (send && transceiver.rtpSender) {
       params.encodings = transceiver.sendEncodingParameters;
       params.rtcp = {
-        cname: SDPUtils.localCName,
+        cname: sdp.localCName,
         compound: transceiver.rtcpParameters.compound
       };
       if (transceiver.recvEncodingParameters.length) {
@@ -1841,19 +1781,19 @@ module.exports = function(edgeVersion) {
       if (this._pendingOffer) {
         // VERY limited support for SDP munging. Limited to:
         // * changing the order of codecs
-        sections = SDPUtils.splitSections(description.sdp);
+        sections = sdp.splitSections(description.sdp);
         sessionpart = sections.shift();
         sections.forEach(function(mediaSection, sdpMLineIndex) {
-          var caps = SDPUtils.parseRtpParameters(mediaSection);
+          var caps = sdp.parseRtpParameters(mediaSection);
           self._pendingOffer[sdpMLineIndex].localCapabilities = caps;
         });
         this.transceivers = this._pendingOffer;
         delete this._pendingOffer;
       }
     } else if (description.type === 'answer') {
-      sections = SDPUtils.splitSections(self.remoteDescription.sdp);
+      sections = sdp.splitSections(self.remoteDescription.sdp);
       sessionpart = sections.shift();
-      var isIceLite = SDPUtils.matchPrefix(sessionpart,
+      var isIceLite = sdp.matchPrefix(sessionpart,
           'a=ice-lite').length > 0;
       sections.forEach(function(mediaSection, sdpMLineIndex) {
         var transceiver = self.transceivers[sdpMLineIndex];
@@ -1863,12 +1803,12 @@ module.exports = function(edgeVersion) {
         var localCapabilities = transceiver.localCapabilities;
         var remoteCapabilities = transceiver.remoteCapabilities;
 
-        var rejected = SDPUtils.isRejected(mediaSection);
+        var rejected = sdp.isRejected(mediaSection);
 
         if (!rejected && !transceiver.isDatachannel) {
-          var remoteIceParameters = SDPUtils.getIceParameters(
+          var remoteIceParameters = sdp.getIceParameters(
               mediaSection, sessionpart);
-          var remoteDtlsParameters = SDPUtils.getDtlsParameters(
+          var remoteDtlsParameters = sdp.getDtlsParameters(
               mediaSection, sessionpart);
           if (isIceLite) {
             remoteDtlsParameters.role = 'server';
@@ -1943,13 +1883,13 @@ module.exports = function(edgeVersion) {
     var self = this;
     var streams = {};
     var receiverList = [];
-    var sections = SDPUtils.splitSections(description.sdp);
+    var sections = sdp.splitSections(description.sdp);
     var sessionpart = sections.shift();
-    var isIceLite = SDPUtils.matchPrefix(sessionpart,
+    var isIceLite = sdp.matchPrefix(sessionpart,
         'a=ice-lite').length > 0;
-    var usingBundle = SDPUtils.matchPrefix(sessionpart,
+    var usingBundle = sdp.matchPrefix(sessionpart,
         'a=group:BUNDLE ').length > 0;
-    var iceOptions = SDPUtils.matchPrefix(sessionpart,
+    var iceOptions = sdp.matchPrefix(sessionpart,
         'a=ice-options:')[0];
     if (iceOptions) {
       this.canTrickleIceCandidates = iceOptions.substr(14).split(' ')
@@ -1959,15 +1899,15 @@ module.exports = function(edgeVersion) {
     }
 
     sections.forEach(function(mediaSection, sdpMLineIndex) {
-      var lines = SDPUtils.splitLines(mediaSection);
-      var kind = SDPUtils.getKind(mediaSection);
-      var rejected = SDPUtils.isRejected(mediaSection);
+      var lines = sdp.splitLines(mediaSection);
+      var kind = sdp.getKind(mediaSection);
+      var rejected = sdp.isRejected(mediaSection);
       var protocol = lines[0].substr(2).split(' ')[2];
 
-      var direction = SDPUtils.getDirection(mediaSection, sessionpart);
-      var remoteMsid = SDPUtils.parseMsid(mediaSection);
+      var direction = sdp.getDirection(mediaSection, sessionpart);
+      var remoteMsid = sdp.parseMsid(mediaSection);
 
-      var mid = SDPUtils.getMid(mediaSection) || SDPUtils.generateIdentifier();
+      var mid = sdp.getMid(mediaSection) || sdp.generateIdentifier();
 
       // Reject datachannels which are not implemented yet.
       if (kind === 'application' && protocol === 'DTLS/SCTP') {
@@ -1990,26 +1930,26 @@ module.exports = function(edgeVersion) {
 
       var track;
       // FIXME: ensure the mediaSection has rtcp-mux set.
-      var remoteCapabilities = SDPUtils.parseRtpParameters(mediaSection);
+      var remoteCapabilities = sdp.parseRtpParameters(mediaSection);
       var remoteIceParameters;
       var remoteDtlsParameters;
       if (!rejected) {
-        remoteIceParameters = SDPUtils.getIceParameters(mediaSection,
+        remoteIceParameters = sdp.getIceParameters(mediaSection,
             sessionpart);
-        remoteDtlsParameters = SDPUtils.getDtlsParameters(mediaSection,
+        remoteDtlsParameters = sdp.getDtlsParameters(mediaSection,
             sessionpart);
         remoteDtlsParameters.role = 'client';
       }
       recvEncodingParameters =
-          SDPUtils.parseRtpEncodingParameters(mediaSection);
+          sdp.parseRtpEncodingParameters(mediaSection);
 
-      var rtcpParameters = SDPUtils.parseRtcpParameters(mediaSection);
+      var rtcpParameters = sdp.parseRtcpParameters(mediaSection);
 
-      var isComplete = SDPUtils.matchPrefix(mediaSection,
+      var isComplete = sdp.matchPrefix(mediaSection,
           'a=end-of-candidates', sessionpart).length > 0;
-      var cands = SDPUtils.matchPrefix(mediaSection, 'a=candidate:')
+      var cands = sdp.matchPrefix(mediaSection, 'a=candidate:')
           .map(function(cand) {
-            return SDPUtils.parseCandidate(cand);
+            return sdp.parseCandidate(cand);
           })
           .filter(function(cand) {
             return cand.component === '1';
@@ -2411,14 +2351,14 @@ module.exports = function(edgeVersion) {
     // reorder tracks
     tracks = sortTracks(tracks);
 
-    var sdp = SDPUtils.writeSessionBoilerplate();
+    var sdp$$1 = sdp.writeSessionBoilerplate();
     var transceivers = [];
     tracks.forEach(function(mline, sdpMLineIndex) {
       // For each track, create an ice gatherer, ice transport,
       // dtls transport, potentially rtpsender and rtpreceiver.
       var track = mline.track;
       var kind = mline.kind;
-      var mid = SDPUtils.generateIdentifier();
+      var mid = sdp.generateIdentifier();
 
       var transports = self.usingBundle && sdpMLineIndex > 0 ? {
         iceGatherer: transceivers[0].iceGatherer,
@@ -2482,23 +2422,23 @@ module.exports = function(edgeVersion) {
 
     // always offer BUNDLE and dispose on return if not supported.
     if (this._config.bundlePolicy !== 'max-compat') {
-      sdp += 'a=group:BUNDLE ' + transceivers.map(function(t) {
+      sdp$$1 += 'a=group:BUNDLE ' + transceivers.map(function(t) {
         return t.mid;
       }).join(' ') + '\r\n';
     }
-    sdp += 'a=ice-options:trickle\r\n';
+    sdp$$1 += 'a=ice-options:trickle\r\n';
 
     tracks.forEach(function(mline, sdpMLineIndex) {
       var transceiver = transceivers[sdpMLineIndex];
-      sdp += SDPUtils.writeMediaSection(transceiver,
+      sdp$$1 += sdp.writeMediaSection(transceiver,
           transceiver.localCapabilities, 'offer', mline.stream);
-      sdp += 'a=rtcp-rsize\r\n';
+      sdp$$1 += 'a=rtcp-rsize\r\n';
     });
 
     this._pendingOffer = transceivers;
     var desc = new RTCSessionDescription({
       type: 'offer',
-      sdp: sdp
+      sdp: sdp$$1
     });
     if (arguments.length && typeof arguments[0] === 'function') {
       window.setTimeout(arguments[0], 0, desc);
@@ -2509,15 +2449,15 @@ module.exports = function(edgeVersion) {
   RTCPeerConnection.prototype.createAnswer = function() {
     var self = this;
 
-    var sdp = SDPUtils.writeSessionBoilerplate();
+    var sdp$$1 = sdp.writeSessionBoilerplate();
     if (this.usingBundle) {
-      sdp += 'a=group:BUNDLE ' + this.transceivers.map(function(t) {
+      sdp$$1 += 'a=group:BUNDLE ' + this.transceivers.map(function(t) {
         return t.mid;
       }).join(' ') + '\r\n';
     }
     this.transceivers.forEach(function(transceiver) {
       if (transceiver.isDatachannel) {
-        sdp += 'm=application 0 DTLS/SCTP 5000\r\n' +
+        sdp$$1 += 'm=application 0 DTLS/SCTP 5000\r\n' +
             'c=IN IP4 0.0.0.0\r\n' +
             'a=mid:' + transceiver.mid + '\r\n';
         return;
@@ -2534,17 +2474,17 @@ module.exports = function(edgeVersion) {
         delete transceiver.sendEncodingParameters[0].rtx;
       }
 
-      sdp += SDPUtils.writeMediaSection(transceiver, commonCapabilities,
+      sdp$$1 += sdp.writeMediaSection(transceiver, commonCapabilities,
           'answer', self.localStreams[0]);
       if (transceiver.rtcpParameters &&
           transceiver.rtcpParameters.reducedSize) {
-        sdp += 'a=rtcp-rsize\r\n';
+        sdp$$1 += 'a=rtcp-rsize\r\n';
       }
     });
 
     var desc = new RTCSessionDescription({
       type: 'answer',
-      sdp: sdp
+      sdp: sdp$$1
     });
     if (arguments.length && typeof arguments[0] === 'function') {
       window.setTimeout(arguments[0], 0, desc);
@@ -2573,7 +2513,7 @@ module.exports = function(edgeVersion) {
       var transceiver = this.transceivers[mLineIndex];
       if (transceiver) {
         var cand = Object.keys(candidate.candidate).length > 0 ?
-            SDPUtils.parseCandidate(candidate.candidate) : {};
+            sdp.parseCandidate(candidate.candidate) : {};
         // Ignore Chrome's invalid candidates since Edge does not like them.
         if (cand.protocol === 'tcp' && (cand.port === 0 || cand.port === 9)) {
           return Promise.resolve();
@@ -2585,7 +2525,7 @@ module.exports = function(edgeVersion) {
         transceiver.iceTransport.addRemoteCandidate(cand);
 
         // update the remoteDescription.
-        var sections = SDPUtils.splitSections(this.remoteDescription.sdp);
+        var sections = sdp.splitSections(this.remoteDescription.sdp);
         sections[mLineIndex + 1] += (cand.type ? candidate.candidate.trim()
             : 'a=end-of-candidates') + '\r\n';
         this.remoteDescription.sdp = sections.join('');
@@ -2638,7 +2578,6 @@ module.exports = function(edgeVersion) {
   return RTCPeerConnection;
 };
 
-},{"sdp":1}],8:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -2647,190 +2586,87 @@ module.exports = function(edgeVersion) {
  *  tree.
  */
  /* eslint-env node */
-'use strict';
-
-var browserDetails = require('../utils').browserDetails;
-
-var firefoxShim = {
-  shimOnTrack: function() {
-    if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
-        window.RTCPeerConnection.prototype)) {
-      Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-        get: function() {
-          return this._ontrack;
-        },
-        set: function(f) {
-          if (this._ontrack) {
-            this.removeEventListener('track', this._ontrack);
-            this.removeEventListener('addstream', this._ontrackpoly);
-          }
-          this.addEventListener('track', this._ontrack = f);
-          this.addEventListener('addstream', this._ontrackpoly = function(e) {
-            e.stream.getTracks().forEach(function(track) {
-              var event = new Event('track');
-              event.track = track;
-              event.receiver = {track: track};
-              event.streams = [e.stream];
-              this.dispatchEvent(event);
-            }.bind(this));
-          }.bind(this));
-        }
-      });
-    }
-  },
-
-  shimSourceObject: function() {
-    // Firefox has supported mozSrcObject since FF22, unprefixed in 42.
-    if (typeof window === 'object') {
-      if (window.HTMLMediaElement &&
-        !('srcObject' in window.HTMLMediaElement.prototype)) {
-        // Shim the srcObject property, once, when HTMLMediaElement is found.
-        Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-          get: function() {
-            return this.mozSrcObject;
-          },
-          set: function(stream) {
-            this.mozSrcObject = stream;
-          }
-        });
+// Expose public methods.
+var getusermedia$1 = function() {
+  var shimError_ = function(e) {
+    return {
+      name: {PermissionDeniedError: 'NotAllowedError'}[e.name] || e.name,
+      message: e.message,
+      constraint: e.constraint,
+      toString: function() {
+        return this.name;
       }
-    }
-  },
+    };
+  };
 
-  shimPeerConnection: function() {
-    if (typeof window !== 'object' || !(window.RTCPeerConnection ||
-        window.mozRTCPeerConnection)) {
-      return; // probably media.peerconnection.enabled=false in about:config
-    }
-    // The RTCPeerConnection object.
-    if (!window.RTCPeerConnection) {
-      window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-        if (browserDetails.version < 38) {
-          // .urls is not supported in FF < 38.
-          // create RTCIceServers with a single url.
-          if (pcConfig && pcConfig.iceServers) {
-            var newIceServers = [];
-            for (var i = 0; i < pcConfig.iceServers.length; i++) {
-              var server = pcConfig.iceServers[i];
-              if (server.hasOwnProperty('urls')) {
-                for (var j = 0; j < server.urls.length; j++) {
-                  var newServer = {
-                    url: server.urls[j]
-                  };
-                  if (server.urls[j].indexOf('turn') === 0) {
-                    newServer.username = server.username;
-                    newServer.credential = server.credential;
-                  }
-                  newIceServers.push(newServer);
-                }
-              } else {
-                newIceServers.push(pcConfig.iceServers[i]);
-              }
-            }
-            pcConfig.iceServers = newIceServers;
-          }
-        }
-        return new mozRTCPeerConnection(pcConfig, pcConstraints);
+  // getUserMedia error shim.
+  var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+      bind(navigator.mediaDevices);
+  navigator.mediaDevices.getUserMedia = function(c) {
+    return origGetUserMedia(c).catch(function(e) {
+      return Promise.reject(shimError_(e));
+    });
+  };
+};
+
+/*
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+ /* eslint-env node */
+function shimPeerConnection$1() {
+  if (window.RTCIceGatherer) {
+    // ORTC defines an RTCIceCandidate object but no constructor.
+    // Not implemented in Edge.
+    if (!window.RTCIceCandidate) {
+      window.RTCIceCandidate = function(args) {
+        return args;
       };
-      window.RTCPeerConnection.prototype = mozRTCPeerConnection.prototype;
-
-      // wrap static methods. Currently just generateCertificate.
-      if (mozRTCPeerConnection.generateCertificate) {
-        Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-          get: function() {
-            return mozRTCPeerConnection.generateCertificate;
-          }
-        });
-      }
-
-      window.RTCSessionDescription = mozRTCSessionDescription;
-      window.RTCIceCandidate = mozRTCIceCandidate;
     }
-
-    // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
-    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-        .forEach(function(method) {
-          var nativeMethod = RTCPeerConnection.prototype[method];
-          RTCPeerConnection.prototype[method] = function() {
-            arguments[0] = new ((method === 'addIceCandidate') ?
-                RTCIceCandidate : RTCSessionDescription)(arguments[0]);
-            return nativeMethod.apply(this, arguments);
-          };
-        });
-
-    // support for addIceCandidate(null or undefined)
-    var nativeAddIceCandidate =
-        RTCPeerConnection.prototype.addIceCandidate;
-    RTCPeerConnection.prototype.addIceCandidate = function() {
-      if (!arguments[0]) {
-        if (arguments[1]) {
-          arguments[1].apply(null);
+    // ORTC does not have a session description object but
+    // other browsers (i.e. Chrome) that will support both PC and ORTC
+    // in the future might have this defined already.
+    if (!window.RTCSessionDescription) {
+      window.RTCSessionDescription = function(args) {
+        return args;
+      };
+    }
+    // this adds an additional event listener to MediaStrackTrack that signals
+    // when a tracks enabled property was changed. Workaround for a bug in
+    // addStream, see below. No longer required in 15025+
+    if (browserDetails.version < 15025) {
+      var origMSTEnabled = Object.getOwnPropertyDescriptor(
+          MediaStreamTrack.prototype, 'enabled');
+      Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
+        set: function(value) {
+          origMSTEnabled.set.call(this, value);
+          var ev = new Event('enabled');
+          ev.enabled = value;
+          this.dispatchEvent(ev);
         }
-        return Promise.resolve();
-      }
-      return nativeAddIceCandidate.apply(this, arguments);
-    };
-
-    // shim getStats with maplike support
-    var makeMapStats = function(stats) {
-      var map = new Map();
-      Object.keys(stats).forEach(function(key) {
-        map.set(key, stats[key]);
-        map[key] = stats[key];
       });
-      return map;
-    };
-
-    var modernStatsTypes = {
-      inboundrtp: 'inbound-rtp',
-      outboundrtp: 'outbound-rtp',
-      candidatepair: 'candidate-pair',
-      localcandidate: 'local-candidate',
-      remotecandidate: 'remote-candidate'
-    };
-
-    var nativeGetStats = RTCPeerConnection.prototype.getStats;
-    RTCPeerConnection.prototype.getStats = function(selector, onSucc, onErr) {
-      return nativeGetStats.apply(this, [selector || null])
-        .then(function(stats) {
-          if (browserDetails.version < 48) {
-            stats = makeMapStats(stats);
-          }
-          if (browserDetails.version < 53 && !onSucc) {
-            // Shim only promise getStats with spec-hyphens in type names
-            // Leave callback version alone; misc old uses of forEach before Map
-            try {
-              stats.forEach(function(stat) {
-                stat.type = modernStatsTypes[stat.type] || stat.type;
-              });
-            } catch (e) {
-              if (e.name !== 'TypeError') {
-                throw e;
-              }
-              // Avoid TypeError: "type" is read-only, in old versions. 34-43ish
-              stats.forEach(function(stat, i) {
-                stats.set(i, Object.assign({}, stat, {
-                  type: modernStatsTypes[stat.type] || stat.type
-                }));
-              });
-            }
-          }
-          return stats;
-        })
-        .then(onSucc, onErr);
-    };
+    }
   }
-};
+  window.RTCPeerConnection = shimRTCPeerConnection(browserDetails.version);
+}
 
-// Expose public methods.
-module.exports = {
-  shimOnTrack: firefoxShim.shimOnTrack,
-  shimSourceObject: firefoxShim.shimSourceObject,
-  shimPeerConnection: firefoxShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
-};
+function shimReplaceTrack() {
+  // ORTC has replaceTrack -- https://github.com/w3c/ortc/issues/614
+  if (window.RTCRtpSender && !('replaceTrack' in RTCRtpSender.prototype)) {
+    RTCRtpSender.prototype.replaceTrack = RTCRtpSender.prototype.setTrack;
+  }
+}
 
-},{"../utils":11,"./getusermedia":9}],9:[function(require,module,exports){
+
+var edgeShim = Object.freeze({
+	shimGetUserMedia: getusermedia$1,
+	shimPeerConnection: shimPeerConnection$1,
+	shimReplaceTrack: shimReplaceTrack
+});
+
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -2839,13 +2675,11 @@ module.exports = {
  *  tree.
  */
  /* eslint-env node */
-'use strict';
-
 var logging = require('../utils').log;
-var browserDetails = require('../utils').browserDetails;
+var browserDetails$1 = require('../utils').browserDetails;
 
 // Expose public methods.
-module.exports = function() {
+var getusermedia$2 = function() {
   var shimError_ = function(e) {
     return {
       name: {
@@ -2910,7 +2744,7 @@ module.exports = function() {
       return c;
     };
     constraints = JSON.parse(JSON.stringify(constraints));
-    if (browserDetails.version < 38) {
+    if (browserDetails$1.version < 38) {
       logging('spec: ' + JSON.stringify(constraints));
       if (constraints.audio) {
         constraints.audio = constraintsToFF37_(constraints.audio);
@@ -2950,7 +2784,7 @@ module.exports = function() {
         });
       };
 
-  if (browserDetails.version < 41) {
+  if (browserDetails$1.version < 41) {
     // Work around http://bugzil.la/1169665
     var orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
@@ -2963,7 +2797,7 @@ module.exports = function() {
       });
     };
   }
-  if (browserDetails.version < 49) {
+  if (browserDetails$1.version < 49) {
     var origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
@@ -2984,7 +2818,7 @@ module.exports = function() {
     };
   }
   navigator.getUserMedia = function(constraints, onSuccess, onError) {
-    if (browserDetails.version < 44) {
+    if (browserDetails$1.version < 44) {
       return getUserMedia_(constraints, onSuccess, onError);
     }
     // Replace Firefox 44+'s deprecation warning with unprefixed version.
@@ -2994,77 +2828,6 @@ module.exports = function() {
   };
 };
 
-},{"../utils":11}],10:[function(require,module,exports){
-/*
- *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
-'use strict';
-var safariShim = {
-  // TODO: DrAlex, should be here, double check against LayoutTests
-
-  // TODO: once the back-end for the mac port is done, add.
-  // TODO: check for webkitGTK+
-  // shimPeerConnection: function() { },
-
-  shimOnAddStream: function() {
-    if (typeof window === 'object' && window.RTCPeerConnection &&
-        !('onaddstream' in window.RTCPeerConnection.prototype)) {
-      Object.defineProperty(window.RTCPeerConnection.prototype, 'onaddstream', {
-        get: function() {
-          return this._onaddstream;
-        },
-        set: function(f) {
-          if (this._onaddstream) {
-            this.removeEventListener('addstream', this._onaddstream);
-            this.removeEventListener('track', this._onaddstreampoly);
-          }
-          this.addEventListener('addstream', this._onaddstream = f);
-          this.addEventListener('track', this._onaddstreampoly = function(e) {
-            var stream = e.streams[0];
-            if (!this._streams) {
-              this._streams = [];
-            }
-            if (this._streams.indexOf(stream) >= 0) {
-              return;
-            }
-            this._streams.push(stream);
-            var event = new Event('addstream');
-            event.stream = e.streams[0];
-            this.dispatchEvent(event);
-          }.bind(this));
-        }
-      });
-    }
-  },
-
-  shimGetUserMedia: function() {
-    if (!navigator.getUserMedia) {
-      if (navigator.webkitGetUserMedia) {
-        navigator.getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
-      } else if (navigator.mediaDevices &&
-          navigator.mediaDevices.getUserMedia) {
-        navigator.getUserMedia = function(constraints, cb, errcb) {
-          navigator.mediaDevices.getUserMedia(constraints)
-          .then(cb, errcb);
-        }.bind(navigator);
-      }
-    }
-  }
-};
-
-// Expose public methods.
-module.exports = {
-  shimOnAddStream: safariShim.shimOnAddStream,
-  shimGetUserMedia: safariShim.shimGetUserMedia
-  // TODO
-  // shimPeerConnection: safariShim.shimPeerConnection
-};
-
-},{}],11:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -3073,165 +2836,334 @@ module.exports = {
  *  tree.
  */
  /* eslint-env node */
-'use strict';
-
-var logDisabled_ = true;
-
-// Utility methods.
-var utils = {
-  disableLog: function(bool) {
-    if (typeof bool !== 'boolean') {
-      return new Error('Argument type: ' + typeof bool +
-          '. Please use a boolean.');
-    }
-    logDisabled_ = bool;
-    return (bool) ? 'adapter.js logging disabled' :
-        'adapter.js logging enabled';
-  },
-
-  log: function() {
-    if (typeof window === 'object') {
-      if (logDisabled_) {
-        return;
-      }
-      if (typeof console !== 'undefined' && typeof console.log === 'function') {
-        console.log.apply(console, arguments);
-      }
-    }
-  },
-
-  /**
-   * Extract browser version out of the provided user agent string.
-   *
-   * @param {!string} uastring userAgent string.
-   * @param {!string} expr Regular expression used as match criteria.
-   * @param {!number} pos position in the version string to be returned.
-   * @return {!number} browser version.
-   */
-  extractVersion: function(uastring, expr, pos) {
-    var match = uastring.match(expr);
-    return match && match.length >= pos && parseInt(match[pos], 10);
-  },
-
-  /**
-   * Browser detector.
-   *
-   * @return {object} result containing browser and version
-   *     properties.
-   */
-  detectBrowser: function() {
-    // Returned result object.
-    var result = {};
-    result.browser = null;
-    result.version = null;
-
-    // Fail early if it's not a browser
-    if (typeof window === 'undefined' || !window.navigator) {
-      result.browser = 'Not a browser.';
-      return result;
-    }
-
-    // Firefox.
-    if (navigator.mozGetUserMedia) {
-      result.browser = 'firefox';
-      result.version = this.extractVersion(navigator.userAgent,
-          /Firefox\/(\d+)\./, 1);
-    } else if (navigator.webkitGetUserMedia) {
-      // Chrome, Chromium, Webview, Opera, all use the chrome shim for now
-      if (window.webkitRTCPeerConnection) {
-        result.browser = 'chrome';
-        result.version = this.extractVersion(navigator.userAgent,
-          /Chrom(e|ium)\/(\d+)\./, 2);
-      } else { // Safari (in an unpublished version) or unknown webkit-based.
-        if (navigator.userAgent.match(/Version\/(\d+).(\d+)/)) {
-          result.browser = 'safari';
-          result.version = this.extractVersion(navigator.userAgent,
-            /AppleWebKit\/(\d+)\./, 1);
-        } else { // unknown webkit-based browser.
-          result.browser = 'Unsupported webkit-based browser ' +
-              'with GUM support but no WebRTC support.';
-          return result;
-        }
-      }
-    } else if (navigator.mediaDevices &&
-        navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) { // Edge.
-      result.browser = 'edge';
-      result.version = this.extractVersion(navigator.userAgent,
-          /Edge\/(\d+).(\d+)$/, 2);
-    } else if (navigator.mediaDevices &&
-        navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) {
-        // Safari, with webkitGetUserMedia removed.
-      result.browser = 'safari';
-      result.version = this.extractVersion(navigator.userAgent,
-          /AppleWebKit\/(\d+)\./, 1);
-    } else { // Default fallthrough: not supported.
-      result.browser = 'Not a supported browser.';
-      return result;
-    }
-
-    return result;
-  },
-
-  // shimCreateObjectURL must be called before shimSourceObject to avoid loop.
-
-  shimCreateObjectURL: function() {
-    if (!(typeof window === 'object' && window.HTMLMediaElement &&
-          'srcObject' in window.HTMLMediaElement.prototype)) {
-      // Only shim CreateObjectURL using srcObject if srcObject exists.
-      return undefined;
-    }
-
-    var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
-    var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
-    var streams = new Map(), newId = 0;
-
-    URL.createObjectURL = function(stream) {
-      if ('getTracks' in stream) {
-        var url = 'polyblob:' + (++newId);
-        streams.set(url, stream);
-        console.log('URL.createObjectURL(stream) is deprecated! ' +
-                    'Use elem.srcObject = stream instead!');
-        return url;
-      }
-      return nativeCreateObjectURL(stream);
-    };
-    URL.revokeObjectURL = function(url) {
-      nativeRevokeObjectURL(url);
-      streams.delete(url);
-    };
-
-    var dsc = Object.getOwnPropertyDescriptor(window.HTMLMediaElement.prototype,
-                                              'src');
-    Object.defineProperty(window.HTMLMediaElement.prototype, 'src', {
+function shimOnTrack$1() {
+  if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
+      window.RTCPeerConnection.prototype)) {
+    Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
       get: function() {
-        return dsc.get.apply(this);
+        return this._ontrack;
       },
-      set: function(url) {
-        this.srcObject = streams.get(url) || null;
-        return dsc.set.apply(this, [url]);
+      set: function(f) {
+        if (this._ontrack) {
+          this.removeEventListener('track', this._ontrack);
+          this.removeEventListener('addstream', this._ontrackpoly);
+        }
+        this.addEventListener('track', this._ontrack = f);
+        this.addEventListener('addstream', this._ontrackpoly = function(e) {
+          e.stream.getTracks().forEach(function(track) {
+            var event = new Event('track');
+            event.track = track;
+            event.receiver = {track: track};
+            event.streams = [e.stream];
+            this.dispatchEvent(event);
+          }.bind(this));
+        }.bind(this));
       }
     });
-
-    var nativeSetAttribute = HTMLMediaElement.prototype.setAttribute;
-    HTMLMediaElement.prototype.setAttribute = function() {
-      if (arguments.length === 2 &&
-          ('' + arguments[0]).toLowerCase() === 'src') {
-        this.srcObject = streams.get(arguments[1]) || null;
-      }
-      return nativeSetAttribute.apply(this, arguments);
-    };
   }
-};
+}
 
-// Export.
-module.exports = {
-  log: utils.log,
-  disableLog: utils.disableLog,
-  browserDetails: utils.detectBrowser(),
-  extractVersion: utils.extractVersion,
-  shimCreateObjectURL: utils.shimCreateObjectURL,
-  detectBrowser: utils.detectBrowser.bind(utils)
-};
+function shimSourceObject$1() {
+  // Firefox has supported mozSrcObject since FF22, unprefixed in 42.
+  if (typeof window === 'object') {
+    if (window.HTMLMediaElement &&
+      !('srcObject' in window.HTMLMediaElement.prototype)) {
+      // Shim the srcObject property, once, when HTMLMediaElement is found.
+      Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
+        get: function() {
+          return this.mozSrcObject;
+        },
+        set: function(stream) {
+          this.mozSrcObject = stream;
+        }
+      });
+    }
+  }
+}
 
-},{}]},{},[2])(2)
+function shimPeerConnection$2() {
+  if (typeof window !== 'object' || !(window.RTCPeerConnection ||
+      window.mozRTCPeerConnection)) {
+    return; // probably media.peerconnection.enabled=false in about:config
+  }
+  // The RTCPeerConnection object.
+  if (!window.RTCPeerConnection) {
+    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
+      if (browserDetails.version < 38) {
+        // .urls is not supported in FF < 38.
+        // create RTCIceServers with a single url.
+        if (pcConfig && pcConfig.iceServers) {
+          var newIceServers = [];
+          for (var i = 0; i < pcConfig.iceServers.length; i++) {
+            var server = pcConfig.iceServers[i];
+            if (server.hasOwnProperty('urls')) {
+              for (var j = 0; j < server.urls.length; j++) {
+                var newServer = {
+                  url: server.urls[j]
+                };
+                if (server.urls[j].indexOf('turn') === 0) {
+                  newServer.username = server.username;
+                  newServer.credential = server.credential;
+                }
+                newIceServers.push(newServer);
+              }
+            } else {
+              newIceServers.push(pcConfig.iceServers[i]);
+            }
+          }
+          pcConfig.iceServers = newIceServers;
+        }
+      }
+      return new mozRTCPeerConnection(pcConfig, pcConstraints);
+    };
+    window.RTCPeerConnection.prototype = mozRTCPeerConnection.prototype;
+
+    // wrap static methods. Currently just generateCertificate.
+    if (mozRTCPeerConnection.generateCertificate) {
+      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
+        get: function() {
+          return mozRTCPeerConnection.generateCertificate;
+        }
+      });
+    }
+
+    window.RTCSessionDescription = mozRTCSessionDescription;
+    window.RTCIceCandidate = mozRTCIceCandidate;
+  }
+
+  // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
+  ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+      .forEach(function(method) {
+        var nativeMethod = RTCPeerConnection.prototype[method];
+        RTCPeerConnection.prototype[method] = function() {
+          arguments[0] = new ((method === 'addIceCandidate') ?
+              RTCIceCandidate : RTCSessionDescription)(arguments[0]);
+          return nativeMethod.apply(this, arguments);
+        };
+      });
+
+  // support for addIceCandidate(null or undefined)
+  var nativeAddIceCandidate =
+      RTCPeerConnection.prototype.addIceCandidate;
+  RTCPeerConnection.prototype.addIceCandidate = function() {
+    if (!arguments[0]) {
+      if (arguments[1]) {
+        arguments[1].apply(null);
+      }
+      return Promise.resolve();
+    }
+    return nativeAddIceCandidate.apply(this, arguments);
+  };
+
+  // shim getStats with maplike support
+  var makeMapStats = function(stats) {
+    var map = new Map();
+    Object.keys(stats).forEach(function(key) {
+      map.set(key, stats[key]);
+      map[key] = stats[key];
+    });
+    return map;
+  };
+
+  var modernStatsTypes = {
+    inboundrtp: 'inbound-rtp',
+    outboundrtp: 'outbound-rtp',
+    candidatepair: 'candidate-pair',
+    localcandidate: 'local-candidate',
+    remotecandidate: 'remote-candidate'
+  };
+
+  var nativeGetStats = RTCPeerConnection.prototype.getStats;
+  RTCPeerConnection.prototype.getStats = function(selector, onSucc, onErr) {
+    return nativeGetStats.apply(this, [selector || null])
+      .then(function(stats) {
+        if (browserDetails.version < 48) {
+          stats = makeMapStats(stats);
+        }
+        if (browserDetails.version < 53 && !onSucc) {
+          // Shim only promise getStats with spec-hyphens in type names
+          // Leave callback version alone; misc old uses of forEach before Map
+          try {
+            stats.forEach(function(stat) {
+              stat.type = modernStatsTypes[stat.type] || stat.type;
+            });
+          } catch (e) {
+            if (e.name !== 'TypeError') {
+              throw e;
+            }
+            // Avoid TypeError: "type" is read-only, in old versions. 34-43ish
+            stats.forEach(function(stat, i) {
+              stats.set(i, Object.assign({}, stat, {
+                type: modernStatsTypes[stat.type] || stat.type
+              }));
+            });
+          }
+        }
+        return stats;
+      })
+      .then(onSucc, onErr);
+  };
+}
+
+
+var firefoxShim = Object.freeze({
+	shimOnTrack: shimOnTrack$1,
+	shimSourceObject: shimSourceObject$1,
+	shimPeerConnection: shimPeerConnection$2,
+	shimGetUserMedia: getusermedia$2
 });
+
+/*
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+// TODO: DrAlex, should be here, double check against LayoutTests
+
+// TODO: once the back-end for the mac port is done, add.
+// TODO: check for webkitGTK+
+// shimPeerConnection: function() { },
+
+function shimOnAddStream() {
+  if (typeof window === 'object' && window.RTCPeerConnection &&
+      !('onaddstream' in window.RTCPeerConnection.prototype)) {
+    Object.defineProperty(window.RTCPeerConnection.prototype, 'onaddstream', {
+      get: function() {
+        return this._onaddstream;
+      },
+      set: function(f) {
+        if (this._onaddstream) {
+          this.removeEventListener('addstream', this._onaddstream);
+          this.removeEventListener('track', this._onaddstreampoly);
+        }
+        this.addEventListener('addstream', this._onaddstream = f);
+        this.addEventListener('track', this._onaddstreampoly = function(e) {
+          var stream = e.streams[0];
+          if (!this._streams) {
+            this._streams = [];
+          }
+          if (this._streams.indexOf(stream) >= 0) {
+            return;
+          }
+          this._streams.push(stream);
+          var event = new Event('addstream');
+          event.stream = e.streams[0];
+          this.dispatchEvent(event);
+        }.bind(this));
+      }
+    });
+  }
+}
+
+function shimGetUserMedia() {
+  if (!navigator.getUserMedia) {
+    if (navigator.webkitGetUserMedia) {
+      navigator.getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
+    } else if (navigator.mediaDevices &&
+        navigator.mediaDevices.getUserMedia) {
+      navigator.getUserMedia = function(constraints, cb, errcb) {
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then(cb, errcb);
+      }.bind(navigator);
+    }
+  }
+}
+
+
+
+
+var safariShim = Object.freeze({
+	shimOnAddStream: shimOnAddStream,
+	shimGetUserMedia: shimGetUserMedia
+});
+
+/*
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+ /* eslint-env node */
+
+// Shimming starts here.
+
+// Uncomment the line below if you want logging to occur, including logging
+// for the switch statement below. Can also be turned on in the browser via
+// adapter.disableLog(false), but then logging from the switch statement below
+// will not appear.
+// require('./utils').disableLog(false);
+
+// Shim browser if found.
+switch (browserDetails.browser) {
+  case 'chrome':
+    if (!chromeShim || !shimPeerConnection) {
+      log('Chrome shim is not included in this adapter release.');
+      break;
+    }
+    log('adapter.js shimming chrome.');
+    // Export to the adapter global object visible in the browser.
+    exports.browserShim = chromeShim;
+
+    getusermedia();
+    shimMediaStream();
+    shimCreateObjectURL();
+    shimSourceObject();
+    shimPeerConnection();
+    shimOnTrack();
+    shimGetSendersWithDtmf();
+    break;
+  case 'firefox':
+    if (!firefoxShim || !shimPeerConnection$2) {
+      log('Firefox shim is not included in this adapter release.');
+      break;
+    }
+    log('adapter.js shimming firefox.');
+    // Export to the adapter global object visible in the browser.
+    exports.browserShim = firefoxShim;
+
+    getusermedia$2();
+    shimCreateObjectURL();
+    shimSourceObject$1();
+    shimPeerConnection$2();
+    shimOnTrack$1();
+    break;
+  case 'edge':
+    if (!edgeShim || !shimPeerConnection$1) {
+      log('MS edge shim is not included in this adapter release.');
+      break;
+    }
+    log('adapter.js shimming edge.');
+    // Export to the adapter global object visible in the browser.
+    exports.browserShim = edgeShim;
+
+    getusermedia$1();
+    shimCreateObjectURL();
+    shimPeerConnection$1();
+    shimReplaceTrack();
+    break;
+  case 'safari':
+    if (!safariShim) {
+      log('Safari shim is not included in this adapter release.');
+      break;
+    }
+    log('adapter.js shimming safari.');
+    // Export to the adapter global object visible in the browser.
+    exports.browserShim = safariShim;
+
+    shimOnAddStream();
+    shimGetUserMedia();
+    break;
+  default:
+    log('Unsupported browser!');
+}
+
+exports.browserDetails = browserDetails;
+exports.extractVersion = extractVersion;
+exports.disableLog = disableLog;
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));

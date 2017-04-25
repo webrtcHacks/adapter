@@ -56,5 +56,8 @@
     "module": true,
     "require": true,
     "process": true
+  },
+  ecmaFeatures: {
+    modules: true
   }
 }

@@ -12,7 +12,7 @@ var logging = require('../utils').log;
 var browserDetails = require('../utils').browserDetails;
 
 // Expose public methods.
-module.exports = function() {
+export default function() {
   var shimError_ = function(e) {
     return {
       name: {
@@ -159,4 +159,4 @@ module.exports = function() {
                  'navigator.mediaDevices.getUserMedia');
     navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
   };
-};
+}
