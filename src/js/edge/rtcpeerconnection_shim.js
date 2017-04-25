@@ -718,27 +718,6 @@ module.exports = function(edgeVersion) {
           }
         }
 
-        // FIXME: look at direction.
-        if (self.localStreams.length > 0 &&
-            self.localStreams[0].getTracks().length >= sdpMLineIndex) {
-          var localTrack;
-          if (kind === 'audio') {
-            localTrack = self.localStreams[0].getAudioTracks()[0];
-          } else if (kind === 'video') {
-            localTrack = self.localStreams[0].getVideoTracks()[0];
-          }
-          if (localTrack) {
-            // add RTX
-            if (edgeVersion >= 15019 && kind === 'video') {
-              sendEncodingParameters[0].rtx = {
-                ssrc: (2 * sdpMLineIndex + 2) * 1001 + 1
-              };
-            }
-            rtpSender = new RTCRtpSender(localTrack,
-                transports.dtlsTransport);
-          }
-        }
-
         self.transceivers[sdpMLineIndex] = {
           iceGatherer: transports.iceGatherer,
           iceTransport: transports.iceTransport,
@@ -1161,13 +1140,35 @@ module.exports = function(edgeVersion) {
         return t.mid;
       }).join(' ') + '\r\n';
     }
-    this.transceivers.forEach(function(transceiver) {
+    this.transceivers.forEach(function(transceiver, sdpMLineIndex) {
       if (transceiver.isDatachannel) {
         sdp += 'm=application 0 DTLS/SCTP 5000\r\n' +
             'c=IN IP4 0.0.0.0\r\n' +
             'a=mid:' + transceiver.mid + '\r\n';
         return;
       }
+
+      // FIXME: look at direction.
+      if (self.localStreams.length > 0 &&
+          self.localStreams[0].getTracks().length >= sdpMLineIndex) {
+        var localTrack;
+        if (transceiver.kind === 'audio') {
+          localTrack = self.localStreams[0].getAudioTracks()[0];
+        } else if (transceiver.kind === 'video') {
+          localTrack = self.localStreams[0].getVideoTracks()[0];
+        }
+        if (localTrack) {
+          // add RTX
+          if (edgeVersion >= 15019 && transceiver.kind === 'video') {
+            transceiver.sendEncodingParameters[0].rtx = {
+              ssrc: (2 * sdpMLineIndex + 2) * 1001 + 1
+            };
+          }
+          transceiver.rtpSender = new RTCRtpSender(localTrack,
+              transceiver.dtlsTransport);
+        }
+      }
+
       // Calculate intersection of capabilities.
       var commonCapabilities = self._getCommonCapabilities(
           transceiver.localCapabilities,

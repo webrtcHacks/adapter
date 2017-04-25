@@ -856,6 +856,44 @@ describe('Edge shim', () => {
         });
       });
 
+      describe('with a local track added after setRemoteDescription', () => {
+        it('responds with a sendrecv answer to sendrecv', (done) => {
+          pc.setRemoteDescription({type: 'offer', sdp: sdp})
+          .then(() => {
+            const audioTrack = new MediaStreamTrack();
+            audioTrack.kind = 'audio';
+            const stream = new MediaStream([audioTrack]);
+
+            pc.addStream(stream);
+            return pc.createAnswer();
+          })
+          .then((answer) => {
+            const sections = SDPUtils.splitSections(answer.sdp);
+            expect(SDPUtils.getDirection(sections[1])).to.equal('sendrecv');
+            done();
+          });
+        });
+
+        it('responds with a sendonly answer to recvonly', (done) => {
+          pc.setRemoteDescription({type: 'offer', sdp: sdp.replace('sendrecv',
+              'recvonly')})
+          .then(() => {
+            const audioTrack = new MediaStreamTrack();
+            audioTrack.kind = 'audio';
+            const stream = new MediaStream([audioTrack]);
+
+            pc.addStream(stream);
+            return pc.createAnswer();
+          })
+          .then((answer) => {
+            const sections = SDPUtils.splitSections(answer.sdp);
+            expect(sections.length).to.equal(2);
+            expect(SDPUtils.getDirection(sections[1])).to.equal('sendonly');
+            done();
+          });
+        });
+      });
+
       describe('with no local track', () => {
         it('responds with a recvonly answer to sendrecv', (done) => {
           pc.setRemoteDescription({type: 'offer', sdp: sdp})
