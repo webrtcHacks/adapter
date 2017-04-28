@@ -406,7 +406,8 @@ module.exports = function(edgeVersion) {
     };
     dtlsTransport.onerror = function() {
       // onerror does not set state to failed by itself.
-      dtlsTransport.state = 'failed';
+      Object.defineProperty(dtlsTransport, 'state',
+          {value: 'failed', writable: true});
       self._updateConnectionState();
     };
 
