@@ -63,7 +63,8 @@ var safariShim = {
     var addIceCandidate = prototype.addIceCandidate;
 
     prototype.createOffer = function(successCallback, failureCallback) {
-      var promise = createOffer.apply(this, [arguments[2]]);
+      var options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      var promise = createOffer.apply(this, [options]);
       if (!failureCallback) {
         return promise;
       }
@@ -72,7 +73,8 @@ var safariShim = {
     };
 
     prototype.createAnswer = function(successCallback, failureCallback) {
-      var promise = createAnswer.apply(this);
+      var options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      var promise = createAnswer.apply(this, [options]);
       if (!failureCallback) {
         return promise;
       }
