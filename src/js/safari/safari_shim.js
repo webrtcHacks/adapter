@@ -13,6 +13,14 @@ var safariShim = {
   // TODO: check for webkitGTK+
   // shimPeerConnection: function() { },
 
+  shimAddStream: function() {
+    if (typeof window === 'object' && window.RTCPeerConnection &&
+        !('addStream' in window.RTCPeerConnection.prototype)) {
+      RTCPeerConnection.prototype.addStream = function(stream) {
+        stream.getTracks().forEach(track => this.addTrack(track, stream));
+      }
+    }
+  },
   shimOnAddStream: function() {
     if (typeof window === 'object' && window.RTCPeerConnection &&
         !('onaddstream' in window.RTCPeerConnection.prototype)) {
@@ -43,7 +51,55 @@ var safariShim = {
       });
     }
   },
+  shimCallbacksAPI: function() {
+    if (typeof window !== 'object' || !window.RTCPeerConnection)
+      return;
+    var createOffer = RTCPeerConnection.prototype.createOffer;
+    var createAnswer = RTCPeerConnection.prototype.createAnswer;
+    var setLocalDescription = RTCPeerConnection.prototype.setLocalDescription;
+    var setRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
+    var addIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
 
+    RTCPeerConnection.prototype.createOffer = function(successCallback, failureCallback) {
+      var promise = createOffer.apply(this, [arguments[2]]);
+      if (!failureCallback)
+        return promise;
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    }
+
+    RTCPeerConnection.prototype.createAnswer = function(successCallback, failureCallback) {
+      var promise = createAnswer.apply(this);
+      if (!failureCallback)
+        return promise;
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    }
+
+    RTCPeerConnection.prototype.setLocalDescription = function(description, successCallback, failureCallback) {
+      var promise = setLocalDescription.apply(this, [description]);
+      if (!failureCallback)
+        return promise;
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    }
+
+    RTCPeerConnection.prototype.setRemoteDescription = function(description, successCallback, failureCallback) {
+      var promise = setRemoteDescription.apply(this, [description]);
+      if (!failureCallback)
+        return promise;
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    }
+
+    RTCPeerConnection.prototype.addIceCandidate = function(candidate, successCallback, failureCallback) {
+      var promise = addIceCandidate.apply(this, [candidate]);
+      if (!failureCallback)
+        return promise;
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    }
+  },
   shimGetUserMedia: function() {
     if (!navigator.getUserMedia) {
       if (navigator.webkitGetUserMedia) {
@@ -61,6 +117,8 @@ var safariShim = {
 
 // Expose public methods.
 module.exports = {
+  shimCallbacksAPI: safariShim.shimCallbacksAPI,
+  shimAddStream: safariShim.shimAddStream,
   shimOnAddStream: safariShim.shimOnAddStream,
   shimGetUserMedia: safariShim.shimGetUserMedia
   // TODO
