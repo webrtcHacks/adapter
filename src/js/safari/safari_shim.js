@@ -18,7 +18,7 @@ var safariShim = {
         !('addStream' in window.RTCPeerConnection.prototype)) {
       RTCPeerConnection.prototype.addStream = function(stream) {
         stream.getTracks().forEach(track => this.addTrack(track, stream));
-      }
+      };
     }
   },
   shimOnAddStream: function() {
@@ -52,53 +52,63 @@ var safariShim = {
     }
   },
   shimCallbacksAPI: function() {
-    if (typeof window !== 'object' || !window.RTCPeerConnection)
+    if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
-    var createOffer = RTCPeerConnection.prototype.createOffer;
-    var createAnswer = RTCPeerConnection.prototype.createAnswer;
-    var setLocalDescription = RTCPeerConnection.prototype.setLocalDescription;
-    var setRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
-    var addIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
+    }
+    var prototype = RTCPeerConnection.prototype;
+    var createOffer = prototype.createOffer;
+    var createAnswer = prototype.createAnswer;
+    var setLocalDescription = prototype.setLocalDescription;
+    var setRemoteDescription = prototype.setRemoteDescription;
+    var addIceCandidate = prototype.addIceCandidate;
 
-    RTCPeerConnection.prototype.createOffer = function(successCallback, failureCallback) {
+    prototype.createOffer = function(successCallback, failureCallback) {
       var promise = createOffer.apply(this, [arguments[2]]);
-      if (!failureCallback)
+      if (!failureCallback) {
         return promise;
+      }
       promise.then(successCallback, failureCallback);
       return Promise.resolve();
-    }
+    };
 
-    RTCPeerConnection.prototype.createAnswer = function(successCallback, failureCallback) {
+    prototype.createAnswer = function(successCallback, failureCallback) {
       var promise = createAnswer.apply(this);
-      if (!failureCallback)
+      if (!failureCallback) {
         return promise;
+      }
       promise.then(successCallback, failureCallback);
       return Promise.resolve();
-    }
+    };
 
-    RTCPeerConnection.prototype.setLocalDescription = function(description, successCallback, failureCallback) {
+    var withCallback = function(description, successCallback, failureCallback) {
       var promise = setLocalDescription.apply(this, [description]);
-      if (!failureCallback)
+      if (!failureCallback) {
         return promise;
+      }
       promise.then(successCallback, failureCallback);
       return Promise.resolve();
-    }
+    };
+    prototype.setLocalDescription = withCallback;
 
-    RTCPeerConnection.prototype.setRemoteDescription = function(description, successCallback, failureCallback) {
+    withCallback = function(description, successCallback, failureCallback) {
       var promise = setRemoteDescription.apply(this, [description]);
-      if (!failureCallback)
+      if (!failureCallback) {
         return promise;
+      }
       promise.then(successCallback, failureCallback);
       return Promise.resolve();
-    }
+    };
+    prototype.setRemoteDescription = withCallback;
 
-    RTCPeerConnection.prototype.addIceCandidate = function(candidate, successCallback, failureCallback) {
+    withCallback = function(candidate, successCallback, failureCallback) {
       var promise = addIceCandidate.apply(this, [candidate]);
-      if (!failureCallback)
+      if (!failureCallback) {
         return promise;
+      }
       promise.then(successCallback, failureCallback);
       return Promise.resolve();
-    }
+    };
+    prototype.addIceCandidate = withCallback;
   },
   shimGetUserMedia: function() {
     if (!navigator.getUserMedia) {
