@@ -15,6 +15,7 @@
 var test = require('tape');
 var webdriver = require('selenium-webdriver');
 var seleniumHelpers = require('./selenium-lib');
+const browserVersion = seleniumHelpers.getBrowserVersion();
 
 // Start of tests.
 test('Browser identified', function(t) {
@@ -2254,10 +2255,9 @@ test('ontrack', function(t) {
     });
   };
 
-  // plan for 6 tests in Chrome stable (no getReceivers), 7 elsewhere.
-  // TODO: this needs updating as getReceivers (M59+) moves towards stable.
-  t.plan(process.env.BROWSER === 'chrome' &&
-      process.env.BVER === 'stable' ? 6 : 7);
+  // plan for 6 tests in Chrome <= 58 (no getReceivers), 7 elsewhere.
+  t.plan(process.env.BROWSER === 'chrome' && browserVersion <= 58 ? 6 : 7);
+
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {

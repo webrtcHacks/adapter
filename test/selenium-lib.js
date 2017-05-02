@@ -21,25 +21,23 @@ var sharedDriver = null;
 function getBrowserVersion() {
   var browser = process.env.BROWSER;
   var browserChannel = process.env.BVER;
-  var symlink = './browsers/bin/' + browser + '-' + browserChannel + '/';
-  var path = fs.readlink(symlink);
+  var symlink = './browsers/bin/' + browser + '-' + browserChannel;
+  var path = fs.readlinkSync(symlink);
 
   // Browser reg expressions and position to look for the milestone version.
-  var chromeExp = '/Chrom(e|ium)\/([0-9]+)\./';
-  var firefoxExp = '/Firefox\/([0-9]+)\./';
-  var chromePos = 2;
-  var firefoxPos = 1;
+  var chromeExp = /\/chrome\/(\d+)\./;
+  var firefoxExp = /\/firefox\/(\d+)\./;
 
-  var browserVersion = function(pathToBrowser, expr, pos) {
+  var browserVersion = function(pathToBrowser, expr) {
     var match = pathToBrowser.match(expr);
-    return match && match.length >= pos && parseInt(match[pos], 10);
+    return match && match.length >= 1 && parseInt(match[1], 10);
   };
 
   switch (browser) {
     case 'chrome':
-      return browserVersion(path, chromeExp, chromePos);
+      return browserVersion(path, chromeExp);
     case 'firefox':
-      return browserVersion(path, firefoxExp, firefoxPos);
+      return browserVersion(path, firefoxExp);
     default:
       return 'non supported browser.';
   }
@@ -78,8 +76,9 @@ function buildDriver() {
     chromeOptions.setChromeBinaryPath('node_modules/.bin/start-chrome');
   }
 
+  const browserVersion = getBrowserVersion();
   // Only enable this for Chrome >= 49.
-  if (process.env.BROWSER === 'chrome' && getBrowserVersion >= 49) {
+  if (process.env.BROWSER === 'chrome' && browserVersion >= 49) {
     chromeOptions.addArguments('--enable-experimental-web-platform-features');
   }
 
@@ -98,7 +97,7 @@ function buildDriver() {
       throw new Error('MicrosoftEdge is only supported on Windows or via ' +
           'a selenium server');
     }
-  } else if (process.env.BROWSER === 'firefox' && getBrowserVersion >= 47) {
+  } else if (process.env.BROWSER === 'firefox' && browserVersion >= 47) {
     sharedDriver.getCapabilities().set('marionette', true);
   }
 
@@ -133,7 +132,8 @@ function getStats(driver, peerConnection) {
 }
 
 module.exports = {
-  buildDriver: buildDriver,
-  loadTestPage: loadTestPage,
-  getStats: getStats
+  buildDriver,
+  loadTestPage,
+  getBrowserVersion,
+  getStats
 };
