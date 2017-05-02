@@ -1295,4 +1295,27 @@ describe('Edge shim', () => {
       });
     });
   });
+
+  describe('negotationneeded', () => {
+    it('fires asynchronously after addTrack', (done) => {
+      const pc = new RTCPeerConnection();
+
+      const audioTrack = new MediaStreamTrack();
+      audioTrack.kind = 'audio';
+      const videoTrack = new MediaStreamTrack();
+      videoTrack.kind = 'video';
+      const stream = new MediaStream([audioTrack, videoTrack]);
+
+      pc.onnegotiationneeded = function(e) {
+        pc.createOffer()
+        .then((offer) => {
+          const sections = SDPUtils.splitSections(offer.sdp);
+          expect(sections.length).to.equal(3);
+          done();
+        });
+      };
+      pc.addTrack(audioTrack, stream); // onn should not execute now.
+      pc.addTrack(videoTrack, stream); // but after this.
+    });
+  });
 });
