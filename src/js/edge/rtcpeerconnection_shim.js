@@ -148,6 +148,19 @@ function getCommonCapabilities(localCapabilities, remoteCapabilities) {
   return commonCapabilities;
 }
 
+// is action=setLocalDescription with type allowed in signalingState
+function isActionAllowedInSignalingState(action, type, signalingState) {
+  return {
+    offer: {
+      setLocalDescription: ['stable', 'have-local-offer'],
+      setRemoteDescription: ['stable', 'have-remote-offer']
+    },
+    answer: {
+      setLocalDescription: ['have-remote-offer', 'have-local-pranswer'],
+      setRemoteDescription: ['have-local-offer', 'have-remote-pranswer']
+    }
+  }[type][action].indexOf(signalingState) !== -1;
+}
 
 module.exports = function(edgeVersion) {
   var RTCPeerConnection = function(config) {
@@ -478,6 +491,18 @@ module.exports = function(edgeVersion) {
 
   RTCPeerConnection.prototype.setLocalDescription = function(description) {
     var self = this;
+
+    if (!isActionAllowedInSignalingState('setLocalDescription',
+        description.type, this.signalingState)) {
+      var e = new Error('Can not set local ' + description.type +
+          ' in state ' + this.signalingState);
+      e.name = 'InvalidStateError';
+      if (arguments.length > 2 && typeof arguments[2] === 'function') {
+        window.setTimeout(arguments[2], 0, e);
+      }
+      return Promise.reject(e);
+    }
+
     var sections;
     var sessionpart;
     if (description.type === 'offer') {
@@ -587,6 +612,18 @@ module.exports = function(edgeVersion) {
 
   RTCPeerConnection.prototype.setRemoteDescription = function(description) {
     var self = this;
+
+    if (!isActionAllowedInSignalingState('setRemoteDescription',
+        description.type, this.signalingState)) {
+      var e = new Error('Can not set remote ' + description.type +
+          ' in state ' + this.signalingState);
+      e.name = 'InvalidStateError';
+      if (arguments.length > 2 && typeof arguments[2] === 'function') {
+        window.setTimeout(arguments[2], 0, e);
+      }
+      return Promise.reject(e);
+    }
+
     var streams = {};
     var receiverList = [];
     var sections = SDPUtils.splitSections(description.sdp);
