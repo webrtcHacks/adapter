@@ -2512,8 +2512,10 @@ test('ontrack', function(t) {
     });
   };
 
-  // plan for 6 tests in Chrome (no getReceivers), 7 in FF and Edge.
-  t.plan(process.env.BROWSER === 'chrome' ? 6 : 7);
+  // plan for 6 tests in Chrome stable (no getReceivers), 7 elsewhere.
+  // TODO: this needs updating as getReceivers (M59+) moves towards stable.
+  t.plan(process.env.BROWSER === 'chrome' &&
+      process.env.BVER === 'stable' ? 6 : 7);
   // Run test.
   seleniumHelpers.loadTestPage(driver)
   .then(function() {
