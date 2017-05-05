@@ -15,13 +15,6 @@ module.exports = {
   shimGetUserMedia: require('./getusermedia'),
   shimPeerConnection: function() {
     if (window.RTCIceGatherer) {
-      // ORTC defines an RTCIceCandidate object but no constructor.
-      // Not implemented in Edge.
-      if (!window.RTCIceCandidate) {
-        window.RTCIceCandidate = function(args) {
-          return args;
-        };
-      }
       // ORTC does not have a session description object but
       // other browsers (i.e. Chrome) that will support both PC and ORTC
       // in the future might have this defined already.
