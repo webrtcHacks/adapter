@@ -10,12 +10,20 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Chrome shim', () => {
-  const shim = require('../../src/js/chrome/chrome_shim');
+  const shimFactory = require('../../src/js/chrome/chrome_shim');
+  let shim;
 
   beforeEach(() => {
     global.window = global;
     global.webkitRTCPeerConnection = function() {};
     delete global.RTCPeerConnection;
+
+    const utils = require('../../src/js/utils')({window});
+    shim = shimFactory({window, utils});
+  });
+
+  afterEach(() => {
+    delete global.window;
   });
 
   describe('shimPeerConnection', () => {
