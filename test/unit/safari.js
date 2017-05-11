@@ -3,15 +3,20 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Safari shim', () => {
-  const shim = require('../../src/js/safari/safari_shim');
+  const shimFactory = require('../../src/js/safari/safari_shim');
+  let utils;
+  let shim;
 
   beforeEach(() => {
     global.window = global;
     global.RTCPeerConnection = function() {};
+
+    utils = require('../../src/js/utils')({window});
   });
 
   describe('shimCallbacksAPI', () => {
     it('shimCallbacksAPI existence', () => {
+      shim = shimFactory({window, utils});
       shim.shimCallbacksAPI();
       var prototype = window.RTCPeerConnection.prototype;
       expect(prototype.createOffer.length).to.equal(2);
@@ -35,6 +40,7 @@ describe('Safari shim', () => {
           return Promise.resolve();
         }
       };
+      shim = shimFactory({window, utils});
       shim.shimCallbacksAPI();
       var prototype = window.RTCPeerConnection.prototype;
 
@@ -64,6 +70,7 @@ describe('Safari shim', () => {
 
   describe('shimAddStream', () => {
     it('shimAddStream existence', () => {
+      shim = shimFactory({window, utils});
       shim.shimAddStream();
       var prototype = window.RTCPeerConnection.prototype;
       expect(prototype.addStream.length).to.equal(1);
