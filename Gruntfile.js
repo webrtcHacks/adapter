@@ -46,6 +46,12 @@ module.exports = function(grunt) {
             './src/js/edge/edge_shim.js'
           ]
         }
+      },
+      // Use this if want to invoke the factory to construct adapter yourself
+      // with a custom window object.
+      adapterFactory: {
+        src: ['./src/js/adapter_factory.js'],
+        dest: './out/adapter_factory.js'
       }
     },
     githooks: {
