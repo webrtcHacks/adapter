@@ -10,9 +10,10 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Log suppression', () => {
-  const utils = require('../../src/js/utils.js');
+  const utilsFactory = require('../../src/js/utils.js');
   const saveConsole = console.log.bind(console);
 
+  let utils;
   let logCount;
   beforeEach(() => {
     logCount = 0;
@@ -24,7 +25,7 @@ describe('Log suppression', () => {
       }
     };
     global.window = {};
-    require('../../out/adapter.js');
+    utils = utilsFactory({window});
   });
 
   afterEach(() => {

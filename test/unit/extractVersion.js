@@ -10,7 +10,8 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('extractVersion', () => {
-  const extractVersion = require('../../src/js/utils.js').extractVersion;
+  global.window = global;
+  let {extractVersion} = require('../../src/js/utils.js')({window});
 
   let ua;
   describe('Chrome regular expression', () => {
@@ -164,4 +165,3 @@ describe('extractVersion', () => {
     });
   });
 });
-

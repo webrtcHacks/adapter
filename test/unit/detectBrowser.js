@@ -10,11 +10,14 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('detectBrowser', () => {
-  const detectBrowser = require('../../src/js/utils.js').detectBrowser;
+  const utilsFactory = require('../../src/js/utils.js');
+
+  let detectBrowser;
   beforeEach(() => {
     global.window = global;
     global.navigator = {};
     delete window.webkitRTCPeerConnection;
+    detectBrowser = utilsFactory({window}).detectBrowser;
   });
 
   it('detects Firefox if navigator.mozGetUserMedia exists', () => {
