@@ -10,17 +10,23 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Firefox shim', () => {
-  const shim = require('../../src/js/firefox/firefox_shim');
+  const shimFactory = require('../../src/js/firefox/firefox_shim');
+  let utils;
+  let shim;
+
   beforeEach(() => {
     global.window = global;
     global.mozRTCPeerConnection = function() {};
     global.mozRTCSessionDescription = function() {};
     global.mozRTCIceCandidate = function() {};
     delete global.RTCPeerConnection;
+
+    utils = require('../../src/js/utils')({window});
   });
   describe('shimPeerConnection', () => {
     it('creates window.RTCPeerConnection', () => {
       global.window = global;
+      shim = shimFactory({window, utils});
       shim.shimPeerConnection();
       expect(window.RTCPeerConnection).not.to.equal(undefined);
     });
@@ -28,6 +34,7 @@ describe('Firefox shim', () => {
     it('does not override window.RTCPeerConnection if it exists', () => {
       const pc = function() {};
       global.window.RTCPeerConnection = pc;
+      shim = shimFactory({window, utils});
       shim.shimPeerConnection();
       expect(window.RTCPeerConnection).to.equal(pc);
     });
