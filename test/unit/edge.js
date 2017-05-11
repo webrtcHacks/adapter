@@ -12,7 +12,8 @@ const expect = chai.expect;
 const SDPUtils = require('sdp');
 const EventEmitter = require('events');
 
-const utils = require('../../src/js/utils');
+const utilsFactory = require('../../src/js/utils');
+let utils;
 
 function mockORTC() {
   // make sure the browser detection gets the right information.
@@ -142,9 +143,12 @@ describe('Edge shim', () => {
   };
   global.window = global;
 
-  const shim = require('../../src/js/edge/edge_shim');
+  const shimFactory = require('../../src/js/edge/edge_shim');
 
+  let shim;
   beforeEach(() => {
+    utils = utilsFactory({window});
+    shim = shimFactory({window, utils});
     mockORTC();
     shim.shimPeerConnection();
   });
