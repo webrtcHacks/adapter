@@ -1,6 +1,9 @@
 /* eslint-env node */
 const chai = require('chai');
 const expect = chai.expect;
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+chai.use(sinonChai);
 
 describe('Safari shim', () => {
   const shim = require('../../src/js/safari/safari_shim');
@@ -21,44 +24,47 @@ describe('Safari shim', () => {
       expect(prototype.addIceCandidate.length).to.equal(3);
     });
   });
-  describe('createAnswer/createOffer shiming', () => {
-    it('createAnswer/createOffer options passing', () => {
-      var createOfferOptions, createAnswerOptions;
-      global.RTCPeerConnection = function() {};
-      global.RTCPeerConnection.prototype = {
-        createOffer: (options) => {
-          createOfferOptions = options;
-          return Promise.resolve();
-        },
-        createAnswer: (options) => {
-          createAnswerOptions = options;
-          return Promise.resolve();
-        }
-      };
-      shim.shimCallbacksAPI();
-      var prototype = window.RTCPeerConnection.prototype;
 
-      prototype.createOffer();
-      expect(createOfferOptions).to.equal(undefined);
-      prototype.createOffer(null, null);
-      expect(createOfferOptions).to.equal(undefined);
-      prototype.createOffer(1);
-      expect(createOfferOptions).to.equal(1);
-      prototype.createOffer(null, null, 1);
-      expect(createOfferOptions).to.equal(1);
-      prototype.createOffer(null, null, 1, 2);
-      expect(createOfferOptions).to.equal(1);
+  ['createOffer', 'createAnswer'].forEach((method) => {
+    describe('legacy ' + method + ' shim', () => {
+      describe('options passing with', () => {
+        let stub;
+        beforeEach(() => {
+          stub = sinon.stub();
+          window.RTCPeerConnection.prototype[method] = stub;
+          shim.shimCallbacksAPI();
+        });
 
-      prototype.createAnswer();
-      expect(createAnswerOptions).to.equal(undefined);
-      prototype.createAnswer(null, null);
-      expect(createAnswerOptions).to.equal(undefined);
-      prototype.createAnswer(1);
-      expect(createAnswerOptions).to.equal(1);
-      prototype.createAnswer(null, null, 1);
-      expect(createAnswerOptions).to.equal(1);
-      prototype.createAnswer(null, null, 1, 2);
-      expect(createAnswerOptions).to.equal(1);
+        it('no arguments', () => {
+          var pc = new RTCPeerConnection();
+          pc[method]();
+          expect(stub).to.have.been.calledWith(undefined);
+        });
+
+        it('two callbacks', () => {
+          var pc = new RTCPeerConnection();
+          pc[method](null, null);
+          expect(stub).to.have.been.calledWith(undefined);
+        });
+
+        it('a non-function first argument', () => {
+          var pc = new RTCPeerConnection();
+          pc[method](1);
+          expect(stub).to.have.been.calledWith(1);
+        });
+
+        it('two callbacks and options', () => {
+          var pc = new RTCPeerConnection();
+          pc[method](null, null, 1);
+          expect(stub).to.have.been.calledWith(1);
+        });
+
+        it('two callbacks and two additional arguments', () => {
+          var pc = new RTCPeerConnection();
+          pc[method](null, null, 1, 2);
+          expect(stub).to.have.been.calledWith(1);
+        });
+      });
     });
   });
 
