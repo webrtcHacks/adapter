@@ -82,6 +82,11 @@ function buildDriver() {
     chromeOptions.addArguments('--enable-experimental-web-platform-features');
   }
 
+  if (process.env.BROWSER === 'chrome' && browserVersion >= 59) {
+    chromeOptions.addArguments('headless');
+    chromeOptions.addArguments('disable-gpu');
+  }
+
   var edgeOptions = new edge.Options();
 
   sharedDriver = new webdriver.Builder()
