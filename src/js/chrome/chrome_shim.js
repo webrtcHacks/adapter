@@ -256,7 +256,7 @@ var chromeShim = {
       // shim getStats with maplike support
       var makeMapStats = function(stats) {
         return new Map(Object.keys(stats).map(function(key) {
-          return[key, stats[key]];
+          return [key, stats[key]];
         }));
       };
 
@@ -266,7 +266,7 @@ var chromeShim = {
         };
 
         return origGetStats.apply(this, [successCallbackWrapper_,
-            arguments[0]]);
+          arguments[0]]);
       }
 
       // promise-support

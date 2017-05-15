@@ -14,6 +14,7 @@
         {"SwitchCase": 1}
     ],
     "key-spacing": [2, {"beforeColon": false, "afterColon": true}],
+    "keyword-spacing": 2,
     "max-len": [2, 80, 2, {"ignoreUrls": true}],
     "new-cap": [2, {"newIsCapExceptions": [
         "webkitRTCPeerConnection",
@@ -38,7 +39,6 @@
         2,
         "always"
     ],
-    "space-after-keywords": 2,
     "space-before-blocks": 2,
     "space-before-function-paren": [2, "never"],
     "space-unary-ops": 2,

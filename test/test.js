@@ -842,7 +842,7 @@ test('Check getUserMedia legacy constraints converter', function(t) {
           navigator.getUserMedia(beforeAfter[0], function() {}, function() {});
         });
         window.constraintsArray.push([constraints, beforeAfter[1], gum,
-            counter + 1]);
+          counter + 1]);
       });
     }
 
@@ -1812,7 +1812,7 @@ test('video loadedmetadata is called for a video call', function(t) {
   .then(function(error) {
     // Callback will either return an error object or pc1ConnectionStatus.
     if (error) {
-      throw(error);
+      throw (error);
     }
     return driver.executeScript('return window.testPassed');
   })
@@ -2045,10 +2045,10 @@ test('getStats', {skip: true}, function(t) {
     })
     .then(function(report) {
       window.testsEqualArray.push([typeof report, 'object',
-          'report is an object.']);
+        'report is an object.']);
       report.forEach((stat, key) => {
         window.testsEqualArray.push([stat.id, key,
-            'report key matches stats id.']);
+          'report key matches stats id.']);
       });
       return report;
     })
@@ -2060,7 +2060,7 @@ test('getStats', {skip: true}, function(t) {
           continue;
         }
         window.testsEqualArray.push([report[key].id, key,
-            'legacy report key matches stats id.']);
+          'legacy report key matches stats id.']);
       }
       callback(null);
     })
@@ -2127,13 +2127,13 @@ test('originalChromeGetStats', function(t) {
       // webdriver.
       reports.forEach(function(report) {
         window.testsEqualArray.push([typeof report, 'object',
-            'report is an object']);
+          'report is an object']);
         window.testsEqualArray.push([typeof report.id, 'string',
-            'report.id is a string']);
+          'report.id is a string']);
         window.testsEqualArray.push([typeof report.type, 'string',
-            'report.type is a string']);
+          'report.type is a string']);
         window.testsEqualArray.push([typeof report.timestamp, 'object',
-            'report.timestamp is an object']);
+          'report.timestamp is an object']);
         report.names().forEach(function(name) {
           window.testsNotEqualArray.push([report.stat(name), null,
             'stat ' + name + ' not equal to null']);
@@ -2213,7 +2213,7 @@ test('getStats promise', function(t) {
     pc1.getStats(null)
     .then(function(report) {
       testsEqualArray.push([typeof report, 'object',
-          'getStats with no selector returns a Promise']);
+        'getStats with no selector returns a Promise']);
       // Firefox does not like getStats without any arguments, therefore we call
       // the callback before the next getStats call.
       // FIXME: Remove this if ever supported by Firefox, also remove the t.skip
@@ -2225,7 +2225,7 @@ test('getStats promise', function(t) {
       pc1.getStats()
       .then(function(reportWithoutArg) {
         testsEqualArray.push([typeof reportWithoutArg, 'object',
-            'getStats with no arguments returns a Promise']);
+          'getStats with no arguments returns a Promise']);
         callback(testsEqualArray);
       })
       .catch(function(err) {
@@ -2296,7 +2296,7 @@ test('iceTransportPolicy relay functionality',
         window.candidates = [];
 
         var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
-            iceServers: []});
+          iceServers: []});
 
         // Since we try to gather only relay candidates without specifying
         // a TURN server, we should not get any candidates.
@@ -2572,13 +2572,13 @@ test('Non-module logging to console still works', function(t) {
 
     // Check for existence of variables and functions from public API.
     window.testsEqualArray.push([typeof RTCPeerConnection,'function',
-        'RTCPeerConnection is a function']);
+      'RTCPeerConnection is a function']);
     window.testsEqualArray.push([typeof navigator.getUserMedia, 'function',
-        'getUserMedia is a function']);
+      'getUserMedia is a function']);
     window.testsEqualArray.push([typeof window.adapter.browserDetails.browser,
-        'string', 'browserDetails.browser browser is a string']);
+      'string', 'browserDetails.browser browser is a string']);
     window.testsEqualArray.push([typeof window.adapter.browserDetails.version,
-        'number', 'browserDetails.version is a number']);
+      'number', 'browserDetails.version is a number']);
   };
 
   // Run test.

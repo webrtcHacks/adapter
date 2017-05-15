@@ -158,9 +158,9 @@ module.exports = function() {
           return MediaStreamTrack.getSources(function(devices) {
             resolve(devices.map(function(device) {
               return {label: device.label,
-                      kind: kinds[device.kind],
-                      deviceId: device.id,
-                      groupId: ''};
+                kind: kinds[device.kind],
+                deviceId: device.id,
+                groupId: ''};
             }));
           });
         });
