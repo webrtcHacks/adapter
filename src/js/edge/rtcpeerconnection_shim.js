@@ -695,7 +695,7 @@ module.exports = function(edgeVersion) {
             return SDPUtils.parseCandidate(cand);
           })
           .filter(function(cand) {
-            return cand.component === '1';
+            return cand.component === '1' || cand.component === 1;
           });
       if (description.type === 'offer' && !rejected) {
         var transports = usingBundle && sdpMLineIndex > 0 ? {
@@ -1281,7 +1281,8 @@ module.exports = function(edgeVersion) {
           return Promise.resolve();
         }
         // Ignore RTCP candidates, we assume RTCP-MUX.
-        if (cand.component !== '1') {
+        if (cand.component &&
+            !(cand.component === '1' || cand.component === 1)) {
           return Promise.resolve();
         }
         transceiver.iceTransport.addRemoteCandidate(cand);
