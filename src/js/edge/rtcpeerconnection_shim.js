@@ -745,7 +745,7 @@ module.exports = function(edgeVersion) {
             });
             streams[remoteMsid.stream].addTrack(track);
             receiverList.push([track, rtpReceiver,
-                streams[remoteMsid.stream]]);
+              streams[remoteMsid.stream]]);
           } else {
             if (!streams.default) {
               streams.default = new MediaStream();
@@ -1303,11 +1303,11 @@ module.exports = function(edgeVersion) {
     var promises = [];
     this.transceivers.forEach(function(transceiver) {
       ['rtpSender', 'rtpReceiver', 'iceGatherer', 'iceTransport',
-          'dtlsTransport'].forEach(function(method) {
-            if (transceiver[method]) {
-              promises.push(transceiver[method].getStats());
-            }
-          });
+        'dtlsTransport'].forEach(function(method) {
+          if (transceiver[method]) {
+            promises.push(transceiver[method].getStats());
+          }
+        });
     });
     var cb = arguments.length > 1 && typeof arguments[1] === 'function' &&
         arguments[1];

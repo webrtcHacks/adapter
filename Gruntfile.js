@@ -36,8 +36,8 @@ module.exports = function(grunt) {
           }
         }
       },
-      // Use this if you do not want Microsoft Edge shim to be included and do not
-      // want adapter to expose anything to the global scope.
+      // Use this if you do not want Microsoft Edge shim to be included and
+      // do not want adapter to expose anything to the global scope.
       adapterNoEdgeAndNoGlobalObject: {
         src: ['./src/js/adapter_core.js'],
         dest: './out/adapter_no_edge_no_global.js',

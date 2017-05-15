@@ -1089,7 +1089,7 @@ describe('Edge shim', () => {
 
       it('not set if the offer did not contain rtcp-rsize', (done) => {
         pc.setRemoteDescription({type: 'offer',
-            sdp: sdp.replace('a=rtcp-rsize\r\n', '')})
+          sdp: sdp.replace('a=rtcp-rsize\r\n', '')})
         .then(() => {
           return pc.createAnswer();
         })
