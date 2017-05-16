@@ -16,7 +16,7 @@ module.exports = {
   shimPeerConnection: function() {
     if (window.RTCIceGatherer) {
       // ORTC defines an RTCIceCandidate object but no constructor.
-      // Not implemented in Edge.
+      // Not implemented in in some versions of Edge.
       if (!window.RTCIceCandidate) {
         window.RTCIceCandidate = function(args) {
           return args;
