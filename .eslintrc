@@ -47,7 +47,6 @@
     "valid-typeof": 2
   },
   "env": {
-      "es6": true,
       "browser": true,
       "node": true
   },
@@ -55,6 +54,8 @@
   "globals": {
     "module": true,
     "require": true,
-    "process": true
+    "process": true,
+    "Promise": true,
+    "Map": true
   }
 }
