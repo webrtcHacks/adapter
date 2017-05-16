@@ -695,6 +695,7 @@ module.exports = function(edgeVersion) {
         'a=ice-lite').length > 0;
     var usingBundle = SDPUtils.matchPrefix(sessionpart,
         'a=group:BUNDLE ').length > 0;
+    this.usingBundle = usingBundle;
     var iceOptions = SDPUtils.matchPrefix(sessionpart,
         'a=ice-options:')[0];
     if (iceOptions) {
@@ -900,7 +901,6 @@ module.exports = function(edgeVersion) {
         }
       }
     });
-    this.usingBundle = usingBundle;
 
     this.remoteDescription = {
       type: description.type,
