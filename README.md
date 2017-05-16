@@ -48,8 +48,10 @@ Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/te
 * Make sure your repository is clean, i.e. no untracked files etc
 * Depending on the impact of the release, either use `patch`, `minor` or `major` in place of `<version>`. Run `npm version <version> -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
 * Create and merge the PR if green in the GitHub web ui
-* Run `git pull`
-* Run `npm publish`
+* Go to the releases tab in the GitHub web ui and edit the tag.
+* Add a summary of the recent commits in the tag summary and a link to the diff between the previous and current version in the description, [example](https://github.com/webrtc/adapter/releases/tag/v3.4.1).
+* Go back to your checkout and run `git pull`
+* Run `npm publish` (you need access to the [webrtc-adapter npmjs package](https://www.npmjs.com/package/webrtc-adapter))
 * Done! There should now be a new release published to NPM and the gh-pages branch.
 
 Note: Currently only tested on Linux, not sure about Mac but will definitely not work on Windows.
