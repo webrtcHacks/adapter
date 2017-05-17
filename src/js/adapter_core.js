@@ -31,6 +31,7 @@
   var edgeShim = require('./edge/edge_shim') || null;
   var firefoxShim = require('./firefox/firefox_shim') || null;
   var safariShim = require('./safari/safari_shim') || null;
+  var commonShim = require('./common');
 
   // Shim browser if found.
   switch (browserDetails.browser) {
@@ -96,5 +97,9 @@
       break;
     default:
       logging('Unsupported browser!');
+      break;
   }
+
+  // common shims.
+  commonShim.shimRTCIceCandidate(); // augmented RTCIceCandidate
 })();
