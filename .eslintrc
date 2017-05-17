@@ -57,5 +57,8 @@
     "process": true,
     "Promise": true,
     "Map": true
+  },
+  "parserOptions": {
+      "sourceType": "module"
   }
 }

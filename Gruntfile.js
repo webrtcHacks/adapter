@@ -46,6 +46,9 @@ module.exports = function(grunt) {
             './src/js/edge/edge_shim.js'
           ]
         }
+      },
+      options: {
+        transform: ['babelify']
       }
     },
     githooks: {
