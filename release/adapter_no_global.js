@@ -640,6 +640,7 @@ module.exports = SDPUtils;
   var edgeShim = require('./edge/edge_shim') || null;
   var firefoxShim = require('./firefox/firefox_shim') || null;
   var safariShim = require('./safari/safari_shim') || null;
+  var commonShim = require('./common');
 
   // Shim browser if found.
   switch (browserDetails.browser) {
@@ -705,10 +706,14 @@ module.exports = SDPUtils;
       break;
     default:
       logging('Unsupported browser!');
+      break;
   }
+
+  // common shims.
+  commonShim.shimRTCIceCandidate(); // augmented RTCIceCandidate
 })();
 
-},{"./chrome/chrome_shim":3,"./edge/edge_shim":5,"./firefox/firefox_shim":8,"./safari/safari_shim":10,"./utils":11}],3:[function(require,module,exports){
+},{"./chrome/chrome_shim":3,"./common":5,"./edge/edge_shim":6,"./firefox/firefox_shim":9,"./safari/safari_shim":11,"./utils":12}],3:[function(require,module,exports){
 
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
@@ -1130,7 +1135,7 @@ module.exports = {
   shimGetUserMedia: require('./getusermedia')
 };
 
-},{"../utils.js":11,"./getusermedia":4}],4:[function(require,module,exports){
+},{"../utils.js":12,"./getusermedia":4}],4:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -1351,7 +1356,117 @@ module.exports = function() {
   }
 };
 
-},{"../utils.js":11}],5:[function(require,module,exports){
+},{"../utils.js":12}],5:[function(require,module,exports){
+/*
+ *  Copyright (c) 2017 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+ /* eslint-env node */
+'use strict';
+
+var SDPUtils = require('sdp');
+
+// Wraps the peerconnection event eventNameToWrap in a function
+// which returns the modified event object.
+function wrapPeerConnectionEvent(eventNameToWrap, wrapper) {
+  if (!window.RTCPeerConnection) {
+    return;
+  }
+  var proto = window.RTCPeerConnection.prototype;
+  var nativeAddEventListener = proto.addEventListener;
+  proto.addEventListener = function(nativeEventName, cb) {
+    if (nativeEventName !== eventNameToWrap) {
+      return nativeAddEventListener.apply(this, arguments);
+    }
+    var wrappedCallback = function(e) {
+      cb(wrapper(e));
+    };
+    this._eventMap = this._eventMap || {};
+    this._eventMap[cb] = wrappedCallback;
+    return nativeAddEventListener.apply(this, [nativeEventName,
+      wrappedCallback]);
+  };
+
+  var nativeRemoveEventListener = proto.removeEventListener;
+  proto.removeEventListener = function(nativeEventName, cb) {
+    if (nativeEventName !== eventNameToWrap || !this._eventMap
+        || !this._eventMap[cb]) {
+      return nativeRemoveEventListener.apply(this, arguments);
+    }
+    var unwrappedCb = this._eventMap[cb];
+    delete this._eventMap[cb];
+    return nativeRemoveEventListener.apply(this, [nativeEventName,
+      unwrappedCb]);
+  };
+
+  Object.defineProperty(proto, 'on' + eventNameToWrap, {
+    get: function() {
+      return this['_on' + eventNameToWrap];
+    },
+    set: function(cb) {
+      if (this['_on' + eventNameToWrap]) {
+        this.removeEventListener(eventNameToWrap,
+            this['_on' + eventNameToWrap]);
+      }
+      this.addEventListener(eventNameToWrap,
+          this['_on' + eventNameToWrap] = cb);
+    }
+  });
+}
+
+module.exports = {
+  shimRTCIceCandidate: function() {
+    // foundation is arbitrarily chosen as an indicator for full support for
+    // https://w3c.github.io/webrtc-pc/#rtcicecandidate-interface
+    if (window.RTCIceCandidate && 'foundation' in
+        window.RTCIceCandidate.prototype) {
+      return;
+    }
+
+    var NativeRTCIceCandidate = window.RTCIceCandidate;
+    window.RTCIceCandidate = function(args) {
+      // Remove the a= which shouldn't be part of the candidate string.
+      if (typeof args === 'object' && args.candidate &&
+          args.candidate.indexOf('a=') === 0) {
+        args = JSON.parse(JSON.stringify(args));
+        args.candidate = args.candidate.substr(2);
+      }
+
+      // Augment the native candidate with the parsed fields.
+      var nativeCandidate = new NativeRTCIceCandidate(args);
+      var parsedCandidate = SDPUtils.parseCandidate(args.candidate);
+      var augmentedCandidate = Object.assign(nativeCandidate,
+          parsedCandidate);
+
+      // Add a serializer that does not serialize the extra attributes.
+      augmentedCandidate.toJSON = function() {
+        return {
+          candidate: augmentedCandidate.candidate,
+          sdpMid: augmentedCandidate.sdpMid,
+          sdpMLineIndex: augmentedCandidate.sdpMLineIndex,
+          ufrag: augmentedCandidate.ufrag
+        };
+      };
+      return augmentedCandidate;
+    };
+
+    // Hook up the augmented candidate in onicecandidate and
+    // addEventListener('icecandidate', ...)
+    wrapPeerConnectionEvent('icecandidate', function(e) {
+      if (e.candidate) {
+        Object.defineProperty(e, 'candidate', {
+          value: new RTCIceCandidate(e.candidate), writable: 'false'
+        });
+      }
+      return e;
+    });
+  }
+};
+
+},{"sdp":1}],6:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -1370,7 +1485,7 @@ module.exports = {
   shimPeerConnection: function() {
     if (window.RTCIceGatherer) {
       // ORTC defines an RTCIceCandidate object but no constructor.
-      // Not implemented in Edge.
+      // Not implemented in in some versions of Edge.
       if (!window.RTCIceCandidate) {
         window.RTCIceCandidate = function(args) {
           return args;
@@ -1410,7 +1525,7 @@ module.exports = {
   }
 };
 
-},{"../utils":11,"./getusermedia":6,"./rtcpeerconnection_shim":7}],6:[function(require,module,exports){
+},{"../utils":12,"./getusermedia":7,"./rtcpeerconnection_shim":8}],7:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -1444,7 +1559,7 @@ module.exports = function() {
   };
 };
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*
  *  Copyright (c) 2017 The WebRTC project authors. All Rights Reserved.
  *
@@ -2146,6 +2261,7 @@ module.exports = function(edgeVersion) {
         'a=ice-lite').length > 0;
     var usingBundle = SDPUtils.matchPrefix(sessionpart,
         'a=group:BUNDLE ').length > 0;
+    this.usingBundle = usingBundle;
     var iceOptions = SDPUtils.matchPrefix(sessionpart,
         'a=ice-options:')[0];
     if (iceOptions) {
@@ -2351,7 +2467,6 @@ module.exports = function(edgeVersion) {
         }
       }
     });
-    this.usingBundle = usingBundle;
 
     this.remoteDescription = {
       type: description.type,
@@ -2825,7 +2940,7 @@ module.exports = function(edgeVersion) {
   return RTCPeerConnection;
 };
 
-},{"sdp":1}],8:[function(require,module,exports){
+},{"sdp":1}],9:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -3017,7 +3132,7 @@ module.exports = {
   shimGetUserMedia: require('./getusermedia')
 };
 
-},{"../utils":11,"./getusermedia":9}],9:[function(require,module,exports){
+},{"../utils":12,"./getusermedia":10}],10:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -3182,7 +3297,7 @@ module.exports = function() {
   };
 };
 
-},{"../utils":11}],10:[function(require,module,exports){
+},{"../utils":12}],11:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -3325,7 +3440,7 @@ module.exports = {
   // shimPeerConnection: safariShim.shimPeerConnection
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
