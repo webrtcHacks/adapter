@@ -12,7 +12,9 @@ var logging = require('../utils').log;
 var browserDetails = require('../utils').browserDetails;
 
 // Expose public methods.
-module.exports = function() {
+module.exports = function(window) {
+  var navigator = window && window.navigator;
+
   var shimError_ = function(e) {
     return {
       name: {

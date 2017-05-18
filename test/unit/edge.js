@@ -35,11 +35,13 @@ function mockORTC() {
     this.type = type;
   };
 
-  global.RTCSessionDescription = function(init) {
+  window.setTimeout = global.setTimeout;
+
+  window.RTCSessionDescription = function(init) {
     return init;
   };
 
-  global.RTCIceGatherer = function() {
+  window.RTCIceGatherer = function() {
     this.getLocalParameters = function() {
       return {
         usernameFragment: 'someufrag',
@@ -47,10 +49,10 @@ function mockORTC() {
       };
     };
   };
-  global.RTCIceTransport = function() {
+  window.RTCIceTransport = function() {
     this.start = function() {};
   };
-  global.RTCDtlsTransport = function() {
+  window.RTCDtlsTransport = function() {
     this.start = function() {};
     this.getLocalParameters = function() {
       return {
@@ -65,8 +67,8 @@ function mockORTC() {
     };
   };
 
-  global.RTCRtpReceiver = function(transport, kind) {
-    this.track = new MediaStreamTrack();
+  window.RTCRtpReceiver = function(transport, kind) {
+    this.track = new window.MediaStreamTrack();
     this.track.kind = kind;
     this.transport = transport;
 
@@ -112,16 +114,16 @@ function mockORTC() {
       headerExtensions: []
     };
   }
-  RTCRtpReceiver.getCapabilities = getCapabilities;
+  window.RTCRtpReceiver.getCapabilities = getCapabilities;
 
-  global.RTCRtpSender = function(track, transport) {
+  window.RTCRtpSender = function(track, transport) {
     this.track = track;
     this.transport = transport;
     this.send = function() {};
   };
-  RTCRtpSender.getCapabilities = getCapabilities;
+  window.RTCRtpSender.getCapabilities = getCapabilities;
 
-  global.MediaStream = function(tracks) {
+  window.MediaStream = function(tracks) {
     this.id = SDPUtils.generateIdentifier();
     this._tracks = tracks || [];
     this.getTracks = () => this._tracks;
@@ -129,35 +131,35 @@ function mockORTC() {
     this.getVideoTracks = () => this._tracks.filter(t => t.kind === 'video');
     this.addTrack = (t) => this._tracks.push(t);
   };
-  global.MediaStreamTrack = function() {
+  window.MediaStreamTrack = function() {
     this.id = SDPUtils.generateIdentifier();
   };
 }
 
 describe('Edge shim', () => {
-  global.navigator = {
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-        '(KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15031',
-    mediaDevices: function() {}
-  };
-  global.window = global;
-
   const shim = require('../../src/js/edge/edge_shim');
+  const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15031';
 
   beforeEach(() => {
+    global.navigator = {
+      userAgent: ua,
+      mediaDevices: function() {}
+    };
+    global.window = global;
     mockORTC();
-    shim.shimPeerConnection();
+    shim.shimPeerConnection(window);
   });
 
   it('creates window.RTCPeerConnection', () => {
     delete window.RTCPeerConnection;
-    shim.shimPeerConnection();
+    shim.shimPeerConnection(window);
     expect(window.RTCPeerConnection).not.to.equal(undefined);
   });
 
   it('overrides window.RTCPeerConnection if it exists', () => {
-    global.window.RTCPeerConnection = true;
-    shim.shimPeerConnection();
+    window.RTCPeerConnection = true;
+    shim.shimPeerConnection(window);
     expect(window.RTCPeerConnection).not.to.equal(true);
   });
 
@@ -166,15 +168,15 @@ describe('Edge shim', () => {
     it('filters STUN before r14393', () => {
       utils.browserDetails.version = 14392;
       // need to re-evaluate after changing the browser version.
-      shim.shimPeerConnection();
-      pc = new RTCPeerConnection({
+      shim.shimPeerConnection(window);
+      pc = new window.RTCPeerConnection({
         iceServers: [{urls: 'stun:stun.l.google.com'}]
       });
       expect(pc.iceOptions.iceServers).to.deep.equal([]);
     });
 
     it('does not filter STUN after r14393', () => {
-      pc = new RTCPeerConnection({
+      pc = new window.RTCPeerConnection({
         iceServers: [{urls: 'stun:stun.l.google.com'}]
       });
       expect(pc.iceOptions.iceServers).to.deep.equal([
@@ -183,7 +185,7 @@ describe('Edge shim', () => {
     });
 
     it('filters incomplete TURN urls', () => {
-      pc = new RTCPeerConnection({
+      pc = new window.RTCPeerConnection({
         iceServers: [
           {urls: 'turn:stun.l.google.com'},
           {urls: 'turn:stun.l.google.com:19302'}
@@ -193,7 +195,7 @@ describe('Edge shim', () => {
     });
 
     it('filters TURN TCP', () => {
-      pc = new RTCPeerConnection({
+      pc = new window.RTCPeerConnection({
         iceServers: [
           {urls: 'turn:stun.l.google.com:19302?transport=tcp'}
         ]
@@ -203,7 +205,7 @@ describe('Edge shim', () => {
 
     describe('removes all but the first server of a type', () => {
       it('in separate entries', () => {
-        pc = new RTCPeerConnection({
+        pc = new window.RTCPeerConnection({
           iceServers: [
             {urls: 'stun:stun.l.google.com'},
             {urls: 'turn:stun.l.google.com:19301?transport=udp'},
@@ -217,7 +219,7 @@ describe('Edge shim', () => {
       });
 
       it('in urls entries', () => {
-        pc = new RTCPeerConnection({
+        pc = new window.RTCPeerConnection({
           iceServers: [
             {urls: 'stun:stun.l.google.com'},
             {urls: [
@@ -237,7 +239,7 @@ describe('Edge shim', () => {
   describe('setLocalDescription', () => {
     let pc;
     beforeEach(() => {
-      pc = new RTCPeerConnection();
+      pc = new window.RTCPeerConnection();
     });
 
     it('returns a promise', (done) => {
@@ -295,7 +297,7 @@ describe('Edge shim', () => {
   describe('setRemoteDescription', () => {
     let pc;
     beforeEach(() => {
-      pc = new RTCPeerConnection();
+      pc = new window.RTCPeerConnection();
     });
 
     it('returns a promise', (done) => {
@@ -533,7 +535,7 @@ describe('Edge shim', () => {
   describe('createOffer', () => {
     let pc;
     beforeEach(() => {
-      pc = new RTCPeerConnection();
+      pc = new window.RTCPeerConnection();
     });
 
     it('returns a promise', (done) => {
@@ -587,9 +589,9 @@ describe('Edge shim', () => {
       });
       it('= false the generated SDP should not offer to receive ' +
           'audio', (done) => {
-        const audioTrack = new MediaStreamTrack();
+        const audioTrack = new window.MediaStreamTrack();
         audioTrack.kind = 'audio';
-        const stream = new MediaStream([audioTrack]);
+        const stream = new window.MediaStream([audioTrack]);
 
         pc.addStream(stream);
         pc.createOffer({offerToReceiveAudio: false})
@@ -633,9 +635,9 @@ describe('Edge shim', () => {
     describe('when called after adding a stream', () => {
       describe('with an audio track', () => {
         it('the generated SDP should contain an audio m-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const stream = new MediaStream([audioTrack]);
+          const stream = new window.MediaStream([audioTrack]);
 
           pc.addStream(stream);
           pc.createOffer()
@@ -651,9 +653,9 @@ describe('Edge shim', () => {
       describe('with an audio track not offering to receive audio', () => {
         it('the generated SDP should contain a sendonly audio ' +
             'm-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const stream = new MediaStream([audioTrack]);
+          const stream = new window.MediaStream([audioTrack]);
 
           pc.addStream(stream);
           pc.createOffer({offerToReceiveAudio: 0})
@@ -668,9 +670,9 @@ describe('Edge shim', () => {
 
       describe('with an audio track and offering to receive video', () => {
         it('the generated SDP should contain a recvonly m-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const stream = new MediaStream([audioTrack]);
+          const stream = new window.MediaStream([audioTrack]);
 
           pc.addStream(stream);
           pc.createOffer({offerToReceiveVideo: 1})
@@ -688,9 +690,9 @@ describe('Edge shim', () => {
 
       describe('with a video track', () => {
         it('the generated SDP should contain an video m-line', (done) => {
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const stream = new MediaStream([videoTrack]);
+          const stream = new window.MediaStream([videoTrack]);
 
           pc.addStream(stream);
           pc.createOffer()
@@ -706,9 +708,9 @@ describe('Edge shim', () => {
       describe('with a video track and offerToReceiveAudio', () => {
         it('the generated SDP should contain an audio and a ' +
             'video m-line', (done) => {
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const stream = new MediaStream([videoTrack]);
+          const stream = new window.MediaStream([videoTrack]);
 
           pc.addStream(stream);
           pc.createOffer({offerToReceiveAudio: 1})
@@ -726,11 +728,11 @@ describe('Edge shim', () => {
       describe('with an audio track and a video track', () => {
         it('the generated SDP should contain an audio and video ' +
             'm-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const stream = new MediaStream([audioTrack, videoTrack]);
+          const stream = new window.MediaStream([audioTrack, videoTrack]);
 
           pc.addStream(stream);
           pc.createOffer()
@@ -747,14 +749,14 @@ describe('Edge shim', () => {
       describe('with an audio track and two video tracks', () => {
         it('the generated SDP should contain an audio and ' +
             'video m-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const videoTrack2 = new MediaStreamTrack();
+          const videoTrack2 = new window.MediaStreamTrack();
           videoTrack2.kind = 'video';
-          const stream = new MediaStream([audioTrack, videoTrack]);
-          const stream2 = new MediaStream([videoTrack2]);
+          const stream = new window.MediaStream([audioTrack, videoTrack]);
+          const stream2 = new window.MediaStream([videoTrack2]);
 
           pc.addStream(stream);
           pc.addStream(stream2);
@@ -774,9 +776,9 @@ describe('Edge shim', () => {
     describe('when called after addTrack', () => {
       describe('with an audio track', () => {
         it('the generated SDP should contain an audio m-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const stream = new MediaStream([audioTrack]);
+          const stream = new window.MediaStream([audioTrack]);
 
           pc.addTrack(audioTrack, stream);
           pc.createOffer()
@@ -792,9 +794,9 @@ describe('Edge shim', () => {
       describe('with an audio track not offering to receive audio', () => {
         it('the generated SDP should contain a sendonly audio ' +
             'm-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const stream = new MediaStream([audioTrack]);
+          const stream = new window.MediaStream([audioTrack]);
 
           pc.addTrack(audioTrack, stream);
           pc.createOffer({offerToReceiveAudio: 0})
@@ -809,9 +811,9 @@ describe('Edge shim', () => {
 
       describe('with an audio track and offering to receive video', () => {
         it('the generated SDP should contain a recvonly m-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const stream = new MediaStream([audioTrack]);
+          const stream = new window.MediaStream([audioTrack]);
 
           pc.addTrack(audioTrack, stream);
           pc.createOffer({offerToReceiveVideo: 1})
@@ -829,9 +831,9 @@ describe('Edge shim', () => {
 
       describe('with a video track', () => {
         it('the generated SDP should contain an video m-line', (done) => {
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const stream = new MediaStream([videoTrack]);
+          const stream = new window.MediaStream([videoTrack]);
 
           pc.addTrack(videoTrack, stream);
           pc.createOffer()
@@ -847,9 +849,9 @@ describe('Edge shim', () => {
       describe('with a video track and offerToReceiveAudio', () => {
         it('the generated SDP should contain an audio and a ' +
             'video m-line', (done) => {
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const stream = new MediaStream([videoTrack]);
+          const stream = new window.MediaStream([videoTrack]);
 
           pc.addTrack(videoTrack, stream);
           pc.createOffer({offerToReceiveAudio: 1})
@@ -867,11 +869,11 @@ describe('Edge shim', () => {
       describe('with an audio track and a video track', () => {
         it('the generated SDP should contain an audio and video ' +
             'm-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const stream = new MediaStream([audioTrack, videoTrack]);
+          const stream = new window.MediaStream([audioTrack, videoTrack]);
 
           pc.addTrack(audioTrack, stream);
           pc.addTrack(videoTrack, stream);
@@ -889,14 +891,14 @@ describe('Edge shim', () => {
       describe('with an audio track and two video tracks', () => {
         it('the generated SDP should contain an audio and ' +
             'video m-line', (done) => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const videoTrack2 = new MediaStreamTrack();
+          const videoTrack2 = new window.MediaStreamTrack();
           videoTrack2.kind = 'video';
-          const stream = new MediaStream([audioTrack, videoTrack]);
-          const stream2 = new MediaStream([videoTrack2]);
+          const stream = new window.MediaStream([audioTrack, videoTrack]);
+          const stream2 = new window.MediaStream([videoTrack2]);
 
           pc.addTrack(audioTrack, stream);
           pc.addTrack(videoTrack, stream);
@@ -918,7 +920,7 @@ describe('Edge shim', () => {
   describe('createAnswer', () => {
     let pc;
     beforeEach(() => {
-      pc = new RTCPeerConnection();
+      pc = new window.RTCPeerConnection();
     });
 
     it('returns a promise', (done) => {
@@ -1013,9 +1015,9 @@ describe('Edge shim', () => {
 
       describe('with a local track', () => {
         beforeEach(() => {
-          const audioTrack = new MediaStreamTrack();
+          const audioTrack = new window.MediaStreamTrack();
           audioTrack.kind = 'audio';
-          const stream = new MediaStream([audioTrack]);
+          const stream = new window.MediaStream([audioTrack]);
 
           pc.addStream(stream);
         });
@@ -1051,9 +1053,9 @@ describe('Edge shim', () => {
         it('responds with a sendrecv answer to sendrecv', (done) => {
           pc.setRemoteDescription({type: 'offer', sdp: sdp})
           .then(() => {
-            const audioTrack = new MediaStreamTrack();
+            const audioTrack = new window.MediaStreamTrack();
             audioTrack.kind = 'audio';
-            const stream = new MediaStream([audioTrack]);
+            const stream = new window.MediaStream([audioTrack]);
 
             pc.addStream(stream);
             return pc.createAnswer();
@@ -1069,9 +1071,9 @@ describe('Edge shim', () => {
           pc.setRemoteDescription({type: 'offer', sdp: sdp.replace('sendrecv',
               'recvonly')})
           .then(() => {
-            const audioTrack = new MediaStreamTrack();
+            const audioTrack = new window.MediaStreamTrack();
             audioTrack.kind = 'audio';
-            const stream = new MediaStream([audioTrack]);
+            const stream = new window.MediaStream([audioTrack]);
 
             pc.addStream(stream);
             return pc.createAnswer();
@@ -1150,9 +1152,9 @@ describe('Edge shim', () => {
 
       describe('with a local track', () => {
         beforeEach(() => {
-          const videoTrack = new MediaStreamTrack();
+          const videoTrack = new window.MediaStreamTrack();
           videoTrack.kind = 'video';
-          const stream = new MediaStream([videoTrack]);
+          const stream = new window.MediaStream([videoTrack]);
 
           pc.addStream(stream);
         });
@@ -1187,9 +1189,9 @@ describe('Edge shim', () => {
           'a=ssrc:1001 msid:stream1 track1\r\n' +
           'a=ssrc:1001 cname:some\r\n';
       it('there is no ssrc-group in the answer', (done) => {
-        const videoTrack = new MediaStreamTrack();
+        const videoTrack = new window.MediaStreamTrack();
         videoTrack.kind = 'video';
-        const stream = new MediaStream([videoTrack]);
+        const stream = new window.MediaStream([videoTrack]);
 
         pc.addStream(stream);
 
@@ -1248,14 +1250,14 @@ describe('Edge shim', () => {
     let pc1;
     let pc2;
     beforeEach(() => {
-      pc1 = new RTCPeerConnection();
-      pc2 = new RTCPeerConnection();
+      pc1 = new window.RTCPeerConnection();
+      pc2 = new window.RTCPeerConnection();
     });
     it('completes a full createOffer-SLD-SRD-createAnswer-SLD-SRD ' +
        'cycle', (done) => {
-      const audioTrack = new MediaStreamTrack();
+      const audioTrack = new window.MediaStreamTrack();
       audioTrack.kind = 'audio';
-      const stream = new MediaStream([audioTrack]);
+      const stream = new window.MediaStream([audioTrack]);
 
       pc1.addStream(stream);
       pc2.addStream(stream);
@@ -1276,7 +1278,7 @@ describe('Edge shim', () => {
 
   describe('bundlePolicy', () => {
     it('creates an offer with a=group:BUNDLE by default', (done) => {
-      const pc = new RTCPeerConnection();
+      const pc = new window.RTCPeerConnection();
 
       pc.createOffer({offerToReceiveAudio: 1})
       .then((offer) => {
@@ -1286,7 +1288,7 @@ describe('Edge shim', () => {
     });
 
     it('max-compat creates an offer without a=group:BUNDLE', (done) => {
-      const pc = new RTCPeerConnection({bundlePolicy: 'max-compat'});
+      const pc = new window.RTCPeerConnection({bundlePolicy: 'max-compat'});
 
       pc.createOffer({offerToReceiveAudio: 1})
       .then((offer) => {
@@ -1298,13 +1300,13 @@ describe('Edge shim', () => {
 
   describe('negotationneeded', () => {
     it('fires asynchronously after addTrack', (done) => {
-      const pc = new RTCPeerConnection();
+      const pc = new window.RTCPeerConnection();
 
-      const audioTrack = new MediaStreamTrack();
+      const audioTrack = new window.MediaStreamTrack();
       audioTrack.kind = 'audio';
-      const videoTrack = new MediaStreamTrack();
+      const videoTrack = new window.MediaStreamTrack();
       videoTrack.kind = 'video';
-      const stream = new MediaStream([audioTrack, videoTrack]);
+      const stream = new window.MediaStream([audioTrack, videoTrack]);
 
       pc.onnegotiationneeded = function(e) {
         pc.createOffer()

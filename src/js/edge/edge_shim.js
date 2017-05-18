@@ -13,7 +13,7 @@ var shimRTCPeerConnection = require('./rtcpeerconnection_shim');
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
-  shimPeerConnection: function() {
+  shimPeerConnection: function(window) {
     if (window.RTCIceGatherer) {
       // ORTC defines an RTCIceCandidate object but no constructor.
       // Not implemented in in some versions of Edge.
@@ -35,8 +35,8 @@ module.exports = {
       // addStream, see below. No longer required in 15025+
       if (browserDetails.version < 15025) {
         var origMSTEnabled = Object.getOwnPropertyDescriptor(
-            MediaStreamTrack.prototype, 'enabled');
-        Object.defineProperty(MediaStreamTrack.prototype, 'enabled', {
+            window.MediaStreamTrack.prototype, 'enabled');
+        Object.defineProperty(window.MediaStreamTrack.prototype, 'enabled', {
           set: function(value) {
             origMSTEnabled.set.call(this, value);
             var ev = new Event('enabled');
@@ -46,12 +46,15 @@ module.exports = {
         });
       }
     }
-    window.RTCPeerConnection = shimRTCPeerConnection(browserDetails.version);
+    window.RTCPeerConnection =
+        shimRTCPeerConnection(window, browserDetails.version);
   },
-  shimReplaceTrack: function() {
+  shimReplaceTrack: function(window) {
     // ORTC has replaceTrack -- https://github.com/w3c/ortc/issues/614
-    if (window.RTCRtpSender && !('replaceTrack' in RTCRtpSender.prototype)) {
-      RTCRtpSender.prototype.replaceTrack = RTCRtpSender.prototype.setTrack;
+    if (window.RTCRtpSender &&
+        !('replaceTrack' in window.RTCRtpSender.prototype)) {
+      window.RTCRtpSender.prototype.replaceTrack =
+          window.RTCRtpSender.prototype.setTrack;
     }
   }
 };

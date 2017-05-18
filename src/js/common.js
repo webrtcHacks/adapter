@@ -12,7 +12,7 @@ var SDPUtils = require('sdp');
 
 // Wraps the peerconnection event eventNameToWrap in a function
 // which returns the modified event object.
-function wrapPeerConnectionEvent(eventNameToWrap, wrapper) {
+function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
   }
@@ -59,7 +59,7 @@ function wrapPeerConnectionEvent(eventNameToWrap, wrapper) {
 }
 
 module.exports = {
-  shimRTCIceCandidate: function() {
+  shimRTCIceCandidate: function(window) {
     // foundation is arbitrarily chosen as an indicator for full support for
     // https://w3c.github.io/webrtc-pc/#rtcicecandidate-interface
     if (window.RTCIceCandidate && 'foundation' in
@@ -96,7 +96,7 @@ module.exports = {
 
     // Hook up the augmented candidate in onicecandidate and
     // addEventListener('icecandidate', ...)
-    wrapPeerConnectionEvent('icecandidate', function(e) {
+    wrapPeerConnectionEvent(window, 'icecandidate', function(e) {
       if (e.candidate) {
         Object.defineProperty(e, 'candidate', {
           value: new RTCIceCandidate(e.candidate), writable: 'false'

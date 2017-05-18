@@ -11,10 +11,12 @@ const expect = chai.expect;
 
 describe('detectBrowser', () => {
   const detectBrowser = require('../../src/js/utils.js').detectBrowser;
+  let window;
+  let navigator;
+
   beforeEach(() => {
-    global.window = global;
-    global.navigator = {};
-    delete window.webkitRTCPeerConnection;
+    navigator = {};
+    window = {navigator};
   });
 
   it('detects Firefox if navigator.mozGetUserMedia exists', () => {
@@ -22,7 +24,7 @@ describe('detectBrowser', () => {
         'rv:44.0) Gecko/20100101 Firefox/44.0';
     navigator.mozGetUserMedia = function() {};
 
-    const browserDetails = detectBrowser();
+    const browserDetails = detectBrowser(window);
     expect(browserDetails.browser).to.equal('firefox');
     expect(browserDetails.version).to.equal(44);
   });
@@ -34,7 +36,7 @@ describe('detectBrowser', () => {
     navigator.webkitGetUserMedia = function() {};
     window.webkitRTCPeerConnection = function() {};
 
-    const browserDetails = detectBrowser();
+    const browserDetails = detectBrowser(window);
     expect(browserDetails.browser).to.equal('chrome');
     expect(browserDetails.version).to.equal(45);
   });
@@ -45,7 +47,7 @@ describe('detectBrowser', () => {
         'Safari/537.36 Edge/13.10547';
     navigator.mediaDevices = function() {};
 
-    const browserDetails = detectBrowser();
+    const browserDetails = detectBrowser(window);
     expect(browserDetails.browser).to.equal('edge');
     expect(browserDetails.version).to.equal(10547);
   });
@@ -55,7 +57,7 @@ describe('detectBrowser', () => {
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
     navigator.webkitGetUserMedia = function() {};
 
-    const browserDetails = detectBrowser();
+    const browserDetails = detectBrowser(window);
     expect(browserDetails.browser).to.equal('safari');
     expect(browserDetails.version).to.equal(604);
   });
@@ -65,7 +67,7 @@ describe('detectBrowser', () => {
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
     navigator.mediaDevices = function() {};
 
-    const browserDetails = detectBrowser();
+    const browserDetails = detectBrowser(window);
     expect(browserDetails.browser).to.equal('safari');
     expect(browserDetails.version).to.equal(604);
   });

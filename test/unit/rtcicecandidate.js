@@ -11,13 +11,17 @@ const expect = chai.expect;
 
 describe('RTCIceCandidate', () => {
   const shim = require('../../src/js/common');
+  let window;
+
   beforeEach(() => {
-    global.window = global;
-    window.RTCIceCandidate = function(args) {
-      return args;
+    window = {
+      RTCIceCandidate: function(args) {
+        return args;
+      },
+      RTCPeerConnection: function() {}
     };
-    window.RTCPeerConnection = function() {};
-    shim.shimRTCIceCandidate();
+
+    shim.shimRTCIceCandidate(window);
   });
 
   const candidateString = 'candidate:702786350 2 udp 41819902 8.8.8.8 60769 ' +
@@ -27,7 +31,7 @@ describe('RTCIceCandidate', () => {
 
   describe('constructor', () => {
     it('retains the candidate', () => {
-      const candidate = new RTCIceCandidate({
+      const candidate = new window.RTCIceCandidate({
         candidate: candidateString,
         sdpMid: 'audio',
         sdpMLineIndex: 0
@@ -38,7 +42,7 @@ describe('RTCIceCandidate', () => {
     });
 
     it('drops the a= part of the candidate if present', () => {
-      const candidate = new RTCIceCandidate({
+      const candidate = new window.RTCIceCandidate({
         candidate: 'a=' + candidateString,
         sdpMid: 'audio',
         sdpMLineIndex: 0
@@ -47,7 +51,7 @@ describe('RTCIceCandidate', () => {
     });
 
     it('parses the candidate', () => {
-      const candidate = new RTCIceCandidate({
+      const candidate = new window.RTCIceCandidate({
         candidate: candidateString,
         sdpMid: 'audio',
         sdpMLineIndex: 0
@@ -67,7 +71,7 @@ describe('RTCIceCandidate', () => {
   });
 
   it('does not serialize the extra attributes', () => {
-    const candidate = new RTCIceCandidate({
+    const candidate = new window.RTCIceCandidate({
       candidate: candidateString,
       sdpMid: 'audio',
       sdpMLineIndex: 0,

@@ -11,16 +11,17 @@ const expect = chai.expect;
 
 describe('Chrome shim', () => {
   const shim = require('../../src/js/chrome/chrome_shim');
+  let window;
 
   beforeEach(() => {
-    global.window = global;
-    global.webkitRTCPeerConnection = function() {};
-    delete global.RTCPeerConnection;
+    window = {
+      webkitRTCPeerConnection: function() {}
+    };
   });
 
   describe('shimPeerConnection', () => {
     it('creates window.RTCPeerConnection', () => {
-      shim.shimPeerConnection();
+      shim.shimPeerConnection(window);
       expect(window.RTCPeerConnection).not.to.equal(undefined);
     });
   });
