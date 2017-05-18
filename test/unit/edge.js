@@ -12,13 +12,7 @@ const expect = chai.expect;
 const SDPUtils = require('sdp');
 const EventEmitter = require('events');
 
-const utils = require('../../src/js/utils');
-
-function mockORTC() {
-  // make sure the browser detection gets the right information.
-  utils.browserDetails.browser = 'edge';
-  utils.browserDetails.version = 15025;
-
+function mockORTC(window) {
   // required by the shim to mock an EventEmitter.
   global.document = {
     createDocumentFragment: () => {
@@ -138,16 +132,24 @@ function mockORTC() {
 
 describe('Edge shim', () => {
   const shim = require('../../src/js/edge/edge_shim');
-  const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-      '(KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15031';
+  let window;
+
+  const ua14392 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 ' +
+      'Safari/537.36 Edge/14.14392';
+
+  const ua15025 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 ' +
+      'Safari/537.36 Edge/15.15025';
 
   beforeEach(() => {
-    global.navigator = {
-      userAgent: ua,
-      mediaDevices: function() {}
+    window = {
+      navigator: {
+        userAgent: ua15025,
+        mediaDevices: function() {}
+      }
     };
-    global.window = global;
-    mockORTC();
+    mockORTC(window);
     shim.shimPeerConnection(window);
   });
 
@@ -166,7 +168,7 @@ describe('Edge shim', () => {
   describe('filtering of STUN and TURN servers', () => {
     let pc;
     it('filters STUN before r14393', () => {
-      utils.browserDetails.version = 14392;
+      window.navigator.userAgent = ua14392;
       // need to re-evaluate after changing the browser version.
       shim.shimPeerConnection(window);
       pc = new window.RTCPeerConnection({

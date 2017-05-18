@@ -16,7 +16,7 @@ module.exports = function(dependencies) {
   // Utils.
   var utils = require('./utils');
   var logging = utils.log;
-  var browserDetails = utils.browserDetails;
+  var browserDetails = utils.detectBrowser(window);
 
   // Export to the adapter global object visible in the browser.
   var adapter = {

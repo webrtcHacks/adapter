@@ -7,11 +7,12 @@
  */
  /* eslint-env node */
 'use strict';
-var logging = require('../utils.js').log;
-var browserDetails = require('../utils.js').browserDetails;
+var utils = require('../utils.js');
+var logging = utils.log;
 
 // Expose public methods.
 module.exports = function(window) {
+  var browserDetails = utils.detectBrowser(window);
   var navigator = window && window.navigator;
 
   var constraintsToChrome_ = function(c) {

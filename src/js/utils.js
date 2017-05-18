@@ -164,7 +164,6 @@ var utils = {
 module.exports = {
   log: utils.log,
   disableLog: utils.disableLog,
-  browserDetails: utils.detectBrowser(global.window),
   extractVersion: utils.extractVersion,
   shimCreateObjectURL: utils.shimCreateObjectURL,
   detectBrowser: utils.detectBrowser.bind(utils)

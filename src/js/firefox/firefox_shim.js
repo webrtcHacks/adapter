@@ -8,7 +8,7 @@
  /* eslint-env node */
 'use strict';
 
-var browserDetails = require('../utils').browserDetails;
+var utils = require('../utils');
 
 var firefoxShim = {
   shimOnTrack: function(window) {
@@ -57,6 +57,8 @@ var firefoxShim = {
   },
 
   shimPeerConnection: function(window) {
+    var browserDetails = utils.detectBrowser(window);
+
     if (typeof window !== 'object' || !(window.RTCPeerConnection ||
         window.mozRTCPeerConnection)) {
       return; // probably media.peerconnection.enabled=false in about:config

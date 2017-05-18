@@ -8,12 +8,14 @@
  /* eslint-env node */
 'use strict';
 
-var browserDetails = require('../utils').browserDetails;
+var utils = require('../utils');
 var shimRTCPeerConnection = require('./rtcpeerconnection_shim');
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
   shimPeerConnection: function(window) {
+    var browserDetails = utils.detectBrowser(window);
+
     if (window.RTCIceGatherer) {
       // ORTC defines an RTCIceCandidate object but no constructor.
       // Not implemented in in some versions of Edge.
