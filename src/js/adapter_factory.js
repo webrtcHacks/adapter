@@ -50,6 +50,7 @@ module.exports = function(dependencies, opts) {
   var edgeShim = require('./edge/edge_shim') || null;
   var firefoxShim = require('./firefox/firefox_shim') || null;
   var safariShim = require('./safari/safari_shim') || null;
+  var commonShim = require('./common_shim') || null;
 
   // Shim browser if found.
   switch (browserDetails.browser) {
@@ -71,6 +72,8 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimOnTrack(window);
       chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
+
+      commonShim.shimRTCIceCandidate(window);
       break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection ||
@@ -87,6 +90,8 @@ module.exports = function(dependencies, opts) {
       firefoxShim.shimSourceObject(window);
       firefoxShim.shimPeerConnection(window);
       firefoxShim.shimOnTrack(window);
+
+      commonShim.shimRTCIceCandidate(window);
       break;
     case 'edge':
       if (!edgeShim || !edgeShim.shimPeerConnection || !options.shimEdge) {
@@ -101,6 +106,8 @@ module.exports = function(dependencies, opts) {
       utils.shimCreateObjectURL(window);
       edgeShim.shimPeerConnection(window);
       edgeShim.shimReplaceTrack(window);
+
+      // the edge shim implements the full RTCIceCandidate object.
       break;
     case 'safari':
       if (!safariShim || !options.shimSafari) {
@@ -118,6 +125,8 @@ module.exports = function(dependencies, opts) {
       safariShim.shimRemoteStreamsAPI(window);
       safariShim.shimTrackEventTransceiver(window);
       safariShim.shimGetUserMedia(window);
+
+      commonShim.shimRTCIceCandidate(window);
       break;
     default:
       logging('Unsupported browser!');

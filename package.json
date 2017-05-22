@@ -19,7 +19,8 @@
     "test": "grunt && mocha test/unit && karma start test/karma.conf.js && node test/run-tests.js"
   },
   "dependencies": {
-    "rtcpeerconnection-shim": "^1.0.1"
+    "rtcpeerconnection-shim": "^1.0.1",
+    "sdp": "^2.3.0"
   },
   "engines": {
     "npm": ">=3.10.0",
