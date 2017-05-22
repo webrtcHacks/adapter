@@ -46,9 +46,9 @@ var utils = {
     return match && match.length >= pos && parseInt(match[pos], 10);
   },
 
-  /**
+/**
    * Browser detector.
-   *
+   * @param {object} window global window object
    * @return {object} result containing browser and version
    *     properties.
    */
