@@ -12,19 +12,20 @@ const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
 
-const utils = require('../../src/js/utils');
-
 describe('Chrome getUserMedia constraints converter', () => {
   const shim = require('../../src/js/chrome/getusermedia');
+  let window;
 
   beforeEach(() => {
-    global.window = global;
-    window.navigator = {
-      webkitGetUserMedia: sinon.stub(),
+    window = {
+      navigator: {
+        webkitGetUserMedia: sinon.stub(),
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
+            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.3029.110 ' +
+            'Safari/537.36'
+      }
     };
-    utils.browserDetails.browser = 'Chrome';
-    utils.browserDetails.version = 51;
-    shim();
+    shim(window);
   });
 
   it('back-converts spec constraints', () => {
@@ -96,19 +97,21 @@ describe('Chrome getUserMedia constraints converter', () => {
 
 describe('Firefox getUserMedia constraints converter', () => {
   const shim = require('../../src/js/firefox/getusermedia');
+  let window;
 
   beforeEach(() => {
-    global.window = global;
-    window.navigator = {
-      mozGetUserMedia: sinon.stub(),
+    window = {
+      navigator: {
+        mozGetUserMedia: sinon.stub()
+      }
     };
-    utils.browserDetails.browser = 'Firefox';
   });
 
   describe('in Firefox 37', () => {
     beforeEach(() => {
-      utils.browserDetails.version = 37;
-      shim();
+      window.navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel ' +
+          'Mac OS X 10.12; rv:37.0) Gecko/20100101 Firefox/37.0';
+      shim(window);
     });
 
     it('converts spec-constraints to legacy constraints', () => {
@@ -156,8 +159,9 @@ describe('Firefox getUserMedia constraints converter', () => {
 
   describe('in Firefox 38+', () => {
     beforeEach(() => {
-      utils.browserDetails.version = 38;
-      shim();
+      window.navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel ' +
+          'Mac OS X 10.12; rv:38.0) Gecko/20100101 Firefox/38.0';
+      shim(window);
     });
     it('passes through spec-constraints', () => {
       const spec = {video: {
