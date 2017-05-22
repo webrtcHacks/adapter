@@ -13,10 +13,10 @@ var safariShim = {
   // TODO: check for webkitGTK+
   // shimPeerConnection: function() { },
 
-  shimAddStream: function() {
+  shimAddStream: function(window) {
     if (typeof window === 'object' && window.RTCPeerConnection &&
         !('addStream' in window.RTCPeerConnection.prototype)) {
-      RTCPeerConnection.prototype.addStream = function(stream) {
+      window.RTCPeerConnection.prototype.addStream = function(stream) {
         var self = this;
         stream.getTracks().forEach(function(track) {
           self.addTrack(track, stream);
@@ -24,7 +24,7 @@ var safariShim = {
       };
     }
   },
-  shimOnAddStream: function() {
+  shimOnAddStream: function(window) {
     if (typeof window === 'object' && window.RTCPeerConnection &&
         !('onaddstream' in window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'onaddstream', {
@@ -54,11 +54,11 @@ var safariShim = {
       });
     }
   },
-  shimCallbacksAPI: function() {
+  shimCallbacksAPI: function(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
     }
-    var prototype = RTCPeerConnection.prototype;
+    var prototype = window.RTCPeerConnection.prototype;
     var createOffer = prototype.createOffer;
     var createAnswer = prototype.createAnswer;
     var setLocalDescription = prototype.setLocalDescription;
@@ -115,7 +115,9 @@ var safariShim = {
     };
     prototype.addIceCandidate = withCallback;
   },
-  shimGetUserMedia: function() {
+  shimGetUserMedia: function(window) {
+    var navigator = window && window.navigator;
+
     if (!navigator.getUserMedia) {
       if (navigator.webkitGetUserMedia) {
         navigator.getUserMedia = navigator.webkitGetUserMedia.bind(navigator);

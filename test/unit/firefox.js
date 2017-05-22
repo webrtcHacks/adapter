@@ -11,24 +11,26 @@ const expect = chai.expect;
 
 describe('Firefox shim', () => {
   const shim = require('../../src/js/firefox/firefox_shim');
+  let window;
+
   beforeEach(() => {
-    global.window = global;
-    global.mozRTCPeerConnection = function() {};
-    global.mozRTCSessionDescription = function() {};
-    global.mozRTCIceCandidate = function() {};
-    delete global.RTCPeerConnection;
+    window = {
+      mozRTCPeerConnection: function() {},
+      mozRTCSessionDescription: function() {},
+      mozRTCIceCandidate: function() {}
+    };
   });
+
   describe('shimPeerConnection', () => {
     it('creates window.RTCPeerConnection', () => {
-      global.window = global;
-      shim.shimPeerConnection();
+      shim.shimPeerConnection(window);
       expect(window.RTCPeerConnection).not.to.equal(undefined);
     });
 
     it('does not override window.RTCPeerConnection if it exists', () => {
       const pc = function() {};
-      global.window.RTCPeerConnection = pc;
-      shim.shimPeerConnection();
+      window.RTCPeerConnection = pc;
+      shim.shimPeerConnection(window);
       expect(window.RTCPeerConnection).to.equal(pc);
     });
   });

@@ -162,7 +162,7 @@ function isActionAllowedInSignalingState(action, type, signalingState) {
   }[type][action].indexOf(signalingState) !== -1;
 }
 
-module.exports = function(edgeVersion) {
+module.exports = function(window, edgeVersion) {
   var RTCPeerConnection = function(config) {
     var self = this;
 
@@ -194,11 +194,11 @@ module.exports = function(edgeVersion) {
       return self.remoteStreams;
     };
 
-    this.localDescription = new RTCSessionDescription({
+    this.localDescription = new window.RTCSessionDescription({
       type: '',
       sdp: ''
     });
-    this.remoteDescription = new RTCSessionDescription({
+    this.remoteDescription = new window.RTCSessionDescription({
       type: '',
       sdp: ''
     });
@@ -333,7 +333,7 @@ module.exports = function(edgeVersion) {
 
     transceiver.track = track;
     transceiver.stream = stream;
-    transceiver.rtpSender = new RTCRtpSender(track,
+    transceiver.rtpSender = new window.RTCRtpSender(track,
         transceiver.dtlsTransport);
 
     this._maybeFireNegotiationNeeded();
@@ -396,7 +396,7 @@ module.exports = function(edgeVersion) {
   RTCPeerConnection.prototype._createIceGatherer = function(mid,
       sdpMLineIndex) {
     var self = this;
-    var iceGatherer = new RTCIceGatherer(self.iceOptions);
+    var iceGatherer = new window.RTCIceGatherer(self.iceOptions);
     iceGatherer.onlocalcandidate = function(evt) {
       var event = new Event('icecandidate');
       event.candidate = {sdpMid: mid, sdpMLineIndex: sdpMLineIndex};
@@ -475,12 +475,12 @@ module.exports = function(edgeVersion) {
   // Create ICE transport and DTLS transport.
   RTCPeerConnection.prototype._createIceAndDtlsTransports = function() {
     var self = this;
-    var iceTransport = new RTCIceTransport(null);
+    var iceTransport = new window.RTCIceTransport(null);
     iceTransport.onicestatechange = function() {
       self._updateConnectionState();
     };
 
-    var dtlsTransport = new RTCDtlsTransport(iceTransport);
+    var dtlsTransport = new window.RTCDtlsTransport(iceTransport);
     dtlsTransport.ondtlsstatechange = function() {
       self._updateConnectionState();
     };
@@ -779,7 +779,7 @@ module.exports = function(edgeVersion) {
           transceiver.iceTransport.setRemoteCandidates(cands);
         }
 
-        localCapabilities = RTCRtpReceiver.getCapabilities(kind);
+        localCapabilities = window.RTCRtpReceiver.getCapabilities(kind);
 
         // filter RTX until additional stuff needed for RTX is implemented
         // in adapter.js
@@ -795,14 +795,14 @@ module.exports = function(edgeVersion) {
         }];
 
         if (direction === 'sendrecv' || direction === 'sendonly') {
-          rtpReceiver = new RTCRtpReceiver(transceiver.dtlsTransport,
+          rtpReceiver = new window.RTCRtpReceiver(transceiver.dtlsTransport,
               kind);
 
           track = rtpReceiver.track;
           // FIXME: does not work with Plan B.
           if (remoteMsid) {
             if (!streams[remoteMsid.stream]) {
-              streams[remoteMsid.stream] = new MediaStream();
+              streams[remoteMsid.stream] = new window.MediaStream();
               Object.defineProperty(streams[remoteMsid.stream], 'id', {
                 get: function() {
                   return remoteMsid.stream;
@@ -819,7 +819,7 @@ module.exports = function(edgeVersion) {
               streams[remoteMsid.stream]]);
           } else {
             if (!streams.default) {
-              streams.default = new MediaStream();
+              streams.default = new window.MediaStream();
             }
             streams.default.addTrack(track);
             receiverList.push([track, rtpReceiver, streams.default]);
@@ -888,13 +888,13 @@ module.exports = function(edgeVersion) {
           track = rtpReceiver.track;
           if (remoteMsid) {
             if (!streams[remoteMsid.stream]) {
-              streams[remoteMsid.stream] = new MediaStream();
+              streams[remoteMsid.stream] = new window.MediaStream();
             }
             streams[remoteMsid.stream].addTrack(track);
             receiverList.push([track, rtpReceiver, streams[remoteMsid.stream]]);
           } else {
             if (!streams.default) {
-              streams.default = new MediaStream();
+              streams.default = new window.MediaStream();
             }
             streams.default.addTrack(track);
             receiverList.push([track, rtpReceiver, streams.default]);
@@ -1163,7 +1163,7 @@ module.exports = function(edgeVersion) {
             self._createIceGatherer(mid, sdpMLineIndex);
       }
 
-      var localCapabilities = RTCRtpSender.getCapabilities(kind);
+      var localCapabilities = window.RTCRtpSender.getCapabilities(kind);
       // filter RTX until additional stuff needed for RTX is implemented
       // in adapter.js
       if (edgeVersion < 15019) {
@@ -1195,8 +1195,10 @@ module.exports = function(edgeVersion) {
       }
 
       if (transceiver.wantReceive) {
-        transceiver.rtpReceiver = new RTCRtpReceiver(transceiver.dtlsTransport,
-            kind);
+        transceiver.rtpReceiver = new window.RTCRtpReceiver(
+          transceiver.dtlsTransport,
+          kind
+        );
       }
 
       transceiver.localCapabilities = localCapabilities;
@@ -1218,7 +1220,7 @@ module.exports = function(edgeVersion) {
     });
 
     this._pendingOffer = transceivers;
-    var desc = new RTCSessionDescription({
+    var desc = new window.RTCSessionDescription({
       type: 'offer',
       sdp: sdp
     });
@@ -1281,7 +1283,7 @@ module.exports = function(edgeVersion) {
       }
     });
 
-    var desc = new RTCSessionDescription({
+    var desc = new window.RTCSessionDescription({
       type: 'answer',
       sdp: sdp
     });

@@ -9,7 +9,9 @@
 'use strict';
 
 // Expose public methods.
-module.exports = function() {
+module.exports = function(window) {
+  var navigator = window && window.navigator;
+
   var shimError_ = function(e) {
     return {
       name: {PermissionDeniedError: 'NotAllowedError'}[e.name] || e.name,
