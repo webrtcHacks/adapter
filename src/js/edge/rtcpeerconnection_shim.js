@@ -764,6 +764,26 @@ module.exports = function(edgeVersion) {
           .filter(function(cand) {
             return cand.component === '1' || cand.component === 1;
           });
+
+      // Check if we can use BUNDLE and dispose transports.
+      if ((description.type === 'offer' || description.type === 'answer') &&
+          !rejected && usingBundle && sdpMLineIndex > 0) {
+        self._disposeIceAndDtlsTransports(sdpMLineIndex);
+        self.transceivers[sdpMLineIndex].iceGatherer =
+            self.transceivers[0].iceGatherer;
+        self.transceivers[sdpMLineIndex].iceTransport =
+            self.transceivers[0].iceTransport;
+        self.transceivers[sdpMLineIndex].dtlsTransport =
+            self.transceivers[0].dtlsTransport;
+        if (self.transceivers[sdpMLineIndex].rtpSender) {
+          self.transceivers[sdpMLineIndex].rtpSender.setTransport(
+              self.transceivers[0].dtlsTransport);
+        }
+        if (self.transceivers[sdpMLineIndex].rtpReceiver) {
+          self.transceivers[sdpMLineIndex].rtpReceiver.setTransport(
+              self.transceivers[0].dtlsTransport);
+        }
+      }
       if (description.type === 'offer' && !rejected) {
         transceiver = self.transceivers[sdpMLineIndex] ||
             self._createTransceiver(kind);
@@ -839,23 +859,6 @@ module.exports = function(edgeVersion) {
             false,
             direction === 'sendrecv' || direction === 'sendonly');
       } else if (description.type === 'answer' && !rejected) {
-        if (usingBundle && sdpMLineIndex > 0) {
-          self._disposeIceAndDtlsTransports(sdpMLineIndex);
-          self.transceivers[sdpMLineIndex].iceGatherer =
-              self.transceivers[0].iceGatherer;
-          self.transceivers[sdpMLineIndex].iceTransport =
-              self.transceivers[0].iceTransport;
-          self.transceivers[sdpMLineIndex].dtlsTransport =
-              self.transceivers[0].dtlsTransport;
-          if (self.transceivers[sdpMLineIndex].rtpSender) {
-            self.transceivers[sdpMLineIndex].rtpSender.setTransport(
-                self.transceivers[0].dtlsTransport);
-          }
-          if (self.transceivers[sdpMLineIndex].rtpReceiver) {
-            self.transceivers[sdpMLineIndex].rtpReceiver.setTransport(
-                self.transceivers[0].dtlsTransport);
-          }
-        }
         transceiver = self.transceivers[sdpMLineIndex];
         iceGatherer = transceiver.iceGatherer;
         iceTransport = transceiver.iceTransport;
