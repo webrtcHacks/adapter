@@ -15,6 +15,7 @@ var logging = utils.log;
 module.exports = function(window) {
   var browserDetails = utils.detectBrowser(window);
   var navigator = window && window.navigator;
+  var MediaStreamTrack = window && window.MediaStreamTrack;
 
   var shimError_ = function(e) {
     return {
@@ -174,7 +175,7 @@ module.exports = function(window) {
       return nativeGetUserMedia(c);
     };
 
-    if (MediaStreamTrack.prototype.getSettings) {
+    if (MediaStreamTrack && MediaStreamTrack.prototype.getSettings) {
       var nativeGetSettings = MediaStreamTrack.prototype.getSettings;
       MediaStreamTrack.prototype.getSettings = function() {
         var obj = nativeGetSettings.apply(this, arguments);
@@ -184,7 +185,7 @@ module.exports = function(window) {
       };
     }
 
-    if (MediaStreamTrack.prototype.applyConstraints) {
+    if (MediaStreamTrack && MediaStreamTrack.prototype.applyConstraints) {
       var nativeApplyConstraints = MediaStreamTrack.prototype.applyConstraints;
       MediaStreamTrack.prototype.applyConstraints = function(c) {
         if (this.kind === 'audio' && typeof c === 'object') {

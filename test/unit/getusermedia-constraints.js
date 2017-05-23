@@ -34,6 +34,11 @@ describe('Chrome getUserMedia constraints converter', () => {
         width: 1280,
         height: {min: 200, ideal: 720, max: 1080},
         frameRate: {exact: 50}
+      },
+      audio: {
+        autoGainControl: true,
+        echoCancellation: false,
+        noiseSuppression: {exact: false},
       }
     });
     expect(window.navigator.webkitGetUserMedia).to.have.been.calledWith({
@@ -49,6 +54,15 @@ describe('Chrome getUserMedia constraints converter', () => {
                 {maxWidth: 1280},
                 {minHeight: 720},
                 {maxHeight: 720}
+        ]
+      },
+      audio: {
+        mandatory: {
+          googNoiseSuppression: false
+        },
+        optional: [
+          {echoCancellation: false},
+          {googAutoGainControl: true},
         ]
       }
     });
@@ -69,6 +83,11 @@ describe('Chrome getUserMedia constraints converter', () => {
                 {minHeight: 720},
                 {maxHeight: 720}
         ]
+      },
+      audio: {
+        mandatory: {
+          echoCancellation: false,
+        },
       }
     };
     window.navigator.getUserMedia(legacy);
