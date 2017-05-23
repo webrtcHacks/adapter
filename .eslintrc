@@ -4,6 +4,7 @@
     "block-spacing": [2, "never"],
     "brace-style": [2, "1tbs", {"allowSingleLine": false}],
     "camelcase": [2, {"properties": "always"}],
+    "comma-style": 2,
     "curly": 2,
     "default-case": 2,
     "dot-notation": 2,
@@ -44,13 +45,21 @@
     "space-unary-ops": 2,
     "space-infix-ops": 2,
     "spaced-comment": 2,
-    "valid-typeof": 2
+    "valid-typeof": 2,
+    // ES6 and jsdoc rules that are disabled due to using the Google style guide.
+    "arrow-parens": 0,
+    "require-jsdoc": 0,
+    "no-var": 0,
+    "prefer-rest-params": 0,
+    "prefer-spread": 0,
+    // TODO: Fix errors on safari shim.
+    "no-invalid-this": 0,
   },
   "env": {
       "browser": true,
-      "node": true
+      "node": true,
   },
-  "extends": ["eslint:recommended", "webrtc"],
+  "extends": ["eslint:recommended", google],
   "globals": {
     "module": true,
     "require": true,

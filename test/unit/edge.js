@@ -23,7 +23,7 @@ function mockORTC(window) {
         e.emit(ev.type, ev);
       };
       return e;
-    }
+    },
   };
   global.Event = function(type) {
     this.type = type;
@@ -39,7 +39,7 @@ function mockORTC(window) {
     this.getLocalParameters = function() {
       return {
         usernameFragment: 'someufrag',
-        password: 'somepass'
+        password: 'somepass',
       };
     };
   };
@@ -54,9 +54,9 @@ function mockORTC(window) {
         fingerprints: [
           {
             algorithm: 'alg',
-            value: 'fi:ng:ger:pr:in:t1'
-          }
-        ]
+            value: 'fi:ng:ger:pr:in:t1',
+          },
+        ],
       };
     };
   };
@@ -69,29 +69,29 @@ function mockORTC(window) {
     this.receive = function() {};
   };
   function getCapabilities(kind) {
-    var opus = {
+    let opus = {
       name: 'opus',
       kind: 'audio',
       clockRate: 48000,
       preferredPayloadType: 111,
-      numChannels: 2
+      numChannels: 2,
     };
-    var vp8 = {
+    let vp8 = {
       name: 'vp8',
       kind: 'video',
       clockRate: 90000,
       preferredPayloadType: 100,
-      numChannels: 1
+      numChannels: 1,
     };
-    var rtx = {
+    let rtx = {
       name: 'rtx',
       kind: 'video',
       clockRate: 90000,
       preferredPayloadType: 101,
       numChannels: 1,
-      parameters: {apt: 100}
+      parameters: {apt: 100},
     };
-    var codecs;
+    let codecs;
     switch (kind) {
       case 'audio':
         codecs = [opus];
@@ -105,7 +105,7 @@ function mockORTC(window) {
     }
     return {
       codecs: codecs,
-      headerExtensions: []
+      headerExtensions: [],
     };
   }
   window.RTCRtpReceiver.getCapabilities = getCapabilities;
@@ -121,8 +121,8 @@ function mockORTC(window) {
     this.id = SDPUtils.generateIdentifier();
     this._tracks = tracks || [];
     this.getTracks = () => this._tracks;
-    this.getAudioTracks = () => this._tracks.filter(t => t.kind === 'audio');
-    this.getVideoTracks = () => this._tracks.filter(t => t.kind === 'video');
+    this.getAudioTracks = () => this._tracks.filter((t) => t.kind === 'audio');
+    this.getVideoTracks = () => this._tracks.filter((t) => t.kind === 'video');
     this.addTrack = (t) => this._tracks.push(t);
   };
   window.MediaStreamTrack = function() {
@@ -146,8 +146,8 @@ describe('Edge shim', () => {
     window = {
       navigator: {
         userAgent: ua15025,
-        mediaDevices: function() {}
-      }
+        mediaDevices: function() {},
+      },
     };
     mockORTC(window);
     shim.shimPeerConnection(window);
@@ -172,17 +172,17 @@ describe('Edge shim', () => {
       // need to re-evaluate after changing the browser version.
       shim.shimPeerConnection(window);
       pc = new window.RTCPeerConnection({
-        iceServers: [{urls: 'stun:stun.l.google.com'}]
+        iceServers: [{urls: 'stun:stun.l.google.com'}],
       });
       expect(pc.iceOptions.iceServers).to.deep.equal([]);
     });
 
     it('does not filter STUN after r14393', () => {
       pc = new window.RTCPeerConnection({
-        iceServers: [{urls: 'stun:stun.l.google.com'}]
+        iceServers: [{urls: 'stun:stun.l.google.com'}],
       });
       expect(pc.iceOptions.iceServers).to.deep.equal([
-        {urls: 'stun:stun.l.google.com'}
+        {urls: 'stun:stun.l.google.com'},
       ]);
     });
 
@@ -190,8 +190,8 @@ describe('Edge shim', () => {
       pc = new window.RTCPeerConnection({
         iceServers: [
           {urls: 'turn:stun.l.google.com'},
-          {urls: 'turn:stun.l.google.com:19302'}
-        ]
+          {urls: 'turn:stun.l.google.com:19302'},
+        ],
       });
       expect(pc.iceOptions.iceServers).to.deep.equal([]);
     });
@@ -199,8 +199,8 @@ describe('Edge shim', () => {
     it('filters TURN TCP', () => {
       pc = new window.RTCPeerConnection({
         iceServers: [
-          {urls: 'turn:stun.l.google.com:19302?transport=tcp'}
-        ]
+          {urls: 'turn:stun.l.google.com:19302?transport=tcp'},
+        ],
       });
       expect(pc.iceOptions.iceServers).to.deep.equal([]);
     });
@@ -211,12 +211,12 @@ describe('Edge shim', () => {
           iceServers: [
             {urls: 'stun:stun.l.google.com'},
             {urls: 'turn:stun.l.google.com:19301?transport=udp'},
-            {urls: 'turn:stun.l.google.com:19302?transport=udp'}
-          ]
+            {urls: 'turn:stun.l.google.com:19302?transport=udp'},
+          ],
         });
         expect(pc.iceOptions.iceServers).to.deep.equal([
           {urls: 'stun:stun.l.google.com'},
-          {urls: 'turn:stun.l.google.com:19301?transport=udp'}
+          {urls: 'turn:stun.l.google.com:19301?transport=udp'},
         ]);
       });
 
@@ -226,13 +226,13 @@ describe('Edge shim', () => {
             {urls: 'stun:stun.l.google.com'},
             {urls: [
               'turn:stun.l.google.com:19301?transport=udp',
-              'turn:stun.l.google.com:19302?transport=udp'
-            ]}
-          ]
+              'turn:stun.l.google.com:19302?transport=udp',
+            ]},
+          ],
         });
         expect(pc.iceOptions.iceServers).to.deep.equal([
           {urls: 'stun:stun.l.google.com'},
-          {urls: ['turn:stun.l.google.com:19301?transport=udp']}
+          {urls: ['turn:stun.l.google.com:19301?transport=udp']},
         ]);
       });
     });

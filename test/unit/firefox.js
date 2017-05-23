@@ -17,7 +17,7 @@ describe('Firefox shim', () => {
     window = {
       mozRTCPeerConnection: function() {},
       mozRTCSessionDescription: function() {},
-      mozRTCIceCandidate: function() {}
+      mozRTCIceCandidate: function() {},
     };
   });
 

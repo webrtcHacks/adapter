@@ -28,7 +28,8 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "chromedriver": "^2.29.0",
-    "eslint-config-webrtc": "^1.0.0",
+    "eslint": "^3.19.0",
+    "eslint-config-google": "^0.7.1",
     "faucet": "0.0.1",
     "geckodriver": "1.4.0",
     "grunt": "^0.4.5",

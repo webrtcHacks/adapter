@@ -3,5 +3,10 @@
         "node": true,
         "es6": true
     },
-    "rules": {}
+    "rules": {
+      "arrow-parens": 2,
+      "no-var": 2,
+      "prefer-rest-params": 2,
+      "prefer-spread": 2,
+    }
 }

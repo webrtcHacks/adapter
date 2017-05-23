@@ -33,7 +33,7 @@ var firefoxShim = {
               this.dispatchEvent(event);
             }.bind(this));
           }.bind(this));
-        }
+        },
       });
     }
   },
@@ -50,7 +50,7 @@ var firefoxShim = {
           },
           set: function(stream) {
             this.mozSrcObject = stream;
-          }
+          },
         });
       }
     }
@@ -76,7 +76,7 @@ var firefoxShim = {
               if (server.hasOwnProperty('urls')) {
                 for (var j = 0; j < server.urls.length; j++) {
                   var newServer = {
-                    url: server.urls[j]
+                    url: server.urls[j],
                   };
                   if (server.urls[j].indexOf('turn') === 0) {
                     newServer.username = server.username;
@@ -101,7 +101,7 @@ var firefoxShim = {
         Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
           get: function() {
             return window.mozRTCPeerConnection.generateCertificate;
-          }
+          },
         });
       }
 
@@ -149,7 +149,7 @@ var firefoxShim = {
       outboundrtp: 'outbound-rtp',
       candidatepair: 'candidate-pair',
       localcandidate: 'local-candidate',
-      remotecandidate: 'remote-candidate'
+      remotecandidate: 'remote-candidate',
     };
 
     var nativeGetStats = window.RTCPeerConnection.prototype.getStats;
@@ -177,7 +177,7 @@ var firefoxShim = {
               // Avoid TypeError: "type" is read-only, in old versions. 34-43ish
               stats.forEach(function(stat, i) {
                 stats.set(i, Object.assign({}, stat, {
-                  type: modernStatsTypes[stat.type] || stat.type
+                  type: modernStatsTypes[stat.type] || stat.type,
                 }));
               });
             }
@@ -186,7 +186,7 @@ var firefoxShim = {
         })
         .then(onSucc, onErr);
     };
-  }
+  },
 };
 
 // Expose public methods.
@@ -194,5 +194,5 @@ module.exports = {
   shimOnTrack: firefoxShim.shimOnTrack,
   shimSourceObject: firefoxShim.shimSourceObject,
   shimPeerConnection: firefoxShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
+  shimGetUserMedia: require('./getusermedia'),
 };

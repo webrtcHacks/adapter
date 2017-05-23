@@ -8,9 +8,9 @@
  /* eslint-env node */
 
 'use strict';
-var fs = require('fs');
-var os = require('os');
-var test = require('tape');
+let fs = require('fs');
+let os = require('os');
+let test = require('tape');
 
 if (!process.env.BROWSER) {
   process.env.BROWSER = 'chrome';
@@ -18,7 +18,7 @@ if (!process.env.BROWSER) {
 if (!process.env.BVER) {
   process.env.BVER = 'stable';
 }
-var browserbin = './browsers/bin/' + process.env.BROWSER +
+let browserbin = './browsers/bin/' + process.env.BROWSER +
     '-' + process.env.BVER;
 
 // install browsers via travis-multirunner (on Linux).
@@ -54,7 +54,7 @@ require('./test');
 // This is run as a test so it is executed after all tests
 // have completed.
 test('Shutdown', function(t) {
-  var driver = require('./selenium-lib').buildDriver();
+  let driver = require('./selenium-lib').buildDriver();
   driver.close()
   .then(function() {
     driver.quit().then(function() {

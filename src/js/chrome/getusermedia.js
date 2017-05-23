@@ -125,13 +125,13 @@ module.exports = function(window) {
       name: {
         ConstraintNotSatisfiedError: 'OverconstrainedError',
         PermissionDeniedError: 'NotAllowedError',
-        TrackStartError: 'NotReadableError'
+        TrackStartError: 'NotReadableError',
       }[e.name] || e.name,
       message: e.message,
       constraint: e.constraintName,
       toString: function() {
         return this.name + (this.message && ': ') + this.message;
-      }
+      },
     };
   };
 
@@ -171,9 +171,9 @@ module.exports = function(window) {
       getSupportedConstraints: function() {
         return {
           deviceId: true, echoCancellation: true, facingMode: true,
-          frameRate: true, height: true, width: true
+          frameRate: true, height: true, width: true,
         };
-      }
+      },
     };
   }
 

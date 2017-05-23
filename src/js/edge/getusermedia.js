@@ -19,7 +19,7 @@ module.exports = function(window) {
       constraint: e.constraint,
       toString: function() {
         return this.name;
-      }
+      },
     };
   };
 

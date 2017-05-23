@@ -22,8 +22,8 @@ describe('Chrome getUserMedia constraints converter', () => {
         webkitGetUserMedia: sinon.stub(),
         userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.3029.110 ' +
-            'Safari/537.36'
-      }
+            'Safari/537.36',
+      },
     };
     shim(window);
   });
@@ -33,8 +33,8 @@ describe('Chrome getUserMedia constraints converter', () => {
       video: {
         width: 1280,
         height: {min: 200, ideal: 720, max: 1080},
-        frameRate: {exact: 50}
-      }
+        frameRate: {exact: 50},
+      },
     });
     expect(window.navigator.webkitGetUserMedia).to.have.been.calledWith({
       video: {
@@ -42,15 +42,15 @@ describe('Chrome getUserMedia constraints converter', () => {
           maxFrameRate: 50,
           maxHeight: 1080,
           minHeight: 200,
-          minFrameRate: 50
+          minFrameRate: 50,
         },
         optional: [
                 {minWidth: 1280},
                 {maxWidth: 1280},
                 {minHeight: 720},
-                {maxHeight: 720}
-        ]
-      }
+                {maxHeight: 720},
+        ],
+      },
     });
   });
 
@@ -61,15 +61,15 @@ describe('Chrome getUserMedia constraints converter', () => {
           maxFrameRate: 50,
           maxHeight: 1080,
           minHeight: 200,
-          minFrameRate: 50
+          minFrameRate: 50,
         },
         optional: [
                 {minWidth: 1280},
                 {maxWidth: 1280},
                 {minHeight: 720},
-                {maxHeight: 720}
-        ]
-      }
+                {maxHeight: 720},
+        ],
+      },
     };
     window.navigator.getUserMedia(legacy);
     expect(window.navigator.webkitGetUserMedia).to.have.been.calledWith(legacy);
@@ -80,17 +80,17 @@ describe('Chrome getUserMedia constraints converter', () => {
       video: {
         mediaSource: 'screen',
         advanced: [
-                {facingMode: 'user'}
+                {facingMode: 'user'},
         ],
-        require: ['height', 'frameRate']
-      }
+        require: ['height', 'frameRate'],
+      },
     });
     expect(window.navigator.webkitGetUserMedia).to.have.been.calledWith({
       video: {
         optional: [
-                {facingMode: 'user'}
-        ]
-      }
+                {facingMode: 'user'},
+        ],
+      },
     });
   });
 });
@@ -102,8 +102,8 @@ describe('Firefox getUserMedia constraints converter', () => {
   beforeEach(() => {
     window = {
       navigator: {
-        mozGetUserMedia: sinon.stub()
-      }
+        mozGetUserMedia: sinon.stub(),
+      },
     };
   });
 
@@ -121,8 +121,8 @@ describe('Firefox getUserMedia constraints converter', () => {
           width: 1280,
           height: {min: 200, ideal: 720, max: 1080},
           facingMode: 'user',
-          frameRate: {exact: 50}
-        }
+          frameRate: {exact: 50},
+        },
       });
       expect(window.navigator.mozGetUserMedia).to.have.been.calledWith({
         video: {
@@ -132,10 +132,10 @@ describe('Firefox getUserMedia constraints converter', () => {
           advanced: [
                   {width: {min: 1280, max: 1280}},
                   {height: {min: 720, max: 720}},
-                  {facingMode: 'user'}
+                  {facingMode: 'user'},
           ],
-          require: ['height', 'frameRate']
-        }
+          require: ['height', 'frameRate'],
+        },
       });
     });
 
@@ -147,10 +147,10 @@ describe('Firefox getUserMedia constraints converter', () => {
           advanced: [
                   {width: {min: 1280, max: 1280}},
                   {height: {min: 720, max: 720}},
-                  {facingMode: 'user'}
+                  {facingMode: 'user'},
           ],
-          require: ['height', 'frameRate']
-        }
+          require: ['height', 'frameRate'],
+        },
       };
       window.navigator.getUserMedia(legacy);
       expect(window.navigator.mozGetUserMedia).to.have.been.calledWith(legacy);
@@ -169,8 +169,8 @@ describe('Firefox getUserMedia constraints converter', () => {
         width: 1280,
         height: {min: 200, ideal: 720, max: 1080},
         facingMode: 'user',
-        frameRate: {exact: 50}
-      }
+        frameRate: {exact: 50},
+      },
       };
       window.navigator.getUserMedia(spec);
       expect(window.navigator.mozGetUserMedia).to.have.been.calledWith(spec);

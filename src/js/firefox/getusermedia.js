@@ -22,16 +22,16 @@ module.exports = function(window) {
         InternalError: 'NotReadableError',
         NotSupportedError: 'TypeError',
         PermissionDeniedError: 'NotAllowedError',
-        SecurityError: 'NotAllowedError'
+        SecurityError: 'NotAllowedError',
       }[e.name] || e.name,
       message: {
         'The operation is insecure.': 'The request is not allowed by the ' +
-        'user agent or the platform in the current context.'
+        'user agent or the platform in the current context.',
       }[e.message] || e.message,
       constraint: e.constraint,
       toString: function() {
         return this.name + (this.message && ': ') + this.message;
-      }
+      },
     };
   };
 
@@ -107,7 +107,7 @@ module.exports = function(window) {
   if (!navigator.mediaDevices) {
     navigator.mediaDevices = {getUserMedia: getUserMediaPromise_,
       addEventListener: function() { },
-      removeEventListener: function() { }
+      removeEventListener: function() { },
     };
   }
   navigator.mediaDevices.enumerateDevices =
@@ -115,7 +115,7 @@ module.exports = function(window) {
         return new Promise(function(resolve) {
           var infos = [
             {kind: 'audioinput', deviceId: 'default', label: '', groupId: ''},
-            {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''}
+            {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''},
           ];
           resolve(infos);
         });

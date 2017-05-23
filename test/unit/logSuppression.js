@@ -16,7 +16,7 @@ describe('Log suppression', () => {
   let logCount;
   beforeEach(() => {
     logCount = 0;
-    console.log = function() {
+    console.log = function(arguments) {
       if (arguments.length === 1 && arguments[0] === 'test') {
         logCount++;
       } else {

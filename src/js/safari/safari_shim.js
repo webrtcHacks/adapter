@@ -50,7 +50,7 @@ var safariShim = {
             event.stream = e.streams[0];
             this.dispatchEvent(event);
           }.bind(this));
-        }
+        },
       });
     }
   },
@@ -126,10 +126,10 @@ var safariShim = {
         navigator.getUserMedia = function(constraints, cb, errcb) {
           navigator.mediaDevices.getUserMedia(constraints)
           .then(cb, errcb);
-        }.bind(navigator);
+        };
       }
     }
-  }
+  },
 };
 
 // Expose public methods.
@@ -137,7 +137,7 @@ module.exports = {
   shimCallbacksAPI: safariShim.shimCallbacksAPI,
   shimAddStream: safariShim.shimAddStream,
   shimOnAddStream: safariShim.shimOnAddStream,
-  shimGetUserMedia: safariShim.shimGetUserMedia
+  shimGetUserMedia: safariShim.shimGetUserMedia,
   // TODO
   // shimPeerConnection: safariShim.shimPeerConnection
 };

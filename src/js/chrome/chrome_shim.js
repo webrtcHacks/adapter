@@ -65,7 +65,7 @@ var chromeShim = {
               this.dispatchEvent(event);
             }.bind(this));
           }.bind(this));
-        }
+        },
       });
     }
   },
@@ -133,7 +133,7 @@ var chromeShim = {
                 }
               }
               return this._dtmf;
-            }
+            },
           };
           pc._senders.push(sender);
           return sender;
@@ -155,7 +155,7 @@ var chromeShim = {
                 }
               }
               return this._dtmf;
-            }
+            },
           });
         });
       };
@@ -214,7 +214,7 @@ var chromeShim = {
               }
               self.src = URL.createObjectURL(stream);
             });
-          }
+          },
         });
       }
     }
@@ -243,7 +243,7 @@ var chromeShim = {
         Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
           get: function() {
             return window.webkitRTCPeerConnection.generateCertificate;
-          }
+          },
         });
       }
     } else {
@@ -273,7 +273,7 @@ var chromeShim = {
       Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
         get: function() {
           return OrigPeerConnection.generateCertificate;
-        }
+        },
       });
     }
 
@@ -305,8 +305,8 @@ var chromeShim = {
             timestamp: report.timestamp,
             type: {
               localcandidate: 'local-candidate',
-              remotecandidate: 'remote-candidate'
-            }[report.type] || report.type
+              remotecandidate: 'remote-candidate',
+            }[report.type] || report.type,
           };
           report.names().forEach(function(name) {
             standardStats[name] = report.stat(name);
@@ -411,7 +411,7 @@ var chromeShim = {
       }
       return nativeAddIceCandidate.apply(this, arguments);
     };
-  }
+  },
 };
 
 
@@ -422,5 +422,5 @@ module.exports = {
   shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
+  shimGetUserMedia: require('./getusermedia'),
 };
