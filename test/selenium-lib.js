@@ -9,27 +9,27 @@
 'use strict';
 
 // https://code.google.com/p/selenium/wiki/WebDriverJs
-var webdriver = require('selenium-webdriver');
-var chrome = require('selenium-webdriver/chrome');
-var firefox = require('selenium-webdriver/firefox');
-var edge = require('selenium-webdriver/edge');
-var fs = require('fs');
-var os = require('os');
+let webdriver = require('selenium-webdriver');
+let chrome = require('selenium-webdriver/chrome');
+let firefox = require('selenium-webdriver/firefox');
+let edge = require('selenium-webdriver/edge');
+let fs = require('fs');
+let os = require('os');
 
-var sharedDriver = null;
+let sharedDriver = null;
 
 function getBrowserVersion() {
-  var browser = process.env.BROWSER;
-  var browserChannel = process.env.BVER;
-  var symlink = './browsers/bin/' + browser + '-' + browserChannel;
-  var path = fs.readlinkSync(symlink);
+  let browser = process.env.BROWSER;
+  let browserChannel = process.env.BVER;
+  let symlink = './browsers/bin/' + browser + '-' + browserChannel;
+  let path = fs.readlinkSync(symlink);
 
   // Browser reg expressions and position to look for the milestone version.
-  var chromeExp = /\/chrome\/(\d+)\./;
-  var firefoxExp = /\/firefox\/(\d+)\./;
+  let chromeExp = /\/chrome\/(\d+)\./;
+  let firefoxExp = /\/firefox\/(\d+)\./;
 
-  var browserVersion = function(pathToBrowser, expr) {
-    var match = pathToBrowser.match(expr);
+  let browserVersion = function(pathToBrowser, expr) {
+    let match = pathToBrowser.match(expr);
     return match && match.length >= 1 && parseInt(match[1], 10);
   };
 
@@ -49,7 +49,7 @@ function buildDriver() {
   }
   // Firefox options.
   // http://selenium.googlecode.com/git/docs/api/javascript/module_selenium-webdriver_firefox.html
-  var profile = new firefox.Profile();
+  let profile = new firefox.Profile();
   profile.setPreference('media.navigator.streams.fake', true);
   // This enables device labels for enumerateDevices when using fake devices.
   profile.setPreference('media.navigator.permission.disabled', true);
@@ -60,7 +60,7 @@ function buildDriver() {
   // https://github.com/SeleniumHQ/selenium/issues/901.
   profile.setPreference('xpinstall.signatures.required', false);
 
-  var firefoxOptions = new firefox.Options()
+  let firefoxOptions = new firefox.Options()
       .setProfile(profile);
   if (os.platform() === 'linux') {
     firefoxOptions.setBinary('node_modules/.bin/start-firefox');
@@ -68,7 +68,7 @@ function buildDriver() {
 
   // Chrome options.
   // http://selenium.googlecode.com/git/docs/api/javascript/module_selenium-webdriver_chrome_class_Options.html#addArguments
-  var chromeOptions = new chrome.Options()
+  let chromeOptions = new chrome.Options()
       .addArguments('allow-file-access-from-files')
       .addArguments('use-fake-device-for-media-stream')
       .addArguments('use-fake-ui-for-media-stream');
@@ -87,7 +87,7 @@ function buildDriver() {
     chromeOptions.addArguments('disable-gpu');
   }
 
-  var edgeOptions = new edge.Options();
+  let edgeOptions = new edge.Options();
 
   sharedDriver = new webdriver.Builder()
       .forBrowser(process.env.BROWSER)
@@ -140,5 +140,5 @@ module.exports = {
   buildDriver,
   loadTestPage,
   getBrowserVersion,
-  getStats
+  getStats,
 };

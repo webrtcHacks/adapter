@@ -15,7 +15,7 @@ describe('Chrome shim', () => {
 
   beforeEach(() => {
     window = {
-      webkitRTCPeerConnection: function() {}
+      webkitRTCPeerConnection: function() {},
     };
   });
 

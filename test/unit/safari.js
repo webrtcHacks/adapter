@@ -18,7 +18,7 @@ describe('Safari shim', () => {
 
   beforeEach(() => {
     window = {
-      RTCPeerConnection: function() {}
+      RTCPeerConnection: function() {},
     };
   });
 

@@ -44,7 +44,7 @@ module.exports = {
             var ev = new Event('enabled');
             ev.enabled = value;
             this.dispatchEvent(ev);
-          }
+          },
         });
       }
     }
@@ -58,5 +58,5 @@ module.exports = {
       window.RTCRtpSender.prototype.replaceTrack =
           window.RTCRtpSender.prototype.setTrack;
     }
-  }
+  },
 };

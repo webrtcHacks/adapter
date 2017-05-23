@@ -22,13 +22,13 @@ var utils = {
         'adapter.js logging enabled';
   },
 
-  log: function() {
+  log: function(args) {
     if (typeof window === 'object') {
       if (logDisabled_) {
         return;
       }
       if (typeof console !== 'undefined' && typeof console.log === 'function') {
-        console.log.apply(console, arguments);
+        console.log.apply(console, args);
       }
     }
   },
@@ -120,7 +120,8 @@ var utils = {
 
     var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
     var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
-    var streams = new Map(), newId = 0;
+    var streams = new Map();
+    var newId = 0;
 
     URL.createObjectURL = function(stream) {
       if ('getTracks' in stream) {
@@ -146,7 +147,7 @@ var utils = {
       set: function(url) {
         this.srcObject = streams.get(url) || null;
         return dsc.set.apply(this, [url]);
-      }
+      },
     });
 
     var nativeSetAttribute = window.HTMLMediaElement.prototype.setAttribute;
@@ -157,7 +158,7 @@ var utils = {
       }
       return nativeSetAttribute.apply(this, arguments);
     };
-  }
+  },
 };
 
 // Export.
@@ -166,5 +167,5 @@ module.exports = {
   disableLog: utils.disableLog,
   extractVersion: utils.extractVersion,
   shimCreateObjectURL: utils.shimCreateObjectURL,
-  detectBrowser: utils.detectBrowser.bind(utils)
+  detectBrowser: utils.detectBrowser.bind(utils),
 };

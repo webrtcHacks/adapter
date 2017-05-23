@@ -75,7 +75,7 @@ function getCommonCapabilities(localCapabilities, remoteCapabilities) {
   var commonCapabilities = {
     codecs: [],
     headerExtensions: [],
-    fecMechanisms: []
+    fecMechanisms: [],
   };
 
   var findCodecByPayloadType = function(pt, codecs) {
@@ -153,12 +153,12 @@ function isActionAllowedInSignalingState(action, type, signalingState) {
   return {
     offer: {
       setLocalDescription: ['stable', 'have-local-offer'],
-      setRemoteDescription: ['stable', 'have-remote-offer']
+      setRemoteDescription: ['stable', 'have-remote-offer'],
     },
     answer: {
       setLocalDescription: ['have-remote-offer', 'have-local-pranswer'],
-      setRemoteDescription: ['have-local-offer', 'have-remote-pranswer']
-    }
+      setRemoteDescription: ['have-local-offer', 'have-remote-pranswer'],
+    },
   }[type][action].indexOf(signalingState) !== -1;
 }
 
@@ -196,11 +196,11 @@ module.exports = function(window, edgeVersion) {
 
     this.localDescription = new window.RTCSessionDescription({
       type: '',
-      sdp: ''
+      sdp: '',
     });
     this.remoteDescription = new window.RTCSessionDescription({
       type: '',
-      sdp: ''
+      sdp: '',
     });
     this.signalingState = 'stable';
     this.iceConnectionState = 'new';
@@ -208,7 +208,7 @@ module.exports = function(window, edgeVersion) {
 
     this.iceOptions = {
       gatherPolicy: 'all',
-      iceServers: []
+      iceServers: [],
     };
     if (config && config.iceTransportPolicy) {
       switch (config.iceTransportPolicy) {
@@ -305,7 +305,7 @@ module.exports = function(window, edgeVersion) {
       sendEncodingParameters: null,
       recvEncodingParameters: null,
       stream: null,
-      wantReceive: true
+      wantReceive: true,
     };
     if (this.usingBundle && hasBundleTransport) {
       transceiver.iceTransport = this.transceivers[0].iceTransport;
@@ -493,7 +493,7 @@ module.exports = function(window, edgeVersion) {
 
     return {
       iceTransport: iceTransport,
-      dtlsTransport: dtlsTransport
+      dtlsTransport: dtlsTransport,
     };
   };
 
@@ -528,7 +528,7 @@ module.exports = function(window, edgeVersion) {
       params.encodings = transceiver.sendEncodingParameters;
       params.rtcp = {
         cname: SDPUtils.localCName,
-        compound: transceiver.rtcpParameters.compound
+        compound: transceiver.rtcpParameters.compound,
       };
       if (transceiver.recvEncodingParameters.length) {
         params.rtcp.ssrc = transceiver.recvEncodingParameters[0].ssrc;
@@ -547,7 +547,7 @@ module.exports = function(window, edgeVersion) {
       params.encodings = transceiver.recvEncodingParameters;
       params.rtcp = {
         cname: transceiver.rtcpParameters.cname,
-        compound: transceiver.rtcpParameters.compound
+        compound: transceiver.rtcpParameters.compound,
       };
       if (transceiver.sendEncodingParameters.length) {
         params.rtcp.ssrc = transceiver.sendEncodingParameters[0].ssrc;
@@ -633,7 +633,7 @@ module.exports = function(window, edgeVersion) {
 
     this.localDescription = {
       type: description.type,
-      sdp: description.sdp
+      sdp: description.sdp,
     };
     switch (description.type) {
       case 'offer':
@@ -724,7 +724,7 @@ module.exports = function(window, edgeVersion) {
       if (kind === 'application' && protocol === 'DTLS/SCTP') {
         self.transceivers[sdpMLineIndex] = {
           mid: mid,
-          isDatachannel: true
+          isDatachannel: true,
         };
         return;
       }
@@ -791,7 +791,7 @@ module.exports = function(window, edgeVersion) {
         }
 
         sendEncodingParameters = [{
-          ssrc: (2 * sdpMLineIndex + 2) * 1001
+          ssrc: (2 * sdpMLineIndex + 2) * 1001,
         }];
 
         if (direction === 'sendrecv' || direction === 'sendonly') {
@@ -806,13 +806,13 @@ module.exports = function(window, edgeVersion) {
               Object.defineProperty(streams[remoteMsid.stream], 'id', {
                 get: function() {
                   return remoteMsid.stream;
-                }
+                },
               });
             }
             Object.defineProperty(track, 'id', {
               get: function() {
                 return remoteMsid.track;
-              }
+              },
             });
             streams[remoteMsid.stream].addTrack(track);
             receiverList.push([track, rtpReceiver,
@@ -908,7 +908,7 @@ module.exports = function(window, edgeVersion) {
 
     this.remoteDescription = {
       type: description.type,
-      sdp: description.sdp
+      sdp: description.sdp,
     };
     switch (description.type) {
       case 'offer':
@@ -1037,12 +1037,12 @@ module.exports = function(window, edgeVersion) {
     var newState;
     var states = {
       'new': 0,
-      closed: 0,
-      connecting: 0,
-      checking: 0,
-      connected: 0,
-      completed: 0,
-      failed: 0
+      'closed': 0,
+      'connecting': 0,
+      'checking': 0,
+      'connected': 0,
+      'completed': 0,
+      'failed': 0,
     };
     this.transceivers.forEach(function(transceiver) {
       states[transceiver.iceTransport.state]++;
@@ -1183,13 +1183,13 @@ module.exports = function(window, edgeVersion) {
 
       // generate an ssrc now, to be used later in rtpSender.send
       var sendEncodingParameters = [{
-        ssrc: (2 * sdpMLineIndex + 1) * 1001
+        ssrc: (2 * sdpMLineIndex + 1) * 1001,
       }];
       if (track) {
         // add RTX
         if (edgeVersion >= 15019 && kind === 'video') {
           sendEncodingParameters[0].rtx = {
-            ssrc: (2 * sdpMLineIndex + 1) * 1001 + 1
+            ssrc: (2 * sdpMLineIndex + 1) * 1001 + 1,
           };
         }
       }
@@ -1222,7 +1222,7 @@ module.exports = function(window, edgeVersion) {
     this._pendingOffer = transceivers;
     var desc = new window.RTCSessionDescription({
       type: 'offer',
-      sdp: sdp
+      sdp: sdp,
     });
     if (arguments.length && typeof arguments[0] === 'function') {
       window.setTimeout(arguments[0], 0, desc);
@@ -1257,7 +1257,7 @@ module.exports = function(window, edgeVersion) {
           // add RTX
           if (edgeVersion >= 15019 && transceiver.kind === 'video') {
             transceiver.sendEncodingParameters[0].rtx = {
-              ssrc: (2 * sdpMLineIndex + 2) * 1001 + 1
+              ssrc: (2 * sdpMLineIndex + 2) * 1001 + 1,
             };
           }
         }
@@ -1285,7 +1285,7 @@ module.exports = function(window, edgeVersion) {
 
     var desc = new window.RTCSessionDescription({
       type: 'answer',
-      sdp: sdp
+      sdp: sdp,
     });
     if (arguments.length && typeof arguments[0] === 'function') {
       window.setTimeout(arguments[0], 0, desc);
@@ -1357,7 +1357,7 @@ module.exports = function(window, edgeVersion) {
         outboundrtp: 'outbound-rtp',
         candidatepair: 'candidate-pair',
         localcandidate: 'local-candidate',
-        remotecandidate: 'remote-candidate'
+        remotecandidate: 'remote-candidate',
       }[stat.type] || stat.type;
     };
     return new Promise(function(resolve) {

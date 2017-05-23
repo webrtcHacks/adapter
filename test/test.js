@@ -12,14 +12,14 @@
 // This is a basic test file for use with testling and webdriver.
 // The test script language comes from tape.
 
-var test = require('tape');
-var webdriver = require('selenium-webdriver');
-var seleniumHelpers = require('./selenium-lib');
+let test = require('tape');
+let webdriver = require('selenium-webdriver');
+let seleniumHelpers = require('./selenium-lib');
 const browserVersion = seleniumHelpers.getBrowserVersion();
 
 // Start of tests.
 test('Browser identified', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Run test.
   seleniumHelpers.loadTestPage(driver)
@@ -38,7 +38,7 @@ test('Browser identified', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -47,11 +47,11 @@ test('Browser identified', function(t) {
 
 // Test that getUserMedia is shimmed properly.
 test('navigator.mediaDevices.getUserMedia', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
     navigator.mediaDevices.getUserMedia({video: true, fake: true})
     .then(function(stream) {
       window.stream = stream;
@@ -69,7 +69,7 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    let gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Make sure we get a stream before continuing.
     driver.wait(function() {
@@ -90,7 +90,7 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -98,7 +98,7 @@ test('navigator.mediaDevices.getUserMedia', function(t) {
 });
 
 test('getUserMedia shim', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Run test.
   seleniumHelpers.loadTestPage(driver)
@@ -119,7 +119,7 @@ test('getUserMedia shim', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -130,7 +130,7 @@ test('getUserMedia shim', function(t) {
 // is possible. The usecase for this is the devicechanged event.
 // This does not test whether devicechanged is actually called.
 test('navigator.mediaDevices eventlisteners', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Run test.
   seleniumHelpers.loadTestPage(driver)
@@ -156,7 +156,7 @@ test('navigator.mediaDevices eventlisteners', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -164,7 +164,7 @@ test('navigator.mediaDevices eventlisteners', function(t) {
 });
 
 test('MediaStream shim', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Run test.
   seleniumHelpers.loadTestPage(driver)
@@ -184,7 +184,7 @@ test('MediaStream shim', function(t) {
 });
 
 test('RTCPeerConnection shim', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Run test.
   seleniumHelpers.loadTestPage(driver)
@@ -215,7 +215,7 @@ test('RTCPeerConnection shim', function(t) {
 });
 
 test('Create RTCPeerConnection', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Run test.
   seleniumHelpers.loadTestPage(driver)
@@ -231,7 +231,7 @@ test('Create RTCPeerConnection', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -239,18 +239,18 @@ test('Create RTCPeerConnection', function(t) {
 });
 
 test('Video srcObject getter/setter test', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
 
-      var video = document.createElement('video');
+      let video = document.createElement('video');
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       video.srcObject = stream;
@@ -274,7 +274,7 @@ test('Video srcObject getter/setter test', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    let gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
@@ -295,7 +295,7 @@ test('Video srcObject getter/setter test', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -303,18 +303,18 @@ test('Video srcObject getter/setter test', function(t) {
 });
 
 test('Audio srcObject getter/setter test', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var constraints = {video: false, audio: true, fake: true};
+    let constraints = {video: false, audio: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
 
-      var audio = document.createElement('audio');
+      let audio = document.createElement('audio');
       audio.setAttribute('id', 'audio');
       audio.srcObject = stream;
       // If the srcObject shim works, we should get a video
@@ -337,7 +337,7 @@ test('Audio srcObject getter/setter test', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    let gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
@@ -345,7 +345,7 @@ test('Audio srcObject getter/setter test', function(t) {
       webdriver.By.id('audio')), 3000);
   })
   .then(function() {
-    return driver.executeScript(
+    return driver.executafeScript(
         'return document.getElementById(\'audio\').srcObject.id')
     .then(function(srcObjectId) {
       driver.executeScript('return window.stream.id')
@@ -359,7 +359,7 @@ test('Audio srcObject getter/setter test', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -367,20 +367,20 @@ test('Audio srcObject getter/setter test', function(t) {
 });
 
 test('createObjectURL shim test', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
     ['audio', 'video'].reduce(function(p, type) {
       return p.then(function() {
-        var constraints = {fake: true};
+        let constraints = {fake: true};
         constraints[type] = true;
         return navigator.mediaDevices.getUserMedia(constraints);
       })
       .then(function(stream) {
-        var element = document.createElement(type);
+        let element = document.createElement(type);
         window[type] = element;
         window[type + 'Stream'] = stream;
         element.id = type;
@@ -414,7 +414,7 @@ test('createObjectURL shim test', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = error ? 'error: ' + error : 'no errors';
+    let gumResult = error ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     return driver.wait(webdriver.until.elementLocated(
@@ -425,7 +425,7 @@ test('createObjectURL shim test', function(t) {
       'return document.getElementById("audio").srcObject.id',
       'return window.audioStream.id',
       'return document.getElementById("video").srcObject.id',
-      'return window.videoStream.id'
+      'return window.videoStream.id',
     ].map(function(script) {
       return driver.executeScript(script);
     }))
@@ -437,7 +437,7 @@ test('createObjectURL shim test', function(t) {
     });
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -445,19 +445,19 @@ test('createObjectURL shim test', function(t) {
 });
 
 test('srcObject set from another object', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
 
-      var video = document.createElement('video');
-      var video2 = document.createElement('video2');
+      let video = document.createElement('video');
+      let video2 = document.createElement('video2');
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       video2.setAttribute('id', 'video2');
@@ -486,7 +486,7 @@ test('srcObject set from another object', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    let gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
@@ -509,7 +509,7 @@ test('srcObject set from another object', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -517,18 +517,18 @@ test('srcObject set from another object', function(t) {
 });
 
 test('srcObject null setter', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
 
-      var video = document.createElement('video');
+      let video = document.createElement('video');
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       document.body.appendChild(video);
@@ -550,7 +550,7 @@ test('srcObject null setter', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    let gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // Wait until loadedmetadata event has fired and appended video element.
     // 5 second timeout in case the event does not fire for some reason.
@@ -570,7 +570,7 @@ test('srcObject null setter', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -578,18 +578,18 @@ test('srcObject null setter', function(t) {
 });
 
 test('Attach mediaStream directly', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
 
-      var video = document.createElement('video');
+      let video = document.createElement('video');
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       // If the srcObject shim works, we should get a video
@@ -616,7 +616,7 @@ test('Attach mediaStream directly', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    let gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // We need to wait due to the stream can take a while to setup.
     driver.wait(function() {
@@ -645,7 +645,7 @@ test('Attach mediaStream directly', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -653,19 +653,19 @@ test('Attach mediaStream directly', function(t) {
 });
 
 test('Re-attaching mediaStream directly', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       window.stream = stream;
 
-      var video = document.createElement('video');
-      var video2 = document.createElement('video');
+      let video = document.createElement('video');
+      let video2 = document.createElement('video');
       video.setAttribute('id', 'video');
       video.setAttribute('autoplay', 'true');
       video2.setAttribute('id', 'video2');
@@ -698,7 +698,7 @@ test('Re-attaching mediaStream directly', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var gumResult = (error) ? 'error: ' + error : 'no errors';
+    let gumResult = (error) ? 'error: ' + error : 'no errors';
     t.ok(!error, 'getUserMedia result:  ' + gumResult);
     // We need to wait due to the stream can take a while to setup.
     return driver.wait(function() {
@@ -742,7 +742,7 @@ test('Re-attaching mediaStream directly', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -753,18 +753,18 @@ test('Re-attaching mediaStream directly', function(t) {
 test('Call getUserMedia with impossible constraints',
     {skip: process.env.BROWSER === 'chrome'},
     function(t) {
-      var driver = seleniumHelpers.buildDriver();
+      let driver = seleniumHelpers.buildDriver();
 
       // Define test.
-      var testDefinition = function() {
-        var callback = arguments[arguments.length - 1];
+      let testDefinition = function(...args) {
+        let callback = args[args.length - 1];
 
-        var impossibleConstraints = {
+        let impossibleConstraints = {
           video: {
             width: 1280,
             height: {min: 200, ideal: 720, max: 1080},
-            frameRate: {exact: 0} // to fail
-          }
+            frameRate: {exact: 0}, // to fail
+          },
         };
         // TODO: Remove when firefox 42+ accepts impossible constraints
         // on fake devices.
@@ -793,7 +793,7 @@ test('Call getUserMedia with impossible constraints',
       .then(function(isFirefoxAndVersionLessThan42) {
         if (isFirefoxAndVersionLessThan42) {
           t.skip('getUserMedia(impossibleConstraints) not supported on < 42');
-          throw 'skip-test';
+          throw new Error('skip-test');
         }
         return driver.executeAsyncScript(testDefinition);
       })
@@ -804,7 +804,7 @@ test('Call getUserMedia with impossible constraints',
         t.end();
       })
       .then(null, function(err) {
-        if (err !== 'skip-test') {
+        if (err.message !== 'skip-test') {
           t.fail(err);
         }
         t.end();
@@ -812,15 +812,15 @@ test('Call getUserMedia with impossible constraints',
     });
 
 test('Basic connection establishment', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -832,10 +832,10 @@ test('Basic connection establishment', function(t) {
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
@@ -844,7 +844,7 @@ test('Basic connection establishment', function(t) {
       }
     };
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       pc.addIceCandidate(event.candidate,
         function() {
           // TODO: Decide if we are interested in adding all candidates
@@ -863,7 +863,7 @@ test('Basic connection establishment', function(t) {
       addCandidate(pc1, event);
     };
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       pc1.addStream(stream);
@@ -938,10 +938,10 @@ test('Basic connection establishment', function(t) {
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -950,7 +950,7 @@ test('Basic connection establishment', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -958,15 +958,15 @@ test('Basic connection establishment', function(t) {
 });
 
 test('Basic connection establishment with promise', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -978,10 +978,10 @@ test('Basic connection establishment with promise', function(t) {
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
@@ -990,9 +990,9 @@ test('Basic connection establishment with promise', function(t) {
       }
     };
 
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+    let dictionary = (obj) => JSON.parse(JSON.stringify(obj));
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
@@ -1012,7 +1012,7 @@ test('Basic connection establishment with promise', function(t) {
       addCandidate(pc1, event);
     };
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       pc1.addStream(stream);
@@ -1064,10 +1064,10 @@ test('Basic connection establishment with promise', function(t) {
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1076,7 +1076,7 @@ test('Basic connection establishment with promise', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -1084,15 +1084,15 @@ test('Basic connection establishment with promise', function(t) {
 });
 
 test('Basic connection establishment with bidirectional streams', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1104,10 +1104,10 @@ test('Basic connection establishment with bidirectional streams', function(t) {
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
@@ -1116,9 +1116,9 @@ test('Basic connection establishment with bidirectional streams', function(t) {
       }
     };
 
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+    let dictionary = (obj) => JSON.parse(JSON.stringify(obj));
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
@@ -1138,7 +1138,7 @@ test('Basic connection establishment with bidirectional streams', function(t) {
       addCandidate(pc1, event);
     };
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       pc1.addStream(stream);
@@ -1191,10 +1191,10 @@ test('Basic connection establishment with bidirectional streams', function(t) {
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1203,7 +1203,7 @@ test('Basic connection establishment with bidirectional streams', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -1211,15 +1211,15 @@ test('Basic connection establishment with bidirectional streams', function(t) {
 });
 
 test('Basic connection establishment with addTrack', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1231,10 +1231,10 @@ test('Basic connection establishment with addTrack', function(t) {
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
@@ -1249,9 +1249,9 @@ test('Basic connection establishment with addTrack', function(t) {
       tc.ok(event.stream.getVideoTracks().length === 1, 'with a video track');
     };
 
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+    let dictionary = (obj) => JSON.parse(JSON.stringify(obj));
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
@@ -1271,7 +1271,7 @@ test('Basic connection establishment with addTrack', function(t) {
       addCandidate(pc1, event);
     };
 
-    var constraints = {audio: true, video: true, fake: true};
+    let constraints = {audio: true, video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       stream.getTracks().forEach(function(track) {
@@ -1325,10 +1325,10 @@ test('Basic connection establishment with addTrack', function(t) {
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1337,7 +1337,7 @@ test('Basic connection establishment with addTrack', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -1346,15 +1346,15 @@ test('Basic connection establishment with addTrack', function(t) {
 
 test('Basic connection establishment with addTrack ' +
     'and only the audio track of an av stream', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1366,10 +1366,10 @@ test('Basic connection establishment with addTrack ' +
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
@@ -1384,9 +1384,9 @@ test('Basic connection establishment with addTrack ' +
       tc.ok(event.stream.getVideoTracks().length === 0, 'with no video track');
     };
 
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+    let dictionary = (obj) => JSON.parse(JSON.stringify(obj));
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
@@ -1406,7 +1406,7 @@ test('Basic connection establishment with addTrack ' +
       addCandidate(pc1, event);
     };
 
-    var constraints = {audio: true, video: true, fake: true};
+    let constraints = {audio: true, video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       stream.getAudioTracks().forEach(function(track) {
@@ -1460,10 +1460,10 @@ test('Basic connection establishment with addTrack ' +
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1472,7 +1472,7 @@ test('Basic connection establishment with addTrack ' +
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -1481,15 +1481,15 @@ test('Basic connection establishment with addTrack ' +
 
 test('Basic connection establishment with addTrack ' +
     'and two streams', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1501,11 +1501,11 @@ test('Basic connection establishment with addTrack ' +
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
-    var remoteStreams = 0;
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
+    let remoteStreams = 0;
 
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
@@ -1518,9 +1518,9 @@ test('Basic connection establishment with addTrack ' +
       tc.pass('onaddstream called ' + remoteStreams++);
     };
 
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+    let dictionary = (obj) => JSON.parse(JSON.stringify(obj));
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
@@ -1540,11 +1540,11 @@ test('Basic connection establishment with addTrack ' +
       addCandidate(pc1, event);
     };
 
-    var constraints = {audio: true, video: true, fake: true};
+    let constraints = {audio: true, video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
-      var audioStream = new MediaStream(stream.getAudioTracks());
-      var videoStream = new MediaStream(stream.getVideoTracks());
+      let audioStream = new MediaStream(stream.getAudioTracks());
+      let videoStream = new MediaStream(stream.getVideoTracks());
       audioStream.getTracks().forEach(function(track) {
         pc1.addTrack(track, audioStream);
       });
@@ -1600,10 +1600,10 @@ test('Basic connection establishment with addTrack ' +
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1612,7 +1612,7 @@ test('Basic connection establishment with addTrack ' +
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -1621,15 +1621,15 @@ test('Basic connection establishment with addTrack ' +
 
 test('Basic connection establishment with promise but no' +
     'end-of-candidates', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1641,10 +1641,10 @@ test('Basic connection establishment with promise but no' +
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
@@ -1653,9 +1653,9 @@ test('Basic connection establishment with promise but no' +
       }
     };
 
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+    let dictionary = (obj) => JSON.parse(JSON.stringify(obj));
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
@@ -1679,7 +1679,7 @@ test('Basic connection establishment with promise but no' +
       }
     };
 
-    var constraints = {video: true, fake: true};
+    let constraints = {video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       pc1.addStream(stream);
@@ -1731,10 +1731,10 @@ test('Basic connection establishment with promise but no' +
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1743,7 +1743,7 @@ test('Basic connection establishment with promise but no' +
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -1751,15 +1751,15 @@ test('Basic connection establishment with promise but no' +
 });
 
 test('Basic connection establishment with datachannel', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1771,10 +1771,10 @@ test('Basic connection establishment with datachannel', function(t) {
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     if (typeof pc1.createDataChannel !== 'function') {
       callback('DataChannel is not supported');
@@ -1788,7 +1788,7 @@ test('Basic connection establishment with datachannel', function(t) {
       }
     };
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       pc.addIceCandidate(event.candidate).then(function() {
         // TODO: Decide if we are interested in adding all candidates
         // as passed tests.
@@ -1839,7 +1839,7 @@ test('Basic connection establishment with datachannel', function(t) {
     // or pc1ConnectionStatus.
     if (callback === 'DataChannel is not supported') {
       t.skip(callback);
-      throw 'skip-test';
+      throw new Error('skip-test');
     }
     return callback;
   })
@@ -1850,10 +1850,10 @@ test('Basic connection establishment with datachannel', function(t) {
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1862,7 +1862,7 @@ test('Basic connection establishment with datachannel', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -1870,15 +1870,15 @@ test('Basic connection establishment with datachannel', function(t) {
 });
 
 test('video loadedmetadata is called for a video call', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var counter = 1;
+    let counter = 1;
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -1890,13 +1890,13 @@ test('video loadedmetadata is called for a video call', function(t) {
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
     pc2.addEventListener('addstream', function(e) {
-      var v = document.createElement('video');
+      let v = document.createElement('video');
       v.autoplay = true;
       v.addEventListener('loadedmetadata', function() {
         tc.pass('loadedmetadata');
@@ -1904,9 +1904,9 @@ test('video loadedmetadata is called for a video call', function(t) {
       });
       v.srcObject = e.stream;
     });
-    var dictionary = obj => JSON.parse(JSON.stringify(obj));
+    let dictionary = (obj) => JSON.parse(JSON.stringify(obj));
 
-    var addCandidate = function(pc, event) {
+    let addCandidate = function(pc, event) {
       if (event.candidate) {
         event.candidate = dictionary(event.candidate);
       }
@@ -1926,7 +1926,7 @@ test('video loadedmetadata is called for a video call', function(t) {
       addCandidate(pc1, event);
     };
 
-    var constraints = {audio: true, video: true, fake: true};
+    let constraints = {audio: true, video: true, fake: true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
       pc1.addStream(stream);
@@ -1972,10 +1972,10 @@ test('video loadedmetadata is called for a video call', function(t) {
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -1984,45 +1984,45 @@ test('video loadedmetadata is called for a video call', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
   });
 });
 
-test('dtmf', t => {
-  var driver = seleniumHelpers.buildDriver();
+test('dtmf', (t) => {
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var pc1 = new RTCPeerConnection(null);
-    var pc2 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
+    let pc2 = new RTCPeerConnection(null);
 
-    pc1.onicecandidate = e => pc2.addIceCandidate(e.candidate);
-    pc2.onicecandidate = e => pc1.addIceCandidate(e.candidate);
-    pc1.onnegotiationneeded = e => pc1.createOffer()
-      .then(offer => pc1.setLocalDescription(offer))
+    pc1.onicecandidate = (e) => pc2.addIceCandidate(e.candidate);
+    pc2.onicecandidate = (e) => pc1.addIceCandidate(e.candidate);
+    pc1.onnegotiationneeded = (e) => pc1.createOffer()
+      .then((offer) => pc1.setLocalDescription(offer))
       .then(() => pc2.setRemoteDescription(pc1.localDescription))
       .then(() => pc2.createAnswer())
-      .then(answer => pc2.setLocalDescription(answer))
+      .then((answer) => pc2.setLocalDescription(answer))
       .then(() => pc1.setRemoteDescription(pc2.localDescription));
 
     navigator.mediaDevices.getUserMedia({audio: true})
-    .then(stream => {
+    .then((stream) => {
       pc1.addStream(stream);
-      return new Promise(resolve => pc1.oniceconnectionstatechange =
-        e => pc1.iceConnectionState === 'connected' && resolve())
+      return new Promise((resolve) => pc1.oniceconnectionstatechange =
+        (e) => pc1.iceConnectionState === 'connected' && resolve())
       .then(() => {
-        let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+        let sender = pc1.getSenders().find((s) => s.track.kind === 'audio');
         if (!sender.dtmf) {
-          throw 'skip-test';
+          throw new Error('skip-test');
         }
         sender.dtmf.insertDTMF('1');
-        return new Promise(resolve => sender.dtmf.ontonechange = resolve);
+        return new Promise((resolve) => sender.dtmf.ontonechange = resolve);
       })
-      .then(e => {
+      .then((e) => {
         // Test getSenders Chrome polyfill
         try {
           // FF51+ doesn't have removeStream
@@ -2035,10 +2035,10 @@ test('dtmf', t => {
           if (err.name !== 'NotSupportedError') {
             throw err;
           }
-          pc1.getSenders().forEach(sender => pc1.removeTrack(sender));
+          pc1.getSenders().forEach((sender) => pc1.removeTrack(sender));
         }
-        stream.getTracks().forEach(track => {
-          let sender = pc1.getSenders().find(s => s.track === track);
+        stream.getTracks().forEach((track) => {
+          let sender = pc1.getSenders().find((s) => s.track === track);
           if (sender) {
             throw new Error('sender was not removed when it should have been');
           }
@@ -2046,8 +2046,8 @@ test('dtmf', t => {
         return e.tone;
       });
     })
-    .then(tone => callback({tone: tone}),
-          err => callback({error: err.toString()}));
+    .then((tone) => callback({tone: tone}),
+          (err) => callback({error: err.toString()}));
   };
 
   // Run test.
@@ -2066,17 +2066,17 @@ test('dtmf', t => {
     }
     t.is(tone, '1', 'DTMF sent');
   })
-  .then(null, err => t.fail(err))
+  .then(null, (err) => t.fail(err))
   .then(() => t.end());
 });
 
 test('addIceCandidate with null', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var pc1 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
     pc1.addIceCandidate(null)
     // callback is called with either the empty result
     // of the .then or the error from .catch.
@@ -2094,7 +2094,7 @@ test('addIceCandidate with null', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2102,12 +2102,12 @@ test('addIceCandidate with null', function(t) {
 });
 
 test('addIceCandidate with undefined', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var pc1 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
     pc1.addIceCandidate(undefined)
     // callback is called with either the empty result
     // of the .then or the error from .catch.
@@ -2125,7 +2125,7 @@ test('addIceCandidate with undefined', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2133,10 +2133,10 @@ test('addIceCandidate with undefined', function(t) {
 });
 
 test('call enumerateDevices', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
     navigator.mediaDevices.enumerateDevices()
     .then(function(devices) {
@@ -2175,7 +2175,7 @@ test('call enumerateDevices', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2184,13 +2184,13 @@ test('call enumerateDevices', function(t) {
 
 // Test polyfill for getStats.
 test('getStats', {skip: true}, function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
     window.testsEqualArray = [];
-    var pc1 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
 
     // Test expected new behavior.
     new Promise(function(resolve, reject) {
@@ -2207,7 +2207,7 @@ test('getStats', {skip: true}, function(t) {
     })
     .then(function(report) {
       // Test legacy behavior
-      for (var key in report) {
+      for (let key in report) {
         // This avoids problems with Firefox
         if (typeof report[key] === 'function') {
           continue;
@@ -2229,7 +2229,7 @@ test('getStats', {skip: true}, function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var getStatsResult = (error) ? 'error: ' + error.toString() : 'no errors';
+    let getStatsResult = (error) ? 'error: ' + error.toString() : 'no errors';
     t.ok(!error, 'GetStats result:  ' + getStatsResult);
     return driver.wait(function() {
       return driver.executeScript('return window.testsEqualArray');
@@ -2249,7 +2249,7 @@ test('getStats', {skip: true}, function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2261,20 +2261,20 @@ test('getStats', {skip: true}, function(t) {
 // as the first argument.
 // FIXME: Implement callbacks for the results as well.
 test('originalChromeGetStats', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
     window.testsEqualArray = [];
     window.testsNotEqualArray = [];
-    var pc1 = new RTCPeerConnection(null);
+    let pc1 = new RTCPeerConnection(null);
 
     new Promise(function(resolve, reject) {  // jshint ignore: line
       pc1.getStats(resolve, null);
     })
     .then(function(response) {
-      var reports = response.result();
+      let reports = response.result();
       // TODO: Figure out a way to get inheritance to work properly in
       // webdriver. report.names() is just an empty object when returned to
       // webdriver.
@@ -2307,7 +2307,7 @@ test('originalChromeGetStats', function(t) {
     .then(function(browser) {
       if (browser !== 'chrome') {
         t.skip('Non-chrome browser detected.');
-        throw 'skip-test';
+        throw new Error('skip-test');
       }
     });
   })
@@ -2315,7 +2315,7 @@ test('originalChromeGetStats', function(t) {
     return driver.executeAsyncScript(testDefinition);
   })
   .then(function(error) {
-    var getStatsResult = (error) ? 'error: ' + error.toString() : 'no errors';
+    let getStatsResult = (error) ? 'error: ' + error.toString() : 'no errors';
     t.ok(!error, 'GetStats result:  ' + getStatsResult);
     return driver.wait(function() {
       return driver.executeScript('return window.testsEqualArray');
@@ -2346,7 +2346,7 @@ test('originalChromeGetStats', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2354,20 +2354,20 @@ test('originalChromeGetStats', function(t) {
 });
 
 test('getStats promise', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Define test.
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
-    var testsEqualArray = [];
-    var pc1 = new RTCPeerConnection(null);
+    let testsEqualArray = [];
+    let pc1 = new RTCPeerConnection(null);
 
     pc1.getStats(null)
     .then(function(report) {
       testsEqualArray.push([typeof report, 'object',
         'getStats with no selector returns a Promise']);
-      // Firefox does not like getStats without any arguments, therefore we call
+      // Firefox does not like getStats without any args, therefore we call
       // the callback before the next getStats call.
       // FIXME: Remove this if ever supported by Firefox, also remove the t.skip
       // section towards the end of the // Run test section.
@@ -2378,7 +2378,7 @@ test('getStats promise', function(t) {
       pc1.getStats()
       .then(function(reportWithoutArg) {
         testsEqualArray.push([typeof reportWithoutArg, 'object',
-          'getStats with no arguments returns a Promise']);
+          'getStats with no args returns a Promise']);
         callback(testsEqualArray);
       })
       .catch(function(err) {
@@ -2419,7 +2419,7 @@ test('getStats promise', function(t) {
       'return adapter.browserDetails.browser === \'firefox\'')
       .then(function(isFirefox) {
         if (isFirefox) {
-          t.skip('Firefox does not support getStats without arguments.');
+          t.skip('Firefox does not support getStats without args.');
         }
       });
   })
@@ -2427,7 +2427,7 @@ test('getStats promise', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2440,15 +2440,15 @@ test('getStats promise', function(t) {
 test('iceTransportPolicy relay functionality',
     {skip: process.env.BROWSER !== 'chrome'},
     function(t) {
-      var driver = seleniumHelpers.buildDriver();
+      let driver = seleniumHelpers.buildDriver();
 
       // Define test.
-      var testDefinition = function() {
-        var callback = arguments[arguments.length - 1];
+      let testDefinition = function(...args) {
+        let callback = args[args.length - 1];
 
         window.candidates = [];
 
-        var pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
+        let pc1 = new RTCPeerConnection({iceTransportPolicy: 'relay',
           iceServers: []});
 
         // Since we try to gather only relay candidates without specifying
@@ -2462,7 +2462,7 @@ test('iceTransportPolicy relay functionality',
           }
         };
 
-        var constraints = {video: true, fake: true};
+        let constraints = {video: true, fake: true};
         navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
           pc1.addStream(stream);
@@ -2485,7 +2485,7 @@ test('iceTransportPolicy relay functionality',
         return driver.executeAsyncScript(testDefinition);
       })
       .then(function(error) {
-        var errorMessage = (error) ? 'error: ' + error.toString() : 'no errors';
+        let errorMessage = (error) ? 'error: ' + error.toString() : 'no errors';
         t.ok(!error, 'Result:  ' + errorMessage);
         // We should not really need this due to using an error callback if a
         // candidate is found but I'm not sure we will catch due to async nature
@@ -2505,7 +2505,7 @@ test('iceTransportPolicy relay functionality',
         t.end();
       })
       .then(null, function(err) {
-        if (err !== 'skip-test') {
+        if (err.message !== 'skip-test') {
           t.fail(err);
         }
         t.end();
@@ -2515,20 +2515,20 @@ test('iceTransportPolicy relay functionality',
 test('icegatheringstatechange event',
     {skip: process.env.BROWSER !== 'MicrosoftEdge'},
     function(t) {
-      var driver = seleniumHelpers.buildDriver();
+      let driver = seleniumHelpers.buildDriver();
 
       // Define test.
-      var testDefinition = function() {
-        var callback = arguments[arguments.length - 1];
+      let testDefinition = function(...args) {
+        let callback = args[args.length - 1];
 
-        var pc1 = new RTCPeerConnection();
+        let pc1 = new RTCPeerConnection();
         pc1.onicegatheringstatechange = function(event) {
           if (pc1.iceGatheringState === 'complete') {
             callback();
           }
         };
 
-        var constraints = {video: true, fake: true};
+        let constraints = {video: true, fake: true};
         navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
           pc1.addStream(stream);
@@ -2548,7 +2548,7 @@ test('icegatheringstatechange event',
         t.end();
       })
       .then(null, function(err) {
-        if (err !== 'skip-test') {
+        if (err.message !== 'skip-test') {
           t.fail(err);
         }
         t.end();
@@ -2556,7 +2556,7 @@ test('icegatheringstatechange event',
     });
 
 test('static generateCertificate method', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
   // Run test.
   seleniumHelpers.loadTestPage(driver)
@@ -2575,7 +2575,7 @@ test('static generateCertificate method', function(t) {
   .then(function(isSupported) {
     if (!isSupported) {
       t.skip('generateCertificate not supported on < Chrome 49');
-      throw 'skip-test';
+      throw new Error('skip-test');
     }
     return driver.executeScript(
       'return typeof RTCPeerConnection.generateCertificate === \'function\'');
@@ -2588,7 +2588,7 @@ test('static generateCertificate method', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2597,14 +2597,14 @@ test('static generateCertificate method', function(t) {
 
 // ontrack is shimmed in Chrome so we test that it is called.
 test('ontrack', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
+  let testDefinition = function(...args) {
+    let callback = args[args.length - 1];
 
     window.testPassed = [];
     window.testFailed = [];
-    var tc = {
+    let tc = {
       ok: function(ok, msg) {
         window[ok ? 'testPassed' : 'testFailed'].push(msg);
       },
@@ -2616,9 +2616,9 @@ test('ontrack', function(t) {
       },
       fail: function(msg) {
         this.ok(false, msg);
-      }
+      },
     };
-    var sdp = 'v=0\r\n' +
+    let sdp = 'v=0\r\n' +
         'o=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
         's=-\r\n' +
         't=0 0\r\n' +
@@ -2638,7 +2638,7 @@ test('ontrack', function(t) {
         'a=msid:stream1 track1\r\n' +
         'a=ssrc:1001 cname:some\r\n';
 
-    var pc = new RTCPeerConnection(null);
+    let pc = new RTCPeerConnection(null);
 
     pc.ontrack = function(e) {
       tc.ok(true, 'pc.ontrack called');
@@ -2651,7 +2651,7 @@ test('ontrack', function(t) {
           'trackEvent.track is in stream');
 
       if (pc.getReceivers) {
-        var receivers = pc.getReceivers();
+        let receivers = pc.getReceivers();
         if (receivers && receivers.length) {
           tc.ok(receivers.indexOf(e.receiver) !== -1,
               'trackEvent.receiver matches a known receiver');
@@ -2688,10 +2688,10 @@ test('ontrack', function(t) {
   .then(function(testPassed) {
     return driver.executeScript('return window.testFailed')
     .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+      for (let testPass = 0; testPass < testPassed.length; testPass++) {
         t.pass(testPassed[testPass]);
       }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+      for (let testFail = 0; testFail < testFailed.length; testFail++) {
         t.fail(testFailed[testFail]);
       }
     });
@@ -2700,7 +2700,7 @@ test('ontrack', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
@@ -2710,12 +2710,12 @@ test('ontrack', function(t) {
 // This MUST to be the last test since it loads adapter
 // again which may result in unintended behaviour.
 test('Non-module logging to console still works', function(t) {
-  var driver = seleniumHelpers.buildDriver();
+  let driver = seleniumHelpers.buildDriver();
 
-  var testDefinition = function() {
+  let testDefinition = function(...args) {
     window.testsEqualArray = [];
     window.logCount = 0;
-    var saveConsole = console.log.bind(console);
+    let saveConsole = console.log.bind(console);
     console.log = function() {
       window.logCount++;
     };
@@ -2724,7 +2724,7 @@ test('Non-module logging to console still works', function(t) {
     console.log = saveConsole;
 
     // Check for existence of variables and functions from public API.
-    window.testsEqualArray.push([typeof RTCPeerConnection,'function',
+    window.testsEqualArray.push([typeof RTCPeerConnection, 'function',
       'RTCPeerConnection is a function']);
     window.testsEqualArray.push([typeof navigator.getUserMedia, 'function',
       'getUserMedia is a function']);
@@ -2761,7 +2761,7 @@ test('Non-module logging to console still works', function(t) {
     t.end();
   })
   .then(null, function(err) {
-    if (err !== 'skip-test') {
+    if (err.message !== 'skip-test') {
       t.fail(err);
     }
     t.end();
