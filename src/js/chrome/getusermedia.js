@@ -135,15 +135,15 @@ module.exports = function(window) {
     };
   };
 
-  var getUserMedia_ = function(constraints, onSuccess, onError) {
-    shimConstraints_(constraints, function(c) {
-      navigator.webkitGetUserMedia(c, onSuccess, function(e) {
-        onError(shimError_(e));
+  if (!navigator.getUserMedia) {
+    navigator.getUserMedia = function(constraints, onSuccess, onError) {
+      shimConstraints_(constraints, function(c) {
+        navigator.webkitGetUserMedia(c, onSuccess, function(e) {
+          onError(shimError_(e));
+        });
       });
-    });
-  };
-
-  navigator.getUserMedia = getUserMedia_;
+    };
+  }
 
   // Returns the result of getUserMedia as a Promise.
   var getUserMediaPromise_ = function(constraints) {
