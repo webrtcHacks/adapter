@@ -100,8 +100,12 @@ describe('Chrome getUserMedia constraints converter', () => {
     const legacy = {
       audio: {
         mandatory: {
-          echoCancellation: false,
+          googNoiseSuppression: false
         },
+        optional: [
+          {echoCancellation: false},
+          {googAutoGainControl: true},
+        ]
       }
     };
     window.navigator.getUserMedia(legacy);
