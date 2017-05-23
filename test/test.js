@@ -345,7 +345,7 @@ test('Audio srcObject getter/setter test', function(t) {
       webdriver.By.id('audio')), 3000);
   })
   .then(function() {
-    return driver.executafeScript(
+    return driver.executeScript(
         'return document.getElementById(\'audio\').srcObject.id')
     .then(function(srcObjectId) {
       driver.executeScript('return window.stream.id')
