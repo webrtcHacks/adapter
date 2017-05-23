@@ -49,7 +49,7 @@ SDPUtils.parseCandidate = function(line) {
 
   var candidate = {
     foundation: parts[0],
-    component: parseInt(parts[1], 10),
+    component: parts[1],
     protocol: parts[2].toLowerCase(),
     priority: parseInt(parts[3], 10),
     ip: parts[4],
@@ -488,7 +488,7 @@ SDPUtils.parseRtcpParameters = function(mediaSection) {
   return rtcpParameters;
 };
 
-// parses either a=msid: or a=ssrc:... msid lines an returns
+// parses either a=msid: or a=ssrc:... msid lines and returns
 // the id of the MediaStream and MediaStreamTrack.
 SDPUtils.parseMsid = function(mediaSection) {
   var parts;
@@ -2211,6 +2211,26 @@ module.exports = function(edgeVersion) {
           .filter(function(cand) {
             return cand.component === '1' || cand.component === 1;
           });
+
+      // Check if we can use BUNDLE and dispose transports.
+      if ((description.type === 'offer' || description.type === 'answer') &&
+          !rejected && usingBundle && sdpMLineIndex > 0) {
+        self._disposeIceAndDtlsTransports(sdpMLineIndex);
+        self.transceivers[sdpMLineIndex].iceGatherer =
+            self.transceivers[0].iceGatherer;
+        self.transceivers[sdpMLineIndex].iceTransport =
+            self.transceivers[0].iceTransport;
+        self.transceivers[sdpMLineIndex].dtlsTransport =
+            self.transceivers[0].dtlsTransport;
+        if (self.transceivers[sdpMLineIndex].rtpSender) {
+          self.transceivers[sdpMLineIndex].rtpSender.setTransport(
+              self.transceivers[0].dtlsTransport);
+        }
+        if (self.transceivers[sdpMLineIndex].rtpReceiver) {
+          self.transceivers[sdpMLineIndex].rtpReceiver.setTransport(
+              self.transceivers[0].dtlsTransport);
+        }
+      }
       if (description.type === 'offer' && !rejected) {
         transceiver = self.transceivers[sdpMLineIndex] ||
             self._createTransceiver(kind);
@@ -2286,23 +2306,6 @@ module.exports = function(edgeVersion) {
             false,
             direction === 'sendrecv' || direction === 'sendonly');
       } else if (description.type === 'answer' && !rejected) {
-        if (usingBundle && sdpMLineIndex > 0) {
-          self._disposeIceAndDtlsTransports(sdpMLineIndex);
-          self.transceivers[sdpMLineIndex].iceGatherer =
-              self.transceivers[0].iceGatherer;
-          self.transceivers[sdpMLineIndex].iceTransport =
-              self.transceivers[0].iceTransport;
-          self.transceivers[sdpMLineIndex].dtlsTransport =
-              self.transceivers[0].dtlsTransport;
-          if (self.transceivers[sdpMLineIndex].rtpSender) {
-            self.transceivers[sdpMLineIndex].rtpSender.setTransport(
-                self.transceivers[0].dtlsTransport);
-          }
-          if (self.transceivers[sdpMLineIndex].rtpReceiver) {
-            self.transceivers[sdpMLineIndex].rtpReceiver.setTransport(
-                self.transceivers[0].dtlsTransport);
-          }
-        }
         transceiver = self.transceivers[sdpMLineIndex];
         iceGatherer = transceiver.iceGatherer;
         iceTransport = transceiver.iceTransport;
