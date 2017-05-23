@@ -52,6 +52,8 @@
     "no-var": 0,
     "prefer-rest-params": 0,
     "prefer-spread": 0,
+    // TODO: Fix errors on safari shim.
+    "no-invalid-this": 0,
   },
   "env": {
       "browser": true,
