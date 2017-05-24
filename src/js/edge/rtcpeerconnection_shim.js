@@ -767,7 +767,8 @@ module.exports = function(window, edgeVersion) {
 
       // Check if we can use BUNDLE and dispose transports.
       if ((description.type === 'offer' || description.type === 'answer') &&
-          !rejected && usingBundle && sdpMLineIndex > 0) {
+          !rejected && usingBundle && sdpMLineIndex > 0 &&
+          self.transceivers[sdpMLineIndex]) {
         self._disposeIceAndDtlsTransports(sdpMLineIndex);
         self.transceivers[sdpMLineIndex].iceGatherer =
             self.transceivers[0].iceGatherer;
