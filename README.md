@@ -45,7 +45,7 @@ Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/te
 
 ## Publish a new version ##
 * Go the the adapter repository root directory
-* Make sure your repository is clean, i.e. no untracked files etc
+* Make sure your repository is clean, i.e. no untracked files etc. Also check that you are on the master branch and have pulled the latest changes.
 * Depending on the impact of the release, either use `patch`, `minor` or `major` in place of `<version>`. Run `npm version <version> -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
 * Create and merge the PR if green in the GitHub web ui
 * Go to the releases tab in the GitHub web ui and edit the tag.
@@ -55,3 +55,13 @@ Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/te
 * Done! There should now be a new release published to NPM and the gh-pages branch.
 
 Note: Currently only tested on Linux, not sure about Mac but will definitely not work on Windows.
+
+### Publish a hotfix patch versions
+In some cases it may be necessary to do a patch version while there are significant changes changes on the master branch.
+To make a patch release,
+* checkout the latest git tag using `git checkout tags/vMajor.minor.patch`.
+* checkout a new branch, using a name such as patchrelease-major-minor-patch. 
+* cherry-pick the fixes using `git cherry-pick some-commit-hash`.
+* run `npm version patch`. This will create a new patch version and publish it on github.
+* check out the branch created earlier and publish the new version using `npm publish`.
+* the branch can now safely be deleted. It is not necessary to merge it into the main branch since it only contains cherry-picked commits.

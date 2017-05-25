@@ -12,7 +12,7 @@
     "The WebRTC project authors (https://www.webrtc.org/)"
   ],
   "scripts": {
-    "preversion": "git stash && git checkout master && git pull && npm install && npm test | faucet && git checkout -B bumpVersion && grunt build && grunt copyForPublish && git add package.json release/* && git commit -m 'Add adapter artifacts' --allow-empty",
+    "preversion": "git stash && npm install && npm test | faucet && git checkout -B bumpVersion && grunt build && grunt copyForPublish && git add package.json release/* && git commit -m 'Add adapter artifacts' --allow-empty",
     "version": "",
     "postversion": "export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git push --force --set-upstream origin bumpVersion --follow-tags && git checkout gh-pages && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepublish": "grunt build",
