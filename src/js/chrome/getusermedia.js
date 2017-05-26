@@ -5,13 +5,11 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-'use strict';
-var utils = require('../utils.js');
+import * as utils from '../utils';
 var logging = utils.log;
 
 // Expose public methods.
-module.exports = function(window) {
+export default function(window) {
   var browserDetails = utils.detectBrowser(window);
   var navigator = window && window.navigator;
 
@@ -232,4 +230,4 @@ module.exports = function(window) {
       logging('Dummy mediaDevices.removeEventListener called.');
     };
   }
-};
+}

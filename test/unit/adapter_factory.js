@@ -6,16 +6,15 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
+import chai, {expect} from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 chai.use(sinonChai);
 
-describe('adapter factory', () => {
-  const adapterFactory = require('../../src/js/adapter_factory.js');
-  const utils = require('../../src/js/utils.js');
+import adapterFactory from '../../src/js/adapter_factory.js';
+import * as utils from '../../src/js/utils.js';
 
+describe('adapter factory', () => {
   let window;
   beforeEach(() => {
     window = {

@@ -6,11 +6,10 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
+import shim from '../../src/js/chrome/chrome_shim';
+import {expect} from 'chai';
 
 describe('Chrome shim', () => {
-  const shim = require('../../src/js/chrome/chrome_shim');
   let window;
 
   beforeEach(() => {

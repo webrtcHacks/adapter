@@ -5,10 +5,9 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-'use strict';
-var utils = require('../utils');
+import * as utils from '../utils.js';
 
-var safariShim = {
+export default {
   // TODO: DrAlex, should be here, double check against LayoutTests
 
   // TODO: once the back-end for the mac port is done, add.
@@ -237,15 +236,4 @@ var safariShim = {
       }
     });
   }
-};
-
-// Expose public methods.
-module.exports = {
-  shimCallbacksAPI: safariShim.shimCallbacksAPI,
-  shimLocalStreamsAPI: safariShim.shimLocalStreamsAPI,
-  shimRemoteStreamsAPI: safariShim.shimRemoteStreamsAPI,
-  shimGetUserMedia: safariShim.shimGetUserMedia,
-  shimRTCIceServerUrls: safariShim.shimRTCIceServerUrls
-  // TODO
-  // shimPeerConnection: safariShim.shimPeerConnection
 };

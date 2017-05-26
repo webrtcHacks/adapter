@@ -6,11 +6,10 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
+import {expect} from 'chai';
+import {detectBrowser} from '../../src/js/utils.js';
 
 describe('detectBrowser', () => {
-  const detectBrowser = require('../../src/js/utils.js').detectBrowser;
   let window;
   let navigator;
 

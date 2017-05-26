@@ -6,12 +6,11 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
+import {expect} from 'chai';
+import * as utils from '../../src/js/utils.js';
 
 describe('Log suppression', () => {
-  const utils = require('../../src/js/utils.js');
-  const saveConsole = console.log.bind(console);
+  const saveConsole = console.log;
 
   let logCount;
   beforeEach(() => {
@@ -24,7 +23,6 @@ describe('Log suppression', () => {
       }
     };
     global.window = {};
-    require('../../out/adapter.js');
   });
 
   afterEach(() => {
@@ -36,6 +34,7 @@ describe('Log suppression', () => {
     utils.log('test');
     expect(logCount).to.equal(0);
   });
+
   it('does call console.log when enabled', () => {
     utils.disableLog(false);
     utils.log('test');

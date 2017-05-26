@@ -5,12 +5,10 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-'use strict';
+import shimGetUserMedia from './getusermedia.js';
+import * as utils from '../utils';
 
-var utils = require('../utils');
-
-var firefoxShim = {
+export default {
   shimOnTrack: function(window) {
     if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
         window.RTCPeerConnection.prototype)) {
@@ -186,13 +184,7 @@ var firefoxShim = {
         })
         .then(onSucc, onErr);
     };
-  }
-};
+  },
 
-// Expose public methods.
-module.exports = {
-  shimOnTrack: firefoxShim.shimOnTrack,
-  shimSourceObject: firefoxShim.shimSourceObject,
-  shimPeerConnection: firefoxShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
+  shimGetUserMedia: shimGetUserMedia
 };

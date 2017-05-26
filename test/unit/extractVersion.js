@@ -6,12 +6,10 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
+import {expect} from 'chai';
+import {extractVersion} from '../../src/js/utils.js';
 
 describe('extractVersion', () => {
-  const extractVersion = require('../../src/js/utils.js').extractVersion;
-
   let ua;
   describe('Chrome regular expression', () => {
     const expr = /Chrom(e|ium)\/(\d+)\./;
@@ -164,4 +162,3 @@ describe('extractVersion', () => {
     });
   });
 });
-
