@@ -22,6 +22,62 @@ describe('Safari shim', () => {
     };
   });
 
+  describe('shimStreamsAPI', () => {
+    beforeEach(() => {
+      window.RTCPeerConnection.prototype.addTrack = () => {};
+      shim.shimLocalStreamsAPI(window);
+      shim.shimRemoteStreamsAPI(window);
+    });
+
+    it('shimStreamsAPI existence', () => {
+      const prototype = window.RTCPeerConnection.prototype;
+      expect(prototype.addTrack.length).to.equal(2);
+      expect(prototype.addStream.length).to.equal(1);
+      expect(prototype.removeStream.length).to.equal(1);
+      expect(prototype.getLocalStreams.length).to.equal(0);
+      expect(prototype.getStreamById.length).to.equal(1);
+      expect(prototype.getRemoteStreams.length).to.equal(0);
+    });
+    it('local streams API', () => {
+      const pc = new window.RTCPeerConnection();
+      pc.getSenders = () => {
+        return [];
+      };
+      var stream = {id: 'id1', getTracks: () => {
+        return [];
+      }};
+      expect(pc.getStreamById(stream.id)).to.equal(null);
+      expect(pc.getLocalStreams().length).to.equal(0);
+      expect(pc.getRemoteStreams().length).to.equal(0);
+
+      pc.addStream(stream);
+      expect(pc.getStreamById(stream.id)).to.equal(stream);
+      expect(pc.getLocalStreams()[0]).to.equal(stream);
+      expect(pc.getRemoteStreams().length).to.equal(0);
+
+      var stream2 = {id: 'id2', getTracks: stream.getTracks};
+      pc.removeStream(stream2);
+      expect(pc.getStreamById(stream.id)).to.equal(stream);
+      expect(pc.getLocalStreams()[0]).to.equal(stream);
+
+      pc.addTrack({}, stream2);
+      expect(pc.getStreamById(stream.id)).to.equal(stream);
+      expect(pc.getStreamById(stream2.id)).to.equal(stream2);
+      expect(pc.getLocalStreams().length).to.equal(2);
+      expect(pc.getLocalStreams()[0]).to.equal(stream);
+      expect(pc.getLocalStreams()[1]).to.equal(stream2);
+
+      pc.removeStream(stream2);
+      expect(pc.getStreamById(stream.id)).to.equal(stream);
+      expect(pc.getLocalStreams().length).to.equal(1);
+      expect(pc.getLocalStreams()[0]).to.equal(stream);
+
+      pc.removeStream(stream);
+      expect(pc.getStreamById(stream.id)).to.equal(null);
+      expect(pc.getLocalStreams().length).to.equal(0);
+    });
+  });
+
   describe('shimCallbacksAPI', () => {
     it('shimCallbacksAPI existence', () => {
       shim.shimCallbacksAPI(window);
@@ -74,14 +130,6 @@ describe('Safari shim', () => {
           expect(stub).to.have.been.calledWith(1);
         });
       });
-    });
-  });
-
-  describe('shimAddStream', () => {
-    it('shimAddStream existence', () => {
-      shim.shimAddStream(window);
-      const prototype = window.RTCPeerConnection.prototype;
-      expect(prototype.addStream.length).to.equal(1);
     });
   });
 });
