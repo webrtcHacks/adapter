@@ -24,7 +24,7 @@ describe('Safari shim', () => {
 
   describe('shimStreamsAPI', () => {
     beforeEach(() => {
-      window.RTCPeerConnection.prototype.addTrack = () => {};
+      window.RTCPeerConnection.prototype.addTrack = sinon.stub();
       shim.shimLocalStreamsAPI(window);
       shim.shimRemoteStreamsAPI(window);
     });
