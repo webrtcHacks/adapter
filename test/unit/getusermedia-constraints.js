@@ -28,7 +28,7 @@ describe('Chrome getUserMedia constraints converter', () => {
     shim(window);
   });
 
-  it('back-converts spec constraints', () => {
+  it('back-converts spec video constraints', () => {
     window.navigator.getUserMedia({
       video: {
         width: 1280,
@@ -54,7 +54,28 @@ describe('Chrome getUserMedia constraints converter', () => {
     });
   });
 
-  it('passes legacy constraints through', () => {
+  it('back-converts spec audio constraints', () => {
+    window.navigator.getUserMedia({
+      audio: {
+        autoGainControl: true,
+        echoCancellation: false,
+        noiseSuppression: {exact: false},
+      }
+    });
+    expect(window.navigator.webkitGetUserMedia).to.have.been.calledWith({
+      audio: {
+        mandatory: {
+          googNoiseSuppression: false
+        },
+        optional: [
+          {echoCancellation: false},
+          {googAutoGainControl: true},
+        ]
+      }
+    });
+  });
+
+  it('passes legacy video constraints through', () => {
     const legacy = {
       video: {
         mandatory: {
@@ -68,6 +89,22 @@ describe('Chrome getUserMedia constraints converter', () => {
                 {maxWidth: 1280},
                 {minHeight: 720},
                 {maxHeight: 720}
+        ]
+      }
+    };
+    window.navigator.getUserMedia(legacy);
+    expect(window.navigator.webkitGetUserMedia).to.have.been.calledWith(legacy);
+  });
+
+  it('passes legacy audio constraints through', () => {
+    const legacy = {
+      audio: {
+        mandatory: {
+          googNoiseSuppression: false
+        },
+        optional: [
+          {echoCancellation: false},
+          {googAutoGainControl: true},
         ]
       }
     };
