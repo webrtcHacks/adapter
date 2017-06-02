@@ -174,11 +174,12 @@ var chromeShim = {
         });
       };
     } else if (typeof window === 'object' && window.RTCPeerConnection &&
-               'getSenders' in RTCPeerConnection.prototype &&
-               'createDTMFSender' in RTCPeerConnection.prototype &&
-               window.RTCRtpSender && !('dtmf' in RTCRtpSender.prototype)) {
-      var origGetSenders = RTCPeerConnection.prototype.getSenders;
-      RTCPeerConnection.prototype.getSenders = function() {
+               'getSenders' in window.RTCPeerConnection.prototype &&
+               'createDTMFSender' in window.RTCPeerConnection.prototype &&
+               window.RTCRtpSender &&
+               !('dtmf' in window.RTCRtpSender.prototype)) {
+      var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
+      window.RTCPeerConnection.prototype.getSenders = function() {
         var pc = this;
         var senders = origGetSenders.apply(pc, []);
         senders.forEach(function(sender) {
@@ -187,7 +188,7 @@ var chromeShim = {
         return senders;
       };
 
-      Object.defineProperty(RTCRtpSender.prototype, 'dtmf', {
+      Object.defineProperty(window.RTCRtpSender.prototype, 'dtmf', {
         get: function() {
           if (this._dtmf === undefined) {
             if (this.track.kind === 'audio') {
