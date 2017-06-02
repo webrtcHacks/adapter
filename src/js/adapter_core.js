@@ -90,8 +90,8 @@
       module.exports.browserShim = safariShim;
 
       safariShim.shimCallbacksAPI();
-      safariShim.shimAddStream();
-      safariShim.shimOnAddStream();
+      safariShim.shimLocalStreamsAPI();
+      safariShim.shimRemoteStreamsAPI();
       safariShim.shimGetUserMedia();
       break;
     default:
