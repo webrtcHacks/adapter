@@ -223,7 +223,7 @@ test('Create RTCPeerConnection', function(t) {
     t.plan(2);
     t.pass('Page loaded');
     return driver.executeScript(
-      'return typeof(new RTCPeerConnection()) === \'object\'');
+      'return typeof(new RTCPeerConnection(null)) === \'object\'');
   })
   .then(function(hasRTCPeerconnectionObjectBeenCreated) {
     t.ok(hasRTCPeerconnectionObjectBeenCreated,
