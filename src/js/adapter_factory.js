@@ -95,8 +95,8 @@ module.exports = function(dependencies) {
       adapter.browserShim = safariShim;
 
       safariShim.shimCallbacksAPI(window);
-      safariShim.shimAddStream(window);
-      safariShim.shimOnAddStream(window);
+      safariShim.shimLocalStreamsAPI(window);
+      safariShim.shimRemoteStreamsAPI(window);
       safariShim.shimGetUserMedia(window);
       break;
     default:
