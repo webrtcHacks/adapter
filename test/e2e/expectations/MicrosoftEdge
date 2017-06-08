@@ -3,9 +3,9 @@ ERR addTrack throws an exception if the track has already been added via addStre
 ERR addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
 ERR addTrack throws an exception if the peerconnection has been closed already AssertionError
 PASS addTrack and getSenders creates a sender
-ERR addTrack and getLocalStreams returns a stream with audio and video even if just an audio track was added AssertionError
-ERR addTrack and getLocalStreams adds another track to the same stream AssertionError
-ERR addTrack and getLocalStreams plays together nicely AssertionError
+PASS addTrack and getLocalStreams returns a stream with audio and video even if just an audio track was added
+PASS addTrack and getLocalStreams adds another track to the same stream
+PASS addTrack and getLocalStreams plays together nicely
 PASS window.adapter exists
 PASS window.adapter browserDetails exists
 PASS window.adapter browserDetails detects a browser type
@@ -14,7 +14,7 @@ PASS establishes a connection with legacy callbacks
 PASS establishes a connection with promises
 PASS establishes a connection with streams in both directions
 PASS establishes a connection with no explicit end-of-candidates
-ERR establishes a connection and calls the video loadedmetadata timeout
+PASS establishes a connection and calls the video loadedmetadata
 PASS establishes a connection with addTrack and all tracks of a stream
 PASS establishes a connection with addTrack but only the audio track of an av stream
 PASS establishes a connection with addTrack as two streams
