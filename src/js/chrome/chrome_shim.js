@@ -114,8 +114,7 @@ var chromeShim = {
           var oldStream = pc._streams[stream.id];
           if (oldStream) {
             oldStream.addTrack(track);
-            pc.removeStream(oldStream);
-            pc.addStream(oldStream);
+            pc.dispatchEvent(new Event('negotiationneeded'));
           } else {
             var newStream = new window.MediaStream([track]);
             pc._streams[stream.id] = newStream;
