@@ -13,6 +13,7 @@ var webdriver = require('selenium-webdriver');
 var chrome = require('selenium-webdriver/chrome');
 var firefox = require('selenium-webdriver/firefox');
 var edge = require('selenium-webdriver/edge');
+var safari = require('selenium-webdriver/safari');
 var fs = require('fs');
 var os = require('os');
 
@@ -89,10 +90,14 @@ function buildDriver() {
 
   var edgeOptions = new edge.Options();
 
+  var safariOptions = new safari.Options();
+  safariOptions.setTechnologyPreview(process.env.BVER === 'TechnologyPreview');
+
   sharedDriver = new webdriver.Builder()
       .forBrowser(process.env.BROWSER)
       .setFirefoxOptions(firefoxOptions)
       .setChromeOptions(chromeOptions)
+      .setSafariOptions(safariOptions)
       .setEdgeOptions(edgeOptions);
 
   if (process.env.BROWSER === 'MicrosoftEdge') {
