@@ -113,8 +113,8 @@ var chromeShim = {
           pc._streams = pc._streams || {};
           var oldStream = pc._streams[stream.id];
           if (oldStream) {
-            oldStream.addTrack(track);
             pc.removeStream(oldStream);
+            oldStream.addTrack(track);
             pc.addStream(oldStream);
           } else {
             var newStream = new window.MediaStream([track]);
