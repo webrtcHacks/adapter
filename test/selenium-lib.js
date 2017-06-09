@@ -77,15 +77,15 @@ function buildDriver() {
     chromeOptions.setChromeBinaryPath('node_modules/.bin/start-chrome');
   }
 
-  const browserVersion = getBrowserVersion();
-  // Only enable this for Chrome >= 49.
-  if (process.env.BROWSER === 'chrome' && browserVersion >= 49) {
-    chromeOptions.addArguments('--enable-experimental-web-platform-features');
-  }
-
-  if (process.env.BROWSER === 'chrome' && browserVersion >= 59) {
-    chromeOptions.addArguments('headless');
-    chromeOptions.addArguments('disable-gpu');
+  if (process.env.BROWSER === 'chrome') {
+    let browserVersion = getBrowserVersion();
+    if (browserVersion >= 49) {
+      chromeOptions.addArguments('--enable-experimental-web-platform-features');
+    }
+    if (browserVersion >= 59) {
+      chromeOptions.addArguments('headless');
+      chromeOptions.addArguments('disable-gpu');
+    }
   }
 
   var edgeOptions = new edge.Options();
@@ -107,8 +107,11 @@ function buildDriver() {
       throw new Error('MicrosoftEdge is only supported on Windows or via ' +
           'a selenium server');
     }
-  } else if (process.env.BROWSER === 'firefox' && browserVersion >= 47) {
-    sharedDriver.getCapabilities().set('marionette', true);
+  } else if (process.env.BROWSER === 'firefox') {
+    let browserVersion = getBrowserVersion();
+    if (browserVersion >= 47) {
+      sharedDriver.getCapabilities().set('marionette', true);
+    }
   }
 
   sharedDriver = sharedDriver.build();
