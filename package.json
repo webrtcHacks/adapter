@@ -19,7 +19,7 @@
     "test": "grunt && mocha test/unit && node test/run-tests.js"
   },
   "dependencies": {
-    "sdp": "^1.5.0"
+    "sdp": "git://github.com/armouroflight/sdp.git#cc26d22"
   },
   "engines": {
     "npm": ">=3.10.0",
