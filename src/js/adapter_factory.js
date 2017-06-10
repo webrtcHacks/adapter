@@ -96,6 +96,7 @@ module.exports = function(dependencies) {
       adapter.browserShim = safariShim;
       // shim window.URL.createObjectURL Safari (technical preview)
       utils.shimCreateObjectURL(window);
+      safariShim.shimRTCIceServerUrls(window);
       safariShim.shimCallbacksAPI(window);
       safariShim.shimLocalStreamsAPI(window);
       safariShim.shimRemoteStreamsAPI(window);

@@ -18,7 +18,7 @@ describe('Safari shim', () => {
 
   beforeEach(() => {
     window = {
-      RTCPeerConnection: function() {}
+      RTCPeerConnection: sinon.stub()
     };
   });
 
@@ -129,6 +129,59 @@ describe('Safari shim', () => {
           pc[method](null, null, 1, 2);
           expect(stub).to.have.been.calledWith(1);
         });
+      });
+    });
+  });
+  describe('conversion of RTCIceServer.url', () => {
+    let nativeStub;
+    beforeEach(() => {
+      nativeStub = window.RTCPeerConnection;
+      shim.shimRTCIceServerUrls(window);
+    });
+
+    const stunURL = 'stun:stun.l.google.com:19302';
+    const url = {url: stunURL};
+    const urlArray = {url: [stunURL]};
+    const urls = {urls: stunURL};
+    const urlsArray = {urls: [stunURL]};
+
+    describe('does not modify RTCIceServer.urls', () => {
+      it('for strings', () => {
+        new window.RTCPeerConnection({iceServers: [urls]});
+        expect(nativeStub).to.have.been.calledWith(sinon.match({
+          iceServers: sinon.match([
+            sinon.match(urls)
+          ])
+        }));
+      });
+
+      it('for arrays', () => {
+        new window.RTCPeerConnection({iceServers: [urlsArray]});
+        expect(nativeStub).to.have.been.calledWith(sinon.match({
+          iceServers: sinon.match([
+            sinon.match(urlsArray)
+          ])
+        }));
+      });
+    });
+
+    describe('transforms RTCIceServer.url to RTCIceServer.urls', () => {
+      it('for strings', () => {
+        new window.RTCPeerConnection({iceServers: [url]});
+        expect(nativeStub).to.have.been.calledWith(sinon.match({
+          iceServers: sinon.match([
+            sinon.match(urls)
+          ])
+        }));
+      });
+
+      it('for arrays', () => {
+        new window.RTCPeerConnection({iceServers: [urlArray]});
+        expect(nativeStub).to.have.been.calledWith(sinon.match({
+          iceServers: sinon.match([
+            sinon.match(urlsArray)
+          ])
+        }));
       });
     });
   });
