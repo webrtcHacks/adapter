@@ -80,6 +80,7 @@ var chromeShim = {
       var origAddStream = window.RTCPeerConnection.prototype.addStream;
       var origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
 
+      // shim addTrack when getSenders is not available.
       if (!window.RTCPeerConnection.prototype.addTrack) {
         window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
           var pc = this;
@@ -102,8 +103,8 @@ var chromeShim = {
           }
 
           pc._senders = pc._senders || [];
-          var alreadyExists = pc._senders.find(function(t) {
-            return t.track === track;
+          var alreadyExists = pc._senders.find(function(sender) {
+            return sender.track === track;
           });
           if (alreadyExists) {
             throw new DOMException('Track already exists.',
@@ -245,6 +246,59 @@ var chromeShim = {
         });
       }
     }
+  },
+
+  shimAddTrack: function(window) {
+    // shim addTrack (when getSenders is available)
+    if (window.RTCPeerConnection.prototype.addTrack) {
+      return;
+    }
+    if (!window.RTCPeerConnection.prototype.getSenders) {
+      return;
+    }
+    window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
+      var pc = this;
+      if (pc.signalingState === 'closed') {
+        throw new DOMException(
+          'The RTCPeerConnection\'s signalingState is \'closed\'.',
+          'InvalidStateError');
+      }
+      var streams = [].slice.call(arguments, 1);
+      if (streams.length !== 1 ||
+          !streams[0].getTracks().find(function(t) {
+            return t === track;
+          })) {
+        // this is not fully correct but all we can manage without
+        // [[associated MediaStreams]] internal slot.
+        throw new DOMException(
+          'The adapter.js addTrack polyfill only supports a single ' +
+          ' stream which is associated with the specified track.',
+          'NotSupportedError');
+      }
+
+      var alreadyExists = pc.getSenders().find(function(sender) {
+        return sender.track === track;
+      });
+      if (alreadyExists) {
+        throw new DOMException('Track already exists.',
+            'InvalidAccessError');
+      }
+
+      pc._streams = pc._streams || {};
+      var oldStream = pc._streams[stream.id];
+      if (oldStream) {
+        oldStream.addTrack(track);
+        pc.removeStream(oldStream);
+        pc.addStream(oldStream);
+      } else {
+        var newStream = new window.MediaStream([track]);
+        pc._streams[stream.id] = newStream;
+        pc.addStream(newStream);
+      }
+      return pc.getSenders().find(function(sender) {
+        return sender.track === track;
+      });
+    };
   },
 
   shimPeerConnection: function(window) {
@@ -446,6 +500,7 @@ var chromeShim = {
 module.exports = {
   shimMediaStream: chromeShim.shimMediaStream,
   shimOnTrack: chromeShim.shimOnTrack,
+  shimAddTrack: chromeShim.shimAddTrack,
   shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
