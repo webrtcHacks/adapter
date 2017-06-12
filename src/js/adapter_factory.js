@@ -55,6 +55,7 @@ module.exports = function(dependencies) {
       chromeShim.shimPeerConnection(window);
       chromeShim.shimOnTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
+      chromeShim.shimAddTrack(window);
       break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection) {
