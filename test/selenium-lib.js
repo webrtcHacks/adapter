@@ -22,23 +22,25 @@ var sharedDriver = null;
 function getBrowserVersion() {
   var browser = process.env.BROWSER;
   var browserChannel = process.env.BVER;
-  var symlink = './browsers/bin/' + browser + '-' + browserChannel;
-  var path = fs.readlinkSync(symlink);
 
   // Browser reg expressions and position to look for the milestone version.
   var chromeExp = /\/chrome\/(\d+)\./;
   var firefoxExp = /\/firefox\/(\d+)\./;
 
-  var browserVersion = function(pathToBrowser, expr) {
+  var browserVersion = function(expr) {
+    var symlink = './browsers/bin/' + browser + '-' + browserChannel;
+    var pathToBrowser = fs.readlinkSync(symlink);
     var match = pathToBrowser.match(expr);
     return match && match.length >= 1 && parseInt(match[1], 10);
   };
 
   switch (browser) {
     case 'chrome':
-      return browserVersion(path, chromeExp);
+      return browserVersion(chromeExp);
     case 'firefox':
-      return browserVersion(path, firefoxExp);
+      return browserVersion(firefoxExp);
+    case 'safari':
+      return browserChannel;
     default:
       return 'non supported browser.';
   }
