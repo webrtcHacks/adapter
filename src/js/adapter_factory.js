@@ -22,7 +22,8 @@ module.exports = function(dependencies) {
   var adapter = {
     browserDetails: browserDetails,
     extractVersion: utils.extractVersion,
-    disableLog: utils.disableLog
+    disableLog: utils.disableLog,
+    disableWarnings: utils.disableWarnings
   };
 
   // Uncomment the line below if you want logging to occur, including logging
