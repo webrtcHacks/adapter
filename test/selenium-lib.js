@@ -81,7 +81,7 @@ function buildDriver() {
 
   if (process.env.BROWSER === 'chrome') {
     let browserVersion = getBrowserVersion();
-    if (browserVersion >= 49) {
+    if (browserVersion >= 49 && process.env.CHROMEEXPERIMENT !== 'false') {
       chromeOptions.addArguments('--enable-experimental-web-platform-features');
     }
     if (browserVersion >= 59) {
