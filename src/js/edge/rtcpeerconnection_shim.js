@@ -237,6 +237,8 @@ module.exports = function(window, edgeVersion) {
     // must not emit candidates until after setLocalDescription we buffer
     // them in this array.
     this._localIceCandidatesBuffer = [];
+
+    this._sdpSessionId = SDPUtils.generateSessionId();
   };
 
   RTCPeerConnection.prototype._emitGatheringStateChange = function() {
@@ -1153,7 +1155,7 @@ module.exports = function(window, edgeVersion) {
     // reorder tracks
     var transceivers = sortTracks(this.transceivers);
 
-    var sdp = SDPUtils.writeSessionBoilerplate();
+    var sdp = SDPUtils.writeSessionBoilerplate(this._sdpSessionId);
     transceivers.forEach(function(transceiver, sdpMLineIndex) {
       // For each track, create an ice gatherer, ice transport,
       // dtls transport, potentially rtpsender and rtpreceiver.
@@ -1236,7 +1238,7 @@ module.exports = function(window, edgeVersion) {
   };
 
   RTCPeerConnection.prototype.createAnswer = function() {
-    var sdp = SDPUtils.writeSessionBoilerplate();
+    var sdp = SDPUtils.writeSessionBoilerplate(this._sdpSessionId);
     if (this.usingBundle) {
       sdp += 'a=group:BUNDLE ' + this.transceivers.map(function(t) {
         return t.mid;
