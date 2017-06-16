@@ -1238,7 +1238,7 @@ module.exports = function(window, edgeVersion) {
   };
 
   RTCPeerConnection.prototype.createAnswer = function() {
-    var sdp = SDPUtils.writeSessionBoilerplate();
+    var sdp = SDPUtils.writeSessionBoilerplate(this._sdpSessionId);
     if (this.usingBundle) {
       sdp += 'a=group:BUNDLE ' + this.transceivers.map(function(t) {
         return t.mid;
