@@ -43,6 +43,6 @@
     "sinon": "^2.2.0",
     "sinon-chai": "^2.10.0",
     "tape": "^4.0.0",
-    "travis-multirunner": "^3.0.1"
+    "travis-multirunner": "^4.0.0"
   }
 }

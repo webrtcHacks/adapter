@@ -12,26 +12,18 @@ env:
   global:
     - DISPLAY=:99.0
 
-  matrix:
-    - BROWSER=chrome  BVER=stable
-    - BROWSER=chrome  BVER=beta
-    - BROWSER=chrome  BVER=unstable
-    - BROWSER=firefox BVER=stable
-    - BROWSER=firefox BVER=beta
-    - BROWSER=firefox BVER=nightly
-    - BROWSER=firefox BVER=esr
-
 matrix:
-  fast_finish: true
+  include:
+    - os: osx
+      sudo: required
+      osx_image: xcode8.3
+      env: BROWSER=safari BVER=unstable
 
-  allow_failures:
-    - env: BROWSER=chrome  BVER=unstable
-    - env: BROWSER=firefox BVER=nightly
+
 
 before_script:
   - ./node_modules/travis-multirunner/setup.sh
-  - sh -e /etc/init.d/xvfb start
-  - pulseaudio --start
+  - if [ -f /etc/init.d/xvfb ]; then sh -e /etc/init.d/xvfb start; fi
 
 script:
   - node_modules/.bin/grunt

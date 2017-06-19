@@ -93,7 +93,7 @@ function buildDriver() {
   var edgeOptions = new edge.Options();
 
   var safariOptions = new safari.Options();
-  safariOptions.setTechnologyPreview(process.env.BVER === 'TechnologyPreview');
+  safariOptions.setTechnologyPreview(process.env.BVER === 'unstable');
 
   sharedDriver = new webdriver.Builder()
       .forBrowser(process.env.BROWSER)
