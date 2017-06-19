@@ -23,6 +23,7 @@ matrix:
 
 before_script:
   - ./node_modules/travis-multirunner/setup.sh
+  - if [ -f /usr/bin/pulseaudio ]; then /usr/bin/pulseaudio --start; fi
   - if [ -f /etc/init.d/xvfb ]; then sh -e /etc/init.d/xvfb start; fi
 
 script:
