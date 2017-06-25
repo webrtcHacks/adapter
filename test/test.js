@@ -55,37 +55,6 @@ test('navigator.mediaDevices eventlisteners', function(t) {
   });
 });
 
-test('RTCPeerConnection shim', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.plan(4);
-    t.pass('Page loaded');
-    return driver.executeScript(
-      'return window.RTCPeerConnection !== \'undefined\'');
-  })
-  .then(function(isRTCPeerConnectionDefined) {
-    t.ok(isRTCPeerConnectionDefined, 'RTCPeerConnection is defined');
-    return driver.executeScript(
-      'return typeof window.RTCSessionDescription !== \'undefined\'');
-  })
-  .then(function(isRTCSessionDescriptionDefined) {
-    t.ok(isRTCSessionDescriptionDefined, 'RTCSessionDescription is defined');
-    return driver.executeScript(
-      'return typeof window.RTCIceCandidate !== \'undefined\'');
-  })
-  .then(function(isRTCIceCandidateDefined) {
-    t.ok(isRTCIceCandidateDefined, 'RTCIceCandidate is defined');
-    t.end();
-  })
-  .then(null, function(err) {
-    t.fail(err);
-    t.end();
-  });
-});
-
 test('Create RTCPeerConnection', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
