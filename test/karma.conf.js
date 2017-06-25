@@ -42,6 +42,7 @@ module.exports = function(config) {
     frameworks: ['mocha', 'chai'],
     files: [
       'out/adapter.js',
+      'test/getusermedia-mocha.js',
       'test/e2e/*.js',
     ],
     exclude: [],
