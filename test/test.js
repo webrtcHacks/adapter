@@ -15,7 +15,6 @@
 var test = require('tape');
 var webdriver = require('selenium-webdriver');
 var seleniumHelpers = require('./selenium-lib');
-const browserVersion = seleniumHelpers.getBrowserVersion();
 
 // Start of tests.
 // Test that adding and removing an eventlistener on navigator.mediaDevices
@@ -1346,118 +1345,6 @@ test('static generateCertificate method', function(t) {
   .then(function(hasGenerateCertificateMethod) {
     t.ok(hasGenerateCertificateMethod,
         'RTCPeerConnection has generateCertificate method');
-  })
-  .then(function() {
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
-// ontrack is shimmed in Chrome so we test that it is called.
-test('ontrack', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
-
-    window.testPassed = [];
-    window.testFailed = [];
-    var tc = {
-      ok: function(ok, msg) {
-        window[ok ? 'testPassed' : 'testFailed'].push(msg);
-      },
-      is: function(a, b, msg) {
-        this.ok((a === b), msg + ' - got ' + b);
-      },
-      pass: function(msg) {
-        this.ok(true, msg);
-      },
-      fail: function(msg) {
-        this.ok(false, msg);
-      }
-    };
-    var sdp = 'v=0\r\n' +
-        'o=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
-        's=-\r\n' +
-        't=0 0\r\n' +
-        'a=msid-semantic:WMS *\r\n' +
-        'm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n' +
-        'c=IN IP4 0.0.0.0\r\n' +
-        'a=rtcp:9 IN IP4 0.0.0.0\r\n' +
-        'a=ice-ufrag:someufrag\r\n' +
-        'a=ice-pwd:somelongpwdwithenoughrandomness\r\n' +
-        'a=fingerprint:sha-256 8C:71:B3:8D:A5:38:FD:8F:A4:2E:A2:65:6C:86:52' +
-        ':BC:E0:6E:94:F2:9F:7C:4D:B5:DF:AF:AA:6F:44:90:8D:F4\r\n' +
-        'a=setup:actpass\r\n' +
-        'a=rtcp-mux\r\n' +
-        'a=mid:mid1\r\n' +
-        'a=sendonly\r\n' +
-        'a=rtpmap:111 opus/48000/2\r\n' +
-        'a=msid:stream1 track1\r\n' +
-        'a=ssrc:1001 cname:some\r\n';
-
-    var pc = new RTCPeerConnection(null);
-
-    pc.ontrack = function(e) {
-      tc.ok(true, 'pc.ontrack called');
-      tc.ok(typeof e.track === 'object', 'trackEvent.track is an object');
-      tc.ok(typeof e.receiver === 'object',
-          'trackEvent.receiver is object');
-      tc.ok(Array.isArray(e.streams), 'trackEvent.streams is an array');
-      tc.is(e.streams.length, 1, 'trackEvent.streams has one stream');
-      tc.ok(e.streams[0].getTracks().indexOf(e.track) !== -1,
-          'trackEvent.track is in stream');
-
-      if (pc.getReceivers) {
-        var receivers = pc.getReceivers();
-        if (receivers && receivers.length) {
-          tc.ok(receivers.indexOf(e.receiver) !== -1,
-              'trackEvent.receiver matches a known receiver');
-        }
-      }
-      callback({});
-    };
-
-    pc.setRemoteDescription({type: 'offer', sdp: sdp})
-    .catch(function(error) {
-      callback(error);
-    });
-  };
-
-  // plan for 6 tests in Chrome <= 58 (no getReceivers), 7 elsewhere.
-  t.plan(process.env.BROWSER === 'chrome' && browserVersion <= 58 ? 6 : 7);
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    return driver.executeAsyncScript(testDefinition);
-  })
-  .then(function(callback) {
-    // Callback will either return an error object or pc1ConnectionStatus.
-    if (callback.name === 'Error') {
-      t.fail('getUserMedia failure: ' + callback.toString());
-    } else {
-      return callback;
-    }
-  })
-  .then(function() {
-    return driver.executeScript('return window.testPassed');
-  })
-  .then(function(testPassed) {
-    return driver.executeScript('return window.testFailed')
-    .then(function(testFailed) {
-      for (var testPass = 0; testPass < testPassed.length; testPass++) {
-        t.pass(testPassed[testPass]);
-      }
-      for (var testFail = 0; testFail < testFailed.length; testFail++) {
-        t.fail(testFailed[testFail]);
-      }
-    });
   })
   .then(function() {
     t.end();
