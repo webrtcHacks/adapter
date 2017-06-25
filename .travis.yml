@@ -32,6 +32,8 @@ matrix:
 
 before_script:
   - ./node_modules/travis-multirunner/setup.sh
+  - export CHROME_BIN=browsers/bin/chrome-${BVER}
+  - export FIREFOX_BIN=browsers/bin/firefox-${BVER}
   - sh -e /etc/init.d/xvfb start
   - pulseaudio --start
 

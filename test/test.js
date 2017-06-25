@@ -18,33 +18,6 @@ var seleniumHelpers = require('./selenium-lib');
 const browserVersion = seleniumHelpers.getBrowserVersion();
 
 // Start of tests.
-test('Browser identified', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.plan(3);
-    t.pass('Page loaded');
-    return driver.executeScript('return adapter.browserDetails.browser');
-  })
-  .then(function(webrtcDetectedBrowser) {
-    t.ok(webrtcDetectedBrowser, 'Browser detected: ' + webrtcDetectedBrowser);
-    return driver.executeScript('return adapter.browserDetails.version');
-  })
-  .then(function(webrtcDetectVersion) {
-    t.ok(webrtcDetectVersion, 'Browser version detected: ' +
-        webrtcDetectVersion);
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
 // Test that getUserMedia is shimmed properly.
 test('navigator.mediaDevices.getUserMedia', function(t) {
   var driver = seleniumHelpers.buildDriver();

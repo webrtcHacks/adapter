@@ -16,7 +16,7 @@
     "version": "",
     "postversion": "export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git push --force --set-upstream origin bumpVersion --follow-tags && git checkout gh-pages && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepublish": "grunt build",
-    "test": "grunt && mocha test/unit && node test/run-tests.js"
+    "test": "grunt && mocha test/unit && karma start test/karma.conf.js && node test/run-tests.js"
   },
   "dependencies": {
     "sdp": "^2.1.0"
@@ -38,6 +38,14 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-eslint": "^19.0.0",
     "grunt-githooks": "^0.3.1",
+    "karma": "^1.7.0",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-edge-launcher": "^0.4.1",
+    "karma-firefox-launcher": "^1.0.1",
+    "karma-mocha": "^1.3.0",
+    "karma-mocha-reporter": "^2.2.3",
+    "karma-safari-launcher": "^1.0.0",
     "mocha": "^3.2.0",
     "selenium-webdriver": "3.3.0",
     "sinon": "^2.2.0",
