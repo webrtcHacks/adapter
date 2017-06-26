@@ -12,4 +12,11 @@ describe('RTCPeerConnection', () => {
   it('window.RTCPeerConnection exists', () => {
     expect(window).to.have.property('RTCPeerConnection');
   });
+
+  it('constructor works', () => {
+    const constructor = () => {
+      return new RTCPeerConnection();
+    };
+    expect(constructor).not.to.throw();
+  });
 });

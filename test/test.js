@@ -54,30 +54,6 @@ test('navigator.mediaDevices eventlisteners', function(t) {
   });
 });
 
-test('Create RTCPeerConnection', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.plan(2);
-    t.pass('Page loaded');
-    return driver.executeScript(
-      'return typeof(new RTCPeerConnection()) === \'object\'');
-  })
-  .then(function(hasRTCPeerconnectionObjectBeenCreated) {
-    t.ok(hasRTCPeerconnectionObjectBeenCreated,
-      'RTCPeerConnection constructor');
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
 test('Video srcObject getter/setter test', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
