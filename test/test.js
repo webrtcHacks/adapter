@@ -811,6 +811,29 @@ test('Call getUserMedia with impossible constraints',
       });
     });
 
+test('getSenders exists', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  // Run test.
+  seleniumHelpers.loadTestPage(driver)
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeScript(function() {
+      return 'getSenders' in window.RTCPeerConnection.prototype;
+    });
+  })
+  .then(function(hasSenders) {
+    t.ok(hasSenders, 'RTCPeerConnection.getSenders exists');
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
 test('Basic connection establishment', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
@@ -2070,6 +2093,85 @@ test('dtmf', t => {
   .then(() => t.end());
 });
 
+test('dtmf with addTrack', t => {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    var pc1 = new RTCPeerConnection(null);
+    var pc2 = new RTCPeerConnection(null);
+
+    pc1.onicecandidate = e => pc2.addIceCandidate(e.candidate);
+    pc2.onicecandidate = e => pc1.addIceCandidate(e.candidate);
+    pc1.onnegotiationneeded = e => pc1.createOffer()
+      .then(offer => pc1.setLocalDescription(offer))
+      .then(() => pc2.setRemoteDescription(pc1.localDescription))
+      .then(() => pc2.createAnswer())
+      .then(answer => pc2.setLocalDescription(answer))
+      .then(() => pc1.setRemoteDescription(pc2.localDescription));
+
+    navigator.mediaDevices.getUserMedia({audio: true})
+    .then(stream => {
+      pc1.addTrack(stream.getAudioTracks()[0], stream);
+      return new Promise(resolve => pc1.oniceconnectionstatechange =
+        e => pc1.iceConnectionState === 'connected' && resolve())
+      .then(() => {
+        let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+        if (!sender.dtmf) {
+          throw 'skip-test';
+        }
+        sender.dtmf.insertDTMF('1');
+        return new Promise(resolve => sender.dtmf.ontonechange = resolve);
+      })
+      .then(e => {
+        // Test getSenders Chrome polyfill
+        try {
+          // FF51+ doesn't have removeStream
+          if (!('removeStream' in pc1)) {
+            throw new DOMException('', 'NotSupportedError');
+          }
+          // Avoid <FF51 throwing NotSupportedError - https://bugzil.la/1213441
+          pc1.removeStream(stream);
+        } catch (err) {
+          if (err.name !== 'NotSupportedError') {
+            throw err;
+          }
+          pc1.getSenders().forEach(sender => pc1.removeTrack(sender));
+        }
+        stream.getTracks().forEach(track => {
+          let sender = pc1.getSenders().find(s => s.track === track);
+          if (sender) {
+            throw new Error('sender was not removed when it should have been');
+          }
+        });
+        return e.tone;
+      });
+    })
+    .then(tone => callback({tone: tone}),
+          err => callback({error: err.toString()}));
+  };
+
+  // Run test.
+  seleniumHelpers.loadTestPage(driver).then(() => {
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(({tone, error}) => {
+    if (error) {
+      if (error === 'skip-test') {
+        t.skip('No sender.dtmf support in this browser.');
+      } else {
+        t.fail('PeerConnection failure: ' + error);
+      }
+      return;
+    }
+    t.is(tone, '1', 'DTMF sent');
+  })
+  .then(null, err => t.fail(err))
+  .then(() => t.end());
+});
+
 test('addIceCandidate with null', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
@@ -2683,6 +2785,105 @@ test('ontrack', function(t) {
     }
   })
   .then(function() {
+    return driver.executeScript('return window.testPassed');
+  })
+  .then(function(testPassed) {
+    return driver.executeScript('return window.testFailed')
+    .then(function(testFailed) {
+      for (var testPass = 0; testPass < testPassed.length; testPass++) {
+        t.pass(testPassed[testPass]);
+      }
+      for (var testFail = 0; testFail < testFailed.length; testFail++) {
+        t.fail(testFailed[testFail]);
+      }
+    });
+  })
+  .then(function() {
+    t.end();
+  })
+  .then(null, function(err) {
+    if (err !== 'skip-test') {
+      t.fail(err);
+    }
+    t.end();
+  });
+});
+
+test('addTrack getLocalStreams mapping', function(t) {
+  var driver = seleniumHelpers.buildDriver();
+
+  var testDefinition = function() {
+    var callback = arguments[arguments.length - 1];
+
+    window.testPassed = [];
+    window.testFailed = [];
+    var tc = {
+      ok: function(ok, msg) {
+        window[ok ? 'testPassed' : 'testFailed'].push(msg);
+      },
+      is: function(a, b, msg) {
+        this.ok((a === b), msg + ' - got ' + b);
+      },
+      pass: function(msg) {
+        this.ok(true, msg);
+      },
+      fail: function(msg) {
+        this.ok(false, msg);
+      }
+    };
+    var pc = new RTCPeerConnection();
+    navigator.mediaDevices.getUserMedia({audio: true})
+    .then(function(stream) {
+      tc.pass('got audio stream');
+      var sender = pc.addTrack(stream.getAudioTracks()[0], stream);
+      tc.ok(sender && sender.track, 'addTrack returned a sender with a track');
+      tc.ok(pc.getSenders().length === 1, 'getSenders returns one sender');
+      return navigator.mediaDevices.getUserMedia({video: true});
+    })
+    .then(function(stream) {
+      tc.pass('got video stream');
+      var track = stream.getVideoTracks()[0];
+      var localStream = pc.getLocalStreams()[0];
+      localStream.addTrack(track);
+      pc.addTrack(track, localStream);
+      tc.ok(pc.getLocalStreams().length === 1, 'still has one local stream');
+      tc.ok(pc.getLocalStreams()[0].getTracks().length ===
+          localStream.getTracks().length,
+          'stream has the right number of tracks');
+      tc.ok(pc.getSenders().length === 2, 'getSenders returns two senders');
+      return pc.createOffer();
+    })
+    .then(function() {
+      tc.pass('created offer');
+    })
+    .then(function() {
+      if (pc.removeStream) {
+        pc.removeStream(pc.getLocalStreams()[0]);
+        tc.ok(pc.getLocalStreams().length === 0,
+            'local streams is empty after removal');
+        tc.ok(pc.getSenders().length === 0,
+            'getSenders is empty after removal');
+      }
+    })
+    .then(function() {
+      callback();
+    })
+    .catch(function(err) {
+      callback(err.toString());
+    });
+  };
+
+  // Run test.
+  seleniumHelpers.loadTestPage(driver)
+  .then(function() {
+    t.pass('Page loaded');
+    return driver.executeAsyncScript(testDefinition);
+  })
+  .then(function(error) {
+    // Callback will either return an error object or pc1ConnectionStatus.
+    if (error) {
+      throw (error);
+    }
     return driver.executeScript('return window.testPassed');
   })
   .then(function(testPassed) {

@@ -74,96 +74,54 @@ var chromeShim = {
     if (typeof window === 'object' && window.RTCPeerConnection &&
         !('getSenders' in window.RTCPeerConnection.prototype) &&
         'createDTMFSender' in window.RTCPeerConnection.prototype) {
-      window.RTCPeerConnection.prototype.getSenders = function() {
-        return this._senders || [];
+      var shimSenderWithDtmf = function(pc, track) {
+        return {
+          track: track,
+          get dtmf() {
+            if (this._dtmf === undefined) {
+              if (track.kind === 'audio') {
+                this._dtmf = pc.createDTMFSender(track);
+              } else {
+                this._dtmf = null;
+              }
+            }
+            return this._dtmf;
+          }
+        };
       };
-      var origAddStream = window.RTCPeerConnection.prototype.addStream;
-      var origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
 
-      if (!window.RTCPeerConnection.prototype.addTrack) {
+      // shim addTrack when getSenders is not available.
+      if (!window.RTCPeerConnection.prototype.getSenders) {
+        window.RTCPeerConnection.prototype.getSenders = function() {
+          return this._senders || [];
+        };
+        var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
         window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
           var pc = this;
-          if (pc.signalingState === 'closed') {
-            throw new DOMException(
-              'The RTCPeerConnection\'s signalingState is \'closed\'.',
-              'InvalidStateError');
+          var sender = origAddTrack.apply(pc, arguments);
+          if (!sender) {
+            sender = shimSenderWithDtmf(pc, track);
+            pc._senders.push(sender);
           }
-          var streams = [].slice.call(arguments, 1);
-          if (streams.length !== 1 ||
-              !streams[0].getTracks().find(function(t) {
-                return t === track;
-              })) {
-            // this is not fully correct but all we can manage without
-            // [[associated MediaStreams]] internal slot.
-            throw new DOMException(
-              'The adapter.js addTrack polyfill only supports a single ' +
-              ' stream which is associated with the specified track.',
-              'NotSupportedError');
-          }
-
-          pc._senders = pc._senders || [];
-          var alreadyExists = pc._senders.find(function(t) {
-            return t.track === track;
-          });
-          if (alreadyExists) {
-            throw new DOMException('Track already exists.',
-                'InvalidAccessError');
-          }
-
-          pc._streams = pc._streams || {};
-          var oldStream = pc._streams[stream.id];
-          if (oldStream) {
-            oldStream.addTrack(track);
-            pc.removeStream(oldStream);
-            pc.addStream(oldStream);
-          } else {
-            var newStream = new window.MediaStream([track]);
-            pc._streams[stream.id] = newStream;
-            pc.addStream(newStream);
-          }
-
-          var sender = {
-            track: track,
-            get dtmf() {
-              if (this._dtmf === undefined) {
-                if (track.kind === 'audio') {
-                  this._dtmf = pc.createDTMFSender(track);
-                } else {
-                  this._dtmf = null;
-                }
-              }
-              return this._dtmf;
-            }
-          };
-          pc._senders.push(sender);
           return sender;
         };
       }
+      var origAddStream = window.RTCPeerConnection.prototype.addStream;
       window.RTCPeerConnection.prototype.addStream = function(stream) {
         var pc = this;
         pc._senders = pc._senders || [];
         origAddStream.apply(pc, [stream]);
         stream.getTracks().forEach(function(track) {
-          pc._senders.push({
-            track: track,
-            get dtmf() {
-              if (this._dtmf === undefined) {
-                if (track.kind === 'audio') {
-                  this._dtmf = pc.createDTMFSender(track);
-                } else {
-                  this._dtmf = null;
-                }
-              }
-              return this._dtmf;
-            }
-          });
+          pc._senders.push(shimSenderWithDtmf(pc, track));
         });
       };
 
+      var origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
       window.RTCPeerConnection.prototype.removeStream = function(stream) {
         var pc = this;
         pc._senders = pc._senders || [];
-        origRemoveStream.apply(pc, [stream]);
+        origRemoveStream.apply(pc, [(pc._streams[stream.id] || stream)]);
+
         stream.getTracks().forEach(function(track) {
           var sender = pc._senders.find(function(s) {
             return s.track === track;
@@ -245,6 +203,100 @@ var chromeShim = {
         });
       }
     }
+  },
+
+  shimAddTrack: function(window) {
+    // shim addTrack (when getSenders is available)
+    if (window.RTCPeerConnection.prototype.addTrack) {
+      return;
+    }
+
+    // also shim pc.getLocalStreams when addTrack is shimmed
+    // to return the original streams.
+    var origGetLocalStreams = window.RTCPeerConnection.prototype
+        .getLocalStreams;
+    window.RTCPeerConnection.prototype.getLocalStreams = function() {
+      var self = this;
+      var nativeStreams = origGetLocalStreams.apply(this);
+      self._reverseStreams = self._reverseStreams || {};
+      return nativeStreams.map(function(stream) {
+        return self._reverseStreams[stream.id];
+      });
+    };
+
+    var origAddStream = window.RTCPeerConnection.prototype.addStream;
+    window.RTCPeerConnection.prototype.addStream = function(stream) {
+      var pc = this;
+      pc._streams = pc._streams || {};
+      pc._reverseStreams = pc._reverseStreams || {};
+
+      // Add identity mapping for consistency with addTrack.
+      // Unless this is being used with a stream from addTrack.
+      if (!pc._reverseStreams[stream.id]) {
+        pc._streams[stream.id] = stream;
+        pc._reverseStreams[stream.id] = stream;
+      }
+      origAddStream.apply(pc, [stream]);
+    };
+
+    var origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
+    window.RTCPeerConnection.prototype.removeStream = function(stream) {
+      var pc = this;
+      pc._streams = pc._streams || {};
+      pc._reverseStreams = pc._reverseStreams || {};
+
+      origRemoveStream.apply(pc, [(pc._streams[stream.id] || stream)]);
+      delete pc._reverseStreams[(pc._streams[stream.id] ?
+          pc._streams[stream.id].id : stream.id)];
+      delete pc._streams[stream.id];
+    };
+
+    window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
+      var pc = this;
+      if (pc.signalingState === 'closed') {
+        throw new DOMException(
+          'The RTCPeerConnection\'s signalingState is \'closed\'.',
+          'InvalidStateError');
+      }
+      var streams = [].slice.call(arguments, 1);
+      if (streams.length !== 1 ||
+          !streams[0].getTracks().find(function(t) {
+            return t === track;
+          })) {
+        // this is not fully correct but all we can manage without
+        // [[associated MediaStreams]] internal slot.
+        throw new DOMException(
+          'The adapter.js addTrack polyfill only supports a single ' +
+          ' stream which is associated with the specified track.',
+          'NotSupportedError');
+      }
+
+      var alreadyExists = pc.getSenders().find(function(s) {
+        return s.track === track;
+      });
+      if (alreadyExists) {
+        throw new DOMException('Track already exists.',
+            'InvalidAccessError');
+      }
+
+      pc._streams = pc._streams || {};
+      pc._reverseStreams = pc._reverseStreams || {};
+      var oldStream = pc._streams[stream.id];
+      if (oldStream) {
+        // this is using odd Chrome behaviour, use with caution:
+        // https://bugs.chromium.org/p/webrtc/issues/detail?id=7815
+        oldStream.addTrack(track);
+        pc.dispatchEvent(new Event('negotiationneeded'));
+      } else {
+        var newStream = new window.MediaStream([track]);
+        pc._streams[stream.id] = newStream;
+        pc._reverseStreams[newStream.id] = stream;
+        pc.addStream(newStream);
+      }
+      return pc.getSenders().find(function(s) {
+        return s.track === track;
+      });
+    };
   },
 
   shimPeerConnection: function(window) {
@@ -446,6 +498,7 @@ var chromeShim = {
 module.exports = {
   shimMediaStream: chromeShim.shimMediaStream,
   shimOnTrack: chromeShim.shimOnTrack,
+  shimAddTrack: chromeShim.shimAddTrack,
   shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
