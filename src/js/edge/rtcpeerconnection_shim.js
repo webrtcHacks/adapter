@@ -798,7 +798,8 @@ module.exports = function(window, edgeVersion) {
               self._createIceGatherer(mid, sdpMLineIndex);
         }
 
-        if (isComplete && (!usingBundle || sdpMLineIndex === 0)) {
+        if (isComplete && cands.length &&
+            (!usingBundle || sdpMLineIndex === 0)) {
           transceiver.iceTransport.setRemoteCandidates(cands);
         }
 
@@ -876,10 +877,10 @@ module.exports = function(window, edgeVersion) {
             remoteCapabilities;
         self.transceivers[sdpMLineIndex].rtcpParameters = rtcpParameters;
 
-        if ((isIceLite || isComplete) && cands.length) {
-          iceTransport.setRemoteCandidates(cands);
-        }
         if (!usingBundle || sdpMLineIndex === 0) {
+          if ((isIceLite || isComplete) && cands.length) {
+            iceTransport.setRemoteCandidates(cands);
+          }
           iceTransport.start(iceGatherer, remoteIceParameters,
               'controlling');
           dtlsTransport.start(remoteDtlsParameters);

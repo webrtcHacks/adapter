@@ -8,6 +8,9 @@
 /* eslint-env node */
 const chai = require('chai');
 const expect = chai.expect;
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+chai.use(sinonChai);
 
 const SDPUtils = require('sdp');
 const EventEmitter = require('events');
@@ -44,7 +47,8 @@ function mockORTC(window) {
     };
   };
   window.RTCIceTransport = function() {
-    this.start = function() {};
+    this.start = sinon.spy();
+    this.setRemoteCandidates = sinon.spy();
   };
   window.RTCDtlsTransport = function() {
     this.start = function() {};
@@ -67,6 +71,7 @@ function mockORTC(window) {
     this.transport = transport;
 
     this.receive = function() {};
+    this.setTransport = function() {};
   };
   function getCapabilities(kind) {
     var opus = {
@@ -114,6 +119,7 @@ function mockORTC(window) {
     this.track = track;
     this.transport = transport;
     this.send = function() {};
+    this.setTransport = function() {};
   };
   window.RTCRtpSender.getCapabilities = getCapabilities;
 
@@ -1296,6 +1302,75 @@ describe('Edge shim', () => {
       .then((offer) => {
         expect(offer.sdp).not.to.contain('a=group:BUNDLE');
         done();
+      });
+    });
+
+    describe('sdp with a=group:BUNDLE and multiple media sections', () => {
+      const sdp = 'v=0\r\no=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
+          's=-\r\nt=0 0\r\na=msid-semantic: WMS\r\n' +
+          'a=group:BUNDLE foo\r\n' +
+          'm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n' +
+          'c=IN IP4 0.0.0.0\r\n' +
+          'a=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:foo\r\na=ice-pwd:bar\r\n' +
+          'a=candidate:12345 1 UDP 12345 127.0.0.1 1234 typ host ' +
+            'generation 0\r\n' +
+          'a=end-of-candidates\r\n' +
+          'a=fingerprint:sha-256 so:me:co:lo:ns\r\n' +
+          'a=setup:actpass\r\n' +
+          'a=mid:audio1\r\n' +
+          'a=sendonly\r\na=rtcp-mux\r\n' +
+          'a=rtcp-rsize\r\n' +
+          'a=rtpmap:111 opus/48000\r\n' +
+          'a=ssrc:1001 msid:stream1 track1\r\n' +
+          'a=ssrc:1001 cname:some\r\n' +
+          'm=video 9 UDP/TLS/RTP/SAVPF 102\r\n' +
+          'c=IN IP4 0.0.0.0\r\n' +
+          'a=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:foo\r\na=ice-pwd:bar\r\n' +
+          'a=candidate:12345 1 UDP 12345 127.0.0.1 1234 typ host ' +
+            'generation 0\r\n' +
+          'a=end-of-candidates\r\n' +
+          'a=fingerprint:sha-256 so:me:co:lo:ns\r\n' +
+          'a=setup:actpass\r\n' +
+          'a=mid:video1\r\n' +
+          'a=sendrecv\r\na=rtcp-mux\r\n' +
+          'a=rtcp-rsize\r\n' +
+          'a=rtpmap:102 vp8/90000\r\n' +
+          'a=ssrc:1001 msid:stream1 track1\r\n' +
+          'a=ssrc:1001 cname:some\r\n';
+      let pc;
+
+      beforeEach(() => {
+        pc = new window.RTCPeerConnection();
+        const audioTrack = new window.MediaStreamTrack();
+        const videoTrack = new window.MediaStreamTrack();
+        audioTrack.kind = 'audio';
+        videoTrack.kind = 'video';
+        const stream = new window.MediaStream([audioTrack, videoTrack]);
+        pc.addTrack(audioTrack, stream);
+        pc.addTrack(videoTrack, stream);
+      });
+
+      function assertSetRemoteCandidatesLimit() {
+        const [firstTransceiver] = pc.transceivers;
+        pc.transceivers.forEach((transceiver) => {
+          expect(transceiver.iceTransport)
+            .to.equal(firstTransceiver.iceTransport);
+        });
+
+        const {iceTransport} = firstTransceiver;
+        expect(iceTransport.setRemoteCandidates).to.have.callCount(1);
+      }
+
+      it('add remote candidates only once when setting remote offer', () => {
+        return pc.setRemoteDescription({type: 'offer', sdp})
+        .then(assertSetRemoteCandidatesLimit);
+      });
+
+      it('add remote candidates only once when setting remote answer', () => {
+        return pc.createOffer()
+        .then((offer) => pc.setLocalDescription(offer))
+        .then(() => pc.setRemoteDescription({type: 'answer', sdp}))
+        .then(assertSetRemoteCandidatesLimit);
       });
     });
   });
