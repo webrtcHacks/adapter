@@ -10,8 +10,15 @@
 'use strict';
 
 // Shimming starts here.
-module.exports = function(dependencies) {
+module.exports = function(dependencies, opts) {
   var window = dependencies && dependencies.window;
+
+  var options = Object.assign({
+    shimChrome: true,
+    shimFirefox: true,
+    shimEdge: true,
+    shimSafari: true,
+  }, opts);
 
   // Utils.
   var utils = require('./utils');
@@ -41,7 +48,8 @@ module.exports = function(dependencies) {
   // Shim browser if found.
   switch (browserDetails.browser) {
     case 'chrome':
-      if (!chromeShim || !chromeShim.shimPeerConnection) {
+      if (!chromeShim || !chromeShim.shimPeerConnection ||
+          !options.shimChrome) {
         logging('Chrome shim is not included in this adapter release.');
         return adapter;
       }
@@ -58,7 +66,8 @@ module.exports = function(dependencies) {
       chromeShim.shimGetSendersWithDtmf(window);
       break;
     case 'firefox':
-      if (!firefoxShim || !firefoxShim.shimPeerConnection) {
+      if (!firefoxShim || !firefoxShim.shimPeerConnection ||
+          !options.shimFirefox) {
         logging('Firefox shim is not included in this adapter release.');
         return adapter;
       }
@@ -73,7 +82,7 @@ module.exports = function(dependencies) {
       firefoxShim.shimOnTrack(window);
       break;
     case 'edge':
-      if (!edgeShim || !edgeShim.shimPeerConnection) {
+      if (!edgeShim || !edgeShim.shimPeerConnection || !options.shimEdge) {
         logging('MS edge shim is not included in this adapter release.');
         return adapter;
       }
@@ -87,7 +96,7 @@ module.exports = function(dependencies) {
       edgeShim.shimReplaceTrack(window);
       break;
     case 'safari':
-      if (!safariShim) {
+      if (!safariShim || !options.shimSafari) {
         logging('Safari shim is not included in this adapter release.');
         return adapter;
       }
