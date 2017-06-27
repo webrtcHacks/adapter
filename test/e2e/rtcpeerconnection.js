@@ -19,4 +19,10 @@ describe('RTCPeerConnection', () => {
     };
     expect(constructor).not.to.throw();
   });
+
+  describe('getSenders', () => {
+    it('exists', () => {
+      expect(RTCPeerConnection.prototype).to.have.property('getSenders');
+    });
+  });
 });

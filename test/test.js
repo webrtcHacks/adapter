@@ -499,29 +499,6 @@ test('Call getUserMedia with impossible constraints',
       });
     });
 
-test('getSenders exists', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.pass('Page loaded');
-    return driver.executeScript(function() {
-      return 'getSenders' in window.RTCPeerConnection.prototype;
-    });
-  })
-  .then(function(hasSenders) {
-    t.ok(hasSenders, 'RTCPeerConnection.getSenders exists');
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
 test('dtmf', t => {
   var driver = seleniumHelpers.buildDriver();
 
