@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/webrtc/adapter.svg)](https://travis-ci.org/webrtc/adapter)
 
 # WebRTC adapter #
-adapter.js is a shim to insulate apps from spec changes and prefix differences. In fact, the standards and protocols used for WebRTC implementations are highly stable, and there are only a few prefixed names. For full interop information, see [webrtc.org/web-apis/interop](http://www.webrtc.org/web-apis/interop).
+adapter.js is a shim to insulate apps from spec changes and prefix differences. In fact, the standards and protocols used for WebRTC implementations are highly stable, and there are only a few prefixed names. For full interop information, see [webrtc.org/web-apis/interop](https://www.webrtc.org/web-apis/interop).
 
 ## Install ##
 
@@ -23,8 +23,8 @@ See [webrtc/samples repo](https://github.com/webrtc/samples/blob/gh-pages/packag
 #### Prebuilt releases
 ##### Web
 In the [gh-pages branch](https://github.com/webrtc/adapter/tree/gh-pages) prebuilt ready to use files can be downloaded/linked directly.
-Latest version can be found at http://webrtc.github.io/adapter/adapter-latest.js.
-Specific versions can be found at http://webrtc.github.io/adapter/adapter-N.N.N.js, e.g. http://webrtc.github.io/adapter/adapter-1.0.2.js.
+Latest version can be found at https://webrtc.github.io/adapter/adapter-latest.js.
+Specific versions can be found at https://webrtc.github.io/adapter/adapter-N.N.N.js, e.g. https://webrtc.github.io/adapter/adapter-1.0.2.js.
 
 ##### Bower
 You will find `adapter.js` in `bower_components/webrtc-adapter/`.
