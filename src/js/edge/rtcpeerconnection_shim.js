@@ -515,7 +515,7 @@ module.exports = function(window, edgeVersion) {
     }
     var dtlsTransport = this.transceivers[sdpMLineIndex].dtlsTransport;
     if (dtlsTransport) {
-      delete dtlsTransport.ondtlssttatechange;
+      delete dtlsTransport.ondtlsstatechange;
       delete dtlsTransport.onerror;
       delete this.transceivers[sdpMLineIndex].dtlsTransport;
     }
