@@ -26,7 +26,7 @@ test('Browser identified', function(t) {
   .then(function() {
     t.plan(3);
     t.pass('Page loaded');
-    return driver.executeScript('return adapter.browserDetails.version');
+    return driver.executeScript('return adapter.browserDetails.browser');
   })
   .then(function(webrtcDetectedBrowser) {
     t.ok(webrtcDetectedBrowser, 'Browser detected: ' + webrtcDetectedBrowser);
