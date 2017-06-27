@@ -26,6 +26,7 @@
     "node": ">=6.0.0"
   },
   "devDependencies": {
+    "brfs": "^1.4.3",
     "chai": "^3.5.0",
     "chromedriver": "^2.29.0",
     "eslint-config-webrtc": "^1.0.0",
@@ -39,6 +40,7 @@
     "grunt-eslint": "^19.0.0",
     "grunt-githooks": "^0.3.1",
     "karma": "^1.7.0",
+    "karma-browserify": "^5.1.1",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-edge-launcher": "^0.4.1",

@@ -39,14 +39,16 @@ if (process.env.CHROMEEXPERIMENT !== 'false') {
 module.exports = function(config) {
   config.set({
     basePath: '..',
-    frameworks: ['mocha', 'chai'],
+    frameworks: ['browserify', 'mocha', 'chai'],
     files: [
-      'out/adapter.js',
+      'src/js/adapter_core.js',
       'test/getusermedia-mocha.js',
       'test/e2e/*.js',
     ],
     exclude: [],
-    preprocessors: {},
+    preprocessors: {
+      'src/js/adapter_core.js': ['browserify']
+    },
     reporters: ['mocha'],
     port: 9876,
     colors: true,
@@ -68,5 +70,10 @@ module.exports = function(config) {
     singleRun: true,
     concurrency: Infinity,
     browsers,
+    browserify: {
+      debug: true,
+      transform: ['brfs'],
+      standalone: 'adapter',
+    },
   });
 };
