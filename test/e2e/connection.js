@@ -36,12 +36,8 @@ describe('establishes a connection', () => {
     pc1 = new RTCPeerConnection(null);
     pc2 = new RTCPeerConnection(null);
 
-    pc1.onicecandidate = function(event) {
-      addCandidate(pc2, event);
-    };
-    pc2.onicecandidate = function(event) {
-      addCandidate(pc1, event);
-    };
+    pc1.onicecandidate = event => pc2.addIceCandidate(event.candidate);
+    pc2.onicecandidate = event => pc1.addIceCandidate(event.candidate);
   });
   afterEach(() => {
     pc1.close();
@@ -49,6 +45,12 @@ describe('establishes a connection', () => {
   });
 
   it('with legacy callbacks', (done) => {
+    pc1.onicecandidate = function(event) {
+      pc2.addIceCandidate(event.candidate, noop, throwError);
+    };
+    pc2.onicecandidate = function(event) {
+      pc1.addIceCandidate(event.candidate, noop, throwError);
+    };
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
           pc1.iceConnectionState === 'completed') {
