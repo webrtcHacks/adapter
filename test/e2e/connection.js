@@ -11,28 +11,25 @@
 describe('establishes a connection', () => {
   let pc1;
   let pc2;
-  function noop() {};
+  function noop() {}
   function throwError(err) {
     console.error(err.toString());
-    throw(err);
+    throw err;
   }
-  function addCandidate(pc, event) {
-    pc.addIceCandidate(event.candidate, noop, throwError);
-  };
 
-  function negotiate(pc1, pc2) {
-    return pc1.createOffer()
+  function negotiate(pc, otherPc) {
+    return pc.createOffer()
     .then(function(offer) {
-      return pc1.setLocalDescription(offer);
+      return pc.setLocalDescription(offer);
     }).then(function() {
-      return pc2.setRemoteDescription(pc1.localDescription);
+      return otherPc.setRemoteDescription(pc.localDescription);
     }).then(function() {
-      return pc2.createAnswer();
+      return otherPc.createAnswer();
     }).then(function(answer) {
-      return pc2.setLocalDescription(answer);
+      return otherPc.setLocalDescription(answer);
     }).then(function() {
-      return pc1.setRemoteDescription(pc2.localDescription);
-    })
+      return pc.setRemoteDescription(otherPc.localDescription);
+    });
   }
 
   beforeEach(() => {

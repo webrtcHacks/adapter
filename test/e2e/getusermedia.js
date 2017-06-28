@@ -19,7 +19,7 @@ describe('getUserMedia', () => {
         expect(stream.getTracks()).to.have.length(1);
         done();
       }, (err) => {
-        throw(err);
+        throw err;
       });
     });
   });
@@ -35,7 +35,7 @@ describe('getUserMedia', () => {
         expect(stream.getTracks()).to.have.length(1);
         done();
       }, (err) => {
-        throw(err);
+        throw err;
       });
     });
   });
