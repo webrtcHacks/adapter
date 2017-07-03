@@ -27,6 +27,13 @@ if (process.env.BROWSER) {
   browsers = ['chrome', 'firefox'];
 }
 
+let reporters = ['mocha'];
+if (process.env.CI) {
+  // stability must be the last reporter as it munges the
+  // exit code and always returns 0.
+  reporters.push('stability');
+}
+
 // uses Safari Technology Preview.
 if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
     !process.env.SAFARI_BIN) {
@@ -56,7 +63,7 @@ module.exports = function(config) {
     preprocessors: {
       'src/js/adapter_core.js': ['browserify']
     },
-    reporters: [process.env.CI ? 'stability' : 'mocha'],
+    reporters,
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
