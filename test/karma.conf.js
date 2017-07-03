@@ -27,6 +27,13 @@ if (process.env.BROWSER) {
   browsers = ['chrome', 'firefox'];
 }
 
+// uses Safari Technology Preview.
+if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
+    !process.env.SAFARI_BIN) {
+  process.env.SAFARI_BIN = '/Applications/Safari Technology Preview.app' +
+      '/Contents/MacOS/Safari Technology Preview';
+}
+
 let chromeFlags = [
   '--use-fake-device-for-media-stream',
   '--use-fake-ui-for-media-stream',
