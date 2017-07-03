@@ -43,14 +43,14 @@ describe('track event', () => {
       pc.addEventListener('track', () => {
         done();
       });
-      pc.setRemoteDescription({type: 'offer', sdp})
+      pc.setRemoteDescription({type: 'offer', sdp});
     });
 
     it('ontrack', (done) => {
       pc.ontrack = () => {
         done();
       };
-      pc.setRemoteDescription({type: 'offer', sdp})
+      pc.setRemoteDescription({type: 'offer', sdp});
     });
   });
 
@@ -78,7 +78,7 @@ describe('track event', () => {
         expect(pc.getReceivers()).to.contain(e.receiver);
         done();
       };
-      pc.setRemoteDescription({type: 'offer', sdp})
+      pc.setRemoteDescription({type: 'offer', sdp});
     });
   });
 });

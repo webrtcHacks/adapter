@@ -18,7 +18,7 @@ describe('srcObject', () => {
         .then((stream) => {
           const mediaElement = document.createElement(mediaType);
           mediaElement.setAttribute('autoplay', 'true');
-          // If the srcObject shim works, we should get media 
+          // If the srcObject shim works, we should get media
           // at some point. This will trigger loadedmetadata.
           mediaElement.addEventListener('loadedmetadata', function() {
             done();
@@ -32,7 +32,7 @@ describe('srcObject', () => {
       it('returns the stream (' + mediaType + ')', () => {
         let constraints = {};
         constraints[mediaType] = true;
-        navigator.mediaDevices.getUserMedia(constraints)
+        return navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
           const mediaElement = document.createElement(mediaType);
           mediaElement.setAttribute('autoplay', 'true');
@@ -40,7 +40,6 @@ describe('srcObject', () => {
           mediaElement.srcObject = stream;
           expect(mediaElement.srcObject).to.have.property('id');
           expect(mediaElement.srcObject.id).to.equal(stream.id);
-          done();
         });
       });
     });

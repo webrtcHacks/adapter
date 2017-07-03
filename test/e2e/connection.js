@@ -11,40 +11,33 @@
 describe('establishes a connection', () => {
   let pc1;
   let pc2;
-  function noop() {};
+  function noop() {}
   function throwError(err) {
     console.error(err.toString());
-    throw(err);
+    throw err;
   }
-  function addCandidate(pc, event) {
-    pc.addIceCandidate(event.candidate, noop, throwError);
-  };
 
-  function negotiate(pc1, pc2) {
-    return pc1.createOffer()
+  function negotiate(pc, otherPc) {
+    return pc.createOffer()
     .then(function(offer) {
-      return pc1.setLocalDescription(offer);
+      return pc.setLocalDescription(offer);
     }).then(function() {
-      return pc2.setRemoteDescription(pc1.localDescription);
+      return otherPc.setRemoteDescription(pc.localDescription);
     }).then(function() {
-      return pc2.createAnswer();
+      return otherPc.createAnswer();
     }).then(function(answer) {
-      return pc2.setLocalDescription(answer);
+      return otherPc.setLocalDescription(answer);
     }).then(function() {
-      return pc1.setRemoteDescription(pc2.localDescription);
-    })
+      return pc.setRemoteDescription(otherPc.localDescription);
+    });
   }
 
   beforeEach(() => {
     pc1 = new RTCPeerConnection(null);
     pc2 = new RTCPeerConnection(null);
 
-    pc1.onicecandidate = function(event) {
-      addCandidate(pc2, event);
-    };
-    pc2.onicecandidate = function(event) {
-      addCandidate(pc1, event);
-    };
+    pc1.onicecandidate = event => pc2.addIceCandidate(event.candidate);
+    pc2.onicecandidate = event => pc1.addIceCandidate(event.candidate);
   });
   afterEach(() => {
     pc1.close();
@@ -52,6 +45,12 @@ describe('establishes a connection', () => {
   });
 
   it('with legacy callbacks', (done) => {
+    pc1.onicecandidate = function(event) {
+      pc2.addIceCandidate(event.candidate, noop, throwError);
+    };
+    pc2.onicecandidate = function(event) {
+      pc1.addIceCandidate(event.candidate, noop, throwError);
+    };
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
           pc1.iceConnectionState === 'completed') {
