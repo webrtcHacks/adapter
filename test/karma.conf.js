@@ -56,7 +56,7 @@ module.exports = function(config) {
     preprocessors: {
       'src/js/adapter_core.js': ['browserify']
     },
-    reporters: ['mocha'],
+    reporters: [process.env.CI ? 'stability' : 'mocha'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
@@ -82,5 +82,12 @@ module.exports = function(config) {
       transform: ['brfs'],
       standalone: 'adapter',
     },
+    stabilityReporter: {
+      path: 'test/e2e/expectations/' +
+          process.env.BROWSER +
+          (process.env.BVER ? '-' + process.env.BVER : '') +
+          (process.env.CHROMEEXPERIMENT === 'false' ? '-no-experimental' : ''),
+      update: false,
+    }
   });
 };
