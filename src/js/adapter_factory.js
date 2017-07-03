@@ -69,7 +69,7 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimSourceObject(window);
       chromeShim.shimPeerConnection(window);
       chromeShim.shimOnTrack(window);
-      chromeShim.shimAddTrack(window);
+      chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
       break;
     case 'firefox':
