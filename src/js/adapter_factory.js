@@ -13,12 +13,18 @@
 module.exports = function(dependencies, opts) {
   var window = dependencies && dependencies.window;
 
-  var options = Object.assign({
+  var options = {
     shimChrome: true,
     shimFirefox: true,
     shimEdge: true,
     shimSafari: true,
-  }, opts);
+  };
+
+  for (var key in opts) {
+    if (hasOwnProperty.call(opts, key)) {
+      options[key] = opts[key];
+    }
+  }
 
   // Utils.
   var utils = require('./utils');
