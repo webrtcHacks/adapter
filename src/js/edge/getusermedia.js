@@ -5,11 +5,9 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-'use strict';
 
 // Expose public methods.
-module.exports = function(window) {
+export default function(window) {
   var navigator = window && window.navigator;
 
   var shimError_ = function(e) {
@@ -31,4 +29,4 @@ module.exports = function(window) {
       return Promise.reject(shimError_(e));
     });
   };
-};
+}

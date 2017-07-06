@@ -5,10 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-'use strict';
-
-var SDPUtils = require('sdp');
+import SDPUtils from 'sdp';
 
 // sort tracks such that they follow an a-v-a-v...
 // pattern.
@@ -162,7 +159,7 @@ function isActionAllowedInSignalingState(action, type, signalingState) {
   }[type][action].indexOf(signalingState) !== -1;
 }
 
-module.exports = function(window, edgeVersion) {
+export default function(window, edgeVersion) {
   var RTCPeerConnection = function(config) {
     var self = this;
 
@@ -1386,4 +1383,4 @@ module.exports = function(window, edgeVersion) {
     });
   };
   return RTCPeerConnection;
-};
+}

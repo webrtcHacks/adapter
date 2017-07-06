@@ -6,12 +6,13 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-'use strict';
-var utils = require('../utils.js');
+import shimGetUserMedia from './getusermedia.js';
+import * as utils from '../utils.js';
 var logging = utils.log;
 
-var chromeShim = {
+export default {
+  shimGetUserMedia: shimGetUserMedia,
+
   shimMediaStream: function(window) {
     window.MediaStream = window.MediaStream || window.webkitMediaStream;
   },
@@ -490,17 +491,5 @@ var chromeShim = {
       }
       return nativeAddIceCandidate.apply(this, arguments);
     };
-  }
-};
-
-
-// Expose public methods.
-module.exports = {
-  shimMediaStream: chromeShim.shimMediaStream,
-  shimOnTrack: chromeShim.shimOnTrack,
-  shimAddTrack: chromeShim.shimAddTrack,
-  shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
-  shimSourceObject: chromeShim.shimSourceObject,
-  shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
+  },
 };

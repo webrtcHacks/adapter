@@ -6,14 +6,14 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
+import shim from '../../src/js/safari/safari_shim';
+import chai, {expect} from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+
 chai.use(sinonChai);
 
 describe('Safari shim', () => {
-  const shim = require('../../src/js/safari/safari_shim');
   let window;
 
   beforeEach(() => {

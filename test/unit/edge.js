@@ -6,14 +6,15 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
+import shim from '../../src/js/edge/edge_shim';
+import chai, {expect} from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
-const SDPUtils = require('sdp');
-const EventEmitter = require('events');
+import SDPUtils from 'sdp';
+import EventEmitter from 'events';
+
+chai.use(sinonChai);
 
 function mockORTC(window) {
   // required by the shim to mock an EventEmitter.
@@ -137,7 +138,6 @@ function mockORTC(window) {
 }
 
 describe('Edge shim', () => {
-  const shim = require('../../src/js/edge/edge_shim');
   let window;
 
   const ua14392 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +

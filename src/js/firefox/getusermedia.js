@@ -5,14 +5,11 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-'use strict';
-
-var utils = require('../utils');
+import * as utils from '../utils';
 var logging = utils.log;
 
 // Expose public methods.
-module.exports = function(window) {
+export default function(window) {
   var browserDetails = utils.detectBrowser(window);
   var navigator = window && window.navigator;
   var MediaStreamTrack = window && window.MediaStreamTrack;
@@ -206,4 +203,4 @@ module.exports = function(window) {
                  'navigator.mediaDevices.getUserMedia');
     navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
   };
-};
+}

@@ -6,11 +6,10 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
+import shim from '../../src/js/firefox/firefox_shim';
+import {expect} from 'chai';
 
 describe('Firefox shim', () => {
-  const shim = require('../../src/js/firefox/firefox_shim');
   let window;
 
   beforeEach(() => {

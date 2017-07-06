@@ -5,12 +5,14 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-
-'use strict';
+import chromeShim from './chrome/chrome_shim.js';
+import edgeShim from './edge/edge_shim.js';
+import firefoxShim from './firefox/firefox_shim.js';
+import safariShim from './safari/safari_shim.js';
+import * as utils from './utils.js';
 
 // Shimming starts here.
-module.exports = function(dependencies, opts) {
+export default function(dependencies, opts) {
   var window = dependencies && dependencies.window;
 
   var options = {
@@ -27,8 +29,6 @@ module.exports = function(dependencies, opts) {
   }
 
   // Utils.
-  var utils = require('./utils');
-  var logging = utils.log;
   var browserDetails = utils.detectBrowser(window);
 
   // Export to the adapter global object visible in the browser.
@@ -43,23 +43,17 @@ module.exports = function(dependencies, opts) {
   // for the switch statement below. Can also be turned on in the browser via
   // adapter.disableLog(false), but then logging from the switch statement below
   // will not appear.
-  // require('./utils').disableLog(false);
-
-  // Browser shims.
-  var chromeShim = require('./chrome/chrome_shim') || null;
-  var edgeShim = require('./edge/edge_shim') || null;
-  var firefoxShim = require('./firefox/firefox_shim') || null;
-  var safariShim = require('./safari/safari_shim') || null;
+  // utils.disableLog(false);
 
   // Shim browser if found.
   switch (browserDetails.browser) {
     case 'chrome':
       if (!chromeShim || !chromeShim.shimPeerConnection ||
           !options.shimChrome) {
-        logging('Chrome shim is not included in this adapter release.');
+        utils.log('Chrome shim is not included in this adapter release.');
         return adapter;
       }
-      logging('adapter.js shimming chrome.');
+      utils.log('adapter.js shimming chrome.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = chromeShim;
 
@@ -75,10 +69,10 @@ module.exports = function(dependencies, opts) {
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection ||
           !options.shimFirefox) {
-        logging('Firefox shim is not included in this adapter release.');
+        utils.log('Firefox shim is not included in this adapter release.');
         return adapter;
       }
-      logging('adapter.js shimming firefox.');
+      utils.log('adapter.js shimming firefox.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = firefoxShim;
 
@@ -90,10 +84,10 @@ module.exports = function(dependencies, opts) {
       break;
     case 'edge':
       if (!edgeShim || !edgeShim.shimPeerConnection || !options.shimEdge) {
-        logging('MS edge shim is not included in this adapter release.');
+        utils.log('MS edge shim is not included in this adapter release.');
         return adapter;
       }
-      logging('adapter.js shimming edge.');
+      utils.log('adapter.js shimming edge.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = edgeShim;
 
@@ -104,10 +98,10 @@ module.exports = function(dependencies, opts) {
       break;
     case 'safari':
       if (!safariShim || !options.shimSafari) {
-        logging('Safari shim is not included in this adapter release.');
+        utils.log('Safari shim is not included in this adapter release.');
         return adapter;
       }
-      logging('adapter.js shimming safari.');
+      utils.log('adapter.js shimming safari.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = safariShim;
       // shim window.URL.createObjectURL Safari (technical preview)
@@ -119,9 +113,9 @@ module.exports = function(dependencies, opts) {
       safariShim.shimGetUserMedia(window);
       break;
     default:
-      logging('Unsupported browser!');
+      utils.log('Unsupported browser!');
       break;
   }
 
   return adapter;
-};
+}

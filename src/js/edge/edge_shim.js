@@ -5,14 +5,12 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
-'use strict';
+import * as utils from '../utils.js';
+import shimGetUserMedia from './getusermedia.js';
+import shimRTCPeerConnection from './rtcpeerconnection_shim.js';
 
-var utils = require('../utils');
-var shimRTCPeerConnection = require('./rtcpeerconnection_shim');
-
-module.exports = {
-  shimGetUserMedia: require('./getusermedia'),
+export default {
+  shimGetUserMedia: shimGetUserMedia,
   shimPeerConnection: function(window) {
     var browserDetails = utils.detectBrowser(window);
 

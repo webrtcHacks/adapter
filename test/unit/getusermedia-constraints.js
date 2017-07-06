@@ -6,14 +6,16 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
+import chromeShim from '../../src/js/chrome/getusermedia';
+import firefoxShim from '../../src/js/firefox/getusermedia';
+import chai, {expect} from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+
 chai.use(sinonChai);
 
 describe('Chrome getUserMedia constraints converter', () => {
-  const shim = require('../../src/js/chrome/getusermedia');
+  const shim = chromeShim;
   let window;
 
   beforeEach(() => {
@@ -133,7 +135,7 @@ describe('Chrome getUserMedia constraints converter', () => {
 });
 
 describe('Firefox getUserMedia constraints converter', () => {
-  const shim = require('../../src/js/firefox/getusermedia');
+  const shim = firefoxShim;
   let window;
 
   beforeEach(() => {
