@@ -23,20 +23,4 @@ describe('getUserMedia', () => {
       });
     });
   });
-
-  describe('navigator.mediaDevices.getUserMedia', () => {
-    it('exists', () => {
-      expect(navigator).to.have.property('getUserMedia');
-    });
-
-    it('fulfills the promise', (done) => {
-      navigator.mediaDevices.getUserMedia({video: true})
-      .then((stream) => {
-        expect(stream.getTracks()).to.have.length(1);
-        done();
-      }, (err) => {
-        throw err;
-      });
-    });
-  });
 });

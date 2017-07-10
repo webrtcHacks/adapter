@@ -17,43 +17,6 @@ var webdriver = require('selenium-webdriver');
 var seleniumHelpers = require('./selenium-lib');
 
 // Start of tests.
-// Test that adding and removing an eventlistener on navigator.mediaDevices
-// is possible. The usecase for this is the devicechanged event.
-// This does not test whether devicechanged is actually called.
-test('navigator.mediaDevices eventlisteners', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.plan(3);
-    t.pass('Page loaded');
-    return driver.executeScript(
-      'return typeof(navigator.mediaDevices.addEventListener) === ' +
-          '\'function\'');
-  })
-  .then(function(isAddEventListenerFunction) {
-    t.ok(isAddEventListenerFunction,
-        'navigator.mediaDevices.addEventListener is a function');
-    return driver.executeScript(
-    'return typeof(navigator.mediaDevices.removeEventListener) === ' +
-         '\'function\'');
-  })
-  .then(function(isRemoveEventListenerFunction) {
-    t.ok(isRemoveEventListenerFunction,
-      'navigator.mediaDevices.removeEventListener is a function');
-  })
-  .then(function() {
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
 test('createObjectURL shim test', function(t) {
   var driver = seleniumHelpers.buildDriver();
 
@@ -551,56 +514,6 @@ test('addIceCandidate with undefined', function(t) {
   })
   .then(function(err) {
     t.ok(err === null, 'addIceCandidate(undefined) resolves');
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
-test('call enumerateDevices', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
-
-    navigator.mediaDevices.enumerateDevices()
-    .then(function(devices) {
-      callback(devices);
-    })
-    .catch(function(err) {
-      callback(err);
-    });
-  };
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.pass('Page loaded');
-    return driver.executeAsyncScript(testDefinition);
-  })
-  .then(function(callback) {
-    // Callback will either return an error object or device array.
-    if (callback.name === 'Error') {
-      t.fail('Enumerate devices failure: ' + callback.toString());
-    } else {
-      return callback;
-    }
-  })
-  .then(function(devices) {
-    t.ok(typeof devices.length === 'number', 'Produced a devices array');
-    devices.forEach(function(device) {
-      t.ok(device.kind === 'videoinput' ||
-           device.kind === 'audioinput' ||
-           device.kind === 'audiooutput', 'Known device kind');
-      t.ok(device.deviceId.length !== undefined, 'Device id present');
-      t.ok(device.label.length !== undefined, 'Device label present');
-    });
-  })
-  .then(function() {
     t.end();
   })
   .then(null, function(err) {
