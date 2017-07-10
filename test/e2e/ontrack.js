@@ -39,7 +39,7 @@ describe('track event', () => {
   });
 
   describe('is called by setRemoteDescription', () => {
-    it.skip('track event', (done) => {
+    it('track event', (done) => {
       pc.addEventListener('track', () => {
         done();
       });
