@@ -24,19 +24,24 @@ var chromeShim = {
           return this._ontrack;
         },
         set: function(f) {
-          var self = this;
           if (this._ontrack) {
             this.removeEventListener('track', this._ontrack);
-            this.removeEventListener('addstream', this._ontrackpoly);
           }
           this.addEventListener('track', this._ontrack = f);
-          this.addEventListener('addstream', this._ontrackpoly = function(e) {
+        }
+      });
+      var origSetRemoteDescription =
+          window.RTCPeerConnection.prototype.setRemoteDescription;
+      window.RTCPeerConnection.prototype.setRemoteDescription = function() {
+        var pc = this;
+        if (!pc._ontrackpoly) {
+          pc._ontrackpoly = function(e) {
             // onaddstream does not fire when a track is added to an existing
             // stream. But stream.onaddtrack is implemented so we use that.
             e.stream.addEventListener('addtrack', function(te) {
               var receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = self.getReceivers().find(function(r) {
+                receiver = pc.getReceivers().find(function(r) {
                   return r.track.id === te.track.id;
                 });
               } else {
@@ -47,12 +52,12 @@ var chromeShim = {
               event.track = te.track;
               event.receiver = receiver;
               event.streams = [e.stream];
-              self.dispatchEvent(event);
+              pc.dispatchEvent(event);
             });
             e.stream.getTracks().forEach(function(track) {
               var receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = self.getReceivers().find(function(r) {
+                receiver = pc.getReceivers().find(function(r) {
                   return r.track.id === track.id;
                 });
               } else {
@@ -62,11 +67,13 @@ var chromeShim = {
               event.track = track;
               event.receiver = receiver;
               event.streams = [e.stream];
-              this.dispatchEvent(event);
-            }.bind(this));
-          }.bind(this));
+              pc.dispatchEvent(event);
+            });
+          };
+          pc.addEventListener('addstream', pc._ontrackpoly);
         }
-      });
+        return origSetRemoteDescription.apply(pc, arguments);
+      };
     }
   },
 

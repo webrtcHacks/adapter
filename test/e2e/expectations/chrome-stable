@@ -29,7 +29,7 @@ PASS getUserMedia navigator.mediaDevices.getUserMedia exists
 PASS getUserMedia navigator.mediaDevices.getUserMedia fulfills the promise
 PASS MediaStream window.MediaStream exists
 PASS track event RTCPeerConnection.prototype.ontrack exists
-ERR track event is called by setRemoteDescription track event timeout
+PASS track event is called by setRemoteDescription track event
 PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track
 PASS track event the event has a set of streams
