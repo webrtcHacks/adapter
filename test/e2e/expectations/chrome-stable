@@ -34,6 +34,17 @@ PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track
 PASS track event the event has a set of streams
 PASS track event the event has a receiver that is contained in the set of receivers
+PASS removeTrack allows removeTrack twice
+PASS removeTrack throws an exception if the sender does not belong to the peerconnection
+PASS removeTrack throws an exception if the peerconnection has been closed already
+PASS removeTrack after addStream for an audio/video track after removing a single track only a single sender remains
+PASS removeTrack after addStream for an audio/video track after removing a single track the local stream remains untouched
+PASS removeTrack after addStream for an audio/video track after removing all tracks no senders remain
+PASS removeTrack after addStream for an audio/video track after removing all tracks no local streams remain
+PASS removeTrack after addTrack for an audio/video track after removing a single track only a single sender remains
+PASS removeTrack after addTrack for an audio/video track after removing a single track the local stream remains untouched
+PASS removeTrack after addTrack for an audio/video track after removing all tracks no senders remain
+PASS removeTrack after addTrack for an audio/video track after removing all tracks no local streams remain
 PASS RTCIceCandidate window.RTCIceCandidate exists
 PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works
