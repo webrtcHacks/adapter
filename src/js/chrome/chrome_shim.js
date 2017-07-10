@@ -230,6 +230,15 @@ var chromeShim = {
       pc._streams = pc._streams || {};
       pc._reverseStreams = pc._reverseStreams || {};
 
+      stream.getTracks().forEach(function(track) {
+        var alreadyExists = pc.getSenders().find(function(s) {
+          return s.track === track;
+        });
+        if (alreadyExists) {
+          throw new DOMException('Track already exists.',
+              'InvalidAccessError');
+        }
+      });
       // Add identity mapping for consistency with addTrack.
       // Unless this is being used with a stream from addTrack.
       if (!pc._reverseStreams[stream.id]) {
