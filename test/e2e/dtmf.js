@@ -25,8 +25,6 @@ describe('dtmf', () => {
       });
     });
 
-    /* Broken in Firefox 54 */
-    /*
     it('does not exist on video senders', () => {
       const pc = new RTCPeerConnection();
       return navigator.mediaDevices.getUserMedia({video: true})
@@ -37,7 +35,6 @@ describe('dtmf', () => {
         expect(dtmf).to.equal(null);
       });
     });
-    */
   });
 
   describe('inserts DTMF', () => {
