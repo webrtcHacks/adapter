@@ -25,8 +25,16 @@ PASS dtmf inserts DTMF when using addStream
 PASS dtmf inserts DTMF when using addTrack
 PASS getUserMedia navigator.getUserMedia exists
 PASS getUserMedia navigator.getUserMedia calls the callback
-PASS getUserMedia navigator.mediaDevices.getUserMedia exists
-PASS getUserMedia navigator.mediaDevices.getUserMedia fulfills the promise
+PASS navigator.mediaDevices exists
+PASS navigator.mediaDevices is an EventTarget
+PASS navigator.mediaDevices implements the devicechange event
+PASS navigator.mediaDevices getUserMedia exists
+PASS navigator.mediaDevices getUserMedia fulfills the promise
+PASS navigator.mediaDevices enumerateDevices exists
+PASS navigator.mediaDevices enumerateDevices returns an array of devices
+PASS navigator.mediaDevices enumerateDevices returns some audioinput devices
+PASS navigator.mediaDevices enumerateDevices returns some videoinput devices
+ERR navigator.mediaDevices enumerateDevices returns some audiooutput devices AssertionError
 PASS MediaStream window.MediaStream exists
 PASS track event RTCPeerConnection.prototype.ontrack exists
 PASS track event is called by setRemoteDescription track event
