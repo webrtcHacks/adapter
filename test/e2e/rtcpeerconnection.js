@@ -25,4 +25,10 @@ describe('RTCPeerConnection', () => {
       expect(RTCPeerConnection.prototype).to.have.property('getSenders');
     });
   });
+
+  describe('generateCertificate', () => {
+    it('is a static method', () => {
+      expect(window.RTCPeerConnection).to.have.property('generateCertificate');
+    });
+  });
 });

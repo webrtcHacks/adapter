@@ -49,6 +49,7 @@ PASS RTCIceCandidate window.RTCIceCandidate exists
 PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works
 PASS RTCPeerConnection getSenders exists
+ERR RTCPeerConnection generateCertificate is a static method AssertionError
 PASS RTCSessionDescription window.RTCSessionDescription exists
 PASS srcObject setter triggers loadedmetadata (audio)
 PASS srcObject getter returns the stream (audio)
