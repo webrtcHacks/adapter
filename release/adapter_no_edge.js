@@ -89,7 +89,7 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimSourceObject(window);
       chromeShim.shimPeerConnection(window);
       chromeShim.shimOnTrack(window);
-      chromeShim.shimAddTrack(window);
+      chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
       break;
     case 'firefox':
@@ -173,19 +173,24 @@ var chromeShim = {
           return this._ontrack;
         },
         set: function(f) {
-          var self = this;
           if (this._ontrack) {
             this.removeEventListener('track', this._ontrack);
-            this.removeEventListener('addstream', this._ontrackpoly);
           }
           this.addEventListener('track', this._ontrack = f);
-          this.addEventListener('addstream', this._ontrackpoly = function(e) {
+        }
+      });
+      var origSetRemoteDescription =
+          window.RTCPeerConnection.prototype.setRemoteDescription;
+      window.RTCPeerConnection.prototype.setRemoteDescription = function() {
+        var pc = this;
+        if (!pc._ontrackpoly) {
+          pc._ontrackpoly = function(e) {
             // onaddstream does not fire when a track is added to an existing
             // stream. But stream.onaddtrack is implemented so we use that.
             e.stream.addEventListener('addtrack', function(te) {
               var receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = self.getReceivers().find(function(r) {
+                receiver = pc.getReceivers().find(function(r) {
                   return r.track.id === te.track.id;
                 });
               } else {
@@ -196,12 +201,12 @@ var chromeShim = {
               event.track = te.track;
               event.receiver = receiver;
               event.streams = [e.stream];
-              self.dispatchEvent(event);
+              pc.dispatchEvent(event);
             });
             e.stream.getTracks().forEach(function(track) {
               var receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = self.getReceivers().find(function(r) {
+                receiver = pc.getReceivers().find(function(r) {
                   return r.track.id === track.id;
                 });
               } else {
@@ -211,15 +216,18 @@ var chromeShim = {
               event.track = track;
               event.receiver = receiver;
               event.streams = [e.stream];
-              this.dispatchEvent(event);
-            }.bind(this));
-          }.bind(this));
+              pc.dispatchEvent(event);
+            });
+          };
+          pc.addEventListener('addstream', pc._ontrackpoly);
         }
-      });
+        return origSetRemoteDescription.apply(pc, arguments);
+      };
     }
   },
 
   shimGetSendersWithDtmf: function(window) {
+    // Overrides addTrack/removeTrack, depends on shimAddTrackRemoveTrack.
     if (typeof window === 'object' && window.RTCPeerConnection &&
         !('getSenders' in window.RTCPeerConnection.prototype) &&
         'createDTMFSender' in window.RTCPeerConnection.prototype) {
@@ -235,14 +243,16 @@ var chromeShim = {
               }
             }
             return this._dtmf;
-          }
+          },
+          _pc: pc
         };
       };
 
-      // shim addTrack when getSenders is not available.
+      // augment addTrack when getSenders is not available.
       if (!window.RTCPeerConnection.prototype.getSenders) {
         window.RTCPeerConnection.prototype.getSenders = function() {
-          return this._senders || [];
+          this._senders = this._senders || [];
+          return this._senders.slice(); // return a copy of the internal state.
         };
         var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
         window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
@@ -253,6 +263,16 @@ var chromeShim = {
             pc._senders.push(sender);
           }
           return sender;
+        };
+
+        var origRemoveTrack = window.RTCPeerConnection.prototype.removeTrack;
+        window.RTCPeerConnection.prototype.removeTrack = function(sender) {
+          var pc = this;
+          origRemoveTrack.apply(pc, arguments);
+          var idx = pc._senders.indexOf(sender);
+          if (idx !== -1) {
+            pc._senders.splice(idx, 1);
+          }
         };
       }
       var origAddStream = window.RTCPeerConnection.prototype.addStream;
@@ -305,7 +325,7 @@ var chromeShim = {
             }
           }
           return this._dtmf;
-        },
+        }
       });
     }
   },
@@ -354,8 +374,8 @@ var chromeShim = {
     }
   },
 
-  shimAddTrack: function(window) {
-    // shim addTrack (when getSenders is available)
+  shimAddTrackRemoveTrack: function(window) {
+    // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack) {
       return;
     }
@@ -379,11 +399,22 @@ var chromeShim = {
       pc._streams = pc._streams || {};
       pc._reverseStreams = pc._reverseStreams || {};
 
+      stream.getTracks().forEach(function(track) {
+        var alreadyExists = pc.getSenders().find(function(s) {
+          return s.track === track;
+        });
+        if (alreadyExists) {
+          throw new DOMException('Track already exists.',
+              'InvalidAccessError');
+        }
+      });
       // Add identity mapping for consistency with addTrack.
       // Unless this is being used with a stream from addTrack.
       if (!pc._reverseStreams[stream.id]) {
-        pc._streams[stream.id] = stream;
-        pc._reverseStreams[stream.id] = stream;
+        var newStream = new window.MediaStream(stream.getTracks());
+        pc._streams[stream.id] = newStream;
+        pc._reverseStreams[newStream.id] = stream;
+        stream = newStream;
       }
       origAddStream.apply(pc, [stream]);
     };
@@ -434,6 +465,8 @@ var chromeShim = {
       if (oldStream) {
         // this is using odd Chrome behaviour, use with caution:
         // https://bugs.chromium.org/p/webrtc/issues/detail?id=7815
+        // Note: we rely on the high-level addTrack/dtmf shim to
+        // create the sender with a dtmf sender.
         oldStream.addTrack(track);
         pc.dispatchEvent(new Event('negotiationneeded'));
       } else {
@@ -445,6 +478,44 @@ var chromeShim = {
       return pc.getSenders().find(function(s) {
         return s.track === track;
       });
+    };
+
+    window.RTCPeerConnection.prototype.removeTrack = function(sender) {
+      var pc = this;
+      if (pc.signalingState === 'closed') {
+        throw new DOMException(
+          'The RTCPeerConnection\'s signalingState is \'closed\'.',
+          'InvalidStateError');
+      }
+      var isLocal = sender._pc === pc;
+      if (!isLocal) {
+        throw new DOMException('Sender was not created by this connection.',
+            'InvalidAccessError');
+      }
+
+      // Search for the native stream the senders track belongs to.
+      pc._streams = pc._streams || {};
+      var stream;
+      Object.keys(pc._streams).forEach(function(streamid) {
+        var hasTrack = pc._streams[streamid].getTracks().find(function(track) {
+          return sender.track === track;
+        });
+        if (hasTrack) {
+          stream = pc._streams[streamid];
+        }
+      });
+
+      if (stream) {
+        if (stream.getTracks().length === 1) {
+          // if this is the last track of the stream, remove the stream. This
+          // takes care of any shimmed _senders.
+          pc.removeStream(stream);
+        } else {
+          // relying on the same odd chrome behaviour as above.
+          stream.removeTrack(sender.track);
+        }
+        pc.dispatchEvent(new Event('negotiationneeded'));
+      }
     };
   },
 
@@ -647,7 +718,7 @@ var chromeShim = {
 module.exports = {
   shimMediaStream: chromeShim.shimMediaStream,
   shimOnTrack: chromeShim.shimOnTrack,
-  shimAddTrack: chromeShim.shimAddTrack,
+  shimAddTrackRemoveTrack: chromeShim.shimAddTrackRemoveTrack,
   shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
