@@ -897,46 +897,6 @@ test('icegatheringstatechange event',
       });
     });
 
-test('static generateCertificate method', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.plan(2);
-    t.pass('Page loaded');
-  })
-  .then(function() {
-    return driver.executeScript(function() {
-      return (window.adapter.browserDetails.browser === 'chrome' &&
-          window.adapter.browserDetails.version >= 49) ||
-          (window.adapter.browserDetails.browser === 'firefox' &&
-          window.adapter.browserDetails.version > 38);
-    });
-  })
-  .then(function(isSupported) {
-    if (!isSupported) {
-      t.skip('generateCertificate not supported on < Chrome 49');
-      throw 'skip-test';
-    }
-    return driver.executeScript(
-      'return typeof RTCPeerConnection.generateCertificate === \'function\'');
-  })
-  .then(function(hasGenerateCertificateMethod) {
-    t.ok(hasGenerateCertificateMethod,
-        'RTCPeerConnection has generateCertificate method');
-  })
-  .then(function() {
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
 // This MUST to be the last test since it loads adapter
 // again which may result in unintended behaviour.
 test('Non-module logging to console still works', function(t) {
