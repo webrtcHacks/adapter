@@ -35,6 +35,7 @@ PASS track event the event has a track
 PASS track event the event has a set of streams
 PASS track event the event has a receiver that is contained in the set of receivers
 ERR removeTrack allows removeTrack twice timeout
+ERR removeTrack throws an exception if the argument is a track, not a sender AssertionError
 ERR removeTrack throws an exception if the sender does not belong to the peerconnection AssertionError
 ERR removeTrack throws an exception if the peerconnection has been closed already AssertionError
 ERR removeTrack after addStream for an audio/video track after removing a single track only a single sender remains timeout

@@ -20,6 +20,18 @@ describe('removeTrack', () => {
   });
 
   describe('throws an exception', () => {
+    it('if the argument is a track, not a sender', () => {
+      return navigator.mediaDevices.getUserMedia({audio: true})
+      .then(stream => {
+        pc.addTrack(stream.getTracks()[0], stream);
+        const withTrack = () => {
+          pc.removeTrack(stream.getTracks()[0]);
+        };
+        expect(withTrack).to.throw(/implement interface RTCRtpSender/)
+          .that.has.property('name').that.equals('TypeError');
+      });
+    });
+
     it('if the sender does not belong to the peerconnection', () => {
       return navigator.mediaDevices.getUserMedia({audio: true})
       .then(stream => {
