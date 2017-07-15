@@ -62,6 +62,8 @@ PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works
 PASS RTCPeerConnection getSenders exists
 PASS RTCPeerConnection generateCertificate is a static method
+ERR RTCPeerConnection icegatheringstatechange fires the event timeout
+ERR RTCPeerConnection icegatheringstatechange calls the event handler timeout
 PASS RTCSessionDescription window.RTCSessionDescription exists
 PASS srcObject setter triggers loadedmetadata (audio)
 PASS srcObject getter returns the stream (audio)

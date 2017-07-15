@@ -714,49 +714,6 @@ test('getStats promise', function(t) {
   });
 });
 
-test('icegatheringstatechange event',
-    {skip: process.env.BROWSER !== 'MicrosoftEdge'},
-    function(t) {
-      var driver = seleniumHelpers.buildDriver();
-
-      // Define test.
-      var testDefinition = function() {
-        var callback = arguments[arguments.length - 1];
-
-        var pc1 = new RTCPeerConnection();
-        pc1.onicegatheringstatechange = function(event) {
-          if (pc1.iceGatheringState === 'complete') {
-            callback();
-          }
-        };
-
-        var constraints = {video: true, fake: true};
-        navigator.mediaDevices.getUserMedia(constraints)
-        .then(function(stream) {
-          pc1.addStream(stream);
-          pc1.createOffer().then(function(offer) {
-            return pc1.setLocalDescription(offer);
-          });
-        });
-      };
-
-      // Run test.
-      seleniumHelpers.loadTestPage(driver)
-      .then(function() {
-        return driver.executeAsyncScript(testDefinition);
-      })
-      .then(function() {
-        t.pass('gatheringstatechange fired and is \'complete\'');
-        t.end();
-      })
-      .then(null, function(err) {
-        if (err !== 'skip-test') {
-          t.fail(err);
-        }
-        t.end();
-      });
-    });
-
 // This MUST to be the last test since it loads adapter
 // again which may result in unintended behaviour.
 test('Non-module logging to console still works', function(t) {
