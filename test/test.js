@@ -462,68 +462,6 @@ test('Call getUserMedia with impossible constraints',
       });
     });
 
-test('addIceCandidate with null', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
-
-    var pc1 = new RTCPeerConnection(null);
-    pc1.addIceCandidate(null)
-    // callback is called with either the empty result
-    // of the .then or the error from .catch.
-    .then(callback)
-    .catch(callback);
-  };
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.pass('Page loaded');
-    return driver.executeAsyncScript(testDefinition);
-  })
-  .then(function(err) {
-    t.ok(err === null, 'addIceCandidate(null) resolves');
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
-test('addIceCandidate with undefined', function(t) {
-  var driver = seleniumHelpers.buildDriver();
-
-  var testDefinition = function() {
-    var callback = arguments[arguments.length - 1];
-
-    var pc1 = new RTCPeerConnection(null);
-    pc1.addIceCandidate(undefined)
-    // callback is called with either the empty result
-    // of the .then or the error from .catch.
-    .then(callback)
-    .catch(callback);
-  };
-  // Run test.
-  seleniumHelpers.loadTestPage(driver)
-  .then(function() {
-    t.pass('Page loaded');
-    return driver.executeAsyncScript(testDefinition);
-  })
-  .then(function(err) {
-    t.ok(err === null, 'addIceCandidate(undefined) resolves');
-    t.end();
-  })
-  .then(null, function(err) {
-    if (err !== 'skip-test') {
-      t.fail(err);
-    }
-    t.end();
-  });
-});
-
 // Test polyfill for getStats.
 test('getStats', {skip: true}, function(t) {
   var driver = seleniumHelpers.buildDriver();

@@ -1,3 +1,5 @@
+PASS addIceCandidate after setRemoteDescription resolves when called with null
+PASS addIceCandidate after setRemoteDescription resolves when called with undefined
 ERR addTrack throws an exception if the track has already been added AssertionError
 ERR addTrack throws an exception if the track has already been added via addStream AssertionError
 ERR addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
