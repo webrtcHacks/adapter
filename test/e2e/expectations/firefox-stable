@@ -25,6 +25,8 @@ PASS dtmf RTCRtpSender.dtmf exists on audio senders
 ERR dtmf RTCRtpSender.dtmf does not exist on video senders AssertionError
 PASS dtmf inserts DTMF when using addStream
 PASS dtmf inserts DTMF when using addTrack
+PASS getStats returns a Promise
+PASS getStats resolves the Promise with a Map(like)
 PASS getUserMedia navigator.getUserMedia exists
 PASS getUserMedia navigator.getUserMedia calls the callback
 PASS navigator.mediaDevices exists
