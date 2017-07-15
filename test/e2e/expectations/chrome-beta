@@ -71,6 +71,7 @@ PASS RTCPeerConnection generateCertificate is a static method
 PASS RTCPeerConnection icegatheringstatechange fires the event
 PASS RTCPeerConnection icegatheringstatechange calls the event handler
 PASS RTCSessionDescription window.RTCSessionDescription exists
+PASS srcObject setting from another object works
 PASS srcObject setter triggers loadedmetadata (audio)
 PASS srcObject getter returns the stream (audio)
 PASS srcObject setter triggers loadedmetadata (video)
