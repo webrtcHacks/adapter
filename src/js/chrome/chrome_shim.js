@@ -406,7 +406,7 @@ var chromeShim = {
             var server = pcConfig.iceServers[i];
             if (!server.hasOwnProperty('urls') &&
                 server.hasOwnProperty('url')) {
-              console.warn('RTCIceServer.url is deprecated! Use urls instead.');
+              utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
               server = JSON.parse(JSON.stringify(server));
               server.urls = server.url;
               newIceServers.push(server);
