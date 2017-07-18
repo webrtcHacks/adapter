@@ -41,6 +41,15 @@ if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
       '/Contents/MacOS/Safari Technology Preview';
 }
 
+if (!process.env.FIREFOX_BIN) {
+  process.env.FIREFOX_BIN = os.cwd() + '/browsers/bin/firefox-'
+      + (process.env.BVER || 'stable');
+}
+if (!process.env.CHROME_BIN) {
+  process.env.CHROME_BIN = os.cwd() + '/browsers/bin/chrome-'
+      + (process.env.BVER || 'stable');
+}
+
 let chromeFlags = [
   '--use-fake-device-for-media-stream',
   '--use-fake-ui-for-media-stream',
@@ -94,7 +103,7 @@ module.exports = function(config) {
           process.env.BROWSER +
           (process.env.BVER ? '-' + process.env.BVER : '') +
           (process.env.CHROMEEXPERIMENT === 'false' ? '-no-experimental' : ''),
-      update: false,
+      update: process.env.UPDATE_STABILITYREPORTER || false,
     }
   });
 };
