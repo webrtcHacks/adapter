@@ -338,6 +338,12 @@ var chromeShim = {
           'The RTCPeerConnection\'s signalingState is \'closed\'.',
           'InvalidStateError');
       }
+      // We can not yet check for sender instanceof RTCRtpSender
+      // since we shim RTPSender. So we check if sender._pc is set.
+      if (!sender._pc) {
+        throw new DOMException('Argument 1 of RTCPeerConnection.removeTrack ' +
+            'does not implement interface RTCRtpSender.', 'TypeError');
+      }
       var isLocal = sender._pc === pc;
       if (!isLocal) {
         throw new DOMException('Sender was not created by this connection.',
