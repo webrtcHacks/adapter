@@ -42,11 +42,11 @@ if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
 }
 
 if (!process.env.FIREFOX_BIN) {
-  process.env.FIREFOX_BIN = os.cwd() + '/browsers/bin/firefox-'
+  process.env.FIREFOX_BIN = process.cwd() + '/browsers/bin/firefox-'
       + (process.env.BVER || 'stable');
 }
 if (!process.env.CHROME_BIN) {
-  process.env.CHROME_BIN = os.cwd() + '/browsers/bin/chrome-'
+  process.env.CHROME_BIN = process.cwd() + '/browsers/bin/chrome-'
       + (process.env.BVER || 'stable');
 }
 
