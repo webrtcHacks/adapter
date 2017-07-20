@@ -9,7 +9,7 @@
 'use strict';
 
 var utils = require('../utils');
-var shimRTCPeerConnection = require('./rtcpeerconnection_shim');
+var shimRTCPeerConnection = require('rtcpeerconnection-shim');
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
