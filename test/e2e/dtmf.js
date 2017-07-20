@@ -63,9 +63,18 @@ describe('dtmf', () => {
       return navigator.mediaDevices.getUserMedia({audio: true})
       .then(stream => pc1.addStream(stream))
       .then(() => {
-        return new Promise(resolve => pc1.oniceconnectionstatechange =
-          e => (pc1.iceConnectionState === 'connected' ||
+        return pc1.iceConnectionState === 'connected' ||
+            pc1.iceConnectionState === 'completed' ||
+            new Promise(resolve => pc1.oniceconnectionstatechange =
+              e => (pc1.iceConnectionState === 'connected' ||
               pc1.iceConnectionState === 'completed') && resolve());
+      })
+      .then(() => {
+        return pc2.iceConnectionState === 'connected' ||
+            pc2.iceConnectionState === 'completed' ||
+            new Promise(resolve => pc2.oniceconnectionstatechange =
+              e => (pc2.iceConnectionState === 'connected' ||
+              pc2.iceConnectionState === 'completed') && resolve());
       })
       .then(() => {
         let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
@@ -81,9 +90,18 @@ describe('dtmf', () => {
       return navigator.mediaDevices.getUserMedia({audio: true})
       .then(stream => pc1.addTrack(stream.getAudioTracks()[0], stream))
       .then(() => {
-        return new Promise(resolve => pc1.oniceconnectionstatechange =
-          e => (pc1.iceConnectionState === 'connected' ||
+        return pc1.iceConnectionState === 'connected' ||
+            pc1.iceConnectionState === 'completed' ||
+            new Promise(resolve => pc1.oniceconnectionstatechange =
+              e => (pc1.iceConnectionState === 'connected' ||
               pc1.iceConnectionState === 'completed') && resolve());
+      })
+      .then(() => {
+        return pc2.iceConnectionState === 'connected' ||
+            pc2.iceConnectionState === 'completed' ||
+            new Promise(resolve => pc2.oniceconnectionstatechange =
+              e => (pc2.iceConnectionState === 'connected' ||
+              pc2.iceConnectionState === 'completed') && resolve());
       })
       .then(() => {
         let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
@@ -94,5 +112,5 @@ describe('dtmf', () => {
         expect(toneEvent.tone).to.equal('1');
       });
     });
-  });
+  }).timeout(5000);
 });
