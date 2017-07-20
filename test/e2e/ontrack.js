@@ -13,6 +13,9 @@ describe('track event', () => {
   beforeEach(() => {
     pc = new RTCPeerConnection();
   });
+  afterEach(() => {
+    pc.close();
+  });
 
   const sdp = 'v=0\r\n' +
       'o=- 166855176514521964 2 IN IP4 127.0.0.1\r\n' +
@@ -80,5 +83,34 @@ describe('track event', () => {
       };
       pc.setRemoteDescription({type: 'offer', sdp});
     });
+  });
+
+  it('is called by setRemoteDescription during renegotiation', (done) => {
+    const videoPart = 'm=video 9 UDP/TLS/RTP/SAVPF 100\r\n' +
+      'c=IN IP4 0.0.0.0\r\n' +
+      'a=rtcp:9 IN IP4 0.0.0.0\r\n' +
+      'a=ice-ufrag:someufrag\r\n' +
+      'a=ice-pwd:somelongpwdwithenoughrandomness\r\n' +
+      'a=fingerprint:sha-256 8C:71:B3:8D:A5:38:FD:8F:A4:2E:A2:65:6C:86:52' +
+      ':BC:E0:6E:94:F2:9F:7C:4D:B5:DF:AF:AA:6F:44:90:8D:F4\r\n' +
+      'a=setup:actpass\r\n' +
+      'a=rtcp-mux\r\n' +
+      'a=mid:mid2\r\n' +
+      'a=sendonly\r\n' +
+      'a=rtpmap:100 vp8/90000\r\n' +
+      'a=msid:stream1 track2\r\n' +
+      'a=ssrc:1002 cname:some\r\n';
+    pc.ontrack = (e) => {
+      if (e.track.id === 'track2') {
+        done();
+      }
+    };
+    pc.setRemoteDescription({type: 'offer', sdp})
+    .then(() => pc.createAnswer())
+    .then((answer) => pc.setLocalDescription(answer))
+    .then(() => {
+      return pc.setRemoteDescription({type: 'offer', sdp: sdp + videoPart});
+    })
+    .catch(e => console.error(e.toString()));
   });
 });

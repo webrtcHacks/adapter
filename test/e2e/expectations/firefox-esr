@@ -1,3 +1,5 @@
+PASS addIceCandidate after setRemoteDescription resolves when called with null
+PASS addIceCandidate after setRemoteDescription resolves when called with undefined
 ERR addTrack throws an exception if the track has already been added AssertionError
 ERR addTrack throws an exception if the track has already been added via addStream AssertionError
 ERR addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
@@ -19,10 +21,16 @@ PASS establishes a connection with addTrack and all tracks of a stream
 PASS establishes a connection with addTrack but only the audio track of an av stream
 PASS establishes a connection with addTrack as two streams
 PASS establishes a connection with datachannel establishes a connection
+PASS URL.createObjectURL shim works for audio using src=
+PASS URL.createObjectURL shim works for audio using setAttribute
+PASS URL.createObjectURL shim works for video using src=
+PASS URL.createObjectURL shim works for video using setAttribute
 PASS dtmf RTCRtpSender.dtmf exists on audio senders
 ERR dtmf RTCRtpSender.dtmf does not exist on video senders AssertionError
 PASS dtmf inserts DTMF when using addStream
 PASS dtmf inserts DTMF when using addTrack
+PASS getStats returns a Promise
+PASS getStats resolves the Promise with a Map(like)
 PASS getUserMedia navigator.getUserMedia exists
 PASS getUserMedia navigator.getUserMedia calls the callback
 PASS navigator.mediaDevices exists
@@ -37,6 +45,7 @@ PASS navigator.mediaDevices enumerateDevices returns some videoinput devices
 ERR navigator.mediaDevices enumerateDevices returns some audiooutput devices AssertionError
 PASS MediaStream window.MediaStream exists
 PASS track event RTCPeerConnection.prototype.ontrack exists
+PASS track event is called by setRemoteDescription during renegotiation
 PASS track event is called by setRemoteDescription track event
 PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track
@@ -59,7 +68,10 @@ PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works
 PASS RTCPeerConnection getSenders exists
 PASS RTCPeerConnection generateCertificate is a static method
+ERR RTCPeerConnection icegatheringstatechange fires the event timeout
+ERR RTCPeerConnection icegatheringstatechange calls the event handler timeout
 PASS RTCSessionDescription window.RTCSessionDescription exists
+PASS srcObject setting from another object works
 PASS srcObject setter triggers loadedmetadata (audio)
 PASS srcObject getter returns the stream (audio)
 PASS srcObject setter triggers loadedmetadata (video)

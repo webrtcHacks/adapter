@@ -31,4 +31,34 @@ describe('RTCPeerConnection', () => {
       expect(window.RTCPeerConnection).to.have.property('generateCertificate');
     });
   });
+
+  describe('icegatheringstatechange', () => {
+    let pc;
+    beforeEach(() => {
+      pc = new RTCPeerConnection();
+    });
+    afterEach(() => {
+      pc.close();
+    });
+
+    it('fires the event', (done) => {
+      pc.addEventListener('icegatheringstatechange', () => {
+        if (pc.iceGatheringState === 'complete') {
+          done();
+        }
+      });
+      pc.createOffer({offerToReceiveAudio: true})
+      .then(offer => pc.setLocalDescription(offer));
+    });
+
+    it('calls the event handler', (done) => {
+      pc.onicegatheringstatechange = () => {
+        if (pc.iceGatheringState === 'complete') {
+          done();
+        }
+      };
+      pc.createOffer({offerToReceiveAudio: true})
+      .then(offer => pc.setLocalDescription(offer));
+    });
+  });
 });

@@ -44,4 +44,19 @@ describe('srcObject', () => {
       });
     });
   });
+
+  it('setting from another object works', () => {
+    return navigator.mediaDevices.getUserMedia({video: true})
+    .then(stream => {
+      const video = document.createElement('video');
+      video.autoplay = true;
+      video.srcObject = stream;
+
+      const video2 = document.createElement('video2');
+      video2.autoplay = true;
+      video2.srcObject = video.srcObject;
+
+      expect(video2.srcObject.id).to.equal(video.srcObject.id);
+    });
+  });
 });
