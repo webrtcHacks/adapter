@@ -487,6 +487,12 @@ var chromeShim = {
           'The RTCPeerConnection\'s signalingState is \'closed\'.',
           'InvalidStateError');
       }
+      // We can not yet check for sender instanceof RTCRtpSender
+      // since we shim RTPSender. So we check if sender._pc is set.
+      if (!sender._pc) {
+        throw new DOMException('Argument 1 of RTCPeerConnection.removeTrack ' +
+            'does not implement interface RTCRtpSender.', 'TypeError');
+      }
       var isLocal = sender._pc === pc;
       if (!isLocal) {
         throw new DOMException('Sender was not created by this connection.',
@@ -555,7 +561,7 @@ var chromeShim = {
             var server = pcConfig.iceServers[i];
             if (!server.hasOwnProperty('urls') &&
                 server.hasOwnProperty('url')) {
-              console.warn('RTCIceServer.url is deprecated! Use urls instead.');
+              utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
               server = JSON.parse(JSON.stringify(server));
               server.urls = server.url;
               newIceServers.push(server);
@@ -1367,8 +1373,8 @@ module.exports = function(window) {
       return getUserMedia_(constraints, onSuccess, onError);
     }
     // Replace Firefox 44+'s deprecation warning with unprefixed version.
-    console.warn('navigator.getUserMedia has been replaced by ' +
-                 'navigator.mediaDevices.getUserMedia');
+    utils.deprecated('navigator.getUserMedia',
+        'navigator.mediaDevices.getUserMedia');
     navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
   };
 };
