@@ -32,7 +32,11 @@ describe('addIceCandidate', () => {
         'a=msid:stream1 track1\r\n' +
         'a=ssrc:1001 cname:some\r\n';
     pc = new RTCPeerConnection();
-    return pc.setRemoteDescription({type: 'offer', sdp});
+    return pc.setRemoteDescription({type: 'offer', sdp})
+    .then(() => {
+      return pc.addIceCandidate({sdpMid: 'mid1', candidate:
+          'candidate:702786350 1 udp 41819902 8.8.8.8 60769 typ host'});
+    });
   });
   afterEach(() => {
     pc.close();
