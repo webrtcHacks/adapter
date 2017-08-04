@@ -63,5 +63,5 @@ To make a patch release,
 * checkout a new branch, using a name such as patchrelease-major-minor-patch. 
 * cherry-pick the fixes using `git cherry-pick some-commit-hash`.
 * run `npm version patch`. This will create a new patch version and publish it on github.
-* check out the branch created earlier and publish the new version using `npm publish`.
+* check out origing/bumpVersion branch and publish the new version using `npm publish`.
 * the branch can now safely be deleted. It is not necessary to merge it into the main branch since it only contains cherry-picked commits.
