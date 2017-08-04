@@ -824,7 +824,7 @@ var chromeShim = {
               var receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
                 receiver = pc.getReceivers().find(function(r) {
-                  return r.track.id === te.track.id;
+                  return r.track && r.track.id === te.track.id;
                 });
               } else {
                 receiver = {track: te.track};
@@ -840,7 +840,7 @@ var chromeShim = {
               var receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
                 receiver = pc.getReceivers().find(function(r) {
-                  return r.track.id === track.id;
+                  return r.track && r.track.id === track.id;
                 });
               } else {
                 receiver = {track: track};
