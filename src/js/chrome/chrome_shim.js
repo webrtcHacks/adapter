@@ -319,7 +319,11 @@ var chromeShim = {
         // Note: we rely on the high-level addTrack/dtmf shim to
         // create the sender with a dtmf sender.
         oldStream.addTrack(track);
-        pc.dispatchEvent(new Event('negotiationneeded'));
+
+        // Trigger ONN async.
+        Promise.resolve().then(function() {
+          pc.dispatchEvent(new Event('negotiationneeded'));
+        });
       } else {
         var newStream = new window.MediaStream([track]);
         pc._streams[stream.id] = newStream;
