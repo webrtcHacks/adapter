@@ -138,7 +138,8 @@ var utils = {
     var URL = window && window.URL;
 
     if (!(typeof window === 'object' && window.HTMLMediaElement &&
-          'srcObject' in window.HTMLMediaElement.prototype)) {
+          'srcObject' in window.HTMLMediaElement.prototype &&
+        URL.createObjectURL && URL.revokeObjectURL)) {
       // Only shim CreateObjectURL using srcObject if srcObject exists.
       return undefined;
     }
