@@ -151,7 +151,9 @@ module.exports = function(window) {
   var getUserMedia_ = function(constraints, onSuccess, onError) {
     shimConstraints_(constraints, function(c) {
       navigator.webkitGetUserMedia(c, onSuccess, function(e) {
-        onError(shimError_(e));
+        if (onError) {
+          onError(shimError_(e));
+        }
       });
     });
   };
