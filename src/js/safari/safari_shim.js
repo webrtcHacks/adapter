@@ -236,6 +236,20 @@ var safariShim = {
         return OrigPeerConnection.generateCertificate;
       }
     });
+  },
+  shimTrackEventTransceiver: function(window) {
+    // Add event.transceiver member over deprecated event.receiver
+    if (typeof window === 'object' && window.RTCPeerConnection &&
+        ('receiver' in window.RTCTrackEvent.prototype) &&
+        // can't check 'transceiver' in window.RTCTrackEvent.prototype, as it is
+        // defined for some reason even when window.RTCTransceiver is not.
+        !window.RTCTransceiver) {
+      Object.defineProperty(window.RTCTrackEvent.prototype, 'transceiver', {
+        get: function() {
+          return {receiver: this.receiver};
+        }
+      });
+    }
   }
 };
 
@@ -245,7 +259,8 @@ module.exports = {
   shimLocalStreamsAPI: safariShim.shimLocalStreamsAPI,
   shimRemoteStreamsAPI: safariShim.shimRemoteStreamsAPI,
   shimGetUserMedia: safariShim.shimGetUserMedia,
-  shimRTCIceServerUrls: safariShim.shimRTCIceServerUrls
+  shimRTCIceServerUrls: safariShim.shimRTCIceServerUrls,
+  shimTrackEventTransceiver: safariShim.shimTrackEventTransceiver
   // TODO
   // shimPeerConnection: safariShim.shimPeerConnection
 };

@@ -29,10 +29,20 @@ var firefoxShim = {
               var event = new Event('track');
               event.track = track;
               event.receiver = {track: track};
+              event.transceiver = {receiver: event.receiver};
               event.streams = [e.stream];
               this.dispatchEvent(event);
             }.bind(this));
           }.bind(this));
+        }
+      });
+    }
+    if (typeof window === 'object' && window.RTCPeerConnection &&
+        ('receiver' in window.RTCTrackEvent.prototype) &&
+        !('transceiver' in window.RTCTrackEvent.prototype)) {
+      Object.defineProperty(window.RTCTrackEvent.prototype, 'transceiver', {
+        get: function() {
+          return {receiver: this.receiver};
         }
       });
     }

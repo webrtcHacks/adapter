@@ -51,6 +51,7 @@ var chromeShim = {
               var event = new Event('track');
               event.track = te.track;
               event.receiver = receiver;
+              event.transceiver = {receiver: receiver};
               event.streams = [e.stream];
               pc.dispatchEvent(event);
             });
@@ -66,6 +67,7 @@ var chromeShim = {
               var event = new Event('track');
               event.track = track;
               event.receiver = receiver;
+              event.transceiver = {receiver: receiver};
               event.streams = [e.stream];
               pc.dispatchEvent(event);
             });
