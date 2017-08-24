@@ -116,6 +116,7 @@ module.exports = function(dependencies, opts) {
       safariShim.shimCallbacksAPI(window);
       safariShim.shimLocalStreamsAPI(window);
       safariShim.shimRemoteStreamsAPI(window);
+      safariShim.shimTrackEventTransceiver(window);
       safariShim.shimGetUserMedia(window);
       break;
     default:

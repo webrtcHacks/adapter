@@ -78,7 +78,17 @@ describe('track event', () => {
     it('a receiver that is contained in the set of receivers', (done) => {
       pc.ontrack = (e) => {
         expect(e).to.have.property('receiver');
+        expect(e.receiver.track).to.equal(e.track);
         expect(pc.getReceivers()).to.contain(e.receiver);
+        done();
+      };
+      pc.setRemoteDescription({type: 'offer', sdp});
+    });
+    it('a transceiver that has a receiver', (done) => {
+      pc.ontrack = (e) => {
+        expect(e).to.have.property('transceiver');
+        expect(e.transceiver).to.have.property('receiver');
+        expect(e.transceiver.receiver).to.equal(e.receiver);
         done();
       };
       pc.setRemoteDescription({type: 'offer', sdp});
