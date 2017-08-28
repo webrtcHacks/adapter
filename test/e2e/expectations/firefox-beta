@@ -66,6 +66,9 @@ PASS removeTrack after addTrack for an audio/video track after removing a single
 PASS removeTrack after addTrack for an audio/video track after removing all tracks no senders remain
 PASS removeTrack after addTrack for an audio/video track after removing all tracks no local streams remain
 PASS RTCIceCandidate window.RTCIceCandidate exists
+PASS RTCIceCandidate is augmented in the onicecandidate callback
+PASS RTCIceCandidate is augmented in the icecandidate event
+PASS RTCIceCandidate icecandidate eventlistener can be removed
 PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works
 PASS RTCPeerConnection getSenders exists
