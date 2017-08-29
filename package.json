@@ -16,7 +16,7 @@
     "version": "",
     "postversion": "export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git push --force --set-upstream origin bumpVersion --follow-tags && git checkout gh-pages && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepublish": "grunt build",
-    "test": "grunt && mocha test/unit && karma start test/karma.conf.js && node test/run-tests.js"
+    "test": "grunt && mocha test/unit && karma start test/karma.conf.js"
   },
   "dependencies": {
     "rtcpeerconnection-shim": "^1.0.1",
@@ -29,10 +29,7 @@
   "devDependencies": {
     "brfs": "^1.4.3",
     "chai": "^3.5.0",
-    "chromedriver": "^2.29.0",
     "eslint-config-webrtc": "^1.0.0",
-    "faucet": "0.0.1",
-    "geckodriver": "1.4.0",
     "grunt": "^0.4.5",
     "grunt-browserify": "^4.0.1",
     "grunt-cli": ">=0.1.9",
@@ -51,7 +48,6 @@
     "karma-safari-launcher": "^1.0.0",
     "karma-stability-reporter": "git+https://github.com/fippo/karma-stability-reporter.git#v2.0.0",
     "mocha": "^3.2.0",
-    "selenium-webdriver": "3.3.0",
     "sinon": "^2.2.0",
     "sinon-chai": "^2.10.0",
     "tape": "^4.0.0",

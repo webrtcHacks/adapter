@@ -1,9 +1,17 @@
 [![Build Status](https://travis-ci.org/webrtc/samples.svg)](https://travis-ci.org/webrtc/samples)
 
 # Intro #
-Selenium WebDriver, Node, Testling and travis-multirunner are used as the testing framework. Selenium WebDriver drives the browser; Node and Testling manage the tests, while travis-multirunner downloads and installs the browsers to be tested on, i.e. creates the testing matrix.
+# Intro #
 
 Functional unit tests located in `test/unit` are run in node using [Mocha](https://mochajs.org/), [Chai](http://chaijs.com/) and [Sinon](http://sinonjs.org/).
+They are preferred way to test the behaviour of isolated pieces of code or when behaviour depends on the browser version.
+
+[Karma](http://karma-runner.github.io/1.0/index.html) is used to run the end-to-end tests which are also based on Mocha, Chai and Sinon.
+Those tests are run in many browsers using the different karma launchers for [Chrome](https://www.npmjs.com/package/karma-chrome-launcher),
+[Firefox](https://www.npmjs.com/package/karma-firefox-launcher), [MicrosoftEdge](https://www.npmjs.com/package/karma-edge-launcher) and
+[Safari](https://www.npmjs.com/package/karma-safari-launcher). Not all expected tests are expected to pass and they will be compared again
+expectation files similar to [Chrome tests](https://chromium.googlesource.com/chromium/src/+/lkcr/docs/testing/layout_test_expectations.md).
+This provides ensures stability while not restricting the project to tests that pass in all browsers.
 
 ## Development ##
 Detailed information on developing in the [webrtc](https://github.com/webrtc) GitHub repo can be mark in the [WebRTC GitHub repo developer's guide](https://docs.google.com/document/d/1tn1t6LW2ffzGuYTK3366w1fhTkkzsSvHsBnOHoDfRzY/edit?pli=1#heading=h.e3366rrgmkdk).
@@ -38,23 +46,21 @@ BROWSER=chrome BVER=stable npm test
 ```
 
 #### Add tests
-test/tests.js is used as an index for the tests, tests should be added here using `require()`.
-The tests themselves should be placed in the same js folder as main.js: e.g.`src/content/getusermedia/gum/js/test.js`.
-
-The tests should be written using Testling for test validation (using Tape script language) and Selenium WebDriver is used to control and drive the test in the browser.
-
-Use the existing tests as guide on how to write tests and also look at the [Testling guide](https://ci.testling.com/guide/tape) and [Selenium WebDriver](http://www.seleniumhq.org/docs/03_webdriver.jsp) (make sure to select javascript as language preference.) for more information.
-
-Global Selenium WebDriver settings can be found in `test/selenium-lib.js`, if your test require some specific settings not covered in selenium-lib.js, add your own to the test and do not import the selenium-lib.js file into the test, only do this if it's REALLY necessary.
+When adding tests make sure to update the test expectation file for all browsers and supported version.
+The easiest way to do so is to set the `CI` and `UPDATE_STABILITYREPORTER` environment variables and
+re-run the tests with all browsers.
 
 Once your test is ready, create a pull request and see how it runs on travis-multirunner.
+Usually the expectation is for a test to pass in at least one browser. File browser bugs
+for tests that do not meet this expectation!
 
 #### Change browser and channel/version for testing <a id="changeBrowser"></a>
 Chrome stable is currently installed as the default browser for the tests.
 
 Currently Chrome and Firefox are supported[*](#expBrowser), check [travis-multirunner](https://github.com/DamonOehlman/travis-multirunner/blob/master/) repo for updates around this.
-Firefox channels supported are stable, beta and nightly.
+Firefox channels supported are stable, beta, nightly and ESR.
 Chrome channels supported on Linux are stable, beta and unstable.
+Microsoft Edge is supported on Windows and Safari on OSX.
 
 To select a different browser and/or channel version, change environment variables BROWSER and BVER, then you can rerun the tests with the new browser.
 ```bash
