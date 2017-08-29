@@ -2,12 +2,12 @@ PASS addIceCandidate after setRemoteDescription resolves when called with null
 PASS addIceCandidate after setRemoteDescription resolves when called with undefined
 PASS addTrack throws an exception if the track has already been added
 PASS addTrack throws an exception if the track has already been added via addStream
-PASS addTrack throws an exception if addStream is called with a stream containing a track already added
+ERR addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
 PASS addTrack throws an exception if the peerconnection has been closed already
 PASS addTrack and getSenders creates a sender
-PASS addTrack and getLocalStreams returns a stream with audio and video even if just an audio track was added
-PASS addTrack and getLocalStreams adds another track to the same stream
-PASS addTrack and getLocalStreams plays together nicely
+ERR addTrack and getLocalStreams returns a stream with audio and video even if just an audio track was added AssertionError
+ERR addTrack and getLocalStreams adds another track to the same stream AssertionError
+ERR addTrack and getLocalStreams plays together nicely AssertionError
 PASS window.adapter exists
 PASS window.adapter browserDetails exists
 PASS window.adapter browserDetails detects a browser type
@@ -28,7 +28,7 @@ PASS URL.createObjectURL shim works for video using setAttribute
 PASS dtmf RTCRtpSender.dtmf exists on audio senders
 PASS dtmf RTCRtpSender.dtmf does not exist on video senders
 PASS dtmf inserts DTMF when using addStream
-PASS dtmf inserts DTMF when using addTrack
+ERR dtmf inserts DTMF when using addTrack timeout
 PASS getStats returns a Promise
 PASS getStats resolves the Promise with a Map(like)
 PASS getUserMedia navigator.getUserMedia exists
@@ -46,23 +46,23 @@ PASS navigator.mediaDevices enumerateDevices returns some audiooutput devices
 PASS MediaStream window.MediaStream exists
 PASS MSID signals track and stream ids
 PASS track event RTCPeerConnection.prototype.ontrack exists
-PASS track event is called by setRemoteDescription during renegotiation
+ERR track event is called by setRemoteDescription during renegotiation timeout
 PASS track event is called by setRemoteDescription track event
 PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track
 PASS track event the event has a set of streams
 PASS track event the event has a receiver that is contained in the set of receivers
-PASS track event the event has a transceiver that has a receiver
+ERR track event the event has a transceiver that has a receiver timeout
 PASS removeTrack allows removeTrack twice
-PASS removeTrack throws an exception if the argument is a track, not a sender
+ERR removeTrack throws an exception if the argument is a track, not a sender AssertionError
 PASS removeTrack throws an exception if the sender does not belong to the peerconnection
 PASS removeTrack throws an exception if the peerconnection has been closed already
 PASS removeTrack after addStream for an audio/video track after removing a single track only a single sender remains
 PASS removeTrack after addStream for an audio/video track after removing a single track the local stream remains untouched
 PASS removeTrack after addStream for an audio/video track after removing all tracks no senders remain
-PASS removeTrack after addStream for an audio/video track after removing all tracks no local streams remain
+ERR removeTrack after addStream for an audio/video track after removing all tracks no local streams remain AssertionError
 PASS removeTrack after addTrack for an audio/video track after removing a single track only a single sender remains
-PASS removeTrack after addTrack for an audio/video track after removing a single track the local stream remains untouched
+ERR removeTrack after addTrack for an audio/video track after removing a single track the local stream remains untouched AssertionError
 PASS removeTrack after addTrack for an audio/video track after removing all tracks no senders remain
 PASS removeTrack after addTrack for an audio/video track after removing all tracks no local streams remain
 PASS RTCIceCandidate window.RTCIceCandidate exists
