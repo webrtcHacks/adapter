@@ -51,9 +51,12 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       if (this['_on' + eventNameToWrap]) {
         this.removeEventListener(eventNameToWrap,
             this['_on' + eventNameToWrap]);
+        delete this['_on' + eventNameToWrap];
       }
-      this.addEventListener(eventNameToWrap,
-          this['_on' + eventNameToWrap] = cb);
+      if (cb) {
+        this.addEventListener(eventNameToWrap,
+            this['_on' + eventNameToWrap] = cb);
+      }
     }
   });
 }
