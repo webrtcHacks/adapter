@@ -16,9 +16,10 @@
     "version": "",
     "postversion": "export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git push --force --set-upstream origin bumpVersion --follow-tags && git checkout gh-pages && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepublish": "grunt build",
-    "test": "grunt && mocha test/unit && karma start test/karma.conf.js"
+    "test": "grunt && grunt downloadBrowser && mocha test/unit && karma start test/karma.conf.js"
   },
   "dependencies": {
+    "grunt-shell": "^2.1.0",
     "rtcpeerconnection-shim": "^1.0.1",
     "sdp": "^2.3.0"
   },
