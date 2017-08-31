@@ -87,7 +87,8 @@ module.exports = function(config) {
         prefs: {
           'media.navigator.streams.fake': true,
           'media.navigator.permission.disabled': true
-        }
+        },
+        flags: ['-headless']
       }
     },
     singleRun: true,
