@@ -231,11 +231,13 @@ var safariShim = {
     };
     window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
     // wrap static methods. Currently just generateCertificate.
-    Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-      get: function() {
-        return OrigPeerConnection.generateCertificate;
-      }
-    });
+    if ('generateCertificate' in window.RTCPeerConnection) {
+      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
+        get: function() {
+          return OrigPeerConnection.generateCertificate;
+        }
+      });
+    }
   },
   shimTrackEventTransceiver: function(window) {
     // Add event.transceiver member over deprecated event.receiver
