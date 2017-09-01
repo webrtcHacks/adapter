@@ -19,7 +19,6 @@
     "test": "grunt && grunt downloadBrowser && mocha test/unit && karma start test/karma.conf.js"
   },
   "dependencies": {
-    "grunt-shell": "^2.1.0",
     "rtcpeerconnection-shim": "^1.0.1",
     "sdp": "^2.3.0"
   },
@@ -38,6 +37,7 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-eslint": "^19.0.0",
     "grunt-githooks": "^0.3.1",
+    "grunt-shell": "^2.1.0",
     "karma": "^1.7.0",
     "karma-browserify": "^5.1.1",
     "karma-chai": "^0.1.0",
