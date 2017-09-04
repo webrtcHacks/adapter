@@ -2209,6 +2209,7 @@ module.exports = adapterFactory({window: global.window});
 
 'use strict';
 
+var utils = require('./utils');
 // Shimming starts here.
 module.exports = function(dependencies, opts) {
   var window = dependencies && dependencies.window;
@@ -2227,7 +2228,6 @@ module.exports = function(dependencies, opts) {
   }
 
   // Utils.
-  var utils = require('./utils');
   var logging = utils.log;
   var browserDetails = utils.detectBrowser(window);
 
@@ -2263,10 +2263,10 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming chrome.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = chromeShim;
+      commonShim.shimCreateObjectURL(window);
 
       chromeShim.shimGetUserMedia(window);
       chromeShim.shimMediaStream(window);
-      utils.shimCreateObjectURL(window);
       chromeShim.shimSourceObject(window);
       chromeShim.shimPeerConnection(window);
       chromeShim.shimOnTrack(window);
@@ -2284,9 +2284,9 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming firefox.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = firefoxShim;
+      commonShim.shimCreateObjectURL(window);
 
       firefoxShim.shimGetUserMedia(window);
-      utils.shimCreateObjectURL(window);
       firefoxShim.shimSourceObject(window);
       firefoxShim.shimPeerConnection(window);
       firefoxShim.shimOnTrack(window);
@@ -2301,9 +2301,9 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming edge.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = edgeShim;
+      commonShim.shimCreateObjectURL(window);
 
       edgeShim.shimGetUserMedia(window);
-      utils.shimCreateObjectURL(window);
       edgeShim.shimPeerConnection(window);
       edgeShim.shimReplaceTrack(window);
 
@@ -2317,8 +2317,8 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming safari.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = safariShim;
-      // shim window.URL.createObjectURL Safari (technical preview)
-      utils.shimCreateObjectURL(window);
+      commonShim.shimCreateObjectURL(window);
+
       safariShim.shimRTCIceServerUrls(window);
       safariShim.shimCallbacksAPI(window);
       safariShim.shimLocalStreamsAPI(window);
@@ -3260,6 +3260,7 @@ module.exports = function(window) {
 'use strict';
 
 var SDPUtils = require('sdp');
+var utils = require('./utils');
 
 // Wraps the peerconnection event eventNameToWrap in a function
 // which returns the modified event object.
@@ -3359,10 +3360,63 @@ module.exports = {
       }
       return e;
     });
+  },
+
+  // shimCreateObjectURL must be called before shimSourceObject to avoid loop.
+
+  shimCreateObjectURL: function(window) {
+    var URL = window && window.URL;
+
+    if (!(typeof window === 'object' && window.HTMLMediaElement &&
+          'srcObject' in window.HTMLMediaElement.prototype &&
+        URL.createObjectURL && URL.revokeObjectURL)) {
+      // Only shim CreateObjectURL using srcObject if srcObject exists.
+      return undefined;
+    }
+
+    var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
+    var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+    var streams = new Map(), newId = 0;
+
+    URL.createObjectURL = function(stream) {
+      if ('getTracks' in stream) {
+        var url = 'polyblob:' + (++newId);
+        streams.set(url, stream);
+        utils.deprecated('URL.createObjectURL(stream)',
+            'elem.srcObject = stream');
+        return url;
+      }
+      return nativeCreateObjectURL(stream);
+    };
+    URL.revokeObjectURL = function(url) {
+      nativeRevokeObjectURL(url);
+      streams.delete(url);
+    };
+
+    var dsc = Object.getOwnPropertyDescriptor(window.HTMLMediaElement.prototype,
+                                              'src');
+    Object.defineProperty(window.HTMLMediaElement.prototype, 'src', {
+      get: function() {
+        return dsc.get.apply(this);
+      },
+      set: function(url) {
+        this.srcObject = streams.get(url) || null;
+        return dsc.set.apply(this, [url]);
+      }
+    });
+
+    var nativeSetAttribute = window.HTMLMediaElement.prototype.setAttribute;
+    window.HTMLMediaElement.prototype.setAttribute = function() {
+      if (arguments.length === 2 &&
+          ('' + arguments[0]).toLowerCase() === 'src') {
+        this.srcObject = streams.get(arguments[1]) || null;
+      }
+      return nativeSetAttribute.apply(this, arguments);
+    };
   }
 };
 
-},{"sdp":2}],8:[function(require,module,exports){
+},{"./utils":13,"sdp":2}],8:[function(require,module,exports){
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -4304,58 +4358,6 @@ var utils = {
     return result;
   },
 
-  // shimCreateObjectURL must be called before shimSourceObject to avoid loop.
-
-  shimCreateObjectURL: function(window) {
-    var URL = window && window.URL;
-
-    if (!(typeof window === 'object' && window.HTMLMediaElement &&
-          'srcObject' in window.HTMLMediaElement.prototype &&
-        URL.createObjectURL && URL.revokeObjectURL)) {
-      // Only shim CreateObjectURL using srcObject if srcObject exists.
-      return undefined;
-    }
-
-    var nativeCreateObjectURL = URL.createObjectURL.bind(URL);
-    var nativeRevokeObjectURL = URL.revokeObjectURL.bind(URL);
-    var streams = new Map(), newId = 0;
-
-    URL.createObjectURL = function(stream) {
-      if ('getTracks' in stream) {
-        var url = 'polyblob:' + (++newId);
-        streams.set(url, stream);
-        utils.deprecated('URL.createObjectURL(stream)',
-            'elem.srcObject = stream');
-        return url;
-      }
-      return nativeCreateObjectURL(stream);
-    };
-    URL.revokeObjectURL = function(url) {
-      nativeRevokeObjectURL(url);
-      streams.delete(url);
-    };
-
-    var dsc = Object.getOwnPropertyDescriptor(window.HTMLMediaElement.prototype,
-                                              'src');
-    Object.defineProperty(window.HTMLMediaElement.prototype, 'src', {
-      get: function() {
-        return dsc.get.apply(this);
-      },
-      set: function(url) {
-        this.srcObject = streams.get(url) || null;
-        return dsc.set.apply(this, [url]);
-      }
-    });
-
-    var nativeSetAttribute = window.HTMLMediaElement.prototype.setAttribute;
-    window.HTMLMediaElement.prototype.setAttribute = function() {
-      if (arguments.length === 2 &&
-          ('' + arguments[0]).toLowerCase() === 'src') {
-        this.srcObject = streams.get(arguments[1]) || null;
-      }
-      return nativeSetAttribute.apply(this, arguments);
-    };
-  }
 };
 
 // Export.
