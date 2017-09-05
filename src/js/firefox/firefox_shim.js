@@ -37,7 +37,7 @@ var firefoxShim = {
         }
       });
     }
-    if (typeof window === 'object' && window.RTCPeerConnection &&
+    if (typeof window === 'object' && window.RTCTrackEvent &&
         ('receiver' in window.RTCTrackEvent.prototype) &&
         !('transceiver' in window.RTCTrackEvent.prototype)) {
       Object.defineProperty(window.RTCTrackEvent.prototype, 'transceiver', {
