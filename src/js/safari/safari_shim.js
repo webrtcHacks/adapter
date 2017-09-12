@@ -252,6 +252,45 @@ var safariShim = {
         }
       });
     }
+  },
+
+  shimCreateOfferLegacy: function(window) {
+    var origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+    window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
+      var pc = this;
+      if (offerOptions) {
+        var audioTransceiver = pc.getTransceivers().find(function(transceiver) {
+          return transceiver.sender.track &&
+              transceiver.sender.track.kind === 'audio';
+        });
+        if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
+          if (audioTransceiver.getDirection() === 'sendrecv') {
+            audioTransceiver.setDirection('sendonly');
+          } else if (audioTransceiver.getDirection() === 'recvonly') {
+            audioTransceiver.setDirection('inactive');
+          }
+        } else if (offerOptions.offerToReceiveAudio === true &&
+            !audioTransceiver) {
+          pc.addTransceiver('audio');
+        }
+
+        var videoTransceiver = pc.getTransceivers().find(function(transceiver) {
+          return transceiver.sender.track &&
+              transceiver.sender.track.kind === 'video';
+        });
+        if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
+          if (videoTransceiver.getDirection() === 'sendrecv') {
+            videoTransceiver.setDirection('sendonly');
+          } else if (audioTransceiver.getDirection() === 'recvonly') {
+            videoTransceiver.setDirection('inactive');
+          }
+        } else if (offerOptions.offerToReceiveVideo === true &&
+            !videoTransceiver) {
+          pc.addTransceiver('video');
+        }
+      }
+      return origCreateOffer.apply(pc, arguments);
+    };
   }
 };
 
@@ -262,7 +301,8 @@ module.exports = {
   shimRemoteStreamsAPI: safariShim.shimRemoteStreamsAPI,
   shimGetUserMedia: safariShim.shimGetUserMedia,
   shimRTCIceServerUrls: safariShim.shimRTCIceServerUrls,
-  shimTrackEventTransceiver: safariShim.shimTrackEventTransceiver
+  shimTrackEventTransceiver: safariShim.shimTrackEventTransceiver,
+  shimCreateOfferLegacy: safariShim.shimCreateOfferLegacy
   // TODO
   // shimPeerConnection: safariShim.shimPeerConnection
 };
