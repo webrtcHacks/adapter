@@ -1,1 +1,1 @@
-adapter-5.0.3.js
+adapter-5.0.4.js
