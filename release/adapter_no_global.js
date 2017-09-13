@@ -212,6 +212,7 @@ function maybeAddCandidate(iceTransport, candidate) {
   if (!alreadyAdded) {
     iceTransport.addRemoteCandidate(candidate);
   }
+  return !alreadyAdded;
 }
 
 module.exports = function(window, edgeVersion) {
@@ -304,7 +305,7 @@ module.exports = function(window, edgeVersion) {
   RTCPeerConnection.prototype._emitGatheringStateChange = function() {
     var event = new Event('icegatheringstatechange');
     this.dispatchEvent(event);
-    if (this.onicegatheringstatechange !== null) {
+    if (typeof this.onicegatheringstatechange === 'function') {
       this.onicegatheringstatechange(event);
     }
   };
@@ -522,13 +523,13 @@ module.exports = function(window, edgeVersion) {
       // complete.
       if (!end) {
         self.dispatchEvent(event);
-        if (self.onicecandidate !== null) {
+        if (typeof self.onicecandidate === 'function') {
           self.onicecandidate(event);
         }
       }
       if (complete) {
         self.dispatchEvent(new Event('icecandidate'));
-        if (self.onicecandidate !== null) {
+        if (typeof self.onicecandidate === 'function') {
           self.onicecandidate(new Event('icecandidate'));
         }
         self.iceGatheringState = 'complete';
@@ -609,7 +610,7 @@ module.exports = function(window, edgeVersion) {
       }
       transceiver.rtpSender.send(params);
     }
-    if (recv && transceiver.rtpReceiver) {
+    if (recv && transceiver.rtpReceiver && params.codecs.length > 0) {
       // remove RTX field in Edge 14942
       if (transceiver.kind === 'video'
           && transceiver.recvEncodingParameters
@@ -637,7 +638,7 @@ module.exports = function(window, edgeVersion) {
     if (!isActionAllowedInSignalingState('setLocalDescription',
         description.type, this.signalingState)) {
       return new Promise(function(resolve, reject) {
-        var e = new Error('Can not set remote ' + description.type +
+        var e = new Error('Can not set local ' + description.type +
             ' in state ' + self.signalingState);
         e.name = 'InvalidStateError';
         if (args.length > 2 && typeof args[2] === 'function') {
@@ -675,7 +676,9 @@ module.exports = function(window, edgeVersion) {
         var localCapabilities = transceiver.localCapabilities;
         var remoteCapabilities = transceiver.remoteCapabilities;
 
-        var rejected = SDPUtils.isRejected(mediaSection);
+        // treat bundle-only as not-rejected.
+        var rejected = SDPUtils.isRejected(mediaSection) &&
+            !SDPUtils.matchPrefix(mediaSection, 'a=bundle-only').length === 1;
 
         if (!rejected && !transceiver.isDatachannel) {
           var remoteIceParameters = SDPUtils.getIceParameters(
@@ -780,7 +783,9 @@ module.exports = function(window, edgeVersion) {
     sections.forEach(function(mediaSection, sdpMLineIndex) {
       var lines = SDPUtils.splitLines(mediaSection);
       var kind = SDPUtils.getKind(mediaSection);
-      var rejected = SDPUtils.isRejected(mediaSection);
+      // treat bundle-only as not-rejected.
+      var rejected = SDPUtils.isRejected(mediaSection) &&
+          !SDPUtils.matchPrefix(mediaSection, 'a=bundle-only').length === 1;
       var protocol = lines[0].substr(2).split(' ')[2];
 
       var direction = SDPUtils.getDirection(mediaSection, sessionpart);
@@ -863,9 +868,8 @@ module.exports = function(window, edgeVersion) {
               usingBundle);
         }
 
-        if (cands.length) {
-          if (isComplete && (!usingBundle || sdpMLineIndex === 0)
-              && transceiver.iceTransport.state === 'new') {
+        if (cands.length && transceiver.iceTransport.state === 'new') {
+          if (isComplete && (!usingBundle || sdpMLineIndex === 0)) {
             transceiver.iceTransport.setRemoteCandidates(cands);
           } else {
             cands.forEach(function(candidate) {
@@ -1024,7 +1028,7 @@ module.exports = function(window, edgeVersion) {
           event.stream = stream;
           window.setTimeout(function() {
             self.dispatchEvent(event);
-            if (self.onaddstream !== null) {
+            if (typeof self.onaddstream === 'function') {
               self.onaddstream(event);
             }
           });
@@ -1043,7 +1047,7 @@ module.exports = function(window, edgeVersion) {
           trackEvent.streams = [stream];
           window.setTimeout(function() {
             self.dispatchEvent(trackEvent);
-            if (self.ontrack !== null) {
+            if (typeof self.ontrack === 'function') {
               self.ontrack(trackEvent);
             }
           });
@@ -1105,7 +1109,7 @@ module.exports = function(window, edgeVersion) {
     this.signalingState = newState;
     var event = new Event('signalingstatechange');
     this.dispatchEvent(event);
-    if (this.onsignalingstatechange !== null) {
+    if (typeof this.onsignalingstatechange === 'function') {
       this.onsignalingstatechange(event);
     }
   };
@@ -1124,7 +1128,7 @@ module.exports = function(window, edgeVersion) {
       self.needNegotiation = false;
       var event = new Event('negotiationneeded');
       self.dispatchEvent(event);
-      if (self.onnegotiationneeded !== null) {
+      if (typeof self.onnegotiationneeded === 'function') {
         self.onnegotiationneeded(event);
       }
     }, 0);
@@ -1168,7 +1172,7 @@ module.exports = function(window, edgeVersion) {
       self.iceConnectionState = newState;
       var event = new Event('iceconnectionstatechange');
       this.dispatchEvent(event);
-      if (this.oniceconnectionstatechange !== null) {
+      if (typeof this.oniceconnectionstatechange === 'function') {
         this.oniceconnectionstatechange(event);
       }
     }
@@ -1463,22 +1467,27 @@ module.exports = function(window, edgeVersion) {
           return Promise.resolve();
         }
         // when using bundle, avoid adding candidates to the wrong
-        // ice transport.
+        // ice transport. And avoid adding candidates added in the SDP.
         if (sdpMLineIndex === 0 || (sdpMLineIndex > 0 &&
             transceiver.iceTransport !== this.transceivers[0].iceTransport)) {
-          transceiver.iceTransport.addRemoteCandidate(cand);
+          if (!maybeAddCandidate(transceiver.iceTransport, cand)) {
+            err = new Error('Can not add ICE candidate');
+            err.name = 'OperationError';
+          }
         }
 
-        // update the remoteDescription.
-        var candidateString = candidate.candidate.trim();
-        if (candidateString.indexOf('a=') === 0) {
-          candidateString = candidateString.substr(2);
+        if (!err) {
+          // update the remoteDescription.
+          var candidateString = candidate.candidate.trim();
+          if (candidateString.indexOf('a=') === 0) {
+            candidateString = candidateString.substr(2);
+          }
+          sections = SDPUtils.splitSections(this.remoteDescription.sdp);
+          sections[sdpMLineIndex + 1] += 'a=' +
+              (cand.type ? candidateString : 'end-of-candidates')
+              + '\r\n';
+          this.remoteDescription.sdp = sections.join('');
         }
-        sections = SDPUtils.splitSections(this.remoteDescription.sdp);
-        sections[sdpMLineIndex + 1] += 'a=' +
-            (cand.type ? candidateString : 'end-of-candidates')
-            + '\r\n';
-        this.remoteDescription.sdp = sections.join('');
       } else {
         err = new Error('Can not add ICE candidate');
         err.name = 'OperationError';
@@ -2177,8 +2186,21 @@ SDPUtils.isRejected = function(mediaSection) {
   return mediaSection.split(' ', 2)[1] === '0';
 };
 
+SDPUtils.parseMLine = function(mediaSection) {
+  var lines = SDPUtils.splitLines(mediaSection);
+  var mline = lines[0].split(' ');
+  return {
+    kind: mline[0].substr(2),
+    port: parseInt(mline[1], 10),
+    protocol: mline[2],
+    fmt: mline.slice(3).join(' ')
+  };
+};
+
 // Expose public methods.
-module.exports = SDPUtils;
+if (typeof module === 'object') {
+  module.exports = SDPUtils;
+}
 
 },{}],3:[function(require,module,exports){
 (function (global){
@@ -2567,8 +2589,10 @@ var chromeShim = {
   },
 
   shimAddTrackRemoveTrack: function(window) {
+    var browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
-    if (window.RTCPeerConnection.prototype.addTrack) {
+    if (window.RTCPeerConnection.prototype.addTrack &&
+        browserDetails.version >= 62) {
       return;
     }
 
@@ -4189,11 +4213,13 @@ var safariShim = {
     };
     window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
     // wrap static methods. Currently just generateCertificate.
-    Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-      get: function() {
-        return OrigPeerConnection.generateCertificate;
-      }
-    });
+    if ('generateCertificate' in window.RTCPeerConnection) {
+      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
+        get: function() {
+          return OrigPeerConnection.generateCertificate;
+        }
+      });
+    }
   },
   shimTrackEventTransceiver: function(window) {
     // Add event.transceiver member over deprecated event.receiver
