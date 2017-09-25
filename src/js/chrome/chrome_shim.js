@@ -142,7 +142,7 @@ var chromeShim = {
       window.RTCPeerConnection.prototype.removeStream = function(stream) {
         var pc = this;
         pc._senders = pc._senders || [];
-        origRemoveStream.apply(pc, [(pc._streams[stream.id] || stream)]);
+        origRemoveStream.apply(pc, [stream]);
 
         stream.getTracks().forEach(function(track) {
           var sender = pc._senders.find(function(s) {
