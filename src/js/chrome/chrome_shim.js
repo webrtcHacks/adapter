@@ -538,7 +538,7 @@ var chromeShim = {
       // When spec-style getStats is supported, return those when called with
       // either no arguments or the selector argument is null.
       if (origGetStats.length === 0 && (arguments.length === 0 ||
-          typeof arguments[0] !== 'function')) {
+          selector == null)) {
         return origGetStats.apply(this, []);
       }
 
