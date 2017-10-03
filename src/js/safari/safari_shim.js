@@ -264,9 +264,9 @@ var safariShim = {
               transceiver.sender.track.kind === 'audio';
         });
         if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
-          if (audioTransceiver.getDirection() === 'sendrecv') {
+          if (audioTransceiver.direction === 'sendrecv') {
             audioTransceiver.setDirection('sendonly');
-          } else if (audioTransceiver.getDirection() === 'recvonly') {
+          } else if (audioTransceiver.direction === 'recvonly') {
             audioTransceiver.setDirection('inactive');
           }
         } else if (offerOptions.offerToReceiveAudio === true &&
@@ -279,9 +279,9 @@ var safariShim = {
               transceiver.sender.track.kind === 'video';
         });
         if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
-          if (videoTransceiver.getDirection() === 'sendrecv') {
+          if (videoTransceiver.direction === 'sendrecv') {
             videoTransceiver.setDirection('sendonly');
-          } else if (audioTransceiver.getDirection() === 'recvonly') {
+          } else if (videoTransceiver.direction === 'recvonly') {
             videoTransceiver.setDirection('inactive');
           }
         } else if (offerOptions.offerToReceiveVideo === true &&
