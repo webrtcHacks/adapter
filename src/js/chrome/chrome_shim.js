@@ -231,7 +231,7 @@ var chromeShim = {
     var browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack &&
-        browserDetails.version >= 62) {
+        browserDetails.version >= 63) {
       return;
     }
 
