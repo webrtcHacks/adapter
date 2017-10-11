@@ -19,7 +19,7 @@
     "test": "grunt && grunt downloadBrowser && mocha test/unit && karma start test/karma.conf.js"
   },
   "dependencies": {
-    "rtcpeerconnection-shim": "^1.0.1",
+    "rtcpeerconnection-shim": "^1.1.13",
     "sdp": "^2.3.0"
   },
   "engines": {
@@ -50,7 +50,7 @@
     "karma-stability-reporter": "git+https://github.com/fippo/karma-stability-reporter.git#v2.1.0",
     "mocha": "^3.2.0",
     "sinon": "^2.2.0",
-    "sinon-chai": "^2.10.0",
+    "sinon-chai": "^2.14.0",
     "tape": "^4.0.0",
     "travis-multirunner": "^3.0.1"
   }
