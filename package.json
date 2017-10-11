@@ -1,6 +1,6 @@
 {
   "name": "webrtc-adapter",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "description": "A shim to insulate apps from WebRTC spec changes and browser prefix differences",
   "license": "BSD-3-Clause",
   "main": "./src/js/adapter_core.js",
@@ -47,7 +47,7 @@
     "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.3",
     "karma-safari-launcher": "^1.0.0",
-    "karma-stability-reporter": "git+https://github.com/fippo/karma-stability-reporter.git#v2.0.0",
+    "karma-stability-reporter": "git+https://github.com/fippo/karma-stability-reporter.git#v2.1.0",
     "mocha": "^3.2.0",
     "sinon": "^2.2.0",
     "sinon-chai": "^2.10.0",

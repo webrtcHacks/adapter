@@ -231,7 +231,7 @@ var chromeShim = {
     var browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack &&
-        browserDetails.version >= 62) {
+        browserDetails.version >= 63) {
       return;
     }
 
@@ -456,7 +456,7 @@ var chromeShim = {
         if (stream.getTracks().length === 1) {
           // if this is the last track of the stream, remove the stream. This
           // takes care of any shimmed _senders.
-          pc.removeStream(stream);
+          pc.removeStream(pc._reverseStreams[stream.id]);
         } else {
           // relying on the same odd chrome behaviour as above.
           stream.removeTrack(sender.track);
