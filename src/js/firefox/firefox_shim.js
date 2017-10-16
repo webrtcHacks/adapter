@@ -196,6 +196,20 @@ var firefoxShim = {
         })
         .then(onSucc, onErr);
     };
+  },
+
+  shimRemoveStream: function(window) {
+    if ('removeStream' in window.RTCPeerConnection.prototype) {
+      return;
+    }
+    window.RTCPeerConnection.prototype.removeStream = function(stream) {
+      utils.deprecated('removeStream', 'removeTrack');
+      this.getSenders().forEach(function(sender) {
+        if (sender.track && stream.getTracks().indexOf(sender.track) !== -1) {
+          this.removeTrack(sender);
+        }
+      });
+    };
   }
 };
 
@@ -204,5 +218,6 @@ module.exports = {
   shimOnTrack: firefoxShim.shimOnTrack,
   shimSourceObject: firefoxShim.shimSourceObject,
   shimPeerConnection: firefoxShim.shimPeerConnection,
+  shimRemoveStream: firefoxShim.shimRemoveStream,
   shimGetUserMedia: require('./getusermedia')
 };
