@@ -45,7 +45,7 @@ PASS navigator.mediaDevices enumerateDevices returns some videoinput devices
 PASS navigator.mediaDevices enumerateDevices returns some audiooutput devices
 PASS MediaStream window.MediaStream exists
 ERR track event RTCPeerConnection.prototype.ontrack exists AssertionError
-PASS track event is called by setRemoteDescription during renegotiation
+PASS track event is called when setRemoteDescription adds a new track to an existing stream
 PASS track event is called by setRemoteDescription track event
 PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track

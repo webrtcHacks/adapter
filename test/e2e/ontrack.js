@@ -95,7 +95,8 @@ describe('track event', () => {
     });
   });
 
-  it('is called by setRemoteDescription during renegotiation', (done) => {
+  it('is called when setRemoteDescription adds a new track to ' +
+      'an existing stream', (done) => {
     const videoPart = 'm=video 9 UDP/TLS/RTP/SAVPF 100\r\n' +
       'c=IN IP4 0.0.0.0\r\n' +
       'a=rtcp:9 IN IP4 0.0.0.0\r\n' +
