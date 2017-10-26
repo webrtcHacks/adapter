@@ -8,7 +8,7 @@
  /* eslint-env node */
 'use strict';
 
-var logDisabled_ = true;
+var logDisabled_ = false;
 var deprecationWarnings_ = true;
 
 /**

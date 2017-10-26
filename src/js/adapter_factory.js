@@ -74,6 +74,7 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimGetSendersWithDtmf(window);
 
       commonShim.shimRTCIceCandidate(window);
+      commonShim.shimMaxMessageSize(window);
       break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection ||
@@ -93,6 +94,7 @@ module.exports = function(dependencies, opts) {
       firefoxShim.shimRemoveStream(window);
 
       commonShim.shimRTCIceCandidate(window);
+      commonShim.shimMaxMessageSize(window);
       break;
     case 'edge':
       if (!edgeShim || !edgeShim.shimPeerConnection || !options.shimEdge) {
@@ -109,6 +111,8 @@ module.exports = function(dependencies, opts) {
       edgeShim.shimReplaceTrack(window);
 
       // the edge shim implements the full RTCIceCandidate object.
+      
+      commonShim.shimMaxMessageSize(window);
       break;
     case 'safari':
       if (!safariShim || !options.shimSafari) {
@@ -129,6 +133,7 @@ module.exports = function(dependencies, opts) {
       safariShim.shimCreateOfferLegacy(window);
 
       commonShim.shimRTCIceCandidate(window);
+      commonShim.shimMaxMessageSize(window);
       break;
     default:
       logging('Unsupported browser!');

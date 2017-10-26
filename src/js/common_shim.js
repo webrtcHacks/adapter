@@ -162,5 +162,46 @@ module.exports = {
       }
       return nativeSetAttribute.apply(this, arguments);
     };
+  },
+
+  shimMaxMessageSize: function(window) {
+    if (window.RTCSctpTransport) {
+      return;
+    }
+
+    if (!('sctp' in window.RTCPeerConnection.prototype)) {
+      Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {
+        get: function() {
+          return typeof this._sctp === 'undefined' ? null : this._sctp;
+        }
+      });
+    }
+
+    var origSetRemoteDescription =
+        window.RTCPeerConnection.prototype.setRemoteDescription;
+    window.RTCPeerConnection.prototype.setRemoteDescription = function() {
+      var pc = this;
+
+      // Determine the maximum message size of the remote peer.
+      // Note: 65535 bytes is the default value from the SDP spec. Also,
+      //       every implementation we know supports receiving 65535 bytes.
+      var maxMessageSize = 65535;
+      var match = arguments[0].sdp.match(/a=max-message-size:\s*(\d+)/);
+      if (match !== null && match.length >= 2) {
+        maxMessageSize = parseInt(match[1]);
+      }
+
+      // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
+      // attribute.
+      var sctp = {};
+      Object.defineProperty(sctp, 'maxMessageSize', {
+        get: function() {
+          return maxMessageSize;
+        }
+      });
+      pc._sctp = sctp;
+
+      return origSetRemoteDescription.apply(pc, arguments);
+    };
   }
 };
