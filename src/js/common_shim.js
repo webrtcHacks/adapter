@@ -203,5 +203,36 @@ module.exports = {
 
       return origSetRemoteDescription.apply(pc, arguments);
     };
+  },
+
+  shimSendThrowTypeError: function(window) {
+    var browserDetails = utils.detectBrowser(window);
+
+    // Only Firefox 57 has support for this atm
+    if (browserDetails.browser === 'firefox' && browserDetails.version >= 57) {
+      return;
+    }
+
+    var origCreateDataChannel =
+      window.RTCPeerConnection.prototype.createDataChannel;
+    window.RTCPeerConnection.prototype.createDataChannel = function() {
+      var pc = this;
+      var dataChannel = origCreateDataChannel.apply(pc, arguments);
+      var origDataChannelSend = dataChannel.send;
+
+      // Patch 'send' method
+      dataChannel.send = function() {
+        var dc = this;
+        var data = arguments[0];
+        var length = data.length || data.size || data.byteLength;
+        if (length > pc.sctp.maxMessageSize) {
+          throw new TypeError('Message too large (the other peer can ' +
+            'receive a maximum of ' + pc.sctp.maxMessageSize + ' bytes)');
+        }
+        return origDataChannelSend.apply(dc, arguments);
+      };
+
+      return dataChannel;
+    };
   }
 };
