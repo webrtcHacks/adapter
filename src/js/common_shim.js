@@ -280,7 +280,8 @@ module.exports = {
 
     // Only Firefox 57 has support for this atm
     if (browserDetails.browser === 'firefox' && browserDetails.version >= 57) {
-      return;
+      // TODO: Re-enable if we get a DOMError -> TypeError hotfix into FF 57
+      // return;
     }
 
     var origCreateDataChannel =
