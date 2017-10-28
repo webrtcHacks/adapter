@@ -189,7 +189,7 @@ module.exports = {
       var maxMessageSize = 65535;
       var match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
       if (match.length > 0) {
-        maxMessageSize = parseInt(match[0]);
+        maxMessageSize = parseInt(match[0].substr(19), 10);
       }
       return maxMessageSize;
     };
@@ -200,8 +200,8 @@ module.exports = {
     };
 
     var maybeApplyMaxMessageSize = function(pc) {
-      if (pc._localMaxMessageSize !== null &&
-          pc._remoteMaxMessageSize !== null) {
+      if (Number.isInteger(pc._localMaxMessageSize) &&
+          Number.isInteger(pc._remoteMaxMessageSize)) {
         // Note: This algorithm is not in the spec so far but it will
         //       likely be added, see:
         // https://github.com/w3c/webrtc-pc/issues/1446#issuecomment-340204737
