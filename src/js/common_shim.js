@@ -187,17 +187,16 @@ module.exports = {
       // Note: 65535 bytes is the default value from the SDP spec. Also,
       //       every implementation we know supports receiving 65535 bytes.
       var maxMessageSize = 65535;
-      var match = description.sdp.match(/a=max-message-size:\s*(\d+)/);
-      if (match !== null && match.length >= 2) {
-        maxMessageSize = parseInt(match[1]);
+      var match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
+      if (match.length > 0) {
+        maxMessageSize = parseInt(match[0]);
       }
       return maxMessageSize;
     };
 
     var isFirefox = function(description) {
       // TODO: Is there a better solution for detecting Firefox?
-      var match = description.sdp.match(/mozilla...THIS_IS_SDPARTA/);
-      return (match !== null && match.length >= 1);
+      return description.sdp.indexOf('mozilla...THIS_IS_SDPARTA') !== -1;
     };
 
     var maybeApplyMaxMessageSize = function(pc) {
