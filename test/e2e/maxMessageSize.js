@@ -90,56 +90,76 @@ describe('maxMessageSize', () => {
   it('0 case handled correctly', (done) => {
     const patchMaxMessageSize = patchMaxMessageSizeFactory(0);
 
-    // Patch max-message-size
+    // Ensure TypeError isn't thrown when sending data
     const dc = pc1.createDataChannel('test');
+    const send = () => {
+      dc.send('meow');
+    };
+    dc.onopen = () => {
+      expect(send).not.to.throw();
+      done();
+    };
     negotiate(pc1, pc2, patchMaxMessageSize)
     .then(() => {
       expect(pc1.sctp.maxMessageSize).to.equal(0);
       expect(pc2.sctp.maxMessageSize).to.equal(0);
-
-      // Ensure TypeError isn't thrown when sending data
-      const send = () => {
-        dc.send('meow');
-      };
-      dc.onopen = () => {
-        expect(send).not.to.throw();
-        done();
-      };
     });
   });
 
-  it('send largest possible single message', (done) => {
+  it('send largest possible single message', () => {
+    let maxMessageSize = 1000;
     const patchMaxMessageSize = patchMaxMessageSizeFactory(1000);
+    if (window.adapter.browserDetails.browser === 'firefox') {
+      maxMessageSize = 1073741823;
+    }
 
-    const dc = pc1.createDataChannel('test');
-    negotiate(pc1, pc2, patchMaxMessageSize)
+    pc1.createDataChannel('test');
+    return negotiate(pc1, pc2, patchMaxMessageSize)
     .then(() => {
+      expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
+      expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
+
       // Ensure TypeError is thrown when sending a message that's too large
-      const send = () => {
-        dc.send(new Uint8Array(1000));
-      };
-      dc.onopen = () => {
-        expect(send).not.to.throw(TypeError);
-        done();
-      };
+      return new Promise((resolve, reject) => {
+        const dc = pc1.createDataChannel('test2');
+        const send = () => {
+          // Note: Falling back to 1000 here as the special case of FF would
+          //       take way too long.
+          dc.send(new Uint8Array(1000));
+        };
+        dc.onopen = () => {
+          expect(send).not.to.throw(TypeError);
+          resolve();
+        };
+      });
     });
   });
 
   describe('throws an exception', () => {
-    it('if the message is too large', (done) => {
-      const patchMaxMessageSize = patchMaxMessageSizeFactory(1000);
+    it('if the message is too large', () => {
+      let maxMessageSize = 1000;
+      const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
+      if (window.adapter.browserDetails.browser === 'firefox') {
+        maxMessageSize = 1073741823;
+      }
 
-      const dc = pc1.createDataChannel('test');
-      negotiate(pc1, pc2, patchMaxMessageSize)
+      pc1.createDataChannel('test');
+      return negotiate(pc1, pc2, patchMaxMessageSize)
       .then(() => {
+        expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
+        expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
+
         // Ensure TypeError is thrown when sending a message that's too large
-        const send = () => {
-          dc.send(new Uint8Array(1001));
-        };
-        dc.onopen = () => {
-          expect(send).to.throw(TypeError);
-          done();
-        };
+        return new Promise((resolve, reject) => {
+          const dc = pc1.createDataChannel('test2');
+          const send = () => {
+            dc.send(new Uint8Array(maxMessageSize + 1));
+          };
+          dc.onopen = () => {
+            expect(send).to.throw(TypeError);
+            resolve();
+          };
+        });
       });
     });
   });
