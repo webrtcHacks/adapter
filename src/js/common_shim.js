@@ -205,9 +205,12 @@ module.exports = {
           pc._remoteMaxMessageSize !== null) {
         // Note: This algorithm is not in the spec so far but it will
         //       likely be added, see:
-        // https://github.com/w3c/webrtc-pc/issues/1446#issuecomment-313463625
+        // https://github.com/w3c/webrtc-pc/issues/1446#issuecomment-340204737
         var maxMessageSize = pc._localMaxMessageSize;
-        if (pc._remoteMaxMessageSize > 0) {
+        if (pc._localMaxMessageSize === 0 || pc._remoteMaxMessageSize === 0) {
+          maxMessageSize = Math.max(pc._localMaxMessageSize,
+                                    pc._remoteMaxMessageSize);
+        } else {
           maxMessageSize = Math.min(pc._localMaxMessageSize,
                                     pc._remoteMaxMessageSize);
         }
