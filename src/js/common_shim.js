@@ -168,6 +168,7 @@ module.exports = {
     if (window.RTCSctpTransport) {
       return;
     }
+    var browserDetails = utils.detectBrowser(window);
 
     if (!('sctp' in window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {
@@ -177,29 +178,95 @@ module.exports = {
       });
     }
 
+    var sctpInDescription = function(description) {
+      var match = description.sdp.match(/m=application\s+\d+\s+[\w/]*SCTP/);
+      return (match !== null && match.length >= 1);
+    };
+
+    var getMaxMessageSize = function(description) {
+      // Note: 65535 bytes is the default value from the SDP spec. Also,
+      //       every implementation we know supports receiving 65535 bytes.
+      var maxMessageSize = 65535;
+      var match = description.sdp.match(/a=max-message-size:\s*(\d+)/);
+      if (match !== null && match.length >= 2) {
+        maxMessageSize = parseInt(match[1]);
+      }
+      return maxMessageSize;
+    };
+
+    var isFirefox = function(description) {
+      // TODO: Is there a better solution for detecting Firefox?
+      var match = description.sdp.match(/mozilla...THIS_IS_SDPARTA/);
+      return (match !== null && match.length >= 1);
+    };
+
+    var maybeApplyMaxMessageSize = function(pc) {
+      if (pc._localMaxMessageSize !== null &&
+          pc._remoteMaxMessageSize !== null) {
+        // Note: This algorithm is not in the spec so far but it will
+        //       likely be added, see:
+        // https://github.com/w3c/webrtc-pc/issues/1446#issuecomment-313463625
+        var maxMessageSize = pc._localMaxMessageSize;
+        if (pc._remoteMaxMessageSize > 0) {
+          maxMessageSize = Math.min(pc._localMaxMessageSize,
+                                    pc._remoteMaxMessageSize);
+        }
+
+        // FF can send (at least) 1 GiB towards all other FF.
+        if (browserDetails.browser === 'firefox' && pc._otherPeerIsFirefox) {
+          maxMessageSize = 1073741823;
+        }
+
+        // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
+        // attribute.
+        var sctp = {};
+        Object.defineProperty(sctp, 'maxMessageSize', {
+          get: function() {
+            return maxMessageSize;
+          }
+        });
+        pc._sctp = sctp;
+      }
+    };
+
+    var origSetLocalDescription =
+      window.RTCPeerConnection.prototype.setLocalDescription;
+    window.RTCPeerConnection.prototype.setLocalDescription = function() {
+      var pc = this;
+      pc._localMaxMessageSize = null;
+
+      if (sctpInDescription(arguments[0])) {
+        // Determine the maximum message size of the browser.
+        if (browserDetails.browser === 'firefox' &&
+            browserDetails.version < 57) {
+          // Note: This is required because FF < 57 will send in 16 KiB chunks
+          pc._localMaxMessageSize = 16384;
+        } else {
+          pc._localMaxMessageSize = getMaxMessageSize(arguments[0]);
+        }
+
+        // Determine final maximum message size
+        maybeApplyMaxMessageSize(pc);
+      }
+
+      return origSetLocalDescription.apply(pc, arguments);
+    };
+
     var origSetRemoteDescription =
         window.RTCPeerConnection.prototype.setRemoteDescription;
     window.RTCPeerConnection.prototype.setRemoteDescription = function() {
       var pc = this;
+      pc._remoteMaxMessageSize = null;
+      pc._otherPeerIsFirefox = false;
 
-      // Determine the maximum message size of the remote peer.
-      // Note: 65535 bytes is the default value from the SDP spec. Also,
-      //       every implementation we know supports receiving 65535 bytes.
-      var maxMessageSize = 65535;
-      var match = arguments[0].sdp.match(/a=max-message-size:\s*(\d+)/);
-      if (match !== null && match.length >= 2) {
-        maxMessageSize = parseInt(match[1]);
+      if (sctpInDescription(arguments[0])) {
+        // Determine the maximum message size of the remote peer.
+        pc._remoteMaxMessageSize = getMaxMessageSize(arguments[0]);
+        // Determine if other peer is Firefox
+        pc._otherPeerIsFirefox = isFirefox(arguments[0]);
+        // Determine final maximum message size
+        maybeApplyMaxMessageSize(pc);
       }
-
-      // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
-      // attribute.
-      var sctp = {};
-      Object.defineProperty(sctp, 'maxMessageSize', {
-        get: function() {
-          return maxMessageSize;
-        }
-      });
-      pc._sctp = sctp;
 
       return origSetRemoteDescription.apply(pc, arguments);
     };
@@ -226,8 +293,8 @@ module.exports = {
         var data = arguments[0];
         var length = data.length || data.size || data.byteLength;
         if (length > pc.sctp.maxMessageSize) {
-          throw new TypeError('Message too large (the other peer can ' +
-            'receive a maximum of ' + pc.sctp.maxMessageSize + ' bytes)');
+          throw new TypeError('Message too large (can send a maximum of ' +
+            pc.sctp.maxMessageSize + ' bytes)');
         }
         return origDataChannelSend.apply(dc, arguments);
       };
