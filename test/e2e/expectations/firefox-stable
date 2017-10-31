@@ -33,6 +33,13 @@ PASS getStats returns a Promise
 PASS getStats resolves the Promise with a Map(like)
 PASS getUserMedia navigator.getUserMedia exists
 PASS getUserMedia navigator.getUserMedia calls the callback
+PASS maxMessageSize sctp attribute exists
+PASS maxMessageSize sctp attribute is null before offer/answer
+PASS maxMessageSize sctp attribute is null if SCTP not negotiated
+PASS maxMessageSize sctp and maxMessageSize set if SCTP negotiated
+PASS maxMessageSize 0 case handled correctly
+PASS maxMessageSize send largest possible single message
+PASS maxMessageSize throws an exception if the message is too large
 PASS navigator.mediaDevices exists
 PASS navigator.mediaDevices is an EventTarget
 PASS navigator.mediaDevices implements the devicechange event
@@ -81,10 +88,3 @@ PASS srcObject setter triggers loadedmetadata (audio)
 PASS srcObject getter returns the stream (audio)
 PASS srcObject setter triggers loadedmetadata (video)
 PASS srcObject getter returns the stream (video)
-PASS maxMessageSize sctp attribute exists
-PASS maxMessageSize sctp attribute is null before offer/answer
-PASS maxMessageSize sctp attribute is null if SCTP not negotiated
-PASS maxMessageSize sctp and maxMessageSize set if SCTP negotiated
-PASS maxMessageSize 0 case handled correctly
-PASS maxMessageSize send largest possible single message
-PASS maxMessageSize throws an exception if the message is too large

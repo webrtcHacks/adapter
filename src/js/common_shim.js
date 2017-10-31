@@ -194,9 +194,15 @@ module.exports = {
       return maxMessageSize;
     };
 
-    var isFirefox = function(description) {
+    var getFirefoxVersion = function(description) {
       // TODO: Is there a better solution for detecting Firefox?
-      return description.sdp.indexOf('mozilla...THIS_IS_SDPARTA') !== -1;
+      var match = description.sdp.match(/mozilla...THIS_IS_SDPARTA-(\d+)/);
+      if (match === null || match.length < 2) {
+        return -1;
+      }
+      var version = parseInt(match[1], 10);
+      // Test for NaN (yes, this is ugly)
+      return version !== version ? -1 : version;
     };
 
     var maybeApplyMaxMessageSize = function(pc) {
@@ -214,8 +220,9 @@ module.exports = {
                                     pc._remoteMaxMessageSize);
         }
 
-        // FF can send (at least) 1 GiB towards all other FF.
-        if (browserDetails.browser === 'firefox' && pc._otherPeerIsFirefox) {
+        // Any FF can send (at least) 1 GiB towards all other FF < 57.
+        if (browserDetails.browser === 'firefox' &&
+            pc._otherPeerFirefoxVersion < 57) {
           maxMessageSize = 1073741823;
         }
 
@@ -259,13 +266,13 @@ module.exports = {
     window.RTCPeerConnection.prototype.setRemoteDescription = function() {
       var pc = this;
       pc._remoteMaxMessageSize = null;
-      pc._otherPeerIsFirefox = false;
+      pc._otherPeerFirefoxVersion = -1;
 
       if (sctpInDescription(arguments[0])) {
         // Determine the maximum message size of the remote peer.
         pc._remoteMaxMessageSize = getMaxMessageSize(arguments[0]);
         // Determine if other peer is Firefox
-        pc._otherPeerIsFirefox = isFirefox(arguments[0]);
+        pc._otherPeerFirefoxVersion = getFirefoxVersion(arguments[0]);
         // Determine final maximum message size
         maybeApplyMaxMessageSize(pc);
       }
@@ -279,8 +286,7 @@ module.exports = {
 
     // Only Firefox 57 has support for this atm
     if (browserDetails.browser === 'firefox' && browserDetails.version >= 57) {
-      // TODO: Re-enable if we get a DOMError -> TypeError hotfix into FF 57
-      // return;
+      return;
     }
 
     var origCreateDataChannel =
@@ -296,8 +302,8 @@ module.exports = {
         var data = arguments[0];
         var length = data.length || data.size || data.byteLength;
         if (length > pc.sctp.maxMessageSize) {
-          throw new TypeError('Message too large (can send a maximum of ' +
-            pc.sctp.maxMessageSize + ' bytes)');
+          throw new DOMException('Message too large (can send a maximum of ' +
+            pc.sctp.maxMessageSize + ' bytes)', 'TypeError');
         }
         return origDataChannelSend.apply(dc, arguments);
       };

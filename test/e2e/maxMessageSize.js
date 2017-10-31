@@ -109,7 +109,8 @@ describe('maxMessageSize', () => {
   it('send largest possible single message', () => {
     let maxMessageSize = 1000;
     const patchMaxMessageSize = patchMaxMessageSizeFactory(1000);
-    if (window.adapter.browserDetails.browser === 'firefox') {
+    if (window.adapter.browserDetails.browser === 'firefox' &&
+        window.adapter.browserDetails.version < 57) {
       maxMessageSize = 1073741823;
     }
 
@@ -128,7 +129,7 @@ describe('maxMessageSize', () => {
           dc.send(new Uint8Array(1000));
         };
         dc.onopen = () => {
-          expect(send).not.to.throw(TypeError);
+          expect(send).not.to.throw();
           resolve();
         };
       });
@@ -139,7 +140,8 @@ describe('maxMessageSize', () => {
     it('if the message is too large', () => {
       let maxMessageSize = 1000;
       const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
-      if (window.adapter.browserDetails.browser === 'firefox') {
+      if (window.adapter.browserDetails.browser === 'firefox' &&
+          window.adapter.browserDetails.version < 57) {
         maxMessageSize = 1073741823;
       }
 
@@ -153,10 +155,16 @@ describe('maxMessageSize', () => {
         return new Promise((resolve, reject) => {
           const dc = pc1.createDataChannel('test2');
           const send = () => {
+            // Note: The local MMS is determined incorrectly by FF >= 57
+            //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1413140
+            if (window.adapter.browserDetails.browser === 'firefox' &&
+                window.adapter.browserDetails.version >= 57) {
+              maxMessageSize = 1073741823;
+            }
             dc.send(new Uint8Array(maxMessageSize + 1));
           };
           dc.onopen = () => {
-            expect(send).to.throw(TypeError);
+            expect(send).to.throw().with.property('name', 'TypeError');
             resolve();
           };
         });
