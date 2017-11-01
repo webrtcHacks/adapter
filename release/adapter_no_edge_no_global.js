@@ -762,6 +762,7 @@ module.exports = function(dependencies, opts) {
       firefoxShim.shimSourceObject(window);
       firefoxShim.shimPeerConnection(window);
       firefoxShim.shimOnTrack(window);
+      firefoxShim.shimRemoveStream(window);
 
       commonShim.shimRTCIceCandidate(window);
       break;
@@ -1554,6 +1555,9 @@ module.exports = function(window) {
   };
 
   var shimConstraints_ = function(constraints, func) {
+    if (browserDetails.version >= 61) {
+      return func(constraints);
+    }
     constraints = JSON.parse(JSON.stringify(constraints));
     if (constraints && typeof constraints.audio === 'object') {
       var remap = function(obj, a, b) {
@@ -2090,6 +2094,20 @@ var firefoxShim = {
         })
         .then(onSucc, onErr);
     };
+  },
+
+  shimRemoveStream: function(window) {
+    if ('removeStream' in window.RTCPeerConnection.prototype) {
+      return;
+    }
+    window.RTCPeerConnection.prototype.removeStream = function(stream) {
+      utils.deprecated('removeStream', 'removeTrack');
+      this.getSenders().forEach(function(sender) {
+        if (sender.track && stream.getTracks().indexOf(sender.track) !== -1) {
+          this.removeTrack(sender);
+        }
+      });
+    };
   }
 };
 
@@ -2098,6 +2116,7 @@ module.exports = {
   shimOnTrack: firefoxShim.shimOnTrack,
   shimSourceObject: firefoxShim.shimSourceObject,
   shimPeerConnection: firefoxShim.shimPeerConnection,
+  shimRemoveStream: firefoxShim.shimRemoveStream,
   shimGetUserMedia: require('./getusermedia')
 };
 
