@@ -183,17 +183,6 @@ module.exports = {
       return (match !== null && match.length >= 1);
     };
 
-    var getMaxMessageSize = function(description) {
-      // Note: 65535 bytes is the default value from the SDP spec. Also,
-      //       every implementation we know supports receiving 65535 bytes.
-      var maxMessageSize = 65535;
-      var match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
-      if (match.length > 0) {
-        maxMessageSize = parseInt(match[0].substr(19), 10);
-      }
-      return maxMessageSize;
-    };
-
     var getFirefoxVersion = function(description) {
       // TODO: Is there a better solution for detecting Firefox?
       var match = description.sdp.match(/mozilla...THIS_IS_SDPARTA-(\d+)/);
@@ -205,25 +194,68 @@ module.exports = {
       return version !== version ? -1 : version;
     };
 
-    var maybeApplyMaxMessageSize = function(pc) {
-      if (Number.isInteger(pc._localMaxMessageSize) &&
-          Number.isInteger(pc._remoteMaxMessageSize)) {
-        // Note: This algorithm is not in the spec so far but it will
-        //       likely be added, see:
-        // https://github.com/w3c/webrtc-pc/issues/1446#issuecomment-340204737
-        var maxMessageSize = pc._localMaxMessageSize;
-        if (pc._localMaxMessageSize === 0 || pc._remoteMaxMessageSize === 0) {
-          maxMessageSize = Math.max(pc._localMaxMessageSize,
-                                    pc._remoteMaxMessageSize);
+    var getCanSendMaxMessageSize = function(description, remoteIsFirefox) {
+      // Every implementation we know can send at least 64 KiB.
+      // Note: Although Chrome is technically able to send up to 256 KiB, the
+      //       data does not reach the other peer reliably.
+      var canSendMaxMessageSize = 65535;
+      if (browserDetails.browser === 'firefox') {
+        if (browserDetails.version < 57) {
+          if (remoteIsFirefox === -1) {
+            // FF < 57 will send in 16 KiB chunks using the deprecated PPID
+            // fragmentation.
+            canSendMaxMessageSize = 16384;
+          } else {
+            // However, other FF (and RAWRTC) can reassemble PPID-fragmented
+            // messages. Thus, supporting at least 1 GiB when sending.
+            canSendMaxMessageSize = 1073741823;
+          }
         } else {
-          maxMessageSize = Math.min(pc._localMaxMessageSize,
-                                    pc._remoteMaxMessageSize);
+          // FF >= 57 supports up to 1 GiB.
+          canSendMaxMessageSize = 1073741823;
         }
+      }
+      return canSendMaxMessageSize;
+    };
 
-        // Any FF can send (at least) 1 GiB towards all other FF < 57.
-        if (browserDetails.browser === 'firefox' &&
-            pc._otherPeerFirefoxVersion < 57) {
-          maxMessageSize = 1073741823;
+    var getMaxMessageSize = function(description, remoteIsFirefox) {
+      // Note: 65535 bytes is the default value from the SDP spec. Also,
+      //       every implementation we know supports receiving 65535 bytes.
+      var maxMessageSize = 65535;
+      var match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
+      if (match.length > 0) {
+        maxMessageSize = parseInt(match[0].substr(19), 10);
+      } else if (browserDetails.browser === 'firefox' &&
+                  remoteIsFirefox !== -1) {
+        // If the maximum message size is not present in the remote SDP and
+        // both local and remote are Firefox, we can receive up to 1 GiB.
+        maxMessageSize = 1073741823;
+      }
+      return maxMessageSize;
+    };
+
+    var origSetRemoteDescription =
+        window.RTCPeerConnection.prototype.setRemoteDescription;
+    window.RTCPeerConnection.prototype.setRemoteDescription = function() {
+      var pc = this;
+      pc._sctp = null;
+
+      if (sctpInDescription(arguments[0])) {
+        // Check if the remote is FF.
+        var isFirefox = getFirefoxVersion(arguments[0]);
+
+        // Get the maximum message size the local peer is capable of sending
+        var canSendMMS = getCanSendMaxMessageSize(arguments[0], isFirefox);
+
+        // Get the maximum message size of the remote peer.
+        var remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
+
+        // Determine final maximum message size
+        var maxMessageSize;
+        if (canSendMMS === 0 || remoteMMS === 0) {
+          maxMessageSize = Math.max(canSendMMS, remoteMMS);
+        } else {
+          maxMessageSize = Math.min(canSendMMS, remoteMMS);
         }
 
         // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
@@ -235,46 +267,6 @@ module.exports = {
           }
         });
         pc._sctp = sctp;
-      }
-    };
-
-    var origSetLocalDescription =
-      window.RTCPeerConnection.prototype.setLocalDescription;
-    window.RTCPeerConnection.prototype.setLocalDescription = function() {
-      var pc = this;
-      pc._localMaxMessageSize = null;
-
-      if (sctpInDescription(arguments[0])) {
-        // Determine the maximum message size of the browser.
-        if (browserDetails.browser === 'firefox' &&
-            browserDetails.version < 57) {
-          // Note: This is required because FF < 57 will send in 16 KiB chunks
-          pc._localMaxMessageSize = 16384;
-        } else {
-          pc._localMaxMessageSize = getMaxMessageSize(arguments[0]);
-        }
-
-        // Determine final maximum message size
-        maybeApplyMaxMessageSize(pc);
-      }
-
-      return origSetLocalDescription.apply(pc, arguments);
-    };
-
-    var origSetRemoteDescription =
-        window.RTCPeerConnection.prototype.setRemoteDescription;
-    window.RTCPeerConnection.prototype.setRemoteDescription = function() {
-      var pc = this;
-      pc._remoteMaxMessageSize = null;
-      pc._otherPeerFirefoxVersion = -1;
-
-      if (sctpInDescription(arguments[0])) {
-        // Determine the maximum message size of the remote peer.
-        pc._remoteMaxMessageSize = getMaxMessageSize(arguments[0]);
-        // Determine if other peer is Firefox
-        pc._otherPeerFirefoxVersion = getFirefoxVersion(arguments[0]);
-        // Determine final maximum message size
-        maybeApplyMaxMessageSize(pc);
       }
 
       return origSetRemoteDescription.apply(pc, arguments);

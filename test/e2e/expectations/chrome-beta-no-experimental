@@ -37,7 +37,6 @@ PASS maxMessageSize sctp attribute exists
 PASS maxMessageSize sctp attribute is null before offer/answer
 PASS maxMessageSize sctp attribute is null if SCTP not negotiated
 PASS maxMessageSize sctp and maxMessageSize set if SCTP negotiated
-PASS maxMessageSize 0 case handled correctly
 PASS maxMessageSize send largest possible single message
 PASS maxMessageSize throws an exception if the message is too large
 PASS navigator.mediaDevices exists
