@@ -228,7 +228,8 @@ module.exports = {
       } else if (browserDetails.browser === 'firefox' &&
                   remoteIsFirefox !== -1) {
         // If the maximum message size is not present in the remote SDP and
-        // both local and remote are Firefox, we can receive up to 1 GiB.
+        // both local and remote are Firefox, the remote peer can receive up
+        // to 1 GiB.
         maxMessageSize = 1073741823;
       }
       return maxMessageSize;
@@ -274,13 +275,10 @@ module.exports = {
   },
 
   shimSendThrowTypeError: function(window) {
-    var browserDetails = utils.detectBrowser(window);
-
-    // Only Firefox 57 has support for this atm
-    if (browserDetails.browser === 'firefox' && browserDetails.version >= 57) {
-      return;
-    }
-
+    // Note: Firefox 57 has support for this but for consistency, we will also
+    //       apply this patch to FF >= 57. The reason is that FF >= 57 will
+    //       allow sending even more than 1 GiB towards remote peers that are
+    //       FF < 57... which is confusing. So, we're limiting to 1 GiB.
     var origCreateDataChannel =
       window.RTCPeerConnection.prototype.createDataChannel;
     window.RTCPeerConnection.prototype.createDataChannel = function() {
