@@ -127,7 +127,7 @@ var chromeShim = {
             pc._senders.splice(idx, 1);
           }
         };
-      }a
+      }
       var origAddStream = window.RTCPeerConnection.prototype.addStream;
       window.RTCPeerConnection.prototype.addStream = function(stream) {
         var pc = this;
