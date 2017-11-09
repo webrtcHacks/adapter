@@ -179,8 +179,13 @@ module.exports = {
     }
 
     var sctpInDescription = function(description) {
-      var match = description.sdp.match(/m=application\s+\d+\s+[\w/]*SCTP/);
-      return (match !== null && match.length >= 1);
+      var sections = SDPUtils.splitSections(description.sdp);
+      sections.shift();
+      return sections.some(function(mediaSection) {
+        var mLine = SDPUtils.parseMLine(mediaSection);
+        return mLine && mLine.kind === 'application'
+            && mLine.protocol.indexOf('SCTP') !== -1;
+      });
     };
 
     var getRemoteFirefoxVersion = function(description) {
