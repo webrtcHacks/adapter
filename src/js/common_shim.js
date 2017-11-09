@@ -203,6 +203,7 @@ module.exports = {
       // Every implementation we know can send at least 64 KiB.
       // Note: Although Chrome is technically able to send up to 256 KiB, the
       //       data does not reach the other peer reliably.
+      //       See: https://bugs.chromium.org/p/webrtc/issues/detail?id=8419
       var canSendMaxMessageSize = 65535;
       if (browserDetails.browser === 'firefox') {
         if (browserDetails.version < 57) {
