@@ -183,7 +183,7 @@ module.exports = {
       return (match !== null && match.length >= 1);
     };
 
-    var getFirefoxVersion = function(description) {
+    var getRemoteFirefoxVersion = function(description) {
       // TODO: Is there a better solution for detecting Firefox?
       var match = description.sdp.match(/mozilla...THIS_IS_SDPARTA-(\d+)/);
       if (match === null || match.length < 2) {
@@ -243,7 +243,7 @@ module.exports = {
 
       if (sctpInDescription(arguments[0])) {
         // Check if the remote is FF.
-        var isFirefox = getFirefoxVersion(arguments[0]);
+        var isFirefox = getRemoteFirefoxVersion(arguments[0]);
 
         // Get the maximum message size the local peer is capable of sending
         var canSendMMS = getCanSendMaxMessageSize(arguments[0], isFirefox);
