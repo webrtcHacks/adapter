@@ -2602,7 +2602,7 @@ var chromeShim = {
     var browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack &&
-        browserDetails.version >= 63) {
+        browserDetails.version >= 64) {
       return;
     }
 
