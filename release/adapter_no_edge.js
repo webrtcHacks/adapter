@@ -2101,10 +2101,11 @@ var firefoxShim = {
       return;
     }
     window.RTCPeerConnection.prototype.removeStream = function(stream) {
+      var pc = this;
       utils.deprecated('removeStream', 'removeTrack');
       this.getSenders().forEach(function(sender) {
         if (sender.track && stream.getTracks().indexOf(sender.track) !== -1) {
-          this.removeTrack(sender);
+          pc.removeTrack(sender);
         }
       });
     };
