@@ -27,7 +27,7 @@ describe('removeTrack', () => {
         const withTrack = () => {
           pc.removeTrack(stream.getTracks()[0]);
         };
-        expect(withTrack).to.throw(/implement interface RTCRtpSender/)
+        expect(withTrack).to.throw()
           .that.has.property('name').that.equals('TypeError');
       });
     });
@@ -40,7 +40,7 @@ describe('removeTrack', () => {
         const invalidSender = () => {
           pc.removeTrack(sender);
         };
-        expect(invalidSender).to.throw(/not created/)
+        expect(invalidSender).to.throw()
             .that.has.property('name').that.equals('InvalidAccessError');
         pc2.close();
       });
@@ -54,7 +54,7 @@ describe('removeTrack', () => {
         const afterClose = () => {
           pc.removeTrack(sender);
         };
-        expect(afterClose).to.throw(/closed/)
+        expect(afterClose).to.throw()
           .that.has.property('name').that.equals('InvalidStateError');
       });
     });
