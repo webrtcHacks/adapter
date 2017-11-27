@@ -44,7 +44,7 @@ Detailed information on developing in the [webrtc](https://github.com/webrtc) gi
 Head over to [test/README.md](https://github.com/webrtc/samples/blob/gh-pages/test/README.md) and get started developing.
 
 ## Publish a new version ##
-* Go the the adapter repository root directory
+* Go to the adapter repository root directory
 * Make sure your repository is clean, i.e. no untracked files etc. Also check that you are on the master branch and have pulled the latest changes.
 * Depending on the impact of the release, either use `patch`, `minor` or `major` in place of `<version>`. Run `npm version <version> -m 'bump to %s'` and type in your password lots of times (setting up credential caching is probably a good idea).
 * Create and merge the PR if green in the GitHub web ui
