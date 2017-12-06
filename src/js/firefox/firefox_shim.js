@@ -212,6 +212,43 @@ var firefoxShim = {
         }
       });
     };
+  },
+  shimOfferToReceiveFalse: function(window) {
+    if (!window.RTCRtpTransceiver) {
+      return;
+    }
+    var origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+    window.RTCPeerConnection.prototype.createOffer = function() {
+      var p = origCreateOffer.apply(this, arguments);
+      if (arguments.length && typeof arguments[0] === 'object') {
+        var legacyOptions = arguments[0];
+        if (legacyOptions.offerToReceiveAudio === false) {
+          this.getTransceivers().forEach(function(transceiver) {
+            if (transceiver.receiver.track.kind !== 'audio') {
+              return;
+            }
+            if (transceiver.direction === 'sendrecv') {
+              transceiver.direction = 'sendonly';
+            } else if (transceiver.direction === 'recvonly') {
+              transceiver.direction = 'inactive';
+            }
+          });
+        }
+        if (legacyOptions.offerToReceiveVideo === false) {
+          this.getTransceivers().forEach(function(transceiver) {
+            if (transceiver.receiver.track.kind !== 'video') {
+              return;
+            }
+            if (transceiver.direction === 'sendrecv') {
+              transceiver.direction = 'sendonly';
+            } else if (transceiver.direction === 'recvonly') {
+              transceiver.direction = 'inactive';
+            }
+          });
+        }
+      }
+      return p;
+    };
   }
 };
 
@@ -221,5 +258,6 @@ module.exports = {
   shimSourceObject: firefoxShim.shimSourceObject,
   shimPeerConnection: firefoxShim.shimPeerConnection,
   shimRemoveStream: firefoxShim.shimRemoveStream,
+  shimOfferToReceiveFalse: firefoxShim.shimOfferToReceiveFalse,
   shimGetUserMedia: require('./getusermedia')
 };
