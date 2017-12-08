@@ -259,7 +259,9 @@ module.exports = {
 
         // Determine final maximum message size
         var maxMessageSize;
-        if (canSendMMS === 0 || remoteMMS === 0) {
+        if (canSendMMS === 0 && remoteMMS === 0) {
+          maxMessageSize = Number.POSITIVE_INFINITY;
+        } else if (canSendMMS === 0 || remoteMMS === 0) {
           maxMessageSize = Math.max(canSendMMS, remoteMMS);
         } else {
           maxMessageSize = Math.min(canSendMMS, remoteMMS);
