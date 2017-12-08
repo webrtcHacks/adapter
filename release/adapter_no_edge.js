@@ -2097,7 +2097,8 @@ var firefoxShim = {
   },
 
   shimRemoveStream: function(window) {
-    if ('removeStream' in window.RTCPeerConnection.prototype) {
+    if (!window.RTCPeerConnection ||
+        'removeStream' in window.RTCPeerConnection.prototype) {
       return;
     }
     window.RTCPeerConnection.prototype.removeStream = function(stream) {
@@ -2405,7 +2406,7 @@ var safariShim = {
             this._localStreams.push(stream);
           }
         }
-        _addTrack.call(this, track, stream);
+        return _addTrack.call(this, track, stream);
       };
     }
     if (!('removeStream' in window.RTCPeerConnection.prototype)) {
