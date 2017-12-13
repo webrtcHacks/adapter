@@ -8,13 +8,7 @@
 'use strict';
 var utils = require('../utils');
 
-var safariShim = {
-  // TODO: DrAlex, should be here, double check against LayoutTests
-
-  // TODO: once the back-end for the mac port is done, add.
-  // TODO: check for webkitGTK+
-  // shimPeerConnection: function() { },
-
+module.exports = {
   shimLocalStreamsAPI: function(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
@@ -292,17 +286,4 @@ var safariShim = {
       return origCreateOffer.apply(pc, arguments);
     };
   }
-};
-
-// Expose public methods.
-module.exports = {
-  shimCallbacksAPI: safariShim.shimCallbacksAPI,
-  shimLocalStreamsAPI: safariShim.shimLocalStreamsAPI,
-  shimRemoteStreamsAPI: safariShim.shimRemoteStreamsAPI,
-  shimGetUserMedia: safariShim.shimGetUserMedia,
-  shimRTCIceServerUrls: safariShim.shimRTCIceServerUrls,
-  shimTrackEventTransceiver: safariShim.shimTrackEventTransceiver,
-  shimCreateOfferLegacy: safariShim.shimCreateOfferLegacy
-  // TODO
-  // shimPeerConnection: safariShim.shimPeerConnection
 };

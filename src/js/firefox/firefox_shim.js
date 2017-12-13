@@ -10,7 +10,8 @@
 
 var utils = require('../utils');
 
-var firefoxShim = {
+module.exports = {
+  shimGetUserMedia: require('./getusermedia'),
   shimOnTrack: function(window) {
     if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
         window.RTCPeerConnection.prototype)) {
@@ -213,13 +214,4 @@ var firefoxShim = {
       });
     };
   }
-};
-
-// Expose public methods.
-module.exports = {
-  shimOnTrack: firefoxShim.shimOnTrack,
-  shimSourceObject: firefoxShim.shimSourceObject,
-  shimPeerConnection: firefoxShim.shimPeerConnection,
-  shimRemoveStream: firefoxShim.shimRemoveStream,
-  shimGetUserMedia: require('./getusermedia')
 };

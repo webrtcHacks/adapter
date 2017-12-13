@@ -11,7 +11,8 @@
 var utils = require('../utils.js');
 var logging = utils.log;
 
-var chromeShim = {
+module.exports = {
+  shimGetUserMedia: require('./getusermedia'),
   shimMediaStream: function(window) {
     window.MediaStream = window.MediaStream || window.webkitMediaStream;
   },
@@ -658,16 +659,4 @@ var chromeShim = {
       return nativeAddIceCandidate.apply(this, arguments);
     };
   }
-};
-
-
-// Expose public methods.
-module.exports = {
-  shimMediaStream: chromeShim.shimMediaStream,
-  shimOnTrack: chromeShim.shimOnTrack,
-  shimAddTrackRemoveTrack: chromeShim.shimAddTrackRemoveTrack,
-  shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
-  shimSourceObject: chromeShim.shimSourceObject,
-  shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
 };
