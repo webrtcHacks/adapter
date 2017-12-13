@@ -56,9 +56,9 @@ var safariShim = {
         if (this._localStreams.indexOf(stream) === -1) {
           this._localStreams.push(stream);
         }
-        var self = this;
+        var pc = this;
         stream.getTracks().forEach(function(track) {
-          _addTrack.call(self, track, stream);
+          _addTrack.call(pc, track, stream);
         });
       };
 
@@ -83,11 +83,11 @@ var safariShim = {
           return;
         }
         this._localStreams.splice(index, 1);
-        var self = this;
+        var pc = this;
         var tracks = stream.getTracks();
         this.getSenders().forEach(function(sender) {
           if (tracks.indexOf(sender.track) !== -1) {
-            self.removeTrack(sender);
+            pc.removeTrack(sender);
           }
         });
       };
