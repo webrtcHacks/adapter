@@ -91,6 +91,7 @@ module.exports = function(dependencies, opts) {
       firefoxShim.shimPeerConnection(window);
       firefoxShim.shimOnTrack(window);
       firefoxShim.shimRemoveStream(window);
+      firefoxShim.shimOfferToReceiveFalse(window);
 
       commonShim.shimRTCIceCandidate(window);
       break;
