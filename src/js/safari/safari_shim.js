@@ -8,13 +8,7 @@
 'use strict';
 var utils = require('../utils');
 
-var safariShim = {
-  // TODO: DrAlex, should be here, double check against LayoutTests
-
-  // TODO: once the back-end for the mac port is done, add.
-  // TODO: check for webkitGTK+
-  // shimPeerConnection: function() { },
-
+module.exports = {
   shimLocalStreamsAPI: function(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
@@ -56,9 +50,9 @@ var safariShim = {
         if (this._localStreams.indexOf(stream) === -1) {
           this._localStreams.push(stream);
         }
-        var self = this;
+        var pc = this;
         stream.getTracks().forEach(function(track) {
-          _addTrack.call(self, track, stream);
+          _addTrack.call(pc, track, stream);
         });
       };
 
@@ -83,11 +77,11 @@ var safariShim = {
           return;
         }
         this._localStreams.splice(index, 1);
-        var self = this;
+        var pc = this;
         var tracks = stream.getTracks();
         this.getSenders().forEach(function(sender) {
           if (tracks.indexOf(sender.track) !== -1) {
-            self.removeTrack(sender);
+            pc.removeTrack(sender);
           }
         });
       };
@@ -292,17 +286,4 @@ var safariShim = {
       return origCreateOffer.apply(pc, arguments);
     };
   }
-};
-
-// Expose public methods.
-module.exports = {
-  shimCallbacksAPI: safariShim.shimCallbacksAPI,
-  shimLocalStreamsAPI: safariShim.shimLocalStreamsAPI,
-  shimRemoteStreamsAPI: safariShim.shimRemoteStreamsAPI,
-  shimGetUserMedia: safariShim.shimGetUserMedia,
-  shimRTCIceServerUrls: safariShim.shimRTCIceServerUrls,
-  shimTrackEventTransceiver: safariShim.shimTrackEventTransceiver,
-  shimCreateOfferLegacy: safariShim.shimCreateOfferLegacy
-  // TODO
-  // shimPeerConnection: safariShim.shimPeerConnection
 };

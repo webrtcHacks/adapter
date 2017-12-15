@@ -11,8 +11,22 @@
 var logDisabled_ = true;
 var deprecationWarnings_ = true;
 
+/**
+ * Extract browser version out of the provided user agent string.
+ *
+ * @param {!string} uastring userAgent string.
+ * @param {!string} expr Regular expression used as match criteria.
+ * @param {!number} pos position in the version string to be returned.
+ * @return {!number} browser version.
+ */
+function extractVersion(uastring, expr, pos) {
+  var match = uastring.match(expr);
+  return match && match.length >= pos && parseInt(match[pos], 10);
+}
+
 // Utility methods.
-var utils = {
+module.exports = {
+  extractVersion: extractVersion,
   disableLog: function(bool) {
     if (typeof bool !== 'boolean') {
       return new Error('Argument type: ' + typeof bool +
@@ -59,19 +73,6 @@ var utils = {
   },
 
   /**
-   * Extract browser version out of the provided user agent string.
-   *
-   * @param {!string} uastring userAgent string.
-   * @param {!string} expr Regular expression used as match criteria.
-   * @param {!number} pos position in the version string to be returned.
-   * @return {!number} browser version.
-   */
-  extractVersion: function(uastring, expr, pos) {
-    var match = uastring.match(expr);
-    return match && match.length >= pos && parseInt(match[pos], 10);
-  },
-
-  /**
    * Browser detector.
    *
    * @return {object} result containing browser and version
@@ -94,18 +95,18 @@ var utils = {
     // Firefox.
     if (navigator.mozGetUserMedia) {
       result.browser = 'firefox';
-      result.version = this.extractVersion(navigator.userAgent,
+      result.version = extractVersion(navigator.userAgent,
           /Firefox\/(\d+)\./, 1);
     } else if (navigator.webkitGetUserMedia) {
       // Chrome, Chromium, Webview, Opera, all use the chrome shim for now
       if (window.webkitRTCPeerConnection) {
         result.browser = 'chrome';
-        result.version = this.extractVersion(navigator.userAgent,
+        result.version = extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/(\d+)\./, 2);
       } else { // Safari (in an unpublished version) or unknown webkit-based.
         if (navigator.userAgent.match(/Version\/(\d+).(\d+)/)) {
           result.browser = 'safari';
-          result.version = this.extractVersion(navigator.userAgent,
+          result.version = extractVersion(navigator.userAgent,
             /AppleWebKit\/(\d+)\./, 1);
         } else { // unknown webkit-based browser.
           result.browser = 'Unsupported webkit-based browser ' +
@@ -116,13 +117,13 @@ var utils = {
     } else if (navigator.mediaDevices &&
         navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) { // Edge.
       result.browser = 'edge';
-      result.version = this.extractVersion(navigator.userAgent,
+      result.version = extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
     } else if (navigator.mediaDevices &&
         navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) {
         // Safari, with webkitGetUserMedia removed.
       result.browser = 'safari';
-      result.version = this.extractVersion(navigator.userAgent,
+      result.version = extractVersion(navigator.userAgent,
           /AppleWebKit\/(\d+)\./, 1);
     } else { // Default fallthrough: not supported.
       result.browser = 'Not a supported browser.';
@@ -130,17 +131,5 @@ var utils = {
     }
 
     return result;
-  },
-
-};
-
-// Export.
-module.exports = {
-  log: utils.log,
-  deprecated: utils.deprecated,
-  disableLog: utils.disableLog,
-  disableWarnings: utils.disableWarnings,
-  extractVersion: utils.extractVersion,
-  shimCreateObjectURL: utils.shimCreateObjectURL,
-  detectBrowser: utils.detectBrowser.bind(utils)
+  }
 };

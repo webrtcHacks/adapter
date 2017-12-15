@@ -11,7 +11,8 @@
 var utils = require('../utils.js');
 var logging = utils.log;
 
-var chromeShim = {
+module.exports = {
+  shimGetUserMedia: require('./getusermedia'),
   shimMediaStream: function(window) {
     window.MediaStream = window.MediaStream || window.webkitMediaStream;
   },
@@ -240,11 +241,11 @@ var chromeShim = {
     var origGetLocalStreams = window.RTCPeerConnection.prototype
         .getLocalStreams;
     window.RTCPeerConnection.prototype.getLocalStreams = function() {
-      var self = this;
+      var pc = this;
       var nativeStreams = origGetLocalStreams.apply(this);
-      self._reverseStreams = self._reverseStreams || {};
+      pc._reverseStreams = pc._reverseStreams || {};
       return nativeStreams.map(function(stream) {
-        return self._reverseStreams[stream.id];
+        return pc._reverseStreams[stream.id];
       });
     };
 
@@ -526,7 +527,7 @@ var chromeShim = {
     var origGetStats = window.RTCPeerConnection.prototype.getStats;
     window.RTCPeerConnection.prototype.getStats = function(selector,
         successCallback, errorCallback) {
-      var self = this;
+      var pc = this;
       var args = arguments;
 
       // If selector is a function then we are in the old style stats so just
@@ -581,7 +582,7 @@ var chromeShim = {
 
       // promise-support
       return new Promise(function(resolve, reject) {
-        origGetStats.apply(self, [
+        origGetStats.apply(pc, [
           function(response) {
             resolve(makeMapStats(fixChromeStats_(response)));
           }, reject]);
@@ -595,9 +596,9 @@ var chromeShim = {
             var nativeMethod = window.RTCPeerConnection.prototype[method];
             window.RTCPeerConnection.prototype[method] = function() {
               var args = arguments;
-              var self = this;
+              var pc = this;
               var promise = new Promise(function(resolve, reject) {
-                nativeMethod.apply(self, [args[0], resolve, reject]);
+                nativeMethod.apply(pc, [args[0], resolve, reject]);
               });
               if (args.length < 2) {
                 return promise;
@@ -620,12 +621,12 @@ var chromeShim = {
       ['createOffer', 'createAnswer'].forEach(function(method) {
         var nativeMethod = window.RTCPeerConnection.prototype[method];
         window.RTCPeerConnection.prototype[method] = function() {
-          var self = this;
+          var pc = this;
           if (arguments.length < 1 || (arguments.length === 1 &&
               typeof arguments[0] === 'object')) {
             var opts = arguments.length === 1 ? arguments[0] : undefined;
             return new Promise(function(resolve, reject) {
-              nativeMethod.apply(self, [resolve, reject, opts]);
+              nativeMethod.apply(pc, [resolve, reject, opts]);
             });
           }
           return nativeMethod.apply(this, arguments);
@@ -658,16 +659,4 @@ var chromeShim = {
       return nativeAddIceCandidate.apply(this, arguments);
     };
   }
-};
-
-
-// Expose public methods.
-module.exports = {
-  shimMediaStream: chromeShim.shimMediaStream,
-  shimOnTrack: chromeShim.shimOnTrack,
-  shimAddTrackRemoveTrack: chromeShim.shimAddTrackRemoveTrack,
-  shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
-  shimSourceObject: chromeShim.shimSourceObject,
-  shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: require('./getusermedia')
 };
