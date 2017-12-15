@@ -23,19 +23,22 @@ beforeEach(() => {
     streams = [];
   };
 
-  let origGetUserMedia = navigator.getUserMedia.bind(navigator);
-  navigator.getUserMedia = (constraints, cb, eb) => {
-    origGetUserMedia(constraints, (stream) => {
-      streams.push(stream);
-      if (cb) {
-        cb.apply(null, [stream]);
-      }
-    }, eb);
-  };
-  navigator.getUserMedia.restore = () => {
-    navigator.getUserMedia = origGetUserMedia;
-    release();
-  };
+
+  if (navigator.getUserMedia) {
+    let origGetUserMedia = navigator.getUserMedia.bind(navigator);
+    navigator.getUserMedia = (constraints, cb, eb) => {
+      origGetUserMedia(constraints, (stream) => {
+        streams.push(stream);
+        if (cb) {
+          cb.apply(null, [stream]);
+        }
+      }, eb);
+    };
+    navigator.getUserMedia.restore = () => {
+      navigator.getUserMedia = origGetUserMedia;
+      release();
+    };
+  }
 
   let origMediaDevicesGetUserMedia =
       navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
@@ -52,6 +55,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  navigator.getUserMedia.restore();
+  if (navigator.getUserMedia) {
+    navigator.getUserMedia.restore();
+  }
   navigator.mediaDevices.getUserMedia.restore();
 });
