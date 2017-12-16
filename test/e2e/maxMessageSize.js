@@ -85,8 +85,8 @@ describe('maxMessageSize', () => {
     .then(() => {
       expect(pc1.sctp).to.have.property('maxMessageSize');
       expect(pc2.sctp).to.have.property('maxMessageSize');
-      expect(pc1.sctp.maxMessageSize).to.be.at.least(65535);
-      expect(pc2.sctp.maxMessageSize).to.be.at.least(65535);
+      expect(pc1.sctp.maxMessageSize).to.be.at.least(65536);
+      expect(pc2.sctp.maxMessageSize).to.be.at.least(65536);
       if (browserDetails.browser === 'firefox') {
         expect(pc1.sctp.maxMessageSize).to.equal(1073741823);
         expect(pc2.sctp.maxMessageSize).to.equal(1073741823);
@@ -95,8 +95,8 @@ describe('maxMessageSize', () => {
   });
 
   it('send largest possible single message', () => {
-    // Note: Patching to 65535 here as anything beyond that will take too long.
-    const maxMessageSize = 65535;
+    // Note: Patching to 65536 here as anything beyond that will take too long.
+    const maxMessageSize = 65536;
     const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
 
     pc1.createDataChannel('test');
@@ -121,9 +121,9 @@ describe('maxMessageSize', () => {
 
   describe('throws an exception', () => {
     it('if the message is too large', () => {
-      // Note: Patching to 65535 here as anything beyond that will take too
+      // Note: Patching to 65536 here as anything beyond that will take too
       //       long (including creation of a large array).
-      const maxMessageSize = 65535;
+      const maxMessageSize = 65536;
       const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
 
       pc1.createDataChannel('test');

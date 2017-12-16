@@ -204,7 +204,7 @@ module.exports = {
       // Note: Although Chrome is technically able to send up to 256 KiB, the
       //       data does not reach the other peer reliably.
       //       See: https://bugs.chromium.org/p/webrtc/issues/detail?id=8419
-      var canSendMaxMessageSize = 65535;
+      var canSendMaxMessageSize = 65536;
       if (browserDetails.browser === 'firefox') {
         if (browserDetails.version < 57) {
           if (remoteIsFirefox === -1) {
@@ -225,9 +225,9 @@ module.exports = {
     };
 
     var getMaxMessageSize = function(description, remoteIsFirefox) {
-      // Note: 65535 bytes is the default value from the SDP spec. Also,
-      //       every implementation we know supports receiving 65535 bytes.
-      var maxMessageSize = 65535;
+      // Note: 65536 bytes is the default value from the SDP spec. Also,
+      //       every implementation we know supports receiving 65536 bytes.
+      var maxMessageSize = 65536;
       var match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
       if (match.length > 0) {
         maxMessageSize = parseInt(match[0].substr(19), 10);
