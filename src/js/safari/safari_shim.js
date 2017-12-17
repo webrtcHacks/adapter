@@ -259,9 +259,17 @@ module.exports = {
         });
         if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
           if (audioTransceiver.direction === 'sendrecv') {
-            audioTransceiver.setDirection('sendonly');
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('sendonly');
+            } else {
+              audioTransceiver.direction = 'sendonly';
+            }
           } else if (audioTransceiver.direction === 'recvonly') {
-            audioTransceiver.setDirection('inactive');
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('inactive');
+            } else {
+              audioTransceiver.direction = 'inactive';
+            }
           }
         } else if (offerOptions.offerToReceiveAudio === true &&
             !audioTransceiver) {
