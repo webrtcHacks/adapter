@@ -199,7 +199,7 @@ module.exports = {
       return version !== version ? -1 : version;
     };
 
-    var getCanSendMaxMessageSize = function(description, remoteIsFirefox) {
+    var getCanSendMaxMessageSize = function(remoteIsFirefox) {
       // Every implementation we know can send at least 64 KiB.
       // Note: Although Chrome is technically able to send up to 256 KiB, the
       //       data does not reach the other peer reliably.
@@ -213,12 +213,12 @@ module.exports = {
             canSendMaxMessageSize = 16384;
           } else {
             // However, other FF (and RAWRTC) can reassemble PPID-fragmented
-            // messages. Thus, supporting at least 1 GiB when sending.
-            canSendMaxMessageSize = 1073741823;
+            // messages. Thus, supporting ~2 GiB when sending.
+            canSendMaxMessageSize = 2147483637;
           }
         } else {
-          // FF >= 57 supports up to 1 GiB.
-          canSendMaxMessageSize = 1073741823;
+          // FF >= 57 supports sending ~2 GiB.
+          canSendMaxMessageSize = 2147483637;
         }
       }
       return canSendMaxMessageSize;
@@ -228,15 +228,24 @@ module.exports = {
       // Note: 65536 bytes is the default value from the SDP spec. Also,
       //       every implementation we know supports receiving 65536 bytes.
       var maxMessageSize = 65536;
+
+      // FF 57 has a slightly incorrect default remote max message size, so
+      // we need to adjust it here to avoid a failure when sending.
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1425697
+      if (browserDetails.browser === 'firefox' &&
+           browserDetails.version === 57) {
+        maxMessageSize = 65535;
+      }
+
       var match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
       if (match.length > 0) {
         maxMessageSize = parseInt(match[0].substr(19), 10);
       } else if (browserDetails.browser === 'firefox' &&
                   remoteIsFirefox !== -1) {
         // If the maximum message size is not present in the remote SDP and
-        // both local and remote are Firefox, the remote peer can receive up
-        // to 1 GiB.
-        maxMessageSize = 1073741823;
+        // both local and remote are Firefox, the remote peer can receive
+        // ~2 GiB.
+        maxMessageSize = 2147483637;
       }
       return maxMessageSize;
     };
@@ -252,7 +261,7 @@ module.exports = {
         var isFirefox = getRemoteFirefoxVersion(arguments[0]);
 
         // Get the maximum message size the local peer is capable of sending
-        var canSendMMS = getCanSendMaxMessageSize(arguments[0], isFirefox);
+        var canSendMMS = getCanSendMaxMessageSize(isFirefox);
 
         // Get the maximum message size of the remote peer.
         var remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
@@ -283,10 +292,13 @@ module.exports = {
   },
 
   shimSendThrowTypeError: function(window) {
-    // Note: Firefox 57 has support for this but for consistency, we will also
-    //       apply this patch to FF >= 57. The reason is that FF >= 57 will
-    //       allow sending even more than 1 GiB towards remote peers that are
-    //       FF < 57... which is confusing. So, we're limiting to 1 GiB.
+    var browserDetails = utils.detectBrowser(window);
+
+    // Only Firefox 57 has support for this atm
+    if (browserDetails.browser === 'firefox' && browserDetails.version >= 57) {
+      return;
+    }
+
     var origCreateDataChannel =
       window.RTCPeerConnection.prototype.createDataChannel;
     window.RTCPeerConnection.prototype.createDataChannel = function() {
