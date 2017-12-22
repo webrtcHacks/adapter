@@ -130,6 +130,33 @@ describe('maxMessageSize', () => {
       const maxMessageSize = 65536;
       const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
 
+      const dc = pc1.createDataChannel('test');
+      return negotiate(pc1, pc2, patchMaxMessageSize)
+      .then(() => {
+        expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
+        expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
+
+        // Ensure TypeError is thrown when sending a message that's too large
+        return new Promise((resolve, reject) => {
+          const send = () => {
+            dc.send(new Uint8Array(maxMessageSize + 1));
+          };
+          dc.onopen = () => {
+            expect(send).to.throw().with.property('name', 'TypeError');
+            resolve();
+          };
+        });
+      });
+    });
+
+    it('if the message is too large (using a secondary data channel)', () => {
+      // Background of this test:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
+      // Note: Patching to 65536 here as anything beyond that will take too
+      //       long (including creation of a large array).
+      const maxMessageSize = 65536;
+      const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
+
       pc1.createDataChannel('test');
       return negotiate(pc1, pc2, patchMaxMessageSize)
       .then(() => {

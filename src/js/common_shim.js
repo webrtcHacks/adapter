@@ -292,12 +292,9 @@ module.exports = {
   },
 
   shimSendThrowTypeError: function(window) {
-    var browserDetails = utils.detectBrowser(window);
-
-    // Only Firefox 57 has support for this atm
-    if (browserDetails.browser === 'firefox' && browserDetails.version >= 57) {
-      return;
-    }
+    // Note: Although Firefox >= 57 has a native implementation, the maximum
+    //       message size is not applied correctly to all data channels.
+    //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
 
     var origCreateDataChannel =
       window.RTCPeerConnection.prototype.createDataChannel;
