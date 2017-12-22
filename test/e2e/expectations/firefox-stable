@@ -39,6 +39,7 @@ PASS maxMessageSize sctp attribute is null if SCTP not negotiated
 PASS maxMessageSize sctp and maxMessageSize set if SCTP negotiated
 PASS maxMessageSize send largest possible single message
 PASS maxMessageSize throws an exception if the message is too large
+PASS maxMessageSize throws an exception if the message is too large (using a secondary data channel)
 PASS maxMessageSize is as expected for firefox==57 and chrome>=0 -> 65535
 PASS maxMessageSize is as expected for firefox>=57 and firefox<=56 -> 2147483637
 PASS maxMessageSize is as expected for firefox>=57 and firefox>=57 -> 1073741823
