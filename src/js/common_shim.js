@@ -217,8 +217,12 @@ module.exports = {
             canSendMaxMessageSize = 2147483637;
           }
         } else {
-          // FF >= 57 supports sending ~2 GiB.
-          canSendMaxMessageSize = 2147483637;
+          // Currently, all FF >= 57 will reset the remote maximum message size
+          // to the default value when a data channel is created at a later
+          // stage. :(
+          // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
+          canSendMaxMessageSize =
+            browserDetails.version === 57 ? 65535 : 65536;
         }
       }
       return canSendMaxMessageSize;
@@ -232,8 +236,8 @@ module.exports = {
       // FF 57 has a slightly incorrect default remote max message size, so
       // we need to adjust it here to avoid a failure when sending.
       // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1425697
-      if (browserDetails.browser === 'firefox' &&
-           browserDetails.version === 57) {
+      if (browserDetails.browser === 'firefox'
+           && browserDetails.version === 57) {
         maxMessageSize = 65535;
       }
 
@@ -293,7 +297,7 @@ module.exports = {
 
   shimSendThrowTypeError: function(window) {
     // Note: Although Firefox >= 57 has a native implementation, the maximum
-    //       message size is not applied correctly to all data channels.
+    //       message size can be reset for all data channels at a later stage.
     //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
 
     var origCreateDataChannel =

@@ -11,6 +11,11 @@
 describe('maxMessageSize', () => {
   let pc1;
   let pc2;
+  const browserDetails = window.adapter.browserDetails;
+  let defaultRemoteMMS = 65536;
+  if (browserDetails.browser === 'firefox' && browserDetails.version === 57) {
+    defaultRemoteMMS = 65535;
+  }
 
   function negotiate(pc, otherPc, mapRemoteDescriptionCallback) {
     return pc.createOffer()
@@ -79,28 +84,19 @@ describe('maxMessageSize', () => {
   });
 
   it('sctp and maxMessageSize set if SCTP negotiated', () => {
-    const browserDetails = window.adapter.browserDetails;
     pc1.createDataChannel('test');
     return negotiate(pc1, pc2)
     .then(() => {
       expect(pc1.sctp).to.have.property('maxMessageSize');
       expect(pc2.sctp).to.have.property('maxMessageSize');
-      expect(pc1.sctp.maxMessageSize).to.be.at.least(65536);
-      expect(pc2.sctp.maxMessageSize).to.be.at.least(65536);
-      if (browserDetails.browser === 'firefox') {
-        let expectedMMS = 2147483637;
-        if (browserDetails.version >= 57) {
-          expectedMMS = 1073741823;
-        }
-        expect(pc1.sctp.maxMessageSize).to.equal(expectedMMS);
-        expect(pc2.sctp.maxMessageSize).to.equal(expectedMMS);
-      }
+      expect(pc1.sctp.maxMessageSize).to.be.at.least(defaultRemoteMMS);
+      expect(pc2.sctp.maxMessageSize).to.be.at.least(defaultRemoteMMS);
     });
   });
 
   it('send largest possible single message', () => {
-    // Note: Patching to 65536 here as anything beyond that will take too long.
-    const maxMessageSize = 65536;
+    // Note: Patching MMS here to prevent creation of large arrays.
+    const maxMessageSize = defaultRemoteMMS;
     const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
 
     pc1.createDataChannel('test');
@@ -125,9 +121,8 @@ describe('maxMessageSize', () => {
 
   describe('throws an exception', () => {
     it('if the message is too large', () => {
-      // Note: Patching to 65536 here as anything beyond that will take too
-      //       long (including creation of a large array).
-      const maxMessageSize = 65536;
+      // Note: Patching MMS here to prevent creation of large arrays.
+      const maxMessageSize = defaultRemoteMMS;
       const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
 
       const dc = pc1.createDataChannel('test');
@@ -152,9 +147,9 @@ describe('maxMessageSize', () => {
     it('if the message is too large (using a secondary data channel)', () => {
       // Background of this test:
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
-      // Note: Patching to 65536 here as anything beyond that will take too
-      //       long (including creation of a large array).
-      const maxMessageSize = 65536;
+
+      // Note: Patching MMS here to prevent creation of large arrays.
+      const maxMessageSize = defaultRemoteMMS;
       const patchMaxMessageSize = patchMaxMessageSizeFactory(maxMessageSize);
 
       pc1.createDataChannel('test');
@@ -180,7 +175,6 @@ describe('maxMessageSize', () => {
 
   // Note: These run in e2e as a browser is needed for them to run
   describe('is as expected for', () => {
-    const browserDetails = window.adapter.browserDetails;
     const fakeWindow = Object.assign({}, window);
     fakeWindow.RTCPeerConnection = function() {};
     fakeWindow.RTCPeerConnection.prototype.setRemoteDescription = () => {};
@@ -192,7 +186,8 @@ describe('maxMessageSize', () => {
     // The innermost array contains the other browser's version, the expected
     // maximum message size and the offer SDP.
     //
-    // Note: Be aware that you MUST store expected results for both browsers!
+    // Note: Be aware that you MUST store expected results for both browsers
+    //       where the object's key resembles the sending peer.
     /* eslint-disable max-len */
     const testCases = {
       'firefox<=56': [
@@ -206,17 +201,21 @@ describe('maxMessageSize', () => {
       ],
       'firefox==57': [
         ['chrome>=0', 65535, 'v=0\r\no=- 6575128786484314789 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE data\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:oZF1\r\na=ice-pwd:8+qEgoDOiFd49nDG9oNSYYaz\r\na=ice-options:trickle\r\na=fingerprint:sha-256 F2:01:D6:88:9E:0C:F1:CE:EE:85:9C:B4:A5:B7:36:D4:CB:29:F2:4F:E0:97:81:25:34:00:71:65:2B:39:C1:C1\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n'],
-      ],
-      'firefox>=57': [
-        ['firefox<=56', 2147483637, 'v=0\r\no=mozilla...THIS_IS_SDPARTA-56.0.2 3250009914871290350 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 C8:36:D3:FD:E6:9A:B8:4E:7C:FB:61:03:22:E5:8E:E1:7D:17:AF:D2:EB:0F:87:BA:28:6C:9A:2E:76:D9:B3:0C\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:bb3ee909b8452eb93722d223b26d6193\r\na=ice-ufrag:1c03e3ae\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\n'],
-        ['firefox>=57', 1073741823, 'v=0\r\no=mozilla...THIS_IS_SDPARTA-57.0 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:1073741823\r\n'],
-        ['64 KiB', 65536, 'v=0\r\no=- 6575128786484314789 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE data\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:oZF1\r\na=ice-pwd:8+qEgoDOiFd49nDG9oNSYYaz\r\na=ice-options:trickle\r\na=fingerprint:sha-256 F2:01:D6:88:9E:0C:F1:CE:EE:85:9C:B4:A5:B7:36:D4:CB:29:F2:4F:E0:97:81:25:34:00:71:65:2B:39:C1:C1\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\na=max-message-size:65536\r\n'],
-        ['1.5 GiB', 1610612736, 'v=0\r\no=1.5 GiB 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:1610612736\r\n'],
-        ['2 GiB', 2147483637, 'v=0\r\no=2 GiB 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:2147483648\r\n'],
-        ['Unlimited', 2147483637, 'v=0\r\no=Unlimited 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:0\r\n'],
+        ['firefox<=56', 65535, 'v=0\r\no=mozilla...THIS_IS_SDPARTA-56.0.2 3250009914871290350 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 C8:36:D3:FD:E6:9A:B8:4E:7C:FB:61:03:22:E5:8E:E1:7D:17:AF:D2:EB:0F:87:BA:28:6C:9A:2E:76:D9:B3:0C\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:bb3ee909b8452eb93722d223b26d6193\r\na=ice-ufrag:1c03e3ae\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\n'],
+        ['firefox>=57', 65535, 'v=0\r\no=mozilla...THIS_IS_SDPARTA-57.0 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:1073741823\r\n'],
+        ['64 KiB', 65535, 'v=0\r\no=- 6575128786484314789 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE data\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:oZF1\r\na=ice-pwd:8+qEgoDOiFd49nDG9oNSYYaz\r\na=ice-options:trickle\r\na=fingerprint:sha-256 F2:01:D6:88:9E:0C:F1:CE:EE:85:9C:B4:A5:B7:36:D4:CB:29:F2:4F:E0:97:81:25:34:00:71:65:2B:39:C1:C1\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\na=max-message-size:65536\r\n'],
+        ['1.5 GiB', 65535, 'v=0\r\no=1.5 GiB 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:1610612736\r\n'],
+        ['2 GiB', 65535, 'v=0\r\no=2 GiB 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:2147483648\r\n'],
+        ['Unlimited', 65535, 'v=0\r\no=Unlimited 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:0\r\n'],
       ],
       'firefox>=58': [
         ['chrome>=0', 65536, 'v=0\r\no=- 6575128786484314789 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE data\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:oZF1\r\na=ice-pwd:8+qEgoDOiFd49nDG9oNSYYaz\r\na=ice-options:trickle\r\na=fingerprint:sha-256 F2:01:D6:88:9E:0C:F1:CE:EE:85:9C:B4:A5:B7:36:D4:CB:29:F2:4F:E0:97:81:25:34:00:71:65:2B:39:C1:C1\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n'],
+        ['firefox<=56', 65536, 'v=0\r\no=mozilla...THIS_IS_SDPARTA-56.0.2 3250009914871290350 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 C8:36:D3:FD:E6:9A:B8:4E:7C:FB:61:03:22:E5:8E:E1:7D:17:AF:D2:EB:0F:87:BA:28:6C:9A:2E:76:D9:B3:0C\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:bb3ee909b8452eb93722d223b26d6193\r\na=ice-ufrag:1c03e3ae\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\n'],
+        ['firefox>=57', 65536, 'v=0\r\no=mozilla...THIS_IS_SDPARTA-57.0 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:1073741823\r\n'],
+        ['64 KiB', 65536, 'v=0\r\no=- 6575128786484314789 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE data\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:oZF1\r\na=ice-pwd:8+qEgoDOiFd49nDG9oNSYYaz\r\na=ice-options:trickle\r\na=fingerprint:sha-256 F2:01:D6:88:9E:0C:F1:CE:EE:85:9C:B4:A5:B7:36:D4:CB:29:F2:4F:E0:97:81:25:34:00:71:65:2B:39:C1:C1\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\na=max-message-size:65536\r\n'],
+        ['1.5 GiB', 65536, 'v=0\r\no=1.5 GiB 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:1610612736\r\n'],
+        ['2 GiB', 65536, 'v=0\r\no=2 GiB 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:2147483648\r\n'],
+        ['Unlimited', 65536, 'v=0\r\no=Unlimited 169150732617742973 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=fingerprint:sha-256 8C:EB:14:5C:60:1E:E8:1E:FA:C7:D8:90:38:E9:EB:05:A8:2B:32:9F:FE:2B:D9:1C:85:3D:59:70:A9:6D:3A:17\r\na=group:BUNDLE sdparta_0\r\na=ice-options:trickle\r\na=msid-semantic:WMS *\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=sendrecv\r\na=ice-pwd:c224ece79b15dcb92de87e2b67e62d7a\r\na=ice-ufrag:96c030e8\r\na=mid:sdparta_0\r\na=sctpmap:5000 webrtc-datachannel 256\r\na=setup:actpass\r\na=max-message-size:0\r\n'],
       ],
       'chrome>=0': [
         ['chrome>=0', 65536, 'v=0\r\no=- 6575128786484314789 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE data\r\na=msid-semantic: WMS\r\nm=application 9 DTLS/SCTP 5000\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:oZF1\r\na=ice-pwd:8+qEgoDOiFd49nDG9oNSYYaz\r\na=ice-options:trickle\r\na=fingerprint:sha-256 F2:01:D6:88:9E:0C:F1:CE:EE:85:9C:B4:A5:B7:36:D4:CB:29:F2:4F:E0:97:81:25:34:00:71:65:2B:39:C1:C1\r\na=setup:actpass\r\na=mid:data\r\na=sctpmap:5000 webrtc-datachannel 1024\r\n'],
