@@ -308,7 +308,7 @@ module.exports = {
     var browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack &&
-        browserDetails.version >= 64) {
+        browserDetails.version >= 65) {
       return this.shimAddTrackRemoveTrackWithNative(window);
     }
 
