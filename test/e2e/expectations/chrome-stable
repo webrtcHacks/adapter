@@ -52,7 +52,7 @@ PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track
 PASS track event the event has a set of streams
 PASS track event the event has a receiver that is contained in the set of receivers
-ERR track event the event has a transceiver that has a receiver timeout
+PASS track event the event has a transceiver that has a receiver
 PASS removeTrack allows removeTrack twice
 PASS removeTrack throws an exception if the argument is a track, not a sender
 PASS removeTrack throws an exception if the sender does not belong to the peerconnection
