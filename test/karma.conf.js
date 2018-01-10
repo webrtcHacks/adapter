@@ -53,6 +53,7 @@ if (!process.env.CHROME_BIN) {
 let chromeFlags = [
   '--use-fake-device-for-media-stream',
   '--use-fake-ui-for-media-stream',
+  '--no-sandbox',
   '--headless', '--disable-gpu', '--remote-debugging-port=9222'
 ];
 if (process.env.CHROMEEXPERIMENT !== 'false') {
