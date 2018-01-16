@@ -102,24 +102,26 @@ module.exports = {
           return this._onaddstream;
         },
         set: function(f) {
+          var pc = this;
           if (this._onaddstream) {
             this.removeEventListener('addstream', this._onaddstream);
             this.removeEventListener('track', this._onaddstreampoly);
           }
           this.addEventListener('addstream', this._onaddstream = f);
           this.addEventListener('track', this._onaddstreampoly = function(e) {
-            var stream = e.streams[0];
-            if (!this._remoteStreams) {
-              this._remoteStreams = [];
-            }
-            if (this._remoteStreams.indexOf(stream) >= 0) {
-              return;
-            }
-            this._remoteStreams.push(stream);
-            var event = new Event('addstream');
-            event.stream = e.streams[0];
-            this.dispatchEvent(event);
-          }.bind(this));
+            e.streams.forEach(function(stream) {
+              if (!pc._remoteStreams) {
+                pc._remoteStreams = [];
+              }
+              if (pc._remoteStreams.indexOf(stream) >= 0) {
+                return;
+              }
+              pc._remoteStreams.push(stream);
+              var event = new Event('addstream');
+              event.stream = stream;
+              pc.dispatchEvent(event);
+            });
+          });
         }
       });
     }
@@ -259,9 +261,17 @@ module.exports = {
         });
         if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
           if (audioTransceiver.direction === 'sendrecv') {
-            audioTransceiver.setDirection('sendonly');
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('sendonly');
+            } else {
+              audioTransceiver.direction = 'sendonly';
+            }
           } else if (audioTransceiver.direction === 'recvonly') {
-            audioTransceiver.setDirection('inactive');
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('inactive');
+            } else {
+              audioTransceiver.direction = 'inactive';
+            }
           }
         } else if (offerOptions.offerToReceiveAudio === true &&
             !audioTransceiver) {

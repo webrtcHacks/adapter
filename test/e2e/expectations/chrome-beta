@@ -28,11 +28,25 @@ PASS URL.createObjectURL shim works for video using setAttribute
 PASS dtmf RTCRtpSender.dtmf exists on audio senders
 PASS dtmf RTCRtpSender.dtmf does not exist on video senders
 PASS dtmf inserts DTMF when using addStream
-ERR dtmf inserts DTMF when using addTrack timeout
+PASS dtmf inserts DTMF when using addTrack
 PASS getStats returns a Promise
 PASS getStats resolves the Promise with a Map(like)
 PASS getUserMedia navigator.getUserMedia exists
 PASS getUserMedia navigator.getUserMedia calls the callback
+PASS maxMessageSize sctp attribute exists
+PASS maxMessageSize sctp attribute is null before offer/answer
+PASS maxMessageSize sctp attribute is null if SCTP not negotiated
+PASS maxMessageSize sctp and maxMessageSize set if SCTP negotiated
+PASS maxMessageSize send largest possible single message
+PASS maxMessageSize throws an exception if the message is too large
+PASS maxMessageSize throws an exception if the message is too large (using a secondary data channel)
+PASS maxMessageSize is as expected for chrome>=0 and chrome>=0 -> 65536
+PASS maxMessageSize is as expected for chrome>=0 and firefox<=56 -> 65536
+PASS maxMessageSize is as expected for chrome>=0 and firefox>=57 -> 65536
+PASS maxMessageSize is as expected for chrome>=0 and 64 KiB -> 65536
+PASS maxMessageSize is as expected for chrome>=0 and 1.5 GiB -> 65536
+PASS maxMessageSize is as expected for chrome>=0 and 2 GiB -> 65536
+PASS maxMessageSize is as expected for chrome>=0 and Unlimited -> 65536
 PASS navigator.mediaDevices exists
 PASS navigator.mediaDevices is an EventTarget
 PASS navigator.mediaDevices implements the devicechange event
@@ -53,7 +67,7 @@ PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track
 PASS track event the event has a set of streams
 PASS track event the event has a receiver that is contained in the set of receivers
-ERR track event the event has a transceiver that has a receiver timeout
+PASS track event the event has a transceiver that has a receiver
 PASS removeTrack allows removeTrack twice
 PASS removeTrack throws an exception if the argument is a track, not a sender
 PASS removeTrack throws an exception if the sender does not belong to the peerconnection
