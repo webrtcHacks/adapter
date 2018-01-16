@@ -77,6 +77,13 @@ module.exports = {
         }
         return origSetRemoteDescription.apply(pc, arguments);
       };
+    } else if (!('RTCRtpTransceiver' in window)) {
+      utils.wrapPeerConnectionEvent(window, 'track', function(e) {
+        if (!e.transceiver) {
+          e.transceiver = {receiver: e.receiver};
+        }
+        return e;
+      });
     }
   },
 
