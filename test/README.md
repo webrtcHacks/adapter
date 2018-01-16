@@ -81,3 +81,17 @@ You can run the tests in any currently installed browser locally that is support
 ```bash
 BROWSER=opera npm test
 ```
+
+### Getting crash dumps from karma
+Sometimes Chrome may crash when running the tests. This typically shows up in headless runs as a disconnect:
+```
+05 01 2018 10:42:14.225:WARN [HeadlessChrome 0.0.0 (Linux 0.0.0)]: Disconnected (1 times)
+```
+
+Follow these steps to get a crash dump:
+* add a `browsers = [];` line in test/karma.conf.js to stop karma from starting Chrome
+* change `singlerun` to `false` in test/karma.conf.js
+* run `node_modules/.bin/karma start test/karma.conf.js` in a terminal to start a karma server
+* start Chrome with `google-chrome --use-fake-device-for-media-stream --use-fake-ui-for-media-stream http://localhost:9876` 
+* run `node_modules/.bin/karma run test/karma.conf.js` to start the karma run
+* wait for the "awww snap" :-)
