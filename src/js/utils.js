@@ -144,36 +144,23 @@ module.exports = {
       return result;
     }
 
-    // Firefox.
-    if (navigator.mozGetUserMedia) {
+    if (navigator.mozGetUserMedia) { // Firefox.
       result.browser = 'firefox';
       result.version = extractVersion(navigator.userAgent,
           /Firefox\/(\d+)\./, 1);
     } else if (navigator.webkitGetUserMedia) {
-      // Chrome, Chromium, Webview, Opera, all use the chrome shim for now
-      if (window.webkitRTCPeerConnection) {
-        result.browser = 'chrome';
-        result.version = extractVersion(navigator.userAgent,
+      // Chrome, Chromium, Webview, Opera.
+      // Version matches Chrome/WebRTC version.
+      result.browser = 'chrome';
+      result.version = extractVersion(navigator.userAgent,
           /Chrom(e|ium)\/(\d+)\./, 2);
-      } else { // Safari (in an unpublished version) or unknown webkit-based.
-        if (navigator.userAgent.match(/Version\/(\d+).(\d+)/)) {
-          result.browser = 'safari';
-          result.version = extractVersion(navigator.userAgent,
-            /AppleWebKit\/(\d+)\./, 1);
-        } else { // unknown webkit-based browser.
-          result.browser = 'Unsupported webkit-based browser ' +
-              'with GUM support but no WebRTC support.';
-          return result;
-        }
-      }
     } else if (navigator.mediaDevices &&
         navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) { // Edge.
       result.browser = 'edge';
       result.version = extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
     } else if (navigator.mediaDevices &&
-        navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) {
-        // Safari, with webkitGetUserMedia removed.
+        navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
       result.browser = 'safari';
       result.version = extractVersion(navigator.userAgent,
           /AppleWebKit\/(\d+)\./, 1);
