@@ -52,16 +52,6 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).to.equal(10547);
   });
 
-  it('detects Safari if navigator.webkitGetUserMedia exists', () => {
-    navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
-          'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
-    navigator.webkitGetUserMedia = function() {};
-
-    const browserDetails = detectBrowser(window);
-    expect(browserDetails.browser).to.equal('safari');
-    expect(browserDetails.version).to.equal(604);
-  });
-
   it('detects Safari if navigator.mediaDevices exists', () => {
     navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
