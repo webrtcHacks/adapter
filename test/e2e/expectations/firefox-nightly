@@ -1,8 +1,8 @@
 PASS addIceCandidate after setRemoteDescription resolves when called with null
 PASS addIceCandidate after setRemoteDescription resolves when called with undefined
-ERR addTrack throws an exception if the track has already been added AssertionError
-ERR addTrack throws an exception if the track has already been added via addStream AssertionError
-ERR addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
+PASS addTrack throws an exception if the track has already been added AssertionError
+PASS addTrack throws an exception if the track has already been added via addStream AssertionError
+PASS addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
 PASS addTrack throws an exception if the peerconnection has been closed already
 PASS addTrack and getSenders creates a sender
 PASS addTrack and getLocalStreams returns a stream with audio and video even if just an audio track was added
@@ -70,7 +70,7 @@ PASS track event the event has a receiver that is contained in the set of receiv
 PASS track event the event has a transceiver that has a receiver
 PASS removeTrack allows removeTrack twice
 PASS removeTrack throws an exception if the argument is a track, not a sender
-ERR removeTrack throws an exception if the sender does not belong to the peerconnection AssertionError
+PASS removeTrack throws an exception if the sender does not belong to the peerconnection
 PASS removeTrack throws an exception if the peerconnection has been closed already
 PASS removeTrack after addStream for an audio/video track after removing a single track only a single sender remains
 PASS removeTrack after addStream for an audio/video track after removing a single track the local stream remains untouched
