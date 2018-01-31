@@ -61,7 +61,7 @@ PASS MediaStream window.MediaStream exists
 PASS MSID signals track and stream ids
 PASS MSID puts the track msid attribute into the localDescription
 PASS track event RTCPeerConnection.prototype.ontrack exists
-ERR track event is called when setRemoteDescription adds a new track to an existing stream timeout
+PASS track event is called when setRemoteDescription adds a new track to an existing stream
 PASS track event is called by setRemoteDescription track event
 PASS track event is called by setRemoteDescription ontrack
 PASS track event the event has a track
