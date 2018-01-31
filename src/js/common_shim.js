@@ -114,7 +114,7 @@ module.exports = {
   },
 
   shimMaxMessageSize: function(window) {
-    if (window.RTCSctpTransport) {
+    if (window.RTCSctpTransport || !window.RTCPeerConnection) {
       return;
     }
     var browserDetails = utils.detectBrowser(window);
