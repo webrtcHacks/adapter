@@ -6,7 +6,12 @@ Please use [discuss-webrtc](https://groups.google.com/forum/#!forum/discuss-webr
 
 **Note: If the checkboxes above are not checked, the issue will be closed.**
 
-## Browsers and versions affected
+## Versions affected
+
+**Browser including version (e.g. Chrome 64.0.3282.119)**
+
+
+**adapter.js (e.g. 6.1.0)**
 
 
 ## Description
