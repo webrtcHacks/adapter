@@ -5,7 +5,7 @@ Please use [discuss-webrtc](https://groups.google.com/forum/#!forum/discuss-webr
 - [ ] I have provided browser name, version and adapter.js version
 - [ ] This issue only happens when adapter.js is used
 
-**Note: If the checkboxes above are not checked, the issue will be closed.**
+**Note: If the checkboxes above are not checked (which you do after the issue is posted), the issue will be closed.**
 
 ## Versions affected
 
