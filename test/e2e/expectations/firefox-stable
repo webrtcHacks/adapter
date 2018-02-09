@@ -40,13 +40,13 @@ PASS maxMessageSize sctp and maxMessageSize set if SCTP negotiated
 PASS maxMessageSize send largest possible single message
 PASS maxMessageSize throws an exception if the message is too large
 PASS maxMessageSize throws an exception if the message is too large (using a secondary data channel)
-PASS maxMessageSize is as expected for firefox==57 and chrome>=0 -> 65535
-PASS maxMessageSize is as expected for firefox==57 and firefox<=56 -> 65535
-PASS maxMessageSize is as expected for firefox==57 and firefox>=57 -> 65535
-PASS maxMessageSize is as expected for firefox==57 and 64 KiB -> 65535
-PASS maxMessageSize is as expected for firefox==57 and 1.5 GiB -> 65535
-PASS maxMessageSize is as expected for firefox==57 and 2 GiB -> 65535
-PASS maxMessageSize is as expected for firefox==57 and Unlimited -> 65535
+PASS maxMessageSize is as expected for firefox>=58 and chrome>=0 -> 65536
+PASS maxMessageSize is as expected for firefox>=58 and firefox<=56 -> 65536
+PASS maxMessageSize is as expected for firefox>=58 and firefox>=57 -> 65536
+PASS maxMessageSize is as expected for firefox>=58 and 64 KiB -> 65536
+PASS maxMessageSize is as expected for firefox>=58 and 1.5 GiB -> 65536
+PASS maxMessageSize is as expected for firefox>=58 and 2 GiB -> 65536
+PASS maxMessageSize is as expected for firefox>=58 and Unlimited -> 65536
 PASS navigator.mediaDevices exists
 PASS navigator.mediaDevices is an EventTarget
 PASS navigator.mediaDevices implements the devicechange event
@@ -58,7 +58,7 @@ PASS navigator.mediaDevices enumerateDevices returns some audioinput devices
 PASS navigator.mediaDevices enumerateDevices returns some videoinput devices
 ERR navigator.mediaDevices enumerateDevices returns some audiooutput devices AssertionError
 PASS MediaStream window.MediaStream exists
-PASS MSID signals track and stream ids
+PASS MSID signals stream ids
 PASS MSID puts the track msid attribute into the localDescription
 PASS track event RTCPeerConnection.prototype.ontrack exists
 PASS track event is called when setRemoteDescription adds a new track to an existing stream
@@ -72,13 +72,13 @@ PASS removeTrack allows removeTrack twice
 PASS removeTrack throws an exception if the argument is a track, not a sender
 ERR removeTrack throws an exception if the sender does not belong to the peerconnection AssertionError
 PASS removeTrack throws an exception if the peerconnection has been closed already
-PASS removeTrack after addStream for an audio/video track after removing a single track only a single sender remains
+PASS removeTrack after addStream for an audio/video track after removing a single track only a single sender with a track remains
 PASS removeTrack after addStream for an audio/video track after removing a single track the local stream remains untouched
-PASS removeTrack after addStream for an audio/video track after removing all tracks no senders remain
+PASS removeTrack after addStream for an audio/video track after removing all tracks no senders with tracks remain
 PASS removeTrack after addStream for an audio/video track after removing all tracks no local streams remain
-PASS removeTrack after addTrack for an audio/video track after removing a single track only a single sender remains
+PASS removeTrack after addTrack for an audio/video track after removing a single track only a single sender with a track remains
 PASS removeTrack after addTrack for an audio/video track after removing a single track the local stream remains untouched
-PASS removeTrack after addTrack for an audio/video track after removing all tracks no senders remain
+PASS removeTrack after addTrack for an audio/video track after removing all tracks no senders with tracks remain
 PASS removeTrack after addTrack for an audio/video track after removing all tracks no local streams remain
 PASS RTCIceCandidate window.RTCIceCandidate exists
 PASS RTCIceCandidate is augmented in the onicecandidate callback

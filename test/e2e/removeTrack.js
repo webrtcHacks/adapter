@@ -88,12 +88,13 @@ describe('removeTrack', () => {
       });
 
       describe('after removing a single track', () => {
-        it('only a single sender remains', () => {
+        it('only a single sender with a track remains', () => {
           const senders = pc.getSenders();
           expect(pc.getSenders()).to.have.length(2);
 
           pc.removeTrack(senders[0]);
-          expect(pc.getSenders()).to.have.length(1);
+          const sendersWithTrack = pc.getSenders().filter(s => s.track);
+          expect(sendersWithTrack).to.have.length(1);
         });
 
         it('the local stream remains untouched', () => {
@@ -106,10 +107,11 @@ describe('removeTrack', () => {
       });
 
       describe('after removing all tracks', () => {
-        it('no senders remain', () => {
+        it('no senders with tracks remain', () => {
           const senders = pc.getSenders();
           senders.forEach(sender => pc.removeTrack(sender));
-          expect(pc.getSenders()).to.have.length(0);
+          const sendersWithTrack = pc.getSenders().filter(s => s.track);
+          expect(sendersWithTrack).to.have.length(0);
         });
 
         it('no local streams remain', () => {

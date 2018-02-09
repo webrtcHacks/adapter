@@ -40,9 +40,8 @@ describe('MSID', () => {
     pc2.close();
   });
 
-  it('signals track and stream ids', (done) => {
+  it('signals stream ids', (done) => {
     pc2.ontrack = (e) => {
-      expect(e.track.id).to.equal(localStream.getTracks()[0].id);
       expect(e.streams[0].id).to.equal(localStream.id);
       done();
     };

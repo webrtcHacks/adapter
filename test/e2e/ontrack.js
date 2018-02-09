@@ -111,8 +111,10 @@ describe('track event', () => {
       'a=rtpmap:100 vp8/90000\r\n' +
       'a=msid:stream1 track2\r\n' +
       'a=ssrc:1002 cname:some\r\n';
+    let ontrackCount = 0;
     pc.ontrack = (e) => {
-      if (e.track.id === 'track2') {
+      ontrackCount++;
+      if (ontrackCount === 2) {
         done();
       }
     };
