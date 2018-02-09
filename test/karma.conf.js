@@ -16,6 +16,8 @@ if (process.env.BROWSER) {
     browsers = ['Edge'];
   } else if (process.env.BROWSER === 'safari') {
     browsers = ['Safari'];
+  } else if (process.env.BROWSER === 'Electron') {
+    browsers = ['electron'];
   } else {
     browsers = [process.env.BROWSER];
   }
@@ -82,6 +84,10 @@ module.exports = function(config) {
       chrome: {
         base: 'Chrome',
         flags: chromeFlags
+      },
+      electron: {
+        base: 'Electron',
+        flags: ['--use-fake-device-for-media-stream']
       },
       firefox: {
         base: 'Firefox',
