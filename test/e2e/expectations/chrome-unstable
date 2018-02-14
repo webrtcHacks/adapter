@@ -83,6 +83,7 @@ PASS removeTrack after addTrack for an audio/video track after removing all trac
 PASS RTCIceCandidate window.RTCIceCandidate exists
 PASS RTCIceCandidate is augmented in the onicecandidate callback
 PASS RTCIceCandidate is augmented in the icecandidate event
+ERR RTCIceCandidate with empty candidate.candidate does not throw AssertionError
 PASS RTCIceCandidate icecandidate eventlistener can be removed
 PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works

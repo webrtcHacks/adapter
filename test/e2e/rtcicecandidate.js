@@ -45,6 +45,15 @@ describe('RTCIceCandidate', () => {
     });
   });
 
+  describe('with empty candidate.candidate', () => {
+    it('does not throw', () => {
+      const constructor = () => {
+        return new RTCIceCandidate({sdpMid: 'foo', candidate: ''});
+      };
+      expect(constructor).not.to.throw();
+    });
+  });
+
   describe('icecandidate eventlistener', () => {
     it('can be removed', () => {
       let wrongCalled = false;

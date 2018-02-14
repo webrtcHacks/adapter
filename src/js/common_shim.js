@@ -29,23 +29,27 @@ module.exports = {
         args.candidate = args.candidate.substr(2);
       }
 
-      // Augment the native candidate with the parsed fields.
-      var nativeCandidate = new NativeRTCIceCandidate(args);
-      var parsedCandidate = SDPUtils.parseCandidate(args.candidate);
-      var augmentedCandidate = Object.assign(nativeCandidate,
-          parsedCandidate);
+      if (args.candidate && args.candidate.length) {
+        // Augment the native candidate with the parsed fields.
+        var nativeCandidate = new NativeRTCIceCandidate(args);
+        var parsedCandidate = SDPUtils.parseCandidate(args.candidate);
+        var augmentedCandidate = Object.assign(nativeCandidate,
+            parsedCandidate);
 
-      // Add a serializer that does not serialize the extra attributes.
-      augmentedCandidate.toJSON = function() {
-        return {
-          candidate: augmentedCandidate.candidate,
-          sdpMid: augmentedCandidate.sdpMid,
-          sdpMLineIndex: augmentedCandidate.sdpMLineIndex,
-          usernameFragment: augmentedCandidate.usernameFragment,
+        // Add a serializer that does not serialize the extra attributes.
+        augmentedCandidate.toJSON = function() {
+          return {
+            candidate: augmentedCandidate.candidate,
+            sdpMid: augmentedCandidate.sdpMid,
+            sdpMLineIndex: augmentedCandidate.sdpMLineIndex,
+            usernameFragment: augmentedCandidate.usernameFragment,
+          };
         };
-      };
-      return augmentedCandidate;
+        return augmentedCandidate;
+      }
+      return new NativeRTCIceCandidate(args);
     };
+    window.RTCIceCandidate.prototype = NativeRTCIceCandidate.prototype;
 
     // Hook up the augmented candidate in onicecandidate and
     // addEventListener('icecandidate', ...)
