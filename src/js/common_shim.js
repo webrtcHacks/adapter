@@ -245,6 +245,10 @@ module.exports = {
   },
 
   shimSendThrowTypeError: function(window) {
+    if (!window.RTCPeerConnection) {
+      return;
+    }
+
     // Note: Although Firefox >= 57 has a native implementation, the maximum
     //       message size can be reset for all data channels at a later stage.
     //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
