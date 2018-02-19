@@ -140,7 +140,6 @@ module.exports = function(window) {
         InvalidStateError: 'NotAllowedError',
         DevicesNotFoundError: 'NotFoundError',
         ConstraintNotSatisfiedError: 'OverconstrainedError',
-        ConstraintsNotSatisfiedError: 'OverconstrainedError',
         TrackStartError: 'NotReadableError',
         MediaDeviceFailedDueToShutdown: 'NotAllowedError',
         MediaDeviceKillSwitchOn: 'NotAllowedError',
