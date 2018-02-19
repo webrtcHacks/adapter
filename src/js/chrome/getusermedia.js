@@ -136,12 +136,17 @@ module.exports = function(window) {
     return {
       name: {
         PermissionDeniedError: 'NotAllowedError',
-        InvalidStateError: 'NotReadableError',
+        PermissionDismissedError: 'NotAllowedError',
+        InvalidStateError: 'NotAllowedError',
         DevicesNotFoundError: 'NotFoundError',
         ConstraintNotSatisfiedError: 'OverconstrainedError',
+        ConstraintsNotSatisfiedError: 'OverconstrainedError',
         TrackStartError: 'NotReadableError',
-        MediaDeviceFailedDueToShutdown: 'NotReadableError',
-        MediaDeviceKillSwitchOn: 'NotReadableError'
+        MediaDeviceFailedDueToShutdown: 'NotAllowedError',
+        MediaDeviceKillSwitchOn: 'NotAllowedError',
+        TabCaptureError: 'AbortError',
+        ScreenCaptureError: 'AbortError',
+        DeviceCaptureError: 'AbortError'
       }[e.name] || e.name,
       message: e.message,
       constraint: e.constraintName,
