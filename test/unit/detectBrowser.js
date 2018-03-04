@@ -61,4 +61,15 @@ describe('detectBrowser', () => {
     expect(browserDetails.browser).to.equal('safari');
     expect(browserDetails.version).to.equal(604);
   });
+
+  it('detects iOSWKWebView if navigator.mediaDevices doens\'t exist', () => {
+    navigator.userAgent = 'Mozilla/5.0 ' +
+        '(iPhone; CPU iPhone OS 11_2 like Mac OS X) ' +
+        'AppleWebKit/604.4.7 (KHTML, like Gecko) Mobile/15C107';
+    navigator.mediaDevices = undefined;
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).to.equal('safari');
+    expect(browserDetails.version).to.equal(604);
+  });
 });

@@ -164,6 +164,12 @@ module.exports = {
       result.browser = 'safari';
       result.version = extractVersion(navigator.userAgent,
           /AppleWebKit\/(\d+)\./, 1);
+    } else if (navigator.userAgent.match(/AppleWebKit\/(\d+)\./) &&
+        (navigator.platform === 'iPhone' || navigator.platfrm === 'iPad')) { 
+          // WKWebView on iOS; Where mediaDevices is still unsupported
+          result.browser = 'safari';
+          result.version = extractVersion(navigator.userAgent,
+        /AppleWebKit\/(\d+)\./, 1);
     } else { // Default fallthrough: not supported.
       result.browser = 'Not a supported browser.';
       return result;
