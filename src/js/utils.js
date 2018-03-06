@@ -159,14 +159,8 @@ module.exports = {
       result.browser = 'edge';
       result.version = extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
-    } else if (navigator.mediaDevices &&
+    } else if (window.RTCPeerConnection &&
         navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
-      result.browser = 'safari';
-      result.version = extractVersion(navigator.userAgent,
-          /AppleWebKit\/(\d+)\./, 1);
-    } else if (navigator.userAgent.match(/AppleWebKit\/(\d+)\./) &&
-        (navigator.userAgent.match(/iPhone|iPad/))) {
-      // WKWebView on iOS; Where mediaDevices is still unsupported
       result.browser = 'safari';
       result.version = extractVersion(navigator.userAgent,
           /AppleWebKit\/(\d+)\./, 1);
