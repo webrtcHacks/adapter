@@ -129,6 +129,20 @@ describe('Safari shim', () => {
           pc[method](null, null, 1, 2);
           expect(stub).to.have.been.calledWith(1);
         });
+
+        it('options with bits values', () => {
+          const pc = new window.RTCPeerConnection();
+          var optionsBeforeFix = {
+            offerToReceiveAudio: 0,
+            offerToReceiveVideo: 1
+          };
+          var optionsAfterFix = {
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: false
+          };
+          pc[method](null, null, optionsBeforeFix);
+          expect(stub).to.have.been.calledWith(optionsAfterFix);
+        });
       });
     });
   });
