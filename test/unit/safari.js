@@ -129,23 +129,64 @@ describe('Safari shim', () => {
           pc[method](null, null, 1, 2);
           expect(stub).to.have.been.calledWith(1);
         });
-
-        it('options with bits values', () => {
-          const pc = new window.RTCPeerConnection();
-          var optionsBeforeFix = {
-            offerToReceiveAudio: 0,
-            offerToReceiveVideo: 1
-          };
-          var optionsAfterFix = {
-            offerToReceiveAudio: true,
-            offerToReceiveVideo: false
-          };
-          pc[method](null, null, optionsBeforeFix);
-          expect(stub).to.have.been.calledWith(optionsAfterFix);
-        });
       });
     });
   });
+
+  describe('legacy createOffer shim converts offer into transceivers', () => {
+    let pc, stub, options;
+    beforeEach(() => {
+      stub = sinon.stub();
+      window.RTCPeerConnection.prototype.createOffer = function() {};
+      shim.shimCreateOfferLegacy(window);
+
+      pc = new window.RTCPeerConnection();
+      pc.getTransceivers = function() {
+        return [];
+      };
+      pc.addTransceiver = stub;
+
+      options = {
+        offerToReceiveAudio: false,
+        offerToReceiveVideo: false,
+      };
+    });
+
+    it('when offerToReceive Audio is true', () => {
+      options.offerToReceiveAudio = true;
+      pc.createOffer(options);
+      expect(stub).to.have.been.calledWith('audio');
+    });
+
+    it('when offerToReceive Video is true', () => {
+      options.offerToReceiveVideo = true;
+      pc.createOffer(options);
+      expect(stub).to.have.been.calledWith('video');
+    });
+
+    it('when both offers are false', () => {
+      pc.createOffer(options);
+      expect(stub).to.not.have.been.calledWith('audio');
+      expect(stub).to.not.have.been.calledWith('video');
+    });
+
+    it('when both offers are true', () => {
+      options.offerToReceiveAudio = true;
+      options.offerToReceiveVideo = true;
+      pc.createOffer(options);
+      expect(stub).to.have.been.calledWith('audio');
+      expect(stub).to.have.been.calledWith('video');
+    });
+
+    it('when offerToReceive has bit values', () => {
+      options.offerToReceiveAudio = 0;
+      options.offerToReceiveVideo = 1;
+      pc.createOffer(options);
+      expect(stub).to.not.have.been.calledWith('audio');
+      expect(stub).to.have.been.calledWith('video');
+    });
+  });
+
   describe('conversion of RTCIceServer.url', () => {
     let nativeStub;
     beforeEach(() => {
