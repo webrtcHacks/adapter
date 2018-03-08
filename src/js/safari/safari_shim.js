@@ -255,16 +255,11 @@ module.exports = {
     window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
       var pc = this;
       if (offerOptions) {
+        pc.offerToReceiveAudio = !!pc.offerToReceiveAudio; // support bit value
         var audioTransceiver = pc.getTransceivers().find(function(transceiver) {
           return transceiver.sender.track &&
               transceiver.sender.track.kind === 'audio';
         });
-        var isBit = offerOptions.offerToReceiveAudio;
-        if (Number.isInteger(isBit)) {
-          offerOptions.offerToReceiveAudio = (isBit === 0) ? false : true;
-          utils.deprecated('Integer values (0,1) to offerToReceiveAudio',
-          'boolean values (true/false)');
-        }
         if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
           if (audioTransceiver.direction === 'sendrecv') {
             if (audioTransceiver.setDirection) {
@@ -284,16 +279,11 @@ module.exports = {
           pc.addTransceiver('audio');
         }
 
+        pc.offerToReceiveVideo = !!pc.offerToReceiveVideo; // support bit value
         var videoTransceiver = pc.getTransceivers().find(function(transceiver) {
           return transceiver.sender.track &&
               transceiver.sender.track.kind === 'video';
         });
-        isBit = offerOptions.offerToReceiveVideo;
-        if (Number.isInteger(isBit)) {
-          offerOptions.offerToReceiveVideo = (isBit === 0) ? false : true;
-          utils.deprecated('Integer values (0,1) to offerToReceiveVideo',
-          'boolean values (true/false)');
-        }
         if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
           if (videoTransceiver.direction === 'sendrecv') {
             videoTransceiver.setDirection('sendonly');
