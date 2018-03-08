@@ -18,7 +18,7 @@ bower install webrtc-adapter
 ## Usage ##
 ##### NPM
 Copy to desired location in your src tree or use a minify/vulcanize tool (node_modules is usually not published with the code).
-See [webrtc/samples repo](https://github.com/webrtc/samples/blob/gh-pages/package.json) as an example on how you can do this.
+See [webrtc/samples repo](https://github.com/webrtc/samples) as an example on how you can do this.
 
 #### Prebuilt releases
 ##### Web
