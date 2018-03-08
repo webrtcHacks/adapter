@@ -159,7 +159,7 @@ module.exports = {
       result.browser = 'edge';
       result.version = extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
-    } else if (navigator.mediaDevices &&
+    } else if (window.RTCPeerConnection &&
         navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
       result.browser = 'safari';
       result.version = extractVersion(navigator.userAgent,
