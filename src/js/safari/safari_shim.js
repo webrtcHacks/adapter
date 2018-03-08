@@ -255,8 +255,10 @@ module.exports = {
     window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
       var pc = this;
       if (offerOptions) {
-        // support bit value
-        offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
+        if (offerOptions.offerToReceiveAudio !== undefined) {
+          // support bit values
+          offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
+        }
         var audioTransceiver = pc.getTransceivers().find(function(transceiver) {
           return transceiver.sender.track &&
               transceiver.sender.track.kind === 'audio';
@@ -280,8 +282,11 @@ module.exports = {
           pc.addTransceiver('audio');
         }
 
-        // support bit value
-        offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
+
+        if (offerOptions.offerToReceiveVideo !== undefined) {
+          // support bit values
+          offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
+        }
         var videoTransceiver = pc.getTransceivers().find(function(transceiver) {
           return transceiver.sender.track &&
               transceiver.sender.track.kind === 'video';
