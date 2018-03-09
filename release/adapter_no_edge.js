@@ -30,6 +30,19 @@ SDPUtils.splitSections = function(blob) {
   });
 };
 
+// returns the session description.
+SDPUtils.getDescription = function(blob) {
+  var sections = SDPUtils.splitSections(blob);
+  return sections && sections[0];
+};
+
+// returns the individual media sections.
+SDPUtils.getMediaSections = function(blob) {
+  var sections = SDPUtils.splitSections(blob);
+  sections.shift();
+  return sections;
+};
+
 // Returns lines that start with a certain prefix.
 SDPUtils.matchPrefix = function(blob, prefix) {
   return SDPUtils.splitLines(blob).filter(function(line) {
@@ -638,14 +651,27 @@ SDPUtils.isRejected = function(mediaSection) {
 
 SDPUtils.parseMLine = function(mediaSection) {
   var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
+  var parts = lines[0].substr(2).split(' ');
   return {
-    kind: mline[0].substr(2),
-    port: parseInt(mline[1], 10),
-    protocol: mline[2],
-    fmt: mline.slice(3).join(' ')
+    kind: parts[0],
+    port: parseInt(parts[1], 10),
+    protocol: parts[2],
+    fmt: parts.slice(3).join(' ')
   };
 };
+
+SDPUtils.parseOLine = function(mediaSection) {
+  var line = SDPUtils.matchPrefix(mediaSection, 'o=')[0];
+  var parts = line.substr(2).split(' ');
+  return {
+    username: parts[0],
+    sessionId: parts[1],
+    sessionVersion: parseInt(parts[2], 10),
+    netType: parts[3],
+    addressType: parts[4],
+    address: parts[5],
+  };
+}
 
 // Expose public methods.
 if (typeof module === 'object') {
