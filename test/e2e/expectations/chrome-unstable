@@ -68,7 +68,7 @@ PASS track event the event has a track
 PASS track event the event has a set of streams
 PASS track event the event has a receiver that is contained in the set of receivers
 PASS track event the event has a transceiver that has a receiver
-PASS removeTrack allows removeTrack twice
+ERR removeTrack allows removeTrack twice AssertionError
 PASS removeTrack throws an exception if the argument is a track, not a sender
 PASS removeTrack throws an exception if the sender does not belong to the peerconnection
 PASS removeTrack throws an exception if the peerconnection has been closed already
@@ -83,6 +83,7 @@ PASS removeTrack after addTrack for an audio/video track after removing all trac
 PASS RTCIceCandidate window.RTCIceCandidate exists
 PASS RTCIceCandidate is augmented in the onicecandidate callback
 PASS RTCIceCandidate is augmented in the icecandidate event
+ERR RTCIceCandidate with empty candidate.candidate does not throw AssertionError
 PASS RTCIceCandidate icecandidate eventlistener can be removed
 PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works

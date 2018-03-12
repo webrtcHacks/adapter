@@ -28,7 +28,7 @@ PASS URL.createObjectURL shim works for video using setAttribute
 PASS dtmf RTCRtpSender.dtmf exists on audio senders
 PASS dtmf RTCRtpSender.dtmf does not exist on video senders
 PASS dtmf inserts DTMF when using addStream
-PASS dtmf inserts DTMF when using addTrack
+ERR dtmf inserts DTMF when using addTrack timeout
 PASS getStats returns a Promise
 PASS getStats resolves the Promise with a Map(like)
 PASS getUserMedia navigator.getUserMedia exists
@@ -83,6 +83,7 @@ PASS removeTrack after addTrack for an audio/video track after removing all trac
 PASS RTCIceCandidate window.RTCIceCandidate exists
 PASS RTCIceCandidate is augmented in the onicecandidate callback
 PASS RTCIceCandidate is augmented in the icecandidate event
+ERR RTCIceCandidate with empty candidate.candidate does not throw AssertionError
 PASS RTCIceCandidate icecandidate eventlistener can be removed
 PASS RTCPeerConnection window.RTCPeerConnection exists
 PASS RTCPeerConnection constructor works
