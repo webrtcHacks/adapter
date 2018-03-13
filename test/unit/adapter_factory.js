@@ -22,23 +22,25 @@ describe('adapter factory', () => {
       RTCPeerConnection: sinon.stub(),
     };
   });
-  afterEach(() => {
-    utils.detectBrowser.restore();
-  });
 
-  ['Chrome', 'Firefox', 'Safari', 'Edge'].forEach(browser => {
-    it('does not shim ' + browser + ' when disabled', () => {
-      sinon.stub(utils, 'detectBrowser').returns({
-        browser: browser.toLowerCase()
+  describe('does not shim', () => {
+    afterEach(() => {
+      utils.detectBrowser.restore();
+    });
+    ['Chrome', 'Firefox', 'Safari', 'Edge'].forEach(browser => {
+      it(browser + ' when disabled', () => {
+        sinon.stub(utils, 'detectBrowser').returns({
+          browser: browser.toLowerCase()
+        });
+        let options = {};
+        options['shim' + browser] = false;
+        const adapter = adapterFactory(window, options);
+        expect(adapter).not.to.have.property('browserShim');
       });
-      let options = {};
-      options['shim' + browser] = false;
-      const adapter = adapterFactory(window, options);
-      expect(adapter).not.to.have.property('browserShim');
     });
   });
 
-  describe('Firefox with peerconnection disabled', () => {
+  it('does not throw in Firefox with peerconnection disabled', () => {
     window = {navigator: {
       mozGetUserMedia: () => {},
       userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) ' +
