@@ -37,4 +37,14 @@ describe('adapter factory', () => {
       expect(adapter).not.to.have.property('browserShim');
     });
   });
+
+  describe('Firefox with peerconnection disabled', () => {
+    window = {navigator: {
+      mozGetUserMedia: () => {},
+      userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) ' +
+          'Gecko/20100101 Firefox/44.0'
+    }};
+    const constructor = () => adapterFactory({window});
+    expect(constructor).not.to.throw();
+  });
 });
