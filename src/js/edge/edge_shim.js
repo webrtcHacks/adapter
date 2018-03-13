@@ -60,6 +60,11 @@ module.exports = {
         }
       });
     }
+    // Edge currently only implements the RTCDtmfSender, not the
+    // RTCDTMFSender alias. See http://draft.ortc.org/#rtcdtmfsender2*
+    if (window.RTCDtmfSender && !window.RTCDTMFSender) {
+      window.RTCDTMFSender = window.RTCDtmfSender;
+    }
 
     window.RTCPeerConnection =
         shimRTCPeerConnection(window, browserDetails.version);
