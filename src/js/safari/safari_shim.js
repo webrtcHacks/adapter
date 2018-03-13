@@ -255,7 +255,7 @@ module.exports = {
     window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
       var pc = this;
       if (offerOptions) {
-        if (offerOptions.offerToReceiveAudio !== undefined) {
+        if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
           // support bit values
           offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
         }
@@ -283,7 +283,7 @@ module.exports = {
         }
 
 
-        if (offerOptions.offerToReceiveVideo !== undefined) {
+        if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
           // support bit values
           offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
         }
