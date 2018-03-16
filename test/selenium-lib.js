@@ -88,6 +88,7 @@ function buildDriver() {
       chromeOptions.addArguments('headless');
       chromeOptions.addArguments('disable-gpu');
     }
+    chromeOptions.addArguments('no-sandbox');
   }
 
   var edgeOptions = new edge.Options();
