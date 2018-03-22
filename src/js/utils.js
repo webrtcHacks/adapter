@@ -149,7 +149,7 @@ module.exports = {
       result.version = extractVersion(navigator.userAgent,
           /Firefox\/(\d+)\./, 1);
     } else if (navigator.webkitGetUserMedia || 
-      window.chrome.webstore) {
+        window.chrome.webstore) {
       // Chrome, Chromium, Webview, Opera.
       // Version matches Chrome/WebRTC version.
       result.browser = 'chrome';
