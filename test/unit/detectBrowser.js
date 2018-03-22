@@ -41,6 +41,17 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).to.equal(45);
   });
 
+  it('detects Chrome if window.chrome.webstore exists', () => {
+    navigator.userAgent = 'Mozilla/5.0 (X11; Linux x86_64) ' +
+        'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 ' +
+        'Safari/537.36';
+    window.chrome.webstore = function() {};
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).to.equal('chrome');
+    expect(browserDetails.version).to.equal(45);
+  });
+
   it('detects Edge if navigator.mediaDevices exists', () => {
     navigator.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
         'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 ' +
