@@ -188,6 +188,25 @@ module.exports = {
           return this._dtmf;
         }
       });
+    } else if (typeof window === 'object' && window.RTCPeerConnection &&
+        ('getSenders' in window.RTCPeerConnection.prototype) &&
+        (window.RTCRtpSender && 'dtmf' in window.RTCRtpSender.prototype)) {
+      // override legacy createDTMFSender.
+      window.RTCPeerConnection.prototype.createDTMFSender = function(track) {
+        if (track.kind !== 'audio') {
+          throw new DOMException('Track is not an audio track.',
+              'TypeError');
+        }
+        utils.deprecated('RTCPeerConnection.createDTMFSender',
+            'RTCRtpSender.dtmf');
+        var sender = this.getSenders().find(function(s) {
+          return s.track === track;
+        });
+        if (sender) {
+          return sender.dtmf;
+        }
+        // TODO: figure out an error for track not being found.
+      };
     }
   },
 
