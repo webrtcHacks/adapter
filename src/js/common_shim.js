@@ -249,7 +249,8 @@ module.exports = {
   },
 
   shimSendThrowTypeError: function(window) {
-    if (!window.RTCPeerConnection) {
+    if (!(window.RTCPeerConnection &&
+        'createDataChannel' in window.RTCPeerConnection.prototype)) {
       return;
     }
 
