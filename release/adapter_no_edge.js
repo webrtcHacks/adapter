@@ -2091,7 +2091,8 @@ module.exports = {
   },
 
   shimSendThrowTypeError: function(window) {
-    if (!window.RTCPeerConnection) {
+    if (!(window.RTCPeerConnection &&
+        'createDataChannel' in window.RTCPeerConnection.prototype)) {
       return;
     }
 
@@ -2811,6 +2812,10 @@ module.exports = {
     window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
       var pc = this;
       if (offerOptions) {
+        if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
+          // support bit values
+          offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
+        }
         var audioTransceiver = pc.getTransceivers().find(function(transceiver) {
           return transceiver.sender.track &&
               transceiver.sender.track.kind === 'audio';
@@ -2834,6 +2839,11 @@ module.exports = {
           pc.addTransceiver('audio');
         }
 
+
+        if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
+          // support bit values
+          offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
+        }
         var videoTransceiver = pc.getTransceivers().find(function(transceiver) {
           return transceiver.sender.track &&
               transceiver.sender.track.kind === 'video';
