@@ -169,13 +169,16 @@ module.exports = {
             // messages. Thus, supporting ~2 GiB when sending.
             canSendMaxMessageSize = 2147483637;
           }
-        } else {
+        } else if (browserDetails.version < 60) {
           // Currently, all FF >= 57 will reset the remote maximum message size
           // to the default value when a data channel is created at a later
           // stage. :(
           // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
           canSendMaxMessageSize =
             browserDetails.version === 57 ? 65535 : 65536;
+        } else {
+          // FF >= 60 supports sending ~2 GiB
+          canSendMaxMessageSize = 2147483637;
         }
       }
       return canSendMaxMessageSize;
