@@ -1,8 +1,8 @@
 PASS addIceCandidate after setRemoteDescription resolves when called with null
 PASS addIceCandidate after setRemoteDescription resolves when called with undefined
-ERR addTrack throws an exception if the track has already been added AssertionError
-ERR addTrack throws an exception if the track has already been added via addStream AssertionError
-ERR addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
+PASS addTrack throws an exception if the track has already been added
+PASS addTrack throws an exception if the track has already been added via addStream
+PASS addTrack throws an exception if addStream is called with a stream containing a track already added
 PASS addTrack throws an exception if the peerconnection has been closed already
 PASS addTrack and getSenders creates a sender
 PASS addTrack and getLocalStreams returns a stream with audio and video even if just an audio track was added
@@ -70,16 +70,16 @@ PASS track event the event has a receiver that is contained in the set of receiv
 PASS track event the event has a transceiver that has a receiver
 PASS removeTrack allows removeTrack twice
 PASS removeTrack throws an exception if the argument is a track, not a sender
-ERR removeTrack throws an exception if the sender does not belong to the peerconnection AssertionError
+PASS removeTrack throws an exception if the sender does not belong to the peerconnection
 PASS removeTrack throws an exception if the peerconnection has been closed already
 PASS removeTrack after addStream for an audio/video track after removing a single track only a single sender with a track remains
 PASS removeTrack after addStream for an audio/video track after removing a single track the local stream remains untouched
 PASS removeTrack after addStream for an audio/video track after removing all tracks no senders with tracks remain
-PASS removeTrack after addStream for an audio/video track after removing all tracks no local streams remain
+ERR removeTrack after addStream for an audio/video track after removing all tracks no local streams remain AssertionError
 PASS removeTrack after addTrack for an audio/video track after removing a single track only a single sender with a track remains
 PASS removeTrack after addTrack for an audio/video track after removing a single track the local stream remains untouched
 PASS removeTrack after addTrack for an audio/video track after removing all tracks no senders with tracks remain
-PASS removeTrack after addTrack for an audio/video track after removing all tracks no local streams remain
+ERR removeTrack after addTrack for an audio/video track after removing all tracks no local streams remain AssertionError
 PASS RTCIceCandidate window.RTCIceCandidate exists
 PASS RTCIceCandidate is augmented in the onicecandidate callback
 PASS RTCIceCandidate is augmented in the icecandidate event

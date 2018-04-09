@@ -28,7 +28,7 @@ PASS URL.createObjectURL shim works for video using setAttribute
 PASS dtmf RTCRtpSender.dtmf exists on audio senders
 PASS dtmf RTCRtpSender.dtmf does not exist on video senders
 PASS dtmf inserts DTMF when using addStream
-ERR dtmf inserts DTMF when using addTrack timeout
+PASS dtmf inserts DTMF when using addTrack
 PASS getStats returns a Promise
 PASS getStats resolves the Promise with a Map(like)
 PASS getUserMedia navigator.getUserMedia exists
@@ -68,7 +68,7 @@ PASS track event the event has a track
 PASS track event the event has a set of streams
 PASS track event the event has a receiver that is contained in the set of receivers
 PASS track event the event has a transceiver that has a receiver
-PASS removeTrack allows removeTrack twice
+ERR removeTrack allows removeTrack twice AssertionError
 PASS removeTrack throws an exception if the argument is a track, not a sender
 PASS removeTrack throws an exception if the sender does not belong to the peerconnection
 PASS removeTrack throws an exception if the peerconnection has been closed already
