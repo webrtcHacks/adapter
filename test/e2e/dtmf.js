@@ -104,7 +104,22 @@ describe('dtmf', () => {
               pc2.iceConnectionState === 'completed') && resolve());
       })
       .then(() => {
-        let sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+        if (!(window.RTCDTMFSender &&
+            'canInsertDTMF' in window.RTCDTMFSender.prototype)) {
+          return;
+        }
+        return new Promise((resolve) => {
+          setTimeout(function canInsert() {
+            const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+            if (sender.dtmf.canInsertDTMF) {
+              return resolve();
+            }
+            setTimeout(canInsert, 10);
+          }, 0);
+        });
+      })
+      .then(() => {
+        const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
         sender.dtmf.insertDTMF('1');
         return new Promise(resolve => sender.dtmf.ontonechange = resolve);
       })
