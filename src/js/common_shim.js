@@ -266,9 +266,10 @@ module.exports = {
       dc.send = function() {
         var data = arguments[0];
         var length = data.length || data.size || data.byteLength;
-        if (length > pc.sctp.maxMessageSize) {
-          throw new DOMException('Message too large (can send a maximum of ' +
-            pc.sctp.maxMessageSize + ' bytes)', 'TypeError');
+        if (dc.readyState === 'open' &&
+            pc.sctp && length > pc.sctp.maxMessageSize) {
+          throw new TypeError('Message too large (can send a maximum of ' +
+            pc.sctp.maxMessageSize + ' bytes)');
         }
         return origDataChannelSend.apply(dc, arguments);
       };
