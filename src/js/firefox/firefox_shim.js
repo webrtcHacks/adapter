@@ -275,5 +275,13 @@ module.exports = {
         }
       });
     };
-  }
+  },
+
+  shimRTCDataChannel: function(window) {
+    // rename DataChannel to RTCDataChannel (native fix in FF60):
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1173851
+    if (window.DataChannel && !window.RTCDataChannel) {
+      window.RTCDataChannel = window.DataChannel;
+    }
+  },
 };
