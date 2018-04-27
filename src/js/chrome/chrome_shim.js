@@ -232,74 +232,119 @@ module.exports = {
     }
   },
 
-  shimSenderGetStats: function(window) {
+  shimSenderReceiverGetStats: function(window) {
     if (!(typeof window === 'object' && window.RTCPeerConnection &&
-        window.RTCRtpSender)) {
+        window.RTCRtpSender && window.RTCRtpReceiver)) {
       return;
     }
-    if (window.RTCRtpSender && 'getStats' in window.RTCRtpSender.prototype) {
-      return;
-    }
-    var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
-    if (origGetSenders) {
-      window.RTCPeerConnection.prototype.getSenders = function() {
-        var pc = this;
-        var senders = origGetSenders.apply(pc, []);
-        senders.forEach(function(sender) {
-          sender._pc = pc;
+
+    // shim sender stats.
+    if (!('getStats' in window.RTCRtpSender.prototype)) {
+      var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
+      if (origGetSenders) {
+        window.RTCPeerConnection.prototype.getSenders = function() {
+          var pc = this;
+          var senders = origGetSenders.apply(pc, []);
+          senders.forEach(function(sender) {
+            sender._pc = pc;
+          });
+          return senders;
+        };
+      }
+
+      var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
+      if (origAddTrack) {
+        window.RTCPeerConnection.prototype.addTrack = function() {
+          var sender = origAddTrack.apply(this, arguments);
+          sender._pc = this;
+          return sender;
+        };
+      }
+      window.RTCRtpSender.prototype.getStats = function() {
+        var sender = this;
+        return this._pc.getStats().then(function(result) {
+          /* Note: this will include stats of all senders that
+           *   send a track with the same id as sender.track as
+           *   it is not possible to identify the RTCRtpSender.
+           */
+          return filterStats(result, sender.track, true);
         });
-        return senders;
       };
     }
 
-    var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
-    if (origAddTrack) {
-      window.RTCPeerConnection.prototype.addTrack = function() {
-        var sender = origAddTrack.apply(this, arguments);
-        sender._pc = this;
-        return sender;
-      };
-    }
-    window.RTCRtpSender.prototype.getStats = function() {
-      var sender = this;
-      return this._pc.getStats().then(function(result) {
-        /* Note: this will include stats of all senders that
-         *   send a track with the same id as sender.track as
-         *   it is not possible to identify the RTCRtpSender.
-         */
-        return filterStats(result, sender.track, true);
+    // shim receiver stats.
+    if (!('getStats' in window.RTCRtpReceiver.prototype)) {
+      var origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
+      if (origGetReceivers) {
+        window.RTCPeerConnection.prototype.getReceivers = function() {
+          var pc = this;
+          var receivers = origGetReceivers.apply(pc, []);
+          receivers.forEach(function(receiver) {
+            receiver._pc = pc;
+          });
+          return receivers;
+        };
+      }
+      utils.wrapPeerConnectionEvent(window, 'track', function(e) {
+        e.receiver._pc = e.srcElement;
+        return e;
       });
-    };
-  },
-
-  shimReceiverGetStats: function(window) {
-    if (!(typeof window === 'object' && window.RTCPeerConnection &&
-        window.RTCRtpSender)) {
-      return;
-    }
-    if (window.RTCRtpSender && 'getStats' in window.RTCRtpReceiver.prototype) {
-      return;
-    }
-    var origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
-    if (origGetReceivers) {
-      window.RTCPeerConnection.prototype.getReceivers = function() {
-        var pc = this;
-        var receivers = origGetReceivers.apply(pc, []);
-        receivers.forEach(function(receiver) {
-          receiver._pc = pc;
+      window.RTCRtpReceiver.prototype.getStats = function() {
+        var receiver = this;
+        return this._pc.getStats().then(function(result) {
+          return filterStats(result, receiver.track, false);
         });
-        return receivers;
       };
     }
-    utils.wrapPeerConnectionEvent(window, 'track', function(e) {
-      e.receiver._pc = e.srcElement;
-      return e;
-    });
-    window.RTCRtpReceiver.prototype.getStats = function() {
-      var receiver = this;
-      return this._pc.getStats().then(function(result) {
-        return filterStats(result, receiver.track, false);
-      });
+
+    if (!('getStats' in window.RTCRtpSender.prototype &&
+        'getStats' in window.RTCRtpReceiver.prototype)) {
+      return;
+    }
+
+    // shim RTCPeerConnection.getStats(track).
+    var origGetStats = window.RTCPeerConnection.prototype.getStats;
+    window.RTCPeerConnection.prototype.getStats = function() {
+      var pc = this;
+      if (arguments.length > 0 &&
+          arguments[0] instanceof window.MediaStreamTrack) {
+        var track = arguments[0];
+        var sender;
+        var receiver;
+        var err;
+        pc.getSenders().forEach(function(s) {
+          if (s.track === track) {
+            if (sender) {
+              err = true;
+            } else {
+              sender = s;
+            }
+          }
+        });
+        pc.getReceivers().forEach(function(r) {
+          if (r.track === track) {
+            if (receiver) {
+              err = true;
+            } else {
+              receiver = r;
+            }
+          }
+          return r.track === track;
+        });
+        if (err || (sender && receiver)) {
+          return Promise.reject(new DOMException(
+            'There are more than one sender or receiver for the track.',
+            'InvalidAccessError'));
+        } else if (sender) {
+          return sender.getStats();
+        } else if (receiver) {
+          return receiver.getStats();
+        }
+        return Promise.reject(new DOMException(
+          'There is no sender or receiver for the track.',
+          'InvalidAccessError'));
+      }
+      return origGetStats.apply(pc, arguments);
     };
   },
 

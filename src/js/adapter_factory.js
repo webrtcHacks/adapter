@@ -73,8 +73,7 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimOnTrack(window);
       chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
-      chromeShim.shimSenderGetStats(window);
-      chromeShim.shimReceiverGetStats(window);
+      chromeShim.shimSenderReceiverGetStats(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
