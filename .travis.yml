@@ -1,7 +1,7 @@
 dist: trusty
 language: node_js
 node_js:
-- 6
+- 8
 
 addons:
   apt:
@@ -36,7 +36,7 @@ before_script:
   - export FIREFOX_BIN=browsers/bin/firefox-${BVER}
   - sh -e /etc/init.d/xvfb start
   - pulseaudio --start
-  - if [ "$BROWSER" = "Electron" ]; then npm i karma-electron electron; fi
+  - if [ "$BROWSER" = "Electron" ]; then npm i karma-electron electron karma-stability-reporter; fi
 
 script:
   - node_modules/.bin/grunt
