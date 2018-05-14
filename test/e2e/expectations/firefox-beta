@@ -26,7 +26,7 @@ PASS URL.createObjectURL shim works for audio using setAttribute
 PASS URL.createObjectURL shim works for video using src=
 PASS URL.createObjectURL shim works for video using setAttribute
 PASS dtmf RTCRtpSender.dtmf exists on audio senders
-ERR dtmf RTCRtpSender.dtmf does not exist on video senders AssertionError
+PASS dtmf RTCRtpSender.dtmf does not exist on video senders
 PASS dtmf inserts DTMF when using addStream
 PASS dtmf inserts DTMF when using addTrack
 PASS getStats returns a Promise
