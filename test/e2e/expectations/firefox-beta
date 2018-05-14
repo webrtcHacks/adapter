@@ -40,13 +40,13 @@ PASS maxMessageSize sctp and maxMessageSize set if SCTP negotiated
 PASS maxMessageSize send largest possible single message
 PASS maxMessageSize throws an exception if the message is too large
 PASS maxMessageSize throws an exception if the message is too large (using a secondary data channel)
-PASS maxMessageSize is as expected for firefox>=58 and chrome>=0 -> 65536
-PASS maxMessageSize is as expected for firefox>=58 and firefox<=56 -> 65536
-PASS maxMessageSize is as expected for firefox>=58 and firefox>=57 -> 65536
-PASS maxMessageSize is as expected for firefox>=58 and 64 KiB -> 65536
-PASS maxMessageSize is as expected for firefox>=58 and 1.5 GiB -> 65536
-PASS maxMessageSize is as expected for firefox>=58 and 2 GiB -> 65536
-PASS maxMessageSize is as expected for firefox>=58 and Unlimited -> 65536
+PASS maxMessageSize is as expected for firefox>=60 and chrome>=0 -> 65536
+PASS maxMessageSize is as expected for firefox>=60 and firefox<=56 -> 2147483637
+PASS maxMessageSize is as expected for firefox>=60 and firefox>=57 -> 1073741823
+PASS maxMessageSize is as expected for firefox>=60 and 64 KiB -> 65536
+PASS maxMessageSize is as expected for firefox>=60 and 1.5 GiB -> 1610612736
+PASS maxMessageSize is as expected for firefox>=60 and 2 GiB -> 2147483637
+PASS maxMessageSize is as expected for firefox>=60 and Unlimited -> 2147483637
 PASS navigator.mediaDevices exists
 PASS navigator.mediaDevices is an EventTarget
 PASS navigator.mediaDevices implements the devicechange event
