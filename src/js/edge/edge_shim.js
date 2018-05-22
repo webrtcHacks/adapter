@@ -9,6 +9,7 @@
 'use strict';
 
 var utils = require('../utils');
+var filterIceServers = require('./filtericeservers');
 var shimRTCPeerConnection = require('rtcpeerconnection-shim');
 
 module.exports = {
@@ -66,8 +67,15 @@ module.exports = {
       window.RTCDTMFSender = window.RTCDtmfSender;
     }
 
-    window.RTCPeerConnection =
-        shimRTCPeerConnection(window, browserDetails.version);
+    var RTCPeerConnectionShim = shimRTCPeerConnection(window,
+        browserDetails.version);
+    window.RTCPeerConnection = function(config) {
+      if (config.iceServers) {
+        config.iceServers = filterIceServers(config.iceServers);
+      }
+      return new RTCPeerConnectionShim(config);
+    };
+    window.RTCPeerConnection.prototype = RTCPeerConnectionShim.prototype;
   },
   shimReplaceTrack: function(window) {
     // ORTC has replaceTrack -- https://github.com/w3c/ortc/issues/614
