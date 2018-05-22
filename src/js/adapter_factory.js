@@ -97,6 +97,7 @@ module.exports = function(dependencies, opts) {
       firefoxShim.shimRemoveStream(window);
       firefoxShim.shimSenderGetStats(window);
       firefoxShim.shimReceiverGetStats(window);
+      firefoxShim.shimRTCDataChannel(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
