@@ -4189,7 +4189,7 @@ module.exports = {
     var RTCPeerConnectionShim = shimRTCPeerConnection(window,
         browserDetails.version);
     window.RTCPeerConnection = function(config) {
-      if (config.iceServers) {
+      if (config && config.iceServers) {
         config.iceServers = filterIceServers(config.iceServers);
       }
       return new RTCPeerConnectionShim(config);
