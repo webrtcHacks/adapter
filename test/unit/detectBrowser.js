@@ -10,7 +10,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('detectBrowser', () => {
-  const detectBrowser = require('../../src/js/utils.js').detectBrowser;
+  const detectBrowser = require('../../dist/utils.js').detectBrowser;
   let window;
   let navigator;
 

@@ -8,8 +8,7 @@
  /* eslint-env node */
 'use strict';
 
-// Expose public methods.
-module.exports = function(window) {
+export function shimGetUserMedia(window) {
   const navigator = window && window.navigator;
 
   const shimError_ = function(e) {
@@ -29,4 +28,4 @@ module.exports = function(window) {
   navigator.mediaDevices.getUserMedia = function(c) {
     return origGetUserMedia(c).catch(e => Promise.reject(shimError_(e)));
   };
-};
+}

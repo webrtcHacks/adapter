@@ -52,6 +52,9 @@
       "node": true
   },
   "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "sourceType": "module"
+  },
   "globals": {
     "module": true,
     "require": true,

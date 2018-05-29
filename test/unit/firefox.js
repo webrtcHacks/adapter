@@ -10,7 +10,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Firefox shim', () => {
-  const shim = require('../../src/js/firefox/firefox_shim');
+  const shim = require('../../dist/firefox/firefox_shim');
   let window;
 
   beforeEach(() => {

@@ -13,8 +13,8 @@ const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
 
 describe('adapter factory', () => {
-  const adapterFactory = require('../../src/js/adapter_factory.js');
-  const utils = require('../../src/js/utils.js');
+  const {adapterFactory} = require('../../dist/adapter_factory.js');
+  const utils = require('../../dist/utils.js');
 
   let window;
   beforeEach(() => {

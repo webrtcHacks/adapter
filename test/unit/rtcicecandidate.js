@@ -10,7 +10,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('RTCIceCandidate', () => {
-  const shim = require('../../src/js/common_shim');
+  const shim = require('../../dist/common_shim');
   let RTCIceCandidate;
   let window;
   beforeEach(() => {
