@@ -6,10 +6,10 @@
  *  tree.
  */
 'use strict';
-var utils = require('../utils');
+const utils = require('../utils');
 
 module.exports = {
-  shimLocalStreamsAPI: function(window) {
+  shimLocalStreamsAPI(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
     }
@@ -23,16 +23,16 @@ module.exports = {
     }
     if (!('getStreamById' in window.RTCPeerConnection.prototype)) {
       window.RTCPeerConnection.prototype.getStreamById = function(id) {
-        var result = null;
+        let result = null;
         if (this._localStreams) {
-          this._localStreams.forEach(function(stream) {
+          this._localStreams.forEach(stream => {
             if (stream.id === id) {
               result = stream;
             }
           });
         }
         if (this._remoteStreams) {
-          this._remoteStreams.forEach(function(stream) {
+          this._remoteStreams.forEach(stream => {
             if (stream.id === id) {
               result = stream;
             }
@@ -42,7 +42,7 @@ module.exports = {
       };
     }
     if (!('addStream' in window.RTCPeerConnection.prototype)) {
-      var _addTrack = window.RTCPeerConnection.prototype.addTrack;
+      const _addTrack = window.RTCPeerConnection.prototype.addTrack;
       window.RTCPeerConnection.prototype.addStream = function(stream) {
         if (!this._localStreams) {
           this._localStreams = [];
@@ -50,8 +50,8 @@ module.exports = {
         if (this._localStreams.indexOf(stream) === -1) {
           this._localStreams.push(stream);
         }
-        var pc = this;
-        stream.getTracks().forEach(function(track) {
+        const pc = this;
+        stream.getTracks().forEach(track => {
           _addTrack.call(pc, track, stream);
         });
       };
@@ -72,14 +72,14 @@ module.exports = {
         if (!this._localStreams) {
           this._localStreams = [];
         }
-        var index = this._localStreams.indexOf(stream);
+        const index = this._localStreams.indexOf(stream);
         if (index === -1) {
           return;
         }
         this._localStreams.splice(index, 1);
-        var pc = this;
-        var tracks = stream.getTracks();
-        this.getSenders().forEach(function(sender) {
+        const pc = this;
+        const tracks = stream.getTracks();
+        this.getSenders().forEach(sender => {
           if (tracks.indexOf(sender.track) !== -1) {
             pc.removeTrack(sender);
           }
@@ -87,7 +87,7 @@ module.exports = {
       };
     }
   },
-  shimRemoteStreamsAPI: function(window) {
+  shimRemoteStreamsAPI(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
     }
@@ -98,18 +98,18 @@ module.exports = {
     }
     if (!('onaddstream' in window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'onaddstream', {
-        get: function() {
+        get() {
           return this._onaddstream;
         },
-        set: function(f) {
-          var pc = this;
+        set(f) {
+          const pc = this;
           if (this._onaddstream) {
             this.removeEventListener('addstream', this._onaddstream);
             this.removeEventListener('track', this._onaddstreampoly);
           }
           this.addEventListener('addstream', this._onaddstream = f);
           this.addEventListener('track', this._onaddstreampoly = function(e) {
-            e.streams.forEach(function(stream) {
+            e.streams.forEach(stream => {
               if (!pc._remoteStreams) {
                 pc._remoteStreams = [];
               }
@@ -117,7 +117,7 @@ module.exports = {
                 return;
               }
               pc._remoteStreams.push(stream);
-              var event = new Event('addstream');
+              const event = new Event('addstream');
               event.stream = stream;
               pc.dispatchEvent(event);
             });
@@ -126,20 +126,20 @@ module.exports = {
       });
     }
   },
-  shimCallbacksAPI: function(window) {
+  shimCallbacksAPI(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
     }
-    var prototype = window.RTCPeerConnection.prototype;
-    var createOffer = prototype.createOffer;
-    var createAnswer = prototype.createAnswer;
-    var setLocalDescription = prototype.setLocalDescription;
-    var setRemoteDescription = prototype.setRemoteDescription;
-    var addIceCandidate = prototype.addIceCandidate;
+    const prototype = window.RTCPeerConnection.prototype;
+    const createOffer = prototype.createOffer;
+    const createAnswer = prototype.createAnswer;
+    const setLocalDescription = prototype.setLocalDescription;
+    const setRemoteDescription = prototype.setRemoteDescription;
+    const addIceCandidate = prototype.addIceCandidate;
 
     prototype.createOffer = function(successCallback, failureCallback) {
-      var options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-      var promise = createOffer.apply(this, [options]);
+      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      const promise = createOffer.apply(this, [options]);
       if (!failureCallback) {
         return promise;
       }
@@ -148,8 +148,8 @@ module.exports = {
     };
 
     prototype.createAnswer = function(successCallback, failureCallback) {
-      var options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-      var promise = createAnswer.apply(this, [options]);
+      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      const promise = createAnswer.apply(this, [options]);
       if (!failureCallback) {
         return promise;
       }
@@ -157,8 +157,8 @@ module.exports = {
       return Promise.resolve();
     };
 
-    var withCallback = function(description, successCallback, failureCallback) {
-      var promise = setLocalDescription.apply(this, [description]);
+    let withCallback = function(description, successCallback, failureCallback) {
+      const promise = setLocalDescription.apply(this, [description]);
       if (!failureCallback) {
         return promise;
       }
@@ -168,7 +168,7 @@ module.exports = {
     prototype.setLocalDescription = withCallback;
 
     withCallback = function(description, successCallback, failureCallback) {
-      var promise = setRemoteDescription.apply(this, [description]);
+      const promise = setRemoteDescription.apply(this, [description]);
       if (!failureCallback) {
         return promise;
       }
@@ -178,7 +178,7 @@ module.exports = {
     prototype.setRemoteDescription = withCallback;
 
     withCallback = function(candidate, successCallback, failureCallback) {
-      var promise = addIceCandidate.apply(this, [candidate]);
+      const promise = addIceCandidate.apply(this, [candidate]);
       if (!failureCallback) {
         return promise;
       }
@@ -187,8 +187,8 @@ module.exports = {
     };
     prototype.addIceCandidate = withCallback;
   },
-  shimGetUserMedia: function(window) {
-    var navigator = window && window.navigator;
+  shimGetUserMedia(window) {
+    const navigator = window && window.navigator;
 
     if (!navigator.getUserMedia) {
       if (navigator.webkitGetUserMedia) {
@@ -202,14 +202,14 @@ module.exports = {
       }
     }
   },
-  shimRTCIceServerUrls: function(window) {
+  shimRTCIceServerUrls(window) {
     // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
-    var OrigPeerConnection = window.RTCPeerConnection;
+    const OrigPeerConnection = window.RTCPeerConnection;
     window.RTCPeerConnection = function(pcConfig, pcConstraints) {
       if (pcConfig && pcConfig.iceServers) {
-        var newIceServers = [];
-        for (var i = 0; i < pcConfig.iceServers.length; i++) {
-          var server = pcConfig.iceServers[i];
+        const newIceServers = [];
+        for (let i = 0; i < pcConfig.iceServers.length; i++) {
+          let server = pcConfig.iceServers[i];
           if (!server.hasOwnProperty('urls') &&
               server.hasOwnProperty('url')) {
             utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
@@ -229,13 +229,13 @@ module.exports = {
     // wrap static methods. Currently just generateCertificate.
     if ('generateCertificate' in window.RTCPeerConnection) {
       Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-        get: function() {
+        get() {
           return OrigPeerConnection.generateCertificate;
         }
       });
     }
   },
-  shimTrackEventTransceiver: function(window) {
+  shimTrackEventTransceiver(window) {
     // Add event.transceiver member over deprecated event.receiver
     if (typeof window === 'object' && window.RTCPeerConnection &&
         ('receiver' in window.RTCTrackEvent.prototype) &&
@@ -243,26 +243,25 @@ module.exports = {
         // defined for some reason even when window.RTCTransceiver is not.
         !window.RTCTransceiver) {
       Object.defineProperty(window.RTCTrackEvent.prototype, 'transceiver', {
-        get: function() {
+        get() {
           return {receiver: this.receiver};
         }
       });
     }
   },
 
-  shimCreateOfferLegacy: function(window) {
-    var origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+  shimCreateOfferLegacy(window) {
+    const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
     window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
-      var pc = this;
+      const pc = this;
       if (offerOptions) {
         if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
           // support bit values
           offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
         }
-        var audioTransceiver = pc.getTransceivers().find(function(transceiver) {
-          return transceiver.sender.track &&
-              transceiver.sender.track.kind === 'audio';
-        });
+        const audioTransceiver = pc.getTransceivers().find(transceiver =>
+          transceiver.sender.track &&
+          transceiver.sender.track.kind === 'audio');
         if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
           if (audioTransceiver.direction === 'sendrecv') {
             if (audioTransceiver.setDirection) {
@@ -287,10 +286,9 @@ module.exports = {
           // support bit values
           offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
         }
-        var videoTransceiver = pc.getTransceivers().find(function(transceiver) {
-          return transceiver.sender.track &&
-              transceiver.sender.track.kind === 'video';
-        });
+        const videoTransceiver = pc.getTransceivers().find(transceiver =>
+          transceiver.sender.track &&
+          transceiver.sender.track.kind === 'video');
         if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
           if (videoTransceiver.direction === 'sendrecv') {
             videoTransceiver.setDirection('sendonly');
