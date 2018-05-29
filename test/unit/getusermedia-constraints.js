@@ -13,7 +13,7 @@ const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
 
 describe('Chrome getUserMedia constraints converter', () => {
-  const shim = require('../../src/js/chrome/getusermedia');
+  const {shimGetUserMedia} = require('../../dist/chrome/getusermedia');
   let window;
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('Chrome getUserMedia constraints converter', () => {
             'Safari/537.36'
       }
     };
-    shim(window);
+    shimGetUserMedia(window);
   });
 
   it('back-converts spec video constraints', () => {
@@ -133,7 +133,7 @@ describe('Chrome getUserMedia constraints converter', () => {
 });
 
 describe('Firefox getUserMedia constraints converter', () => {
-  const shim = require('../../src/js/firefox/getusermedia');
+  const {shimGetUserMedia} = require('../../dist/firefox/getusermedia');
   let window;
 
   beforeEach(() => {
@@ -148,7 +148,7 @@ describe('Firefox getUserMedia constraints converter', () => {
     beforeEach(() => {
       window.navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel ' +
           'Mac OS X 10.12; rv:37.0) Gecko/20100101 Firefox/37.0';
-      shim(window);
+      shimGetUserMedia(window);
     });
 
     it('converts spec-constraints to legacy constraints', () => {
@@ -198,7 +198,7 @@ describe('Firefox getUserMedia constraints converter', () => {
     beforeEach(() => {
       window.navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel ' +
           'Mac OS X 10.12; rv:38.0) Gecko/20100101 Firefox/38.0';
-      shim(window);
+      shimGetUserMedia(window);
     });
     it('passes through spec-constraints', () => {
       const spec = {video: {

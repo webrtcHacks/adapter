@@ -10,7 +10,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Edge shim', () => {
-  const shim = require('../../src/js/edge/edge_shim');
+  const shim = require('../../dist/edge/edge_shim');
   let window;
 
   const ua15025 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
@@ -41,7 +41,7 @@ describe('Edge shim', () => {
 
   describe('filtering of STUN and TURN servers', () => {
     const edgeVersion = 15025;
-    const filterIceServers = require('../../src/js/edge/filtericeservers');
+    const {filterIceServers} = require('../../dist/edge/filtericeservers');
 
     it('converts legacy url member to urls', () => {
       const result = filterIceServers([

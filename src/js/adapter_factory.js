@@ -5,13 +5,17 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+import * as utils from './utils';
 
-'use strict';
+  // Browser shims.
+import * as chromeShim from './chrome/chrome_shim';
+import * as edgeShim from './edge/edge_shim';
+import * as firefoxShim from './firefox/firefox_shim';
+import * as safariShim from './safari/safari_shim';
+import * as commonShim from './common_shim';
 
-const utils = require('./utils');
 // Shimming starts here.
-module.exports = function(dependencies, opts) {
+export function adapterFactory(dependencies, opts) {
   const window = dependencies && dependencies.window;
 
   const options = {
@@ -35,14 +39,8 @@ module.exports = function(dependencies, opts) {
   // for the switch statement below. Can also be turned on in the browser via
   // adapter.disableLog(false), but then logging from the switch statement below
   // will not appear.
-  // require('./utils').disableLog(false);
+  // utils.disableLog(false);
 
-  // Browser shims.
-  const chromeShim = require('./chrome/chrome_shim') || null;
-  const edgeShim = require('./edge/edge_shim') || null;
-  const firefoxShim = require('./firefox/firefox_shim') || null;
-  const safariShim = require('./safari/safari_shim') || null;
-  const commonShim = require('./common_shim') || null;
 
   // Export to the adapter global object visible in the browser.
   const adapter = {
@@ -150,4 +148,4 @@ module.exports = function(dependencies, opts) {
   }
 
   return adapter;
-};
+}
