@@ -28,9 +28,9 @@ export function filterIceServers(iceServers, edgeVersion) {
         urls = [urls];
       }
       urls = urls.filter(url => {
-        const validTurn = url.indexOf('turn:') === 0 &&
-            url.indexOf('transport=udp') !== -1 &&
-            url.indexOf('turn:[') === -1 &&
+        const validTurn = url.startsWith('turn:') &&
+            !url.startsWith('turn:[') &&
+            url.includes('transport=udp') &&
             !hasTurn;
 
         if (validTurn) {

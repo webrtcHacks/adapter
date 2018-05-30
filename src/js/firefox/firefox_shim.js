@@ -88,7 +88,7 @@ export function shimPeerConnection(window) {
                 const newServer = {
                   url: server.urls[j]
                 };
-                if (server.urls[j].indexOf('turn') === 0) {
+                if (server.urls[j].startsWith('turn')) {
                   newServer.username = server.username;
                   newServer.credential = server.credential;
                 }
@@ -269,7 +269,7 @@ export function shimRemoveStream(window) {
     const pc = this;
     utils.deprecated('removeStream', 'removeTrack');
     this.getSenders().forEach(sender => {
-      if (sender.track && stream.getTracks().indexOf(sender.track) !== -1) {
+      if (sender.track && stream.getTracks().includes(sender.track)) {
         pc.removeTrack(sender);
       }
     });

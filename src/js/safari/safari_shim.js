@@ -46,7 +46,7 @@ export function shimLocalStreamsAPI(window) {
       if (!this._localStreams) {
         this._localStreams = [];
       }
-      if (this._localStreams.indexOf(stream) === -1) {
+      if (!this._localStreams.includes(stream)) {
         this._localStreams.push(stream);
       }
       const pc = this;
@@ -59,7 +59,7 @@ export function shimLocalStreamsAPI(window) {
       if (stream) {
         if (!this._localStreams) {
           this._localStreams = [stream];
-        } else if (this._localStreams.indexOf(stream) === -1) {
+        } else if (!this._localStreams.includes(stream)) {
           this._localStreams.push(stream);
         }
       }
@@ -79,7 +79,7 @@ export function shimLocalStreamsAPI(window) {
       const pc = this;
       const tracks = stream.getTracks();
       this.getSenders().forEach(sender => {
-        if (tracks.indexOf(sender.track) !== -1) {
+        if (tracks.includes(sender.track)) {
           pc.removeTrack(sender);
         }
       });
@@ -113,7 +113,7 @@ export function shimRemoteStreamsAPI(window) {
             if (!pc._remoteStreams) {
               pc._remoteStreams = [];
             }
-            if (pc._remoteStreams.indexOf(stream) >= 0) {
+            if (pc._remoteStreams.includes(stream)) {
               return;
             }
             pc._remoteStreams.push(stream);
