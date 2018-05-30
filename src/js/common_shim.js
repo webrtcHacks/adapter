@@ -212,8 +212,7 @@ export function shimMaxMessageSize(window) {
   const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
   window.RTCPeerConnection.prototype.setRemoteDescription = function() {
-    const pc = this;
-    pc._sctp = null;
+    this._sctp = null;
 
     if (sctpInDescription(arguments[0])) {
       // Check if the remote is FF.
@@ -243,10 +242,10 @@ export function shimMaxMessageSize(window) {
           return maxMessageSize;
         }
       });
-      pc._sctp = sctp;
+      this._sctp = sctp;
     }
 
-    return origSetRemoteDescription.apply(pc, arguments);
+    return origSetRemoteDescription.apply(this, arguments);
   };
 }
 
@@ -276,9 +275,8 @@ export function shimSendThrowTypeError(window) {
   const origCreateDataChannel =
     window.RTCPeerConnection.prototype.createDataChannel;
   window.RTCPeerConnection.prototype.createDataChannel = function() {
-    const pc = this;
-    const dataChannel = origCreateDataChannel.apply(pc, arguments);
-    wrapDcSend(dataChannel, pc);
+    const dataChannel = origCreateDataChannel.apply(this, arguments);
+    wrapDcSend(dataChannel, this);
     return dataChannel;
   };
   utils.wrapPeerConnectionEvent(window, 'datachannel', e => {

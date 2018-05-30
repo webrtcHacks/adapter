@@ -209,11 +209,8 @@ export function shimSenderGetStats(window) {
   const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
   if (origGetSenders) {
     window.RTCPeerConnection.prototype.getSenders = function() {
-      const pc = this;
-      const senders = origGetSenders.apply(pc, []);
-      senders.forEach(sender => {
-        sender._pc = pc;
-      });
+      const senders = origGetSenders.apply(this, []);
+      senders.forEach(sender => sender._pc = this);
       return senders;
     };
   }
@@ -243,11 +240,8 @@ export function shimReceiverGetStats(window) {
   const origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
   if (origGetReceivers) {
     window.RTCPeerConnection.prototype.getReceivers = function() {
-      const pc = this;
-      const receivers = origGetReceivers.apply(pc, []);
-      receivers.forEach(receiver => {
-        receiver._pc = pc;
-      });
+      const receivers = origGetReceivers.apply(this, []);
+      receivers.forEach(receiver => receiver._pc = this);
       return receivers;
     };
   }
@@ -266,11 +260,10 @@ export function shimRemoveStream(window) {
     return;
   }
   window.RTCPeerConnection.prototype.removeStream = function(stream) {
-    const pc = this;
     utils.deprecated('removeStream', 'removeTrack');
     this.getSenders().forEach(sender => {
       if (sender.track && stream.getTracks().includes(sender.track)) {
-        pc.removeTrack(sender);
+        this.removeTrack(sender);
       }
     });
   };

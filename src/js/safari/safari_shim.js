@@ -49,10 +49,7 @@ export function shimLocalStreamsAPI(window) {
       if (!this._localStreams.includes(stream)) {
         this._localStreams.push(stream);
       }
-      const pc = this;
-      stream.getTracks().forEach(track => {
-        _addTrack.call(pc, track, stream);
-      });
+      stream.getTracks().forEach(track => _addTrack.call(this, track, stream));
     };
 
     window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
@@ -76,11 +73,10 @@ export function shimLocalStreamsAPI(window) {
         return;
       }
       this._localStreams.splice(index, 1);
-      const pc = this;
       const tracks = stream.getTracks();
       this.getSenders().forEach(sender => {
         if (tracks.includes(sender.track)) {
-          pc.removeTrack(sender);
+          this.removeTrack(sender);
         }
       });
     };
@@ -102,24 +98,23 @@ export function shimRemoteStreamsAPI(window) {
         return this._onaddstream;
       },
       set(f) {
-        const pc = this;
         if (this._onaddstream) {
           this.removeEventListener('addstream', this._onaddstream);
           this.removeEventListener('track', this._onaddstreampoly);
         }
         this.addEventListener('addstream', this._onaddstream = f);
-        this.addEventListener('track', this._onaddstreampoly = function(e) {
+        this.addEventListener('track', this._onaddstreampoly = (e) => {
           e.streams.forEach(stream => {
-            if (!pc._remoteStreams) {
-              pc._remoteStreams = [];
+            if (!this._remoteStreams) {
+              this._remoteStreams = [];
             }
-            if (pc._remoteStreams.includes(stream)) {
+            if (this._remoteStreams.includes(stream)) {
               return;
             }
-            pc._remoteStreams.push(stream);
+            this._remoteStreams.push(stream);
             const event = new Event('addstream');
             event.stream = stream;
-            pc.dispatchEvent(event);
+            this.dispatchEvent(event);
           });
         });
       }
@@ -257,13 +252,12 @@ export function shimTrackEventTransceiver(window) {
 export function shimCreateOfferLegacy(window) {
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
   window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
-    const pc = this;
     if (offerOptions) {
       if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
         // support bit values
         offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
       }
-      const audioTransceiver = pc.getTransceivers().find(transceiver =>
+      const audioTransceiver = this.getTransceivers().find(transceiver =>
         transceiver.sender.track &&
         transceiver.sender.track.kind === 'audio');
       if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
@@ -282,7 +276,7 @@ export function shimCreateOfferLegacy(window) {
         }
       } else if (offerOptions.offerToReceiveAudio === true &&
           !audioTransceiver) {
-        pc.addTransceiver('audio');
+        this.addTransceiver('audio');
       }
 
 
@@ -290,7 +284,7 @@ export function shimCreateOfferLegacy(window) {
         // support bit values
         offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
       }
-      const videoTransceiver = pc.getTransceivers().find(transceiver =>
+      const videoTransceiver = this.getTransceivers().find(transceiver =>
         transceiver.sender.track &&
         transceiver.sender.track.kind === 'video');
       if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
@@ -301,9 +295,9 @@ export function shimCreateOfferLegacy(window) {
         }
       } else if (offerOptions.offerToReceiveVideo === true &&
           !videoTransceiver) {
-        pc.addTransceiver('video');
+        this.addTransceiver('video');
       }
     }
-    return origCreateOffer.apply(pc, arguments);
+    return origCreateOffer.apply(this, arguments);
   };
 }
