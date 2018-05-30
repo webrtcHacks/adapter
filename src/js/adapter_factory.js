@@ -15,22 +15,12 @@ import * as safariShim from './safari/safari_shim';
 import * as commonShim from './common_shim';
 
 // Shimming starts here.
-export function adapterFactory(dependencies, opts) {
-  const window = dependencies && dependencies.window;
-
-  const options = {
-    shimChrome: true,
-    shimFirefox: true,
-    shimEdge: true,
-    shimSafari: true,
-  };
-
-  for (const key in opts) {
-    if (hasOwnProperty.call(opts, key)) {
-      options[key] = opts[key];
-    }
-  }
-
+export function adapterFactory({window} = {}, options = {
+  shimChrome: true,
+  shimFirefox: true,
+  shimEdge: true,
+  shimSafari: true,
+}) {
   // Utils.
   const logging = utils.log;
   const browserDetails = utils.detectBrowser(window);
