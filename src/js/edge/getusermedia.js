@@ -8,27 +8,24 @@
  /* eslint-env node */
 'use strict';
 
-// Expose public methods.
-module.exports = function(window) {
-  var navigator = window && window.navigator;
+export function shimGetUserMedia(window) {
+  const navigator = window && window.navigator;
 
-  var shimError_ = function(e) {
+  const shimError_ = function(e) {
     return {
       name: {PermissionDeniedError: 'NotAllowedError'}[e.name] || e.name,
       message: e.message,
       constraint: e.constraint,
-      toString: function() {
+      toString() {
         return this.name;
       }
     };
   };
 
   // getUserMedia error shim.
-  var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+  const origGetUserMedia = navigator.mediaDevices.getUserMedia.
       bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia = function(c) {
-    return origGetUserMedia(c).catch(function(e) {
-      return Promise.reject(shimError_(e));
-    });
+    return origGetUserMedia(c).catch(e => Promise.reject(shimError_(e)));
   };
-};
+}

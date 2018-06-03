@@ -34,7 +34,7 @@ function makeLegacyStatsReport(type, data) {
 }
 
 describe('Chrome shim', () => {
-  const shim = require('../../src/js/chrome/chrome_shim');
+  const shim = require('../../dist/chrome/chrome_shim');
   let window;
 
   beforeEach(() => {

@@ -13,7 +13,7 @@ const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
 
 describe('Safari shim', () => {
-  const shim = require('../../src/js/safari/safari_shim');
+  const shim = require('../../dist/safari/safari_shim');
   let window;
 
   beforeEach(() => {

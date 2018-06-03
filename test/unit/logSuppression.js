@@ -10,7 +10,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe('Log suppression', () => {
-  const utils = require('../../src/js/utils.js');
+  const utils = require('../../dist/utils.js');
   const saveConsole = console.log.bind(console);
 
   let logCount;

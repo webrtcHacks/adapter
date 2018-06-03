@@ -67,13 +67,13 @@ module.exports = function(config) {
     basePath: '..',
     frameworks: ['browserify', 'mocha', 'chai'],
     files: [
-      'src/js/adapter_core.js',
+      'dist/adapter_core.js',
       'test/getusermedia-mocha.js',
       'test/e2e/*.js',
     ],
     exclude: [],
     preprocessors: {
-      'src/js/adapter_core.js': ['browserify']
+      'dist/adapter_core.js': ['browserify']
     },
     reporters,
     port: 9876,

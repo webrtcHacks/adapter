@@ -5,49 +5,37 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+import * as utils from './utils';
 
-'use strict';
+  // Browser shims.
+import * as chromeShim from './chrome/chrome_shim';
+import * as edgeShim from './edge/edge_shim';
+import * as firefoxShim from './firefox/firefox_shim';
+import * as safariShim from './safari/safari_shim';
+import * as commonShim from './common_shim';
 
-var utils = require('./utils');
 // Shimming starts here.
-module.exports = function(dependencies, opts) {
-  var window = dependencies && dependencies.window;
-
-  var options = {
-    shimChrome: true,
-    shimFirefox: true,
-    shimEdge: true,
-    shimSafari: true,
-  };
-
-  for (var key in opts) {
-    if (hasOwnProperty.call(opts, key)) {
-      options[key] = opts[key];
-    }
-  }
-
+export function adapterFactory({window} = {}, options = {
+  shimChrome: true,
+  shimFirefox: true,
+  shimEdge: true,
+  shimSafari: true,
+}) {
   // Utils.
-  var logging = utils.log;
-  var browserDetails = utils.detectBrowser(window);
+  const logging = utils.log;
+  const browserDetails = utils.detectBrowser(window);
 
   // Uncomment the line below if you want logging to occur, including logging
   // for the switch statement below. Can also be turned on in the browser via
   // adapter.disableLog(false), but then logging from the switch statement below
   // will not appear.
-  // require('./utils').disableLog(false);
+  // utils.disableLog(false);
 
-  // Browser shims.
-  var chromeShim = require('./chrome/chrome_shim') || null;
-  var edgeShim = require('./edge/edge_shim') || null;
-  var firefoxShim = require('./firefox/firefox_shim') || null;
-  var safariShim = require('./safari/safari_shim') || null;
-  var commonShim = require('./common_shim') || null;
 
   // Export to the adapter global object visible in the browser.
-  var adapter = {
-    browserDetails: browserDetails,
-    commonShim: commonShim,
+  const adapter = {
+    browserDetails,
+    commonShim,
     extractVersion: utils.extractVersion,
     disableLog: utils.disableLog,
     disableWarnings: utils.disableWarnings
@@ -150,4 +138,4 @@ module.exports = function(dependencies, opts) {
   }
 
   return adapter;
-};
+}
