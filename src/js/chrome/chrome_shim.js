@@ -574,11 +574,11 @@ export function shimAddTrackRemoveTrack(window) {
           typeof arguments[0] === 'function';
       if (isLegacyCall) {
         return nativeMethod.apply(this, [
-          function(description) {
+          (description) => {
             const desc = replaceInternalStreamId(this, description);
             args[0].apply(null, [desc]);
           },
-          function(err) {
+          (err) => {
             if (args[1]) {
               args[1].apply(null, err);
             }
