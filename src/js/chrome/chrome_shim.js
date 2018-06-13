@@ -873,8 +873,8 @@ module.exports = {
         };
       });
     }
-   
-   // webOS 3.x support. Web engine of SmartTV based on Chromium v38. 
+
+   // webOS 3.x support. Web engine of SmartTV based on Chromium v38.
     // Some of ES6 methods are not defined.
     if (browserDetails.version < 39) {
       // Object.assign
