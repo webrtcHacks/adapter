@@ -60,6 +60,7 @@ ERR navigator.mediaDevices enumerateDevices returns some audiooutput devices Ass
 PASS MediaStream window.MediaStream exists
 PASS MSID signals stream ids
 PASS MSID puts the track msid attribute into the localDescription
+PASS negotiationneeded event does not fire when adding a track after setRemoteDescription
 PASS track event RTCPeerConnection.prototype.ontrack exists
 PASS track event is called when setRemoteDescription adds a new track to an existing stream
 PASS track event is called by setRemoteDescription track event
