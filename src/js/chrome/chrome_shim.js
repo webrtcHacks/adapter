@@ -908,5 +908,29 @@ module.exports = {
       }
       return e;
     });
+  },
+
+  shimGetDisplayMedia: function(window, getSourceId) {
+    if ('getDisplayMedia' in window.navigator) {
+      return;
+    }
+    // getSourceId is a function that returns a promise resolving with
+    // the sourceId of the screen to be shared.
+    if (!getSourceId) {
+      return;
+    }
+    navigator.getDisplayMedia = function(constraints) {
+      return getSourceId(constraints)
+        .then(function(sourceId) {
+          constraints.video = {mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: sourceId,
+            maxWidth: window.screen.width,
+            maxHeight: window.screen.height,
+            maxFrameRate: constraints.video.frameRate || 3
+          }};
+          return navigator.mediaDevices.getUserMedia(constraints);
+        });
+    };
   }
 };
