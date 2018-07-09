@@ -928,8 +928,6 @@ module.exports = {
             mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: sourceId,
-              maxWidth: window.screen.width,
-              maxHeight: window.screen.height,
               maxFrameRate: constraints.video.frameRate || 3
             }
           };
