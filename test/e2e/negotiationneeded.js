@@ -38,16 +38,31 @@ describe('negotiationneeded event', () => {
         'a=rtpmap:111 opus/48000/2\r\n' +
         'a=msid:stream1 track1\r\n' +
         'a=ssrc:1001 cname:some\r\n';
-    var onnfired = false;
+    let onnfired = false;
     pc.onnegotiationneeded = () => {
       onnfired = true;
     };
     pc.setRemoteDescription({type: 'offer', sdp})
     .then(() => navigator.mediaDevices.getUserMedia({audio: true}))
-    .then((stream) => pc.addTrack(stream.getTracks()[0], stream))
-    .then(() => {
+    .then((stream) => {
+      pc.addTrack(stream.getTracks()[0], stream);
       setTimeout(() => {
         expect(onnfired).to.equal(false);
+        done();
+      }, 0);
+    });
+  });
+
+  it('fires only once after adding two tracks', (done) => {
+    let onnfired = 0;
+    pc.onnegotiationneeded = () => {
+      onnfired++;
+    };
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+    .then(stream => {
+      stream.getTracks().forEach(t => pc.addTrack(t, stream));
+      setTimeout(() => {
+        expect(onnfired).to.equal(1);
         done();
       }, 0);
     });

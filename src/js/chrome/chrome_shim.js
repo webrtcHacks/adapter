@@ -912,6 +912,13 @@ module.exports = {
       if (pc.signalingState !== 'stable') {
         return;
       }
+      if (pc._negotiating === true) {
+        return;
+      }
+      pc._negotiating = true;
+      window.setTimeout(function() {
+        delete pc._negotiating;
+      }, 0);
       return e;
     });
   },
