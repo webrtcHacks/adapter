@@ -291,11 +291,11 @@ module.exports = {
     }
     navigator.getDisplayMedia = function(constraints) {
       if (!(constraints && constraints.video)) {
-        var err = new Error('getDisplayMedia without video constraints ' +
-            'is undefined');
-        err.name = 'NotSupportedError';
+        var err = new DOMException('getDisplayMedia without video ' +
+            'constraints is undefined');
+        err.name = 'NotFoundError';
         // from https://heycam.github.io/webidl/#idl-DOMException-error-names
-        err.code = 9;
+        err.code = 8;
         return Promise.reject(err);
       }
       if (constraints.video === true) {
