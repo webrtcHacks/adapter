@@ -779,6 +779,7 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
       chromeShim.shimSenderReceiverGetStats(window);
+      chromeShim.fixNegotiationNeeded(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
@@ -930,7 +931,9 @@ module.exports = {
             this.removeEventListener('track', this._ontrack);
           }
           this.addEventListener('track', this._ontrack = f);
-        }
+        },
+        enumerable: true,
+        configurable: true
       });
       var origSetRemoteDescription =
           window.RTCPeerConnection.prototype.setRemoteDescription;
@@ -1758,6 +1761,42 @@ module.exports = {
       }
       return nativeAddIceCandidate.apply(this, arguments);
     };
+  },
+
+  fixNegotiationNeeded: function(window) {
+    utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function(e) {
+      var pc = e.target;
+      if (pc.signalingState !== 'stable') {
+        return;
+      }
+      return e;
+    });
+  },
+
+  shimGetDisplayMedia: function(window, getSourceId) {
+    if ('getDisplayMedia' in window.navigator) {
+      return;
+    }
+    // getSourceId is a function that returns a promise resolving with
+    // the sourceId of the screen/window/tab to be shared.
+    if (typeof getSourceId !== 'function') {
+      console.error('shimGetDisplayMedia: getSourceId argument is not ' +
+          'a function');
+      return;
+    }
+    navigator.getDisplayMedia = function(constraints) {
+      return getSourceId(constraints)
+        .then(function(sourceId) {
+          constraints.video = {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: sourceId,
+              maxFrameRate: constraints.video.frameRate || 3
+            }
+          };
+          return navigator.mediaDevices.getUserMedia(constraints);
+        });
+    };
   }
 };
 
@@ -1912,7 +1951,7 @@ module.exports = function(window) {
         DeviceCaptureError: 'AbortError'
       }[e.name] || e.name,
       message: e.message,
-      constraint: e.constraintName,
+      constraint: e.constraint || e.constraintName,
       toString: function() {
         return this.name + (this.message && ': ') + this.message;
       }
@@ -2586,6 +2625,28 @@ module.exports = {
       window.RTCDataChannel = window.DataChannel;
     }
   },
+
+  shimGetDisplayMedia: function(window, preferredMediaSource) {
+    if ('getDisplayMedia' in window.navigator) {
+      return;
+    }
+    navigator.getDisplayMedia = function(constraints) {
+      if (!(constraints && constraints.video)) {
+        var err = new DOMException('getDisplayMedia without video ' +
+            'constraints is undefined');
+        err.name = 'NotFoundError';
+        // from https://heycam.github.io/webidl/#idl-DOMException-error-names
+        err.code = 8;
+        return Promise.reject(err);
+      }
+      if (constraints.video === true) {
+        constraints.video = {mediaSource: preferredMediaSource};
+      } else {
+        constraints.video.mediaSource = preferredMediaSource;
+      }
+      return navigator.mediaDevices.getUserMedia(constraints);
+    };
+  }
 };
 
 },{"../utils":11,"./getusermedia":9}],9:[function(require,module,exports){
@@ -3137,7 +3198,8 @@ function extractVersion(uastring, expr, pos) {
 }
 
 // Wraps the peerconnection event eventNameToWrap in a function
-// which returns the modified event object.
+// which returns the modified event object (or false to prevent
+// the event).
 function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
@@ -3149,7 +3211,10 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       return nativeAddEventListener.apply(this, arguments);
     }
     var wrappedCallback = function(e) {
-      cb(wrapper(e));
+      var modifiedEvent = wrapper(e);
+      if (modifiedEvent) {
+        cb(modifiedEvent);
+      }
     };
     this._eventMap = this._eventMap || {};
     this._eventMap[cb] = wrappedCallback;

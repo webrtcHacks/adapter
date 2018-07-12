@@ -284,8 +284,8 @@ module.exports = function(window, edgeVersion) {
     this.localStreams = [];
     this.remoteStreams = [];
 
-    this.localDescription = null;
-    this.remoteDescription = null;
+    this._localDescription = null;
+    this._remoteDescription = null;
 
     this.signalingState = 'stable';
     this.iceConnectionState = 'new';
@@ -348,6 +348,19 @@ module.exports = function(window, edgeVersion) {
 
     this._isClosed = false;
   };
+
+  Object.defineProperty(RTCPeerConnection.prototype, 'localDescription', {
+    configurable: true,
+    get: function() {
+      return this._localDescription;
+    }
+  });
+  Object.defineProperty(RTCPeerConnection.prototype, 'remoteDescription', {
+    configurable: true,
+    get: function() {
+      return this._remoteDescription;
+    }
+  });
 
   // set up event handlers on prototype
   RTCPeerConnection.prototype.onicecandidate = null;
@@ -640,7 +653,7 @@ module.exports = function(window, edgeVersion) {
       }
 
       // update local description.
-      var sections = SDPUtils.getMediaSections(pc.localDescription.sdp);
+      var sections = SDPUtils.getMediaSections(pc._localDescription.sdp);
       if (!end) {
         sections[event.candidate.sdpMLineIndex] +=
             'a=' + event.candidate.candidate + '\r\n';
@@ -648,8 +661,8 @@ module.exports = function(window, edgeVersion) {
         sections[event.candidate.sdpMLineIndex] +=
             'a=end-of-candidates\r\n';
       }
-      pc.localDescription.sdp =
-          SDPUtils.getDescription(pc.localDescription.sdp) +
+      pc._localDescription.sdp =
+          SDPUtils.getDescription(pc._localDescription.sdp) +
           sections.join('');
       var complete = pc.transceivers.every(function(transceiver) {
         return transceiver.iceGatherer &&
@@ -804,7 +817,7 @@ module.exports = function(window, edgeVersion) {
         pc._gather(transceiver.mid, sdpMLineIndex);
       });
     } else if (description.type === 'answer') {
-      sections = SDPUtils.splitSections(pc.remoteDescription.sdp);
+      sections = SDPUtils.splitSections(pc._remoteDescription.sdp);
       sessionpart = sections.shift();
       var isIceLite = SDPUtils.matchPrefix(sessionpart,
           'a=ice-lite').length > 0;
@@ -853,7 +866,7 @@ module.exports = function(window, edgeVersion) {
       });
     }
 
-    pc.localDescription = {
+    pc._localDescription = {
       type: description.type,
       sdp: description.sdp
     };
@@ -917,12 +930,14 @@ module.exports = function(window, edgeVersion) {
       var mid = SDPUtils.getMid(mediaSection) || SDPUtils.generateIdentifier();
 
       // Reject datachannels which are not implemented yet.
-      if ((kind === 'application' && protocol === 'DTLS/SCTP') || rejected) {
+      if (rejected || (kind === 'application' && (protocol === 'DTLS/SCTP' ||
+          protocol === 'UDP/DTLS/SCTP'))) {
         // TODO: this is dangerous in the case where a non-rejected m-line
         //     becomes rejected.
         pc.transceivers[sdpMLineIndex] = {
           mid: mid,
           kind: kind,
+          protocol: protocol,
           rejected: true
         };
         return;
@@ -1157,7 +1172,7 @@ module.exports = function(window, edgeVersion) {
       pc._dtlsRole = description.type === 'offer' ? 'active' : 'passive';
     }
 
-    pc.remoteDescription = {
+    pc._remoteDescription = {
       type: description.type,
       sdp: description.sdp
     };
@@ -1541,14 +1556,19 @@ module.exports = function(window, edgeVersion) {
       }).join(' ') + '\r\n';
     }
     var mediaSectionsInOffer = SDPUtils.getMediaSections(
-        pc.remoteDescription.sdp).length;
+        pc._remoteDescription.sdp).length;
     pc.transceivers.forEach(function(transceiver, sdpMLineIndex) {
       if (sdpMLineIndex + 1 > mediaSectionsInOffer) {
         return;
       }
       if (transceiver.rejected) {
         if (transceiver.kind === 'application') {
-          sdp += 'm=application 0 DTLS/SCTP 5000\r\n';
+          if (transceiver.protocol === 'DTLS/SCTP') { // legacy fmt
+            sdp += 'm=application 0 DTLS/SCTP 5000\r\n';
+          } else {
+            sdp += 'm=application 0 ' + transceiver.protocol +
+                ' webrtc-datachannel\r\n';
+          }
         } else if (transceiver.kind === 'audio') {
           sdp += 'm=audio 0 UDP/TLS/RTP/SAVPF 0\r\n' +
               'a=rtpmap:0 PCMU/8000\r\n';
@@ -1618,7 +1638,7 @@ module.exports = function(window, edgeVersion) {
 
     // TODO: needs to go into ops queue.
     return new Promise(function(resolve, reject) {
-      if (!pc.remoteDescription) {
+      if (!pc._remoteDescription) {
         return reject(makeError('InvalidStateError',
             'Can not add ICE candidate without a remote description'));
       } else if (!candidate || candidate.candidate === '') {
@@ -1627,10 +1647,10 @@ module.exports = function(window, edgeVersion) {
             continue;
           }
           pc.transceivers[j].iceTransport.addRemoteCandidate({});
-          sections = SDPUtils.getMediaSections(pc.remoteDescription.sdp);
+          sections = SDPUtils.getMediaSections(pc._remoteDescription.sdp);
           sections[j] += 'a=end-of-candidates\r\n';
-          pc.remoteDescription.sdp =
-              SDPUtils.getDescription(pc.remoteDescription.sdp) +
+          pc._remoteDescription.sdp =
+              SDPUtils.getDescription(pc._remoteDescription.sdp) +
               sections.join('');
           if (pc.usingBundle) {
             break;
@@ -1676,12 +1696,12 @@ module.exports = function(window, edgeVersion) {
           if (candidateString.indexOf('a=') === 0) {
             candidateString = candidateString.substr(2);
           }
-          sections = SDPUtils.getMediaSections(pc.remoteDescription.sdp);
+          sections = SDPUtils.getMediaSections(pc._remoteDescription.sdp);
           sections[sdpMLineIndex] += 'a=' +
               (cand.type ? candidateString : 'end-of-candidates')
               + '\r\n';
-          pc.remoteDescription.sdp =
-              SDPUtils.getDescription(pc.remoteDescription.sdp) +
+          pc._remoteDescription.sdp =
+              SDPUtils.getDescription(pc._remoteDescription.sdp) +
               sections.join('');
         } else {
           return reject(makeError('OperationError',
@@ -2596,6 +2616,7 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
       chromeShim.shimSenderReceiverGetStats(window);
+      chromeShim.fixNegotiationNeeded(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
@@ -2747,7 +2768,9 @@ module.exports = {
             this.removeEventListener('track', this._ontrack);
           }
           this.addEventListener('track', this._ontrack = f);
-        }
+        },
+        enumerable: true,
+        configurable: true
       });
       var origSetRemoteDescription =
           window.RTCPeerConnection.prototype.setRemoteDescription;
@@ -3575,6 +3598,42 @@ module.exports = {
       }
       return nativeAddIceCandidate.apply(this, arguments);
     };
+  },
+
+  fixNegotiationNeeded: function(window) {
+    utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function(e) {
+      var pc = e.target;
+      if (pc.signalingState !== 'stable') {
+        return;
+      }
+      return e;
+    });
+  },
+
+  shimGetDisplayMedia: function(window, getSourceId) {
+    if ('getDisplayMedia' in window.navigator) {
+      return;
+    }
+    // getSourceId is a function that returns a promise resolving with
+    // the sourceId of the screen/window/tab to be shared.
+    if (typeof getSourceId !== 'function') {
+      console.error('shimGetDisplayMedia: getSourceId argument is not ' +
+          'a function');
+      return;
+    }
+    navigator.getDisplayMedia = function(constraints) {
+      return getSourceId(constraints)
+        .then(function(sourceId) {
+          constraints.video = {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: sourceId,
+              maxFrameRate: constraints.video.frameRate || 3
+            }
+          };
+          return navigator.mediaDevices.getUserMedia(constraints);
+        });
+    };
   }
 };
 
@@ -3729,7 +3788,7 @@ module.exports = function(window) {
         DeviceCaptureError: 'AbortError'
       }[e.name] || e.name,
       message: e.message,
-      constraint: e.constraintName,
+      constraint: e.constraint || e.constraintName,
       toString: function() {
         return this.name + (this.message && ': ') + this.message;
       }
@@ -4580,6 +4639,28 @@ module.exports = {
       window.RTCDataChannel = window.DataChannel;
     }
   },
+
+  shimGetDisplayMedia: function(window, preferredMediaSource) {
+    if ('getDisplayMedia' in window.navigator) {
+      return;
+    }
+    navigator.getDisplayMedia = function(constraints) {
+      if (!(constraints && constraints.video)) {
+        var err = new DOMException('getDisplayMedia without video ' +
+            'constraints is undefined');
+        err.name = 'NotFoundError';
+        // from https://heycam.github.io/webidl/#idl-DOMException-error-names
+        err.code = 8;
+        return Promise.reject(err);
+      }
+      if (constraints.video === true) {
+        constraints.video = {mediaSource: preferredMediaSource};
+      } else {
+        constraints.video.mediaSource = preferredMediaSource;
+      }
+      return navigator.mediaDevices.getUserMedia(constraints);
+    };
+  }
 };
 
 },{"../utils":14,"./getusermedia":12}],12:[function(require,module,exports){
@@ -5131,7 +5212,8 @@ function extractVersion(uastring, expr, pos) {
 }
 
 // Wraps the peerconnection event eventNameToWrap in a function
-// which returns the modified event object.
+// which returns the modified event object (or false to prevent
+// the event).
 function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
@@ -5143,7 +5225,10 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       return nativeAddEventListener.apply(this, arguments);
     }
     var wrappedCallback = function(e) {
-      cb(wrapper(e));
+      var modifiedEvent = wrapper(e);
+      if (modifiedEvent) {
+        cb(modifiedEvent);
+      }
     };
     this._eventMap = this._eventMap || {};
     this._eventMap[cb] = wrappedCallback;
