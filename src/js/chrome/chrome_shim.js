@@ -876,6 +876,97 @@ module.exports = {
       });
     }
 
+   // webOS 3.x support. Web engine of SmartTV based on Chromium v38.
+    // Some of ES6 methods are not defined.
+    if (browserDetails.version < 39) {
+      // Object.assign
+      if (!Object.assign) {
+        Object.defineProperty(Object, 'assign', {
+          enumerable: false,
+          configurable: true,
+          writable: true,
+          value: function(target) {
+            if (target === undefined || target === null) {
+              throw new TypeError('Cannot convert first argument to object');
+            }
+            var to = Object(target);
+            for (var i = 1; i < arguments.length; i++) {
+              var nextSource = arguments[i];
+              if (nextSource === undefined || nextSource === null) {
+                continue;
+              }
+              nextSource = Object(nextSource);
+              var keysArray = Object.keys(Object(nextSource));
+              for (var nextIndex = 0, len = keysArray.length;
+                nextIndex < len; nextIndex++) {
+                var nextKey = keysArray[nextIndex];
+                var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
+                if (desc !== undefined && desc.enumerable) {
+                  to[nextKey] = nextSource[nextKey];
+                }
+              }
+            }
+            return to;
+          }
+        });
+      }
+
+      // Array.find
+      if (!Array.prototype.find) {
+        Object.defineProperty(Array.prototype, 'find', {
+          value: function(predicate) {
+            if (this === undefined || this === null) {
+              throw new TypeError('"this" is null or not defined');
+            }
+            var O = Object(this);
+            var len = O.length >>> 0;
+            if (typeof predicate !== 'function') {
+              throw new TypeError('predicate must be a function');
+            }
+            var thisArg = arguments[1];
+            var k = 0;
+            while (k < len) {
+              var kValue = O[k];
+              if (predicate.call(thisArg, kValue, k, O)) {
+                return kValue;
+              }
+              k++;
+            }
+            return undefined;
+          }
+        });
+      }
+
+      // Array.fill
+      if (!Array.prototype.fill) {
+        Object.defineProperty(Array.prototype, 'fill', {
+          value: function(value) {
+            if (this === undefined || this === null) {
+              throw new TypeError('"this" is null or not defined');
+            }
+            var O = Object(this);
+            var len = O.length >>> 0;
+            var start = arguments[1];
+            var relativeStart = start >> 0;
+            var k = relativeStart < 0 ?
+              Math.max(len + relativeStart, 0) :
+              Math.min(relativeStart, len);
+            var end = arguments[2];
+            var relativeEnd = end === undefined ?
+              len : end >> 0;
+            var final = relativeEnd < 0 ?
+              Math.max(len + relativeEnd, 0) :
+              Math.min(relativeEnd, len);
+            while (k < final) {
+              O[k] = value;
+              k++;
+            }
+            return O;
+          }
+        });
+      }
+    }
+
     // shim implicit creation of RTCSessionDescription/RTCIceCandidate
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
         .forEach(function(method) {
