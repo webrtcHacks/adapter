@@ -50,7 +50,7 @@
       "browser": true,
       "node": true
   },
-  "extends": ["eslint:recommended", "webrtc"],
+  "extends": ["eslint:recommended"],
   "globals": {
     "module": true,
     "require": true,
