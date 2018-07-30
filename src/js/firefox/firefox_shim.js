@@ -35,7 +35,9 @@ module.exports = {
               this.dispatchEvent(event);
             }.bind(this));
           }.bind(this));
-        }
+        },
+        enumerable: true,
+        configurable: true
       });
     }
     if (typeof window === 'object' && window.RTCTrackEvent &&
