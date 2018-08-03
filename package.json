@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "rtcpeerconnection-shim": "^1.2.10",
-    "sdp": "^2.7.0"
+    "sdp": "^2.8.0"
   },
   "engines": {
     "npm": ">=3.10.0",
