@@ -120,10 +120,14 @@ module.exports = {
         }
         return origSetRemoteDescription.apply(pc, arguments);
       };
-    } else if (!('RTCRtpTransceiver' in window)) {
+    } else {
+      // even if RTCRtpTransceiver is in window, it is only used and
+      // emitted in unified-plan. Unfortunately this means we need
+      // to unconditionally wrap the event.
       utils.wrapPeerConnectionEvent(window, 'track', function(e) {
         if (!e.transceiver) {
-          e.transceiver = {receiver: e.receiver};
+          Object.defineProperty(e, 'transceiver',
+            {value: {receiver: e.receiver}});
         }
         return e;
       });
