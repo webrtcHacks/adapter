@@ -44,10 +44,3 @@ script:
 
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
-
-notifications:
-  email:
-    recipients:
-      forward-webrtc-github@webrtc.org
-    on_success: change
-    on_failure: always
