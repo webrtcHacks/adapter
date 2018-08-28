@@ -6,10 +6,11 @@
   "main": "./src/js/adapter_core.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/webrtc/adapter.git"
+    "url": "https://github.com/webrtchacks/adapter.git"
   },
   "authors": [
-    "The WebRTC project authors (https://www.webrtc.org/)"
+    "The WebRTC project authors (https://www.webrtc.org/)",
+    "The adapter.js project authors (https://github.com/webrtchacks/adapter/)"
   ],
   "scripts": {
     "preversion": "git stash && npm install && npm update && BROWSER=chrome BVER=stable CI=true npm test && git checkout -B bumpVersion && grunt build && grunt copyForPublish && git add package.json release/* && git commit -m 'Add adapter artifacts' --allow-empty",
