@@ -744,20 +744,15 @@ module.exports = {
       var OrigPeerConnection = window.RTCPeerConnection;
       window.RTCPeerConnection = function(pcConfig, pcConstraints) {
         if (pcConfig && pcConfig.iceServers) {
-          var newIceServers = [];
           for (var i = 0; i < pcConfig.iceServers.length; i++) {
             var server = pcConfig.iceServers[i];
             if (!server.hasOwnProperty('urls') &&
                 server.hasOwnProperty('url')) {
               utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
-              server = JSON.parse(JSON.stringify(server));
               server.urls = server.url;
-              newIceServers.push(server);
-            } else {
-              newIceServers.push(pcConfig.iceServers[i]);
+              pcConfig.iceServers[i] = server;
             }
           }
-          pcConfig.iceServers = newIceServers;
         }
         return new OrigPeerConnection(pcConfig, pcConstraints);
       };
