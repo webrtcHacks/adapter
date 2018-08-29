@@ -5,10 +5,11 @@
   "main": "./release/adapter.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/webrtc/adapter.git"
+    "url": "https://github.com/webrtchacks/adapter.git"
   },
   "authors": [
-    "The WebRTC project authors (https://www.webrtc.org/)"
+    "The WebRTC project authors (https://www.webrtc.org/)",
+    "The adapter.js project authors (https://github.com/webrtchacks/adapter/)"
   ],
   "moduleType": [
     "node"
@@ -18,14 +19,7 @@
   ],
   "keywords": [
     "WebRTC",
-    "PeerConnection",
     "RTCPeerConnection",
-    "getUserMedia",
-    "Chrome",
-    "Chromium",
-    "Firefox",
-    "Edge",
-    "Adapter",
-    "Shim"
+    "getUserMedia"
   ]
 }
