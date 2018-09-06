@@ -1,8 +1,4 @@
-ERR addTrack throws an exception if the track has already been added AssertionError
-ERR addTrack throws an exception if the track has already been added via addStream AssertionError
-ERR addTrack throws an exception if addStream is called with a stream containing a track already added AssertionError
 ERR dtmf RTCRtpSender.dtmf does not exist on video senders AssertionError
 ERR navigator.mediaDevices enumerateDevices returns some audiooutput devices AssertionError
-ERR removeTrack throws an exception if the sender does not belong to the peerconnection AssertionError
-ERR RTCPeerConnection icegatheringstatechange fires the event timeout
-ERR RTCPeerConnection icegatheringstatechange calls the event handler timeout
+ERR removeTrack after addStream for an audio/video track after removing all tracks no local streams remain AssertionError
+ERR removeTrack after addTrack for an audio/video track after removing all tracks no local streams remain AssertionError
