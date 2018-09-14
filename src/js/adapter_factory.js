@@ -64,7 +64,6 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming chrome.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = chromeShim;
-      commonShim.shimCreateObjectURL(window);
 
       chromeShim.shimGetUserMedia(window);
       chromeShim.shimMediaStream(window);
@@ -89,7 +88,6 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming firefox.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = firefoxShim;
-      commonShim.shimCreateObjectURL(window);
 
       firefoxShim.shimGetUserMedia(window);
       firefoxShim.shimSourceObject(window);
@@ -112,7 +110,6 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming edge.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = edgeShim;
-      commonShim.shimCreateObjectURL(window);
 
       edgeShim.shimGetUserMedia(window);
       edgeShim.shimPeerConnection(window);
@@ -131,7 +128,6 @@ module.exports = function(dependencies, opts) {
       logging('adapter.js shimming safari.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = safariShim;
-      commonShim.shimCreateObjectURL(window);
 
       safariShim.shimRTCIceServerUrls(window);
       safariShim.shimCreateOfferLegacy(window);
