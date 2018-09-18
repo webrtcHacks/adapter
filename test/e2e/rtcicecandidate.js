@@ -22,7 +22,7 @@ describe('RTCIceCandidate', () => {
           expect(hasProperty).to.equal(true);
           done();
         } else {
-          hasProperty = e.candidate.hasOwnProperty('port');
+          hasProperty = e.candidate.hasOwnProperty('address');
         }
       };
       pc.createOffer({offerToReceiveAudio: true})
