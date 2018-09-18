@@ -48,11 +48,6 @@ module.exports = function(grunt) {
         }
       }
     },
-    githooks: {
-      all: {
-        'pre-commit': 'lint'
-      }
-    },
     eslint: {
       options: {
         configFile: '.eslintrc'
@@ -75,7 +70,6 @@ module.exports = function(grunt) {
     },
   });
 
-  grunt.loadNpmTasks('grunt-githooks');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-copy');
