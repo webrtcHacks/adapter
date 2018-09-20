@@ -12,7 +12,7 @@ var SDPUtils = require('sdp');
 var utils = require('./utils');
 
 module.exports = {
-  shimRTCIceCandidate: function(window) {
+  shimRTCIceCandidate(window) {
     // foundation is arbitrarily chosen as an indicator for full support for
     // https://w3c.github.io/webrtc-pc/#rtcicecandidate-interface
     if (!window.RTCIceCandidate || (window.RTCIceCandidate && 'foundation' in
@@ -64,7 +64,7 @@ module.exports = {
     });
   },
 
-  shimMaxMessageSize: function(window) {
+  shimMaxMessageSize(window) {
     if (window.RTCSctpTransport || !window.RTCPeerConnection) {
       return;
     }
@@ -72,7 +72,7 @@ module.exports = {
 
     if (!('sctp' in window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {
-        get: function() {
+        get() {
           return typeof this._sctp === 'undefined' ? null : this._sctp;
         }
       });
@@ -187,7 +187,7 @@ module.exports = {
         // attribute.
         var sctp = {};
         Object.defineProperty(sctp, 'maxMessageSize', {
-          get: function() {
+          get() {
             return maxMessageSize;
           }
         });
@@ -198,7 +198,7 @@ module.exports = {
     };
   },
 
-  shimSendThrowTypeError: function(window) {
+  shimSendThrowTypeError(window) {
     if (!(window.RTCPeerConnection &&
         'createDataChannel' in window.RTCPeerConnection.prototype)) {
       return;

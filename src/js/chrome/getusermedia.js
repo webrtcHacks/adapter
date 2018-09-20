@@ -152,7 +152,7 @@ module.exports = function(window) {
       }[e.name] || e.name,
       message: e.message,
       constraint: e.constraint || e.constraintName,
-      toString: function() {
+      toString() {
         return this.name + (this.message && ': ') + this.message;
       }
     };
@@ -180,7 +180,7 @@ module.exports = function(window) {
   if (!navigator.mediaDevices) {
     navigator.mediaDevices = {
       getUserMedia: getUserMediaPromise_,
-      enumerateDevices: function() {
+      enumerateDevices() {
         return new Promise(function(resolve) {
           var kinds = {audio: 'audioinput', video: 'videoinput'};
           return window.MediaStreamTrack.getSources(function(devices) {
@@ -193,7 +193,7 @@ module.exports = function(window) {
           });
         });
       },
-      getSupportedConstraints: function() {
+      getSupportedConstraints() {
         return {
           deviceId: true, echoCancellation: true, facingMode: true,
           frameRate: true, height: true, width: true

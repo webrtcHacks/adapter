@@ -30,7 +30,7 @@ module.exports = function(window) {
         'user agent or the platform in the current context.'
       }[e.message] || e.message,
       constraint: e.constraint,
-      toString: function() {
+      toString() {
         return this.name + (this.message && ': ') + this.message;
       }
     };
@@ -107,8 +107,8 @@ module.exports = function(window) {
   // Shim for mediaDevices on older versions.
   if (!navigator.mediaDevices) {
     navigator.mediaDevices = {getUserMedia: getUserMediaPromise_,
-      addEventListener: function() { },
-      removeEventListener: function() { }
+      addEventListener() { },
+      removeEventListener() { }
     };
   }
   navigator.mediaDevices.enumerateDevices =

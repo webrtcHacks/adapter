@@ -46,8 +46,8 @@ module.exports = function(dependencies, opts) {
 
   // Export to the adapter global object visible in the browser.
   var adapter = {
-    browserDetails: browserDetails,
-    commonShim: commonShim,
+    browserDetails,
+    commonShim,
     extractVersion: utils.extractVersion,
     disableLog: utils.disableLog,
     disableWarnings: utils.disableWarnings

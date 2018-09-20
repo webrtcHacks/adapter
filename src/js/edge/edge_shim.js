@@ -14,7 +14,7 @@ var shimRTCPeerConnection = require('rtcpeerconnection-shim');
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
-  shimPeerConnection: function(window) {
+  shimPeerConnection(window) {
     var browserDetails = utils.detectBrowser(window);
 
     if (window.RTCIceGatherer) {
@@ -35,7 +35,7 @@ module.exports = {
         var origMSTEnabled = Object.getOwnPropertyDescriptor(
             window.MediaStreamTrack.prototype, 'enabled');
         Object.defineProperty(window.MediaStreamTrack.prototype, 'enabled', {
-          set: function(value) {
+          set(value) {
             origMSTEnabled.set.call(this, value);
             var ev = new Event('enabled');
             ev.enabled = value;
@@ -49,7 +49,7 @@ module.exports = {
     // https://github.com/w3c/ortc/issues/714
     if (window.RTCRtpSender && !('dtmf' in window.RTCRtpSender.prototype)) {
       Object.defineProperty(window.RTCRtpSender.prototype, 'dtmf', {
-        get: function() {
+        get() {
           if (this._dtmf === undefined) {
             if (this.track.kind === 'audio') {
               this._dtmf = new window.RTCDtmfSender(this);
@@ -77,7 +77,7 @@ module.exports = {
     };
     window.RTCPeerConnection.prototype = RTCPeerConnectionShim.prototype;
   },
-  shimReplaceTrack: function(window) {
+  shimReplaceTrack(window) {
     // ORTC has replaceTrack -- https://github.com/w3c/ortc/issues/614
     if (window.RTCRtpSender &&
         !('replaceTrack' in window.RTCRtpSender.prototype)) {

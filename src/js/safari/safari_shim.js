@@ -9,7 +9,7 @@
 var utils = require('../utils');
 
 module.exports = {
-  shimLocalStreamsAPI: function(window) {
+  shimLocalStreamsAPI(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
     }
@@ -87,7 +87,7 @@ module.exports = {
       };
     }
   },
-  shimRemoteStreamsAPI: function(window) {
+  shimRemoteStreamsAPI(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
     }
@@ -98,10 +98,10 @@ module.exports = {
     }
     if (!('onaddstream' in window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'onaddstream', {
-        get: function() {
+        get() {
           return this._onaddstream;
         },
-        set: function(f) {
+        set(f) {
           if (this._onaddstream) {
             this.removeEventListener('addstream', this._onaddstream);
           }
@@ -132,7 +132,7 @@ module.exports = {
       };
     }
   },
-  shimCallbacksAPI: function(window) {
+  shimCallbacksAPI(window) {
     if (typeof window !== 'object' || !window.RTCPeerConnection) {
       return;
     }
@@ -193,7 +193,7 @@ module.exports = {
     };
     prototype.addIceCandidate = withCallback;
   },
-  shimGetUserMedia: function(window) {
+  shimGetUserMedia(window) {
     var navigator = window && window.navigator;
 
     if (!navigator.getUserMedia) {
@@ -208,7 +208,7 @@ module.exports = {
       }
     }
   },
-  shimRTCIceServerUrls: function(window) {
+  shimRTCIceServerUrls(window) {
     // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
     var OrigPeerConnection = window.RTCPeerConnection;
     window.RTCPeerConnection = function(pcConfig, pcConstraints) {
@@ -235,13 +235,13 @@ module.exports = {
     // wrap static methods. Currently just generateCertificate.
     if ('generateCertificate' in window.RTCPeerConnection) {
       Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-        get: function() {
+        get() {
           return OrigPeerConnection.generateCertificate;
         }
       });
     }
   },
-  shimTrackEventTransceiver: function(window) {
+  shimTrackEventTransceiver(window) {
     // Add event.transceiver member over deprecated event.receiver
     if (typeof window === 'object' && window.RTCPeerConnection &&
         ('receiver' in window.RTCTrackEvent.prototype) &&
@@ -249,14 +249,14 @@ module.exports = {
         // defined for some reason even when window.RTCTransceiver is not.
         !window.RTCTransceiver) {
       Object.defineProperty(window.RTCTrackEvent.prototype, 'transceiver', {
-        get: function() {
+        get() {
           return {receiver: this.receiver};
         }
       });
     }
   },
 
-  shimCreateOfferLegacy: function(window) {
+  shimCreateOfferLegacy(window) {
     var origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
     window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
       var pc = this;

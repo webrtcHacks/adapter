@@ -62,10 +62,10 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   };
 
   Object.defineProperty(proto, 'on' + eventNameToWrap, {
-    get: function() {
+    get() {
       return this['_on' + eventNameToWrap];
     },
-    set: function(cb) {
+    set(cb) {
       if (this['_on' + eventNameToWrap]) {
         this.removeEventListener(eventNameToWrap,
             this['_on' + eventNameToWrap]);
@@ -83,9 +83,9 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
 
 // Utility methods.
 module.exports = {
-  extractVersion: extractVersion,
-  wrapPeerConnectionEvent: wrapPeerConnectionEvent,
-  disableLog: function(bool) {
+  extractVersion,
+  wrapPeerConnectionEvent,
+  disableLog(bool) {
     if (typeof bool !== 'boolean') {
       return new Error('Argument type: ' + typeof bool +
           '. Please use a boolean.');
@@ -99,7 +99,7 @@ module.exports = {
    * Disable or enable deprecation warnings
    * @param {!boolean} bool set to true to disable warnings.
    */
-  disableWarnings: function(bool) {
+  disableWarnings(bool) {
     if (typeof bool !== 'boolean') {
       return new Error('Argument type: ' + typeof bool +
           '. Please use a boolean.');
@@ -108,7 +108,7 @@ module.exports = {
     return 'adapter.js deprecation warnings ' + (bool ? 'disabled' : 'enabled');
   },
 
-  log: function() {
+  log() {
     if (typeof window === 'object') {
       if (logDisabled_) {
         return;
@@ -122,7 +122,7 @@ module.exports = {
   /**
    * Shows a deprecation warning suggesting the modern and spec-compatible API.
    */
-  deprecated: function(oldMethod, newMethod) {
+  deprecated(oldMethod, newMethod) {
     if (!deprecationWarnings_) {
       return;
     }
@@ -136,7 +136,7 @@ module.exports = {
    * @return {object} result containing browser and version
    *     properties.
    */
-  detectBrowser: function(window) {
+  detectBrowser(window) {
     var navigator = window && window.navigator;
 
     // Returned result object.

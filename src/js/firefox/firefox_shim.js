@@ -12,14 +12,14 @@ var utils = require('../utils');
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
-  shimOnTrack: function(window) {
+  shimOnTrack(window) {
     if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
         window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-        get: function() {
+        get() {
           return this._ontrack;
         },
-        set: function(f) {
+        set(f) {
           if (this._ontrack) {
             this.removeEventListener('track', this._ontrack);
             this.removeEventListener('addstream', this._ontrackpoly);
@@ -29,7 +29,7 @@ module.exports = {
             e.stream.getTracks().forEach(function(track) {
               var event = new Event('track');
               event.track = track;
-              event.receiver = {track: track};
+              event.receiver = {track};
               event.transceiver = {receiver: event.receiver};
               event.streams = [e.stream];
               this.dispatchEvent(event);
@@ -44,24 +44,24 @@ module.exports = {
         ('receiver' in window.RTCTrackEvent.prototype) &&
         !('transceiver' in window.RTCTrackEvent.prototype)) {
       Object.defineProperty(window.RTCTrackEvent.prototype, 'transceiver', {
-        get: function() {
+        get() {
           return {receiver: this.receiver};
         }
       });
     }
   },
 
-  shimSourceObject: function(window) {
+  shimSourceObject(window) {
     // Firefox has supported mozSrcObject since FF22, unprefixed in 42.
     if (typeof window === 'object') {
       if (window.HTMLMediaElement &&
         !('srcObject' in window.HTMLMediaElement.prototype)) {
         // Shim the srcObject property, once, when HTMLMediaElement is found.
         Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-          get: function() {
+          get() {
             return this.mozSrcObject;
           },
-          set: function(stream) {
+          set(stream) {
             this.mozSrcObject = stream;
           }
         });
@@ -69,7 +69,7 @@ module.exports = {
     }
   },
 
-  shimPeerConnection: function(window) {
+  shimPeerConnection(window) {
     var browserDetails = utils.detectBrowser(window);
 
     if (typeof window !== 'object' || !(window.RTCPeerConnection ||
@@ -112,7 +112,7 @@ module.exports = {
       // wrap static methods. Currently just generateCertificate.
       if (window.mozRTCPeerConnection.generateCertificate) {
         Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-          get: function() {
+          get() {
             return window.mozRTCPeerConnection.generateCertificate;
           }
         });
@@ -201,7 +201,7 @@ module.exports = {
     };
   },
 
-  shimSenderGetStats: function(window) {
+  shimSenderGetStats(window) {
     if (!(typeof window === 'object' && window.RTCPeerConnection &&
         window.RTCRtpSender)) {
       return;
@@ -235,7 +235,7 @@ module.exports = {
     };
   },
 
-  shimReceiverGetStats: function(window) {
+  shimReceiverGetStats(window) {
     if (!(typeof window === 'object' && window.RTCPeerConnection &&
         window.RTCRtpSender)) {
       return;
@@ -263,7 +263,7 @@ module.exports = {
     };
   },
 
-  shimRemoveStream: function(window) {
+  shimRemoveStream(window) {
     if (!window.RTCPeerConnection ||
         'removeStream' in window.RTCPeerConnection.prototype) {
       return;
@@ -279,7 +279,7 @@ module.exports = {
     };
   },
 
-  shimRTCDataChannel: function(window) {
+  shimRTCDataChannel(window) {
     // rename DataChannel to RTCDataChannel (native fix in FF60):
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1173851
     if (window.DataChannel && !window.RTCDataChannel) {
@@ -287,7 +287,7 @@ module.exports = {
     }
   },
 
-  shimGetDisplayMedia: function(window, preferredMediaSource) {
+  shimGetDisplayMedia(window, preferredMediaSource) {
     if ('getDisplayMedia' in window.navigator) {
       return;
     }

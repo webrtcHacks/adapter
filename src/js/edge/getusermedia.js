@@ -17,7 +17,7 @@ module.exports = function(window) {
       name: {PermissionDeniedError: 'NotAllowedError'}[e.name] || e.name,
       message: e.message,
       constraint: e.constraint,
-      toString: function() {
+      toString() {
         return this.name;
       }
     };

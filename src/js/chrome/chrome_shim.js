@@ -54,18 +54,18 @@ function filterStats(result, track, outbound) {
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
-  shimMediaStream: function(window) {
+  shimMediaStream(window) {
     window.MediaStream = window.MediaStream || window.webkitMediaStream;
   },
 
-  shimOnTrack: function(window) {
+  shimOnTrack(window) {
     if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
         window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-        get: function() {
+        get() {
           return this._ontrack;
         },
-        set: function(f) {
+        set(f) {
           if (this._ontrack) {
             this.removeEventListener('track', this._ontrack);
           }
@@ -95,7 +95,7 @@ module.exports = {
               var event = new Event('track');
               event.track = te.track;
               event.receiver = receiver;
-              event.transceiver = {receiver: receiver};
+              event.transceiver = {receiver};
               event.streams = [e.stream];
               pc.dispatchEvent(event);
             });
@@ -106,12 +106,12 @@ module.exports = {
                   return r.track && r.track.id === track.id;
                 });
               } else {
-                receiver = {track: track};
+                receiver = {track};
               }
               var event = new Event('track');
               event.track = track;
               event.receiver = receiver;
-              event.transceiver = {receiver: receiver};
+              event.transceiver = {receiver};
               event.streams = [e.stream];
               pc.dispatchEvent(event);
             });
@@ -134,14 +134,14 @@ module.exports = {
     }
   },
 
-  shimGetSendersWithDtmf: function(window) {
+  shimGetSendersWithDtmf(window) {
     // Overrides addTrack/removeTrack, depends on shimAddTrackRemoveTrack.
     if (typeof window === 'object' && window.RTCPeerConnection &&
         !('getSenders' in window.RTCPeerConnection.prototype) &&
         'createDTMFSender' in window.RTCPeerConnection.prototype) {
       var shimSenderWithDtmf = function(pc, track) {
         return {
-          track: track,
+          track,
           get dtmf() {
             if (this._dtmf === undefined) {
               if (track.kind === 'audio') {
@@ -224,7 +224,7 @@ module.exports = {
       };
 
       Object.defineProperty(window.RTCRtpSender.prototype, 'dtmf', {
-        get: function() {
+        get() {
           if (this._dtmf === undefined) {
             if (this.track.kind === 'audio') {
               this._dtmf = this._pc.createDTMFSender(this.track);
@@ -238,7 +238,7 @@ module.exports = {
     }
   },
 
-  shimSenderReceiverGetStats: function(window) {
+  shimSenderReceiverGetStats(window) {
     if (!(typeof window === 'object' && window.RTCPeerConnection &&
         window.RTCRtpSender && window.RTCRtpReceiver)) {
       return;
@@ -354,7 +354,7 @@ module.exports = {
     };
   },
 
-  shimSourceObject: function(window) {
+  shimSourceObject(window) {
     var URL = window && window.URL;
 
     if (typeof window === 'object') {
@@ -362,10 +362,10 @@ module.exports = {
         !('srcObject' in window.HTMLMediaElement.prototype)) {
         // Shim the srcObject property, once, when HTMLMediaElement is found.
         Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-          get: function() {
+          get() {
             return this._srcObject;
           },
-          set: function(stream) {
+          set(stream) {
             var self = this;
             // Use _srcObject as a private property for this shim
             this._srcObject = stream;
@@ -398,7 +398,7 @@ module.exports = {
     }
   },
 
-  shimAddTrackRemoveTrackWithNative: function(window) {
+  shimAddTrackRemoveTrackWithNative(window) {
     // shim addTrack/removeTrack with native variants in order to make
     // the interactions with legacy getLocalStreams behave as in other browsers.
     // Keeps a mapping stream.id => [stream, rtpsenders...]
@@ -474,7 +474,7 @@ module.exports = {
     };
   },
 
-  shimAddTrackRemoveTrack: function(window) {
+  shimAddTrackRemoveTrack(window) {
     var browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack &&
@@ -598,7 +598,7 @@ module.exports = {
       });
       return new RTCSessionDescription({
         type: description.type,
-        sdp: sdp
+        sdp
       });
     }
     function replaceExternalStreamId(pc, description) {
@@ -611,7 +611,7 @@ module.exports = {
       });
       return new RTCSessionDescription({
         type: description.type,
-        sdp: sdp
+        sdp
       });
     }
     ['createOffer', 'createAnswer'].forEach(function(method) {
@@ -658,7 +658,7 @@ module.exports = {
         window.RTCPeerConnection.prototype, 'localDescription');
     Object.defineProperty(window.RTCPeerConnection.prototype,
         'localDescription', {
-          get: function() {
+          get() {
             var pc = this;
             var description = origLocalDescription.get.apply(this);
             if (description.type === '') {
@@ -713,7 +713,7 @@ module.exports = {
     };
   },
 
-  shimPeerConnection: function(window) {
+  shimPeerConnection(window) {
     var browserDetails = utils.detectBrowser(window);
 
     // The RTCPeerConnection object.
@@ -734,7 +734,7 @@ module.exports = {
       // wrap static methods. Currently just generateCertificate.
       if (window.webkitRTCPeerConnection.generateCertificate) {
         Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-          get: function() {
+          get() {
             return window.webkitRTCPeerConnection.generateCertificate;
           }
         });
@@ -877,7 +877,7 @@ module.exports = {
     };
   },
 
-  fixNegotiationNeeded: function(window) {
+  fixNegotiationNeeded(window) {
     utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function(e) {
       var pc = e.target;
       if (pc.signalingState !== 'stable') {
@@ -887,7 +887,7 @@ module.exports = {
     });
   },
 
-  shimGetDisplayMedia: function(window, getSourceId) {
+  shimGetDisplayMedia(window, getSourceId) {
     if ('getDisplayMedia' in window.navigator) {
       return;
     }
