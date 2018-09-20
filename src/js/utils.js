@@ -37,7 +37,7 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     if (nativeEventName !== eventNameToWrap) {
       return nativeAddEventListener.apply(this, arguments);
     }
-    const wrappedCallback = function(e) {
+    const wrappedCallback = (e) => {
       const modifiedEvent = wrapper(e);
       if (modifiedEvent) {
         cb(modifiedEvent);
@@ -133,12 +133,10 @@ export function deprecated(oldMethod, newMethod) {
  *     properties.
  */
 export function detectBrowser(window) {
-  const navigator = window && window.navigator;
+  const {navigator} = window;
 
   // Returned result object.
-  const result = {};
-  result.browser = null;
-  result.version = null;
+  const result = {browser: null, version: null};
 
   // Fail early if it's not a browser
   if (typeof window === 'undefined' || !window.navigator) {
