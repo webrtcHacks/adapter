@@ -106,7 +106,8 @@ module.exports = function(window) {
           return navigator.mediaDevices.enumerateDevices()
           .then(devices => {
             devices = devices.filter(d => d.kind === 'videoinput');
-            let dev = devices.find(d => matches.some(match => d.label.toLowerCase().indexOf(match) !== -1));
+            let dev = devices.find(d => matches.some(match =>
+              d.label.toLowerCase().indexOf(match) !== -1));
             if (!dev && devices.length && matches.indexOf('back') !== -1) {
               dev = devices[devices.length - 1]; // more likely the back cam
             }

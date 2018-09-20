@@ -184,7 +184,8 @@ module.exports = function(window) {
     }
 
     if (MediaStreamTrack && MediaStreamTrack.prototype.applyConstraints) {
-      const nativeApplyConstraints = MediaStreamTrack.prototype.applyConstraints;
+      const nativeApplyConstraints =
+        MediaStreamTrack.prototype.applyConstraints;
       MediaStreamTrack.prototype.applyConstraints = function(c) {
         if (this.kind === 'audio' && typeof c === 'object') {
           c = JSON.parse(JSON.stringify(c));

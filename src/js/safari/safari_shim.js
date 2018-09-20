@@ -265,7 +265,9 @@ module.exports = {
           // support bit values
           offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
         }
-        const audioTransceiver = pc.getTransceivers().find(transceiver => transceiver.sender.track && transceiver.sender.track.kind === 'audio');
+        const audioTransceiver = pc.getTransceivers().find(transceiver =>
+          transceiver.sender.track &&
+          transceiver.sender.track.kind === 'audio');
         if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
           if (audioTransceiver.direction === 'sendrecv') {
             if (audioTransceiver.setDirection) {
@@ -290,7 +292,9 @@ module.exports = {
           // support bit values
           offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
         }
-        const videoTransceiver = pc.getTransceivers().find(transceiver => transceiver.sender.track && transceiver.sender.track.kind === 'video');
+        const videoTransceiver = pc.getTransceivers().find(transceiver =>
+          transceiver.sender.track &&
+          transceiver.sender.track.kind === 'video');
         if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
           if (videoTransceiver.direction === 'sendrecv') {
             videoTransceiver.setDirection('sendonly');

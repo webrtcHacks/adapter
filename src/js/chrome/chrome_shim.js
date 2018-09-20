@@ -85,7 +85,8 @@ module.exports = {
             e.stream.addEventListener('addtrack', te => {
               let receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = pc.getReceivers().find(r => r.track && r.track.id === te.track.id);
+                receiver = pc.getReceivers().find(r =>
+                  r.track && r.track.id === te.track.id);
               } else {
                 receiver = {track: te.track};
               }
@@ -100,7 +101,8 @@ module.exports = {
             e.stream.getTracks().forEach(track => {
               let receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = pc.getReceivers().find(r => r.track && r.track.id === track.id);
+                receiver = pc.getReceivers().find(r =>
+                  r.track && r.track.id === track.id);
               } else {
                 receiver = {track};
               }
@@ -262,11 +264,12 @@ module.exports = {
       }
       window.RTCRtpSender.prototype.getStats = function() {
         const sender = this;
-        return this._pc.getStats().then(result => /* Note: this will include stats of all senders that
-         *   send a track with the same id as sender.track as
-         *   it is not possible to identify the RTCRtpSender.
-         */
-        filterStats(result, sender.track, true));
+        return this._pc.getStats().then(result =>
+          /* Note: this will include stats of all senders that
+           *   send a track with the same id as sender.track as
+           *   it is not possible to identify the RTCRtpSender.
+           */
+          filterStats(result, sender.track, true));
       };
     }
 
@@ -289,7 +292,8 @@ module.exports = {
       });
       window.RTCRtpReceiver.prototype.getStats = function() {
         const receiver = this;
-        return this._pc.getStats().then(result => filterStats(result, receiver.track, false));
+        return this._pc.getStats().then(result =>
+          filterStats(result, receiver.track, false));
       };
     }
 
@@ -395,7 +399,8 @@ module.exports = {
     window.RTCPeerConnection.prototype.getLocalStreams = function() {
       const pc = this;
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
-      return Object.keys(this._shimmedLocalStreams).map(streamId => pc._shimmedLocalStreams[streamId][0]);
+      return Object.keys(this._shimmedLocalStreams).map(streamId =>
+        pc._shimmedLocalStreams[streamId][0]);
     };
 
     const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
@@ -428,7 +433,8 @@ module.exports = {
       });
       const existingSenders = pc.getSenders();
       origAddStream.apply(this, arguments);
-      const newSenders = pc.getSenders().filter(newSender => existingSenders.indexOf(newSender) === -1);
+      const newSenders = pc.getSenders().filter(newSender =>
+        existingSenders.indexOf(newSender) === -1);
       this._shimmedLocalStreams[stream.id] = [stream].concat(newSenders);
     };
 
@@ -663,7 +669,8 @@ module.exports = {
       pc._streams = pc._streams || {};
       let stream;
       Object.keys(pc._streams).forEach(streamid => {
-        const hasTrack = pc._streams[streamid].getTracks().find(track => sender.track === track);
+        const hasTrack = pc._streams[streamid].getTracks().find(track =>
+          sender.track === track);
         if (hasTrack) {
           stream = pc._streams[streamid];
         }

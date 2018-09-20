@@ -144,7 +144,8 @@ module.exports = {
         maxMessageSize = 65535;
       }
 
-      const match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
+      const match = SDPUtils.matchPrefix(description.sdp,
+        'a=max-message-size:');
       if (match.length > 0) {
         maxMessageSize = parseInt(match[0].substr(19), 10);
       } else if (browserDetails.browser === 'firefox' &&
