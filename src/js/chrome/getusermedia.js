@@ -20,7 +20,7 @@ module.exports = function(window) {
       return c;
     }
     const cc = {};
-    Object.keys(c).forEach(function(key) {
+    Object.keys(c).forEach(key => {
       if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
         return;
       }
@@ -52,7 +52,7 @@ module.exports = function(window) {
         cc.mandatory = cc.mandatory || {};
         cc.mandatory[oldname_('', key)] = r.exact;
       } else {
-        ['min', 'max'].forEach(function(mix) {
+        ['min', 'max'].forEach(mix => {
           if (r[mix] !== undefined) {
             cc.mandatory = cc.mandatory || {};
             cc.mandatory[oldname_(mix, key)] = r[mix];
@@ -104,15 +104,9 @@ module.exports = function(window) {
         if (matches) {
           // Look for matches in label, or use last cam for back (typical).
           return navigator.mediaDevices.enumerateDevices()
-          .then(function(devices) {
-            devices = devices.filter(function(d) {
-              return d.kind === 'videoinput';
-            });
-            let dev = devices.find(function(d) {
-              return matches.some(function(match) {
-                return d.label.toLowerCase().indexOf(match) !== -1;
-              });
-            });
+          .then(devices => {
+            devices = devices.filter(d => d.kind === 'videoinput');
+            let dev = devices.find(d => matches.some(match => d.label.toLowerCase().indexOf(match) !== -1));
             if (!dev && devices.length && matches.indexOf('back') !== -1) {
               dev = devices[devices.length - 1]; // more likely the back cam
             }
@@ -159,8 +153,8 @@ module.exports = function(window) {
   };
 
   const getUserMedia_ = function(constraints, onSuccess, onError) {
-    shimConstraints_(constraints, function(c) {
-      navigator.webkitGetUserMedia(c, onSuccess, function(e) {
+    shimConstraints_(constraints, c => {
+      navigator.webkitGetUserMedia(c, onSuccess, e => {
         if (onError) {
           onError(shimError_(e));
         }
@@ -172,7 +166,7 @@ module.exports = function(window) {
 
   // Returns the result of getUserMedia as a Promise.
   const getUserMediaPromise_ = function(constraints) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       navigator.getUserMedia(constraints, resolve, reject);
     });
   };
@@ -181,15 +175,15 @@ module.exports = function(window) {
     navigator.mediaDevices = {
       getUserMedia: getUserMediaPromise_,
       enumerateDevices() {
-        return new Promise(function(resolve) {
+        return new Promise(resolve => {
           const kinds = {audio: 'audioinput', video: 'videoinput'};
-          return window.MediaStreamTrack.getSources(function(devices) {
-            resolve(devices.map(function(device) {
-              return {label: device.label,
-                kind: kinds[device.kind],
-                deviceId: device.id,
-                groupId: ''};
-            }));
+          return window.MediaStreamTrack.getSources(devices => {
+            resolve(devices.map(device => ({
+              label: device.label,
+              kind: kinds[device.kind],
+              deviceId: device.id,
+              groupId: ''
+            })));
           });
         });
       },
@@ -215,20 +209,16 @@ module.exports = function(window) {
     const origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(cs) {
-      return shimConstraints_(cs, function(c) {
-        return origGetUserMedia(c).then(function(stream) {
-          if (c.audio && !stream.getAudioTracks().length ||
-              c.video && !stream.getVideoTracks().length) {
-            stream.getTracks().forEach(function(track) {
-              track.stop();
-            });
-            throw new DOMException('', 'NotFoundError');
-          }
-          return stream;
-        }, function(e) {
-          return Promise.reject(shimError_(e));
-        });
-      });
+      return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
+        if (c.audio && !stream.getAudioTracks().length ||
+            c.video && !stream.getVideoTracks().length) {
+          stream.getTracks().forEach(track => {
+            track.stop();
+          });
+          throw new DOMException('', 'NotFoundError');
+        }
+        return stream;
+      }, e => Promise.reject(shimError_(e))));
     };
   }
 

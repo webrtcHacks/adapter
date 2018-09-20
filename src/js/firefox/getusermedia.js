@@ -43,7 +43,7 @@ module.exports = function(window) {
         return c;
       }
       var require = [];
-      Object.keys(c).forEach(function(key) {
+      Object.keys(c).forEach(key => {
         if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
           return;
         }
@@ -92,14 +92,14 @@ module.exports = function(window) {
       }
       logging('ff37: ' + JSON.stringify(constraints));
     }
-    return navigator.mozGetUserMedia(constraints, onSuccess, function(e) {
+    return navigator.mozGetUserMedia(constraints, onSuccess, e => {
       onError(shimError_(e));
     });
   };
 
   // Returns the result of getUserMedia as a Promise.
   const getUserMediaPromise_ = function(constraints) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       getUserMedia_(constraints, resolve, reject);
     });
   };
@@ -113,7 +113,7 @@ module.exports = function(window) {
   }
   navigator.mediaDevices.enumerateDevices =
       navigator.mediaDevices.enumerateDevices || function() {
-        return new Promise(function(resolve) {
+        return new Promise(resolve => {
           const infos = [
             {kind: 'audioinput', deviceId: 'default', label: '', groupId: ''},
             {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''}
@@ -127,7 +127,7 @@ module.exports = function(window) {
     const orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
     navigator.mediaDevices.enumerateDevices = function() {
-      return orgEnumerateDevices().then(undefined, function(e) {
+      return orgEnumerateDevices().then(undefined, e => {
         if (e.name === 'NotFoundError') {
           return [];
         }
@@ -139,20 +139,18 @@ module.exports = function(window) {
     const origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
-      return origGetUserMedia(c).then(function(stream) {
+      return origGetUserMedia(c).then(stream => {
         // Work around https://bugzil.la/802326
         if (c.audio && !stream.getAudioTracks().length ||
             c.video && !stream.getVideoTracks().length) {
-          stream.getTracks().forEach(function(track) {
+          stream.getTracks().forEach(track => {
             track.stop();
           });
           throw new DOMException('The object can not be found here.',
                                  'NotFoundError');
         }
         return stream;
-      }, function(e) {
-        return Promise.reject(shimError_(e));
-      });
+      }, e => Promise.reject(shimError_(e)));
     };
   }
   if (!(browserDetails.version > 55 &&

@@ -17,11 +17,11 @@ function walkStats(stats, base, resultSet) {
     return;
   }
   resultSet.set(base.id, base);
-  Object.keys(base).forEach(function(name) {
+  Object.keys(base).forEach(name => {
     if (name.endsWith('Id')) {
       walkStats(stats, stats.get(base[name]), resultSet);
     } else if (name.endsWith('Ids')) {
-      base[name].forEach(function(id) {
+      base[name].forEach(id => {
         walkStats(stats, stats.get(id), resultSet);
       });
     }
@@ -36,14 +36,14 @@ function filterStats(result, track, outbound) {
     return filteredResult;
   }
   const trackStats = [];
-  result.forEach(function(value) {
+  result.forEach(value => {
     if (value.type === 'track' &&
         value.trackIdentifier === track.id) {
       trackStats.push(value);
     }
   });
-  trackStats.forEach(function(trackStat) {
-    result.forEach(function(stats) {
+  trackStats.forEach(trackStat => {
+    result.forEach(stats => {
       if (stats.type === streamStatsType && stats.trackId === trackStat.id) {
         walkStats(result, stats, filteredResult);
       }
@@ -82,12 +82,10 @@ module.exports = {
           pc._ontrackpoly = function(e) {
             // onaddstream does not fire when a track is added to an existing
             // stream. But stream.onaddtrack is implemented so we use that.
-            e.stream.addEventListener('addtrack', function(te) {
+            e.stream.addEventListener('addtrack', te => {
               let receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = pc.getReceivers().find(function(r) {
-                  return r.track && r.track.id === te.track.id;
-                });
+                receiver = pc.getReceivers().find(r => r.track && r.track.id === te.track.id);
               } else {
                 receiver = {track: te.track};
               }
@@ -99,12 +97,10 @@ module.exports = {
               event.streams = [e.stream];
               pc.dispatchEvent(event);
             });
-            e.stream.getTracks().forEach(function(track) {
+            e.stream.getTracks().forEach(track => {
               let receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
-                receiver = pc.getReceivers().find(function(r) {
-                  return r.track && r.track.id === track.id;
-                });
+                receiver = pc.getReceivers().find(r => r.track && r.track.id === track.id);
               } else {
                 receiver = {track};
               }
@@ -124,7 +120,7 @@ module.exports = {
       // even if RTCRtpTransceiver is in window, it is only used and
       // emitted in unified-plan. Unfortunately this means we need
       // to unconditionally wrap the event.
-      utils.wrapPeerConnectionEvent(window, 'track', function(e) {
+      utils.wrapPeerConnectionEvent(window, 'track', e => {
         if (!e.transceiver) {
           Object.defineProperty(e, 'transceiver',
             {value: {receiver: e.receiver}});
@@ -188,7 +184,7 @@ module.exports = {
         const pc = this;
         pc._senders = pc._senders || [];
         origAddStream.apply(pc, [stream]);
-        stream.getTracks().forEach(function(track) {
+        stream.getTracks().forEach(track => {
           pc._senders.push(shimSenderWithDtmf(pc, track));
         });
       };
@@ -199,10 +195,8 @@ module.exports = {
         pc._senders = pc._senders || [];
         origRemoveStream.apply(pc, [stream]);
 
-        stream.getTracks().forEach(function(track) {
-          const sender = pc._senders.find(function(s) {
-            return s.track === track;
-          });
+        stream.getTracks().forEach(track => {
+          const sender = pc._senders.find(s => s.track === track);
           if (sender) {
             pc._senders.splice(pc._senders.indexOf(sender), 1); // remove sender
           }
@@ -217,7 +211,7 @@ module.exports = {
       window.RTCPeerConnection.prototype.getSenders = function() {
         const pc = this;
         const senders = origGetSenders.apply(pc, []);
-        senders.forEach(function(sender) {
+        senders.forEach(sender => {
           sender._pc = pc;
         });
         return senders;
@@ -251,7 +245,7 @@ module.exports = {
         window.RTCPeerConnection.prototype.getSenders = function() {
           const pc = this;
           const senders = origGetSenders.apply(pc, []);
-          senders.forEach(function(sender) {
+          senders.forEach(sender => {
             sender._pc = pc;
           });
           return senders;
@@ -268,13 +262,11 @@ module.exports = {
       }
       window.RTCRtpSender.prototype.getStats = function() {
         const sender = this;
-        return this._pc.getStats().then(function(result) {
-          /* Note: this will include stats of all senders that
-           *   send a track with the same id as sender.track as
-           *   it is not possible to identify the RTCRtpSender.
-           */
-          return filterStats(result, sender.track, true);
-        });
+        return this._pc.getStats().then(result => /* Note: this will include stats of all senders that
+         *   send a track with the same id as sender.track as
+         *   it is not possible to identify the RTCRtpSender.
+         */
+        filterStats(result, sender.track, true));
       };
     }
 
@@ -285,21 +277,19 @@ module.exports = {
         window.RTCPeerConnection.prototype.getReceivers = function() {
           const pc = this;
           const receivers = origGetReceivers.apply(pc, []);
-          receivers.forEach(function(receiver) {
+          receivers.forEach(receiver => {
             receiver._pc = pc;
           });
           return receivers;
         };
       }
-      utils.wrapPeerConnectionEvent(window, 'track', function(e) {
+      utils.wrapPeerConnectionEvent(window, 'track', e => {
         e.receiver._pc = e.srcElement;
         return e;
       });
       window.RTCRtpReceiver.prototype.getStats = function() {
         const receiver = this;
-        return this._pc.getStats().then(function(result) {
-          return filterStats(result, receiver.track, false);
-        });
+        return this._pc.getStats().then(result => filterStats(result, receiver.track, false));
       };
     }
 
@@ -318,7 +308,7 @@ module.exports = {
         let sender;
         let receiver;
         let err;
-        pc.getSenders().forEach(function(s) {
+        pc.getSenders().forEach(s => {
           if (s.track === track) {
             if (sender) {
               err = true;
@@ -327,7 +317,7 @@ module.exports = {
             }
           }
         });
-        pc.getReceivers().forEach(function(r) {
+        pc.getReceivers().forEach(r => {
           if (r.track === track) {
             if (receiver) {
               err = true;
@@ -380,13 +370,13 @@ module.exports = {
             this.src = URL.createObjectURL(stream);
             // We need to recreate the blob url when a track is added or
             // removed. Doing it manually since we want to avoid a recursion.
-            stream.addEventListener('addtrack', function() {
+            stream.addEventListener('addtrack', () => {
               if (self.src) {
                 URL.revokeObjectURL(self.src);
               }
               self.src = URL.createObjectURL(stream);
             });
-            stream.addEventListener('removetrack', function() {
+            stream.addEventListener('removetrack', () => {
               if (self.src) {
                 URL.revokeObjectURL(self.src);
               }
@@ -405,9 +395,7 @@ module.exports = {
     window.RTCPeerConnection.prototype.getLocalStreams = function() {
       const pc = this;
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
-      return Object.keys(this._shimmedLocalStreams).map(function(streamId) {
-        return pc._shimmedLocalStreams[streamId][0];
-      });
+      return Object.keys(this._shimmedLocalStreams).map(streamId => pc._shimmedLocalStreams[streamId][0]);
     };
 
     const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
@@ -431,10 +419,8 @@ module.exports = {
       const pc = this;
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
 
-      stream.getTracks().forEach(function(track) {
-        const alreadyExists = pc.getSenders().find(function(s) {
-          return s.track === track;
-        });
+      stream.getTracks().forEach(track => {
+        const alreadyExists = pc.getSenders().find(s => s.track === track);
         if (alreadyExists) {
           throw new DOMException('Track already exists.',
               'InvalidAccessError');
@@ -442,9 +428,7 @@ module.exports = {
       });
       const existingSenders = pc.getSenders();
       origAddStream.apply(this, arguments);
-      const newSenders = pc.getSenders().filter(function(newSender) {
-        return existingSenders.indexOf(newSender) === -1;
-      });
+      const newSenders = pc.getSenders().filter(newSender => existingSenders.indexOf(newSender) === -1);
       this._shimmedLocalStreams[stream.id] = [stream].concat(newSenders);
     };
 
@@ -460,7 +444,7 @@ module.exports = {
       const pc = this;
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
       if (sender) {
-        Object.keys(this._shimmedLocalStreams).forEach(function(streamId) {
+        Object.keys(this._shimmedLocalStreams).forEach(streamId => {
           const idx = pc._shimmedLocalStreams[streamId].indexOf(sender);
           if (idx !== -1) {
             pc._shimmedLocalStreams[streamId].splice(idx, 1);
@@ -490,9 +474,7 @@ module.exports = {
       const pc = this;
       const nativeStreams = origGetLocalStreams.apply(this);
       pc._reverseStreams = pc._reverseStreams || {};
-      return nativeStreams.map(function(stream) {
-        return pc._reverseStreams[stream.id];
-      });
+      return nativeStreams.map(stream => pc._reverseStreams[stream.id]);
     };
 
     const origAddStream = window.RTCPeerConnection.prototype.addStream;
@@ -501,10 +483,8 @@ module.exports = {
       pc._streams = pc._streams || {};
       pc._reverseStreams = pc._reverseStreams || {};
 
-      stream.getTracks().forEach(function(track) {
-        const alreadyExists = pc.getSenders().find(function(s) {
-          return s.track === track;
-        });
+      stream.getTracks().forEach(track => {
+        const alreadyExists = pc.getSenders().find(s => s.track === track);
         if (alreadyExists) {
           throw new DOMException('Track already exists.',
               'InvalidAccessError');
@@ -542,9 +522,7 @@ module.exports = {
       }
       const streams = [].slice.call(arguments, 1);
       if (streams.length !== 1 ||
-          !streams[0].getTracks().find(function(t) {
-            return t === track;
-          })) {
+          !streams[0].getTracks().find(t => t === track)) {
         // this is not fully correct but all we can manage without
         // [[associated MediaStreams]] internal slot.
         throw new DOMException(
@@ -553,9 +531,7 @@ module.exports = {
           'NotSupportedError');
       }
 
-      const alreadyExists = pc.getSenders().find(function(s) {
-        return s.track === track;
-      });
+      const alreadyExists = pc.getSenders().find(s => s.track === track);
       if (alreadyExists) {
         throw new DOMException('Track already exists.',
             'InvalidAccessError');
@@ -572,7 +548,7 @@ module.exports = {
         oldStream.addTrack(track);
 
         // Trigger ONN async.
-        Promise.resolve().then(function() {
+        Promise.resolve().then(() => {
           pc.dispatchEvent(new Event('negotiationneeded'));
         });
       } else {
@@ -581,16 +557,14 @@ module.exports = {
         pc._reverseStreams[newStream.id] = stream;
         pc.addStream(newStream);
       }
-      return pc.getSenders().find(function(s) {
-        return s.track === track;
-      });
+      return pc.getSenders().find(s => s.track === track);
     };
 
     // replace the internal stream id with the external one and
     // vice versa.
     function replaceInternalStreamId(pc, description) {
       let sdp = description.sdp;
-      Object.keys(pc._reverseStreams || []).forEach(function(internalId) {
+      Object.keys(pc._reverseStreams || []).forEach(internalId => {
         const externalStream = pc._reverseStreams[internalId];
         const internalStream = pc._streams[externalStream.id];
         sdp = sdp.replace(new RegExp(internalStream.id, 'g'),
@@ -603,7 +577,7 @@ module.exports = {
     }
     function replaceExternalStreamId(pc, description) {
       let sdp = description.sdp;
-      Object.keys(pc._reverseStreams || []).forEach(function(internalId) {
+      Object.keys(pc._reverseStreams || []).forEach(internalId => {
         const externalStream = pc._reverseStreams[internalId];
         const internalStream = pc._streams[externalStream.id];
         sdp = sdp.replace(new RegExp(externalStream.id, 'g'),
@@ -635,9 +609,7 @@ module.exports = {
           ]);
         }
         return nativeMethod.apply(pc, arguments)
-        .then(function(description) {
-          return replaceInternalStreamId(pc, description);
-        });
+        .then(description => replaceInternalStreamId(pc, description));
       };
     });
 
@@ -690,10 +662,8 @@ module.exports = {
       // Search for the native stream the senders track belongs to.
       pc._streams = pc._streams || {};
       let stream;
-      Object.keys(pc._streams).forEach(function(streamid) {
-        const hasTrack = pc._streams[streamid].getTracks().find(function(track) {
-          return sender.track === track;
-        });
+      Object.keys(pc._streams).forEach(streamid => {
+        const hasTrack = pc._streams[streamid].getTracks().find(track => sender.track === track);
         if (hasTrack) {
           stream = pc._streams[streamid];
         }
@@ -763,7 +733,7 @@ module.exports = {
       const fixChromeStats_ = function(response) {
         const standardReport = {};
         const reports = response.result();
-        reports.forEach(function(report) {
+        reports.forEach(report => {
           const standardStats = {
             id: report.id,
             timestamp: report.timestamp,
@@ -772,7 +742,7 @@ module.exports = {
               remotecandidate: 'remote-candidate'
             }[report.type] || report.type
           };
-          report.names().forEach(function(name) {
+          report.names().forEach(name => {
             standardStats[name] = report.stat(name);
           });
           standardReport[standardStats.id] = standardStats;
@@ -783,9 +753,7 @@ module.exports = {
 
       // shim getStats with maplike support
       const makeMapStats = function(stats) {
-        return new Map(Object.keys(stats).map(function(key) {
-          return [key, stats[key]];
-        }));
+        return new Map(Object.keys(stats).map(key => [key, stats[key]]));
       };
 
       if (arguments.length >= 2) {
@@ -798,7 +766,7 @@ module.exports = {
       }
 
       // promise-support
-      return new Promise(function(resolve, reject) {
+      return new Promise((resolve, reject) => {
         origGetStats.apply(pc, [
           function(response) {
             resolve(makeMapStats(fixChromeStats_(response)));
@@ -814,16 +782,16 @@ module.exports = {
             window.RTCPeerConnection.prototype[method] = function() {
               const args = arguments;
               const pc = this;
-              const promise = new Promise(function(resolve, reject) {
+              const promise = new Promise((resolve, reject) => {
                 nativeMethod.apply(pc, [args[0], resolve, reject]);
               });
               if (args.length < 2) {
                 return promise;
               }
-              return promise.then(function() {
+              return promise.then(() => {
                 args[1].apply(null, []);
               },
-              function(err) {
+              err => {
                 if (args.length >= 3) {
                   args[2].apply(null, [err]);
                 }
@@ -842,7 +810,7 @@ module.exports = {
           if (arguments.length < 1 || (arguments.length === 1 &&
               typeof arguments[0] === 'object')) {
             const opts = arguments.length === 1 ? arguments[0] : undefined;
-            return new Promise(function(resolve, reject) {
+            return new Promise((resolve, reject) => {
               nativeMethod.apply(pc, [resolve, reject, opts]);
             });
           }
@@ -878,7 +846,7 @@ module.exports = {
   },
 
   fixNegotiationNeeded(window) {
-    utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function(e) {
+    utils.wrapPeerConnectionEvent(window, 'negotiationneeded', e => {
       const pc = e.target;
       if (pc.signalingState !== 'stable') {
         return;
@@ -900,7 +868,7 @@ module.exports = {
     }
     navigator.getDisplayMedia = function(constraints) {
       return getSourceId(constraints)
-        .then(function(sourceId) {
+        .then(sourceId => {
           constraints.video = {
             mandatory: {
               chromeMediaSource: 'desktop',

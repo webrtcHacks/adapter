@@ -53,7 +53,7 @@ module.exports = {
 
     // Hook up the augmented candidate in onicecandidate and
     // addEventListener('icecandidate', ...)
-    utils.wrapPeerConnectionEvent(window, 'icecandidate', function(e) {
+    utils.wrapPeerConnectionEvent(window, 'icecandidate', e => {
       if (e.candidate) {
         Object.defineProperty(e, 'candidate', {
           value: new window.RTCIceCandidate(e.candidate),
@@ -81,7 +81,7 @@ module.exports = {
     const sctpInDescription = function(description) {
       const sections = SDPUtils.splitSections(description.sdp);
       sections.shift();
-      return sections.some(function(mediaSection) {
+      return sections.some(mediaSection => {
         const mLine = SDPUtils.parseMLine(mediaSection);
         return mLine && mLine.kind === 'application'
             && mLine.protocol.indexOf('SCTP') !== -1;
@@ -229,7 +229,7 @@ module.exports = {
       wrapDcSend(dataChannel, pc);
       return dataChannel;
     };
-    utils.wrapPeerConnectionEvent(window, 'datachannel', function(e) {
+    utils.wrapPeerConnectionEvent(window, 'datachannel', e => {
       wrapDcSend(e.channel, e.target);
       return e;
     });

@@ -17,7 +17,7 @@ const utils = require('../utils');
 module.exports = function(iceServers, edgeVersion) {
   let hasTurn = false;
   iceServers = JSON.parse(JSON.stringify(iceServers));
-  return iceServers.filter(function(server) {
+  return iceServers.filter(server => {
     if (server && (server.urls || server.url)) {
       var urls = server.urls || server.url;
       if (server.url && !server.urls) {
@@ -27,7 +27,7 @@ module.exports = function(iceServers, edgeVersion) {
       if (isString) {
         urls = [urls];
       }
-      urls = urls.filter(function(url) {
+      urls = urls.filter(url => {
         const validTurn = url.indexOf('turn:') === 0 &&
             url.indexOf('transport=udp') !== -1 &&
             url.indexOf('turn:[') === -1 &&

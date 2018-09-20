@@ -25,14 +25,14 @@ module.exports = {
       window.RTCPeerConnection.prototype.getStreamById = function(id) {
         let result = null;
         if (this._localStreams) {
-          this._localStreams.forEach(function(stream) {
+          this._localStreams.forEach(stream => {
             if (stream.id === id) {
               result = stream;
             }
           });
         }
         if (this._remoteStreams) {
-          this._remoteStreams.forEach(function(stream) {
+          this._remoteStreams.forEach(stream => {
             if (stream.id === id) {
               result = stream;
             }
@@ -51,7 +51,7 @@ module.exports = {
           this._localStreams.push(stream);
         }
         const pc = this;
-        stream.getTracks().forEach(function(track) {
+        stream.getTracks().forEach(track => {
           _addTrack.call(pc, track, stream);
         });
       };
@@ -79,7 +79,7 @@ module.exports = {
         this._localStreams.splice(index, 1);
         const pc = this;
         const tracks = stream.getTracks();
-        this.getSenders().forEach(function(sender) {
+        this.getSenders().forEach(sender => {
           if (tracks.indexOf(sender.track) !== -1) {
             pc.removeTrack(sender);
           }
@@ -114,7 +114,7 @@ module.exports = {
         const pc = this;
         if (!this._onaddstreampoly) {
           this.addEventListener('track', this._onaddstreampoly = function(e) {
-            e.streams.forEach(function(stream) {
+            e.streams.forEach(stream => {
               if (!pc._remoteStreams) {
                 pc._remoteStreams = [];
               }
@@ -265,10 +265,7 @@ module.exports = {
           // support bit values
           offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
         }
-        const audioTransceiver = pc.getTransceivers().find(function(transceiver) {
-          return transceiver.sender.track &&
-              transceiver.sender.track.kind === 'audio';
-        });
+        const audioTransceiver = pc.getTransceivers().find(transceiver => transceiver.sender.track && transceiver.sender.track.kind === 'audio');
         if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
           if (audioTransceiver.direction === 'sendrecv') {
             if (audioTransceiver.setDirection) {
@@ -293,10 +290,7 @@ module.exports = {
           // support bit values
           offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
         }
-        const videoTransceiver = pc.getTransceivers().find(function(transceiver) {
-          return transceiver.sender.track &&
-              transceiver.sender.track.kind === 'video';
-        });
+        const videoTransceiver = pc.getTransceivers().find(transceiver => transceiver.sender.track && transceiver.sender.track.kind === 'video');
         if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
           if (videoTransceiver.direction === 'sendrecv') {
             videoTransceiver.setDirection('sendonly');

@@ -27,8 +27,6 @@ module.exports = function(window) {
   const origGetUserMedia = navigator.mediaDevices.getUserMedia.
       bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia = function(c) {
-    return origGetUserMedia(c).catch(function(e) {
-      return Promise.reject(shimError_(e));
-    });
+    return origGetUserMedia(c).catch(e => Promise.reject(shimError_(e)));
   };
 };
