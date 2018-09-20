@@ -9,27 +9,27 @@
 
 'use strict';
 
-var utils = require('./utils');
+const utils = require('./utils');
 // Shimming starts here.
 module.exports = function(dependencies, opts) {
-  var window = dependencies && dependencies.window;
+  const window = dependencies && dependencies.window;
 
-  var options = {
+  const options = {
     shimChrome: true,
     shimFirefox: true,
     shimEdge: true,
     shimSafari: true,
   };
 
-  for (var key in opts) {
+  for (const key in opts) {
     if (hasOwnProperty.call(opts, key)) {
       options[key] = opts[key];
     }
   }
 
   // Utils.
-  var logging = utils.log;
-  var browserDetails = utils.detectBrowser(window);
+  const logging = utils.log;
+  const browserDetails = utils.detectBrowser(window);
 
   // Uncomment the line below if you want logging to occur, including logging
   // for the switch statement below. Can also be turned on in the browser via
@@ -38,14 +38,14 @@ module.exports = function(dependencies, opts) {
   // require('./utils').disableLog(false);
 
   // Browser shims.
-  var chromeShim = require('./chrome/chrome_shim') || null;
-  var edgeShim = require('./edge/edge_shim') || null;
-  var firefoxShim = require('./firefox/firefox_shim') || null;
-  var safariShim = require('./safari/safari_shim') || null;
-  var commonShim = require('./common_shim') || null;
+  const chromeShim = require('./chrome/chrome_shim') || null;
+  const edgeShim = require('./edge/edge_shim') || null;
+  const firefoxShim = require('./firefox/firefox_shim') || null;
+  const safariShim = require('./safari/safari_shim') || null;
+  const commonShim = require('./common_shim') || null;
 
   // Export to the adapter global object visible in the browser.
-  var adapter = {
+  const adapter = {
     browserDetails,
     commonShim,
     extractVersion: utils.extractVersion,

@@ -8,8 +8,8 @@
  /* eslint-env node */
 'use strict';
 
-var logDisabled_ = true;
-var deprecationWarnings_ = true;
+let logDisabled_ = true;
+let deprecationWarnings_ = true;
 
 /**
  * Extract browser version out of the provided user agent string.
@@ -20,7 +20,7 @@ var deprecationWarnings_ = true;
  * @return {!number} browser version.
  */
 function extractVersion(uastring, expr, pos) {
-  var match = uastring.match(expr);
+  const match = uastring.match(expr);
   return match && match.length >= pos && parseInt(match[pos], 10);
 }
 
@@ -31,14 +31,14 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
   }
-  var proto = window.RTCPeerConnection.prototype;
-  var nativeAddEventListener = proto.addEventListener;
+  const proto = window.RTCPeerConnection.prototype;
+  const nativeAddEventListener = proto.addEventListener;
   proto.addEventListener = function(nativeEventName, cb) {
     if (nativeEventName !== eventNameToWrap) {
       return nativeAddEventListener.apply(this, arguments);
     }
-    var wrappedCallback = function(e) {
-      var modifiedEvent = wrapper(e);
+    const wrappedCallback = function(e) {
+      const modifiedEvent = wrapper(e);
       if (modifiedEvent) {
         cb(modifiedEvent);
       }
@@ -49,13 +49,13 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       wrappedCallback]);
   };
 
-  var nativeRemoveEventListener = proto.removeEventListener;
+  const nativeRemoveEventListener = proto.removeEventListener;
   proto.removeEventListener = function(nativeEventName, cb) {
     if (nativeEventName !== eventNameToWrap || !this._eventMap
         || !this._eventMap[cb]) {
       return nativeRemoveEventListener.apply(this, arguments);
     }
-    var unwrappedCb = this._eventMap[cb];
+    const unwrappedCb = this._eventMap[cb];
     delete this._eventMap[cb];
     return nativeRemoveEventListener.apply(this, [nativeEventName,
       unwrappedCb]);
@@ -137,10 +137,10 @@ module.exports = {
    *     properties.
    */
   detectBrowser(window) {
-    var navigator = window && window.navigator;
+    const navigator = window && window.navigator;
 
     // Returned result object.
-    var result = {};
+    const result = {};
     result.browser = null;
     result.version = null;
 

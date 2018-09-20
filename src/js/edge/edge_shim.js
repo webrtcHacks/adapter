@@ -8,14 +8,14 @@
  /* eslint-env node */
 'use strict';
 
-var utils = require('../utils');
-var filterIceServers = require('./filtericeservers');
-var shimRTCPeerConnection = require('rtcpeerconnection-shim');
+const utils = require('../utils');
+const filterIceServers = require('./filtericeservers');
+const shimRTCPeerConnection = require('rtcpeerconnection-shim');
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
   shimPeerConnection(window) {
-    var browserDetails = utils.detectBrowser(window);
+    const browserDetails = utils.detectBrowser(window);
 
     if (window.RTCIceGatherer) {
       if (!window.RTCIceCandidate) {
@@ -32,12 +32,12 @@ module.exports = {
       // when a tracks enabled property was changed. Workaround for a bug in
       // addStream, see below. No longer required in 15025+
       if (browserDetails.version < 15025) {
-        var origMSTEnabled = Object.getOwnPropertyDescriptor(
+        const origMSTEnabled = Object.getOwnPropertyDescriptor(
             window.MediaStreamTrack.prototype, 'enabled');
         Object.defineProperty(window.MediaStreamTrack.prototype, 'enabled', {
           set(value) {
             origMSTEnabled.set.call(this, value);
-            var ev = new Event('enabled');
+            const ev = new Event('enabled');
             ev.enabled = value;
             this.dispatchEvent(ev);
           }
@@ -67,7 +67,7 @@ module.exports = {
       window.RTCDTMFSender = window.RTCDtmfSender;
     }
 
-    var RTCPeerConnectionShim = shimRTCPeerConnection(window,
+    const RTCPeerConnectionShim = shimRTCPeerConnection(window,
         browserDetails.version);
     window.RTCPeerConnection = function(config) {
       if (config && config.iceServers) {

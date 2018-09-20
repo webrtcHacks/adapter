@@ -8,7 +8,7 @@
  /* eslint-env node */
 'use strict';
 
-var utils = require('../utils');
+const utils = require('../utils');
 
 module.exports = {
   shimGetUserMedia: require('./getusermedia'),
@@ -27,7 +27,7 @@ module.exports = {
           this.addEventListener('track', this._ontrack = f);
           this.addEventListener('addstream', this._ontrackpoly = function(e) {
             e.stream.getTracks().forEach(function(track) {
-              var event = new Event('track');
+              const event = new Event('track');
               event.track = track;
               event.receiver = {track};
               event.transceiver = {receiver: event.receiver};
@@ -70,7 +70,7 @@ module.exports = {
   },
 
   shimPeerConnection(window) {
-    var browserDetails = utils.detectBrowser(window);
+    const browserDetails = utils.detectBrowser(window);
 
     if (typeof window !== 'object' || !(window.RTCPeerConnection ||
         window.mozRTCPeerConnection)) {
@@ -83,12 +83,12 @@ module.exports = {
           // .urls is not supported in FF < 38.
           // create RTCIceServers with a single url.
           if (pcConfig && pcConfig.iceServers) {
-            var newIceServers = [];
-            for (var i = 0; i < pcConfig.iceServers.length; i++) {
-              var server = pcConfig.iceServers[i];
+            const newIceServers = [];
+            for (let i = 0; i < pcConfig.iceServers.length; i++) {
+              const server = pcConfig.iceServers[i];
               if (server.hasOwnProperty('urls')) {
-                for (var j = 0; j < server.urls.length; j++) {
-                  var newServer = {
+                for (let j = 0; j < server.urls.length; j++) {
+                  const newServer = {
                     url: server.urls[j]
                   };
                   if (server.urls[j].indexOf('turn') === 0) {
@@ -125,7 +125,7 @@ module.exports = {
     // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
         .forEach(function(method) {
-          var nativeMethod = window.RTCPeerConnection.prototype[method];
+          const nativeMethod = window.RTCPeerConnection.prototype[method];
           window.RTCPeerConnection.prototype[method] = function() {
             arguments[0] = new ((method === 'addIceCandidate') ?
                 window.RTCIceCandidate :
@@ -135,7 +135,7 @@ module.exports = {
         });
 
     // support for addIceCandidate(null or undefined)
-    var nativeAddIceCandidate =
+    const nativeAddIceCandidate =
         window.RTCPeerConnection.prototype.addIceCandidate;
     window.RTCPeerConnection.prototype.addIceCandidate = function() {
       if (!arguments[0]) {
@@ -148,8 +148,8 @@ module.exports = {
     };
 
     // shim getStats with maplike support
-    var makeMapStats = function(stats) {
-      var map = new Map();
+    const makeMapStats = function(stats) {
+      const map = new Map();
       Object.keys(stats).forEach(function(key) {
         map.set(key, stats[key]);
         map[key] = stats[key];
@@ -157,7 +157,7 @@ module.exports = {
       return map;
     };
 
-    var modernStatsTypes = {
+    const modernStatsTypes = {
       inboundrtp: 'inbound-rtp',
       outboundrtp: 'outbound-rtp',
       candidatepair: 'candidate-pair',
@@ -165,7 +165,7 @@ module.exports = {
       remotecandidate: 'remote-candidate'
     };
 
-    var nativeGetStats = window.RTCPeerConnection.prototype.getStats;
+    const nativeGetStats = window.RTCPeerConnection.prototype.getStats;
     window.RTCPeerConnection.prototype.getStats = function(
       selector,
       onSucc,
@@ -209,11 +209,11 @@ module.exports = {
     if (window.RTCRtpSender && 'getStats' in window.RTCRtpSender.prototype) {
       return;
     }
-    var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
+    const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
     if (origGetSenders) {
       window.RTCPeerConnection.prototype.getSenders = function() {
-        var pc = this;
-        var senders = origGetSenders.apply(pc, []);
+        const pc = this;
+        const senders = origGetSenders.apply(pc, []);
         senders.forEach(function(sender) {
           sender._pc = pc;
         });
@@ -221,10 +221,10 @@ module.exports = {
       };
     }
 
-    var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
+    const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
     if (origAddTrack) {
       window.RTCPeerConnection.prototype.addTrack = function() {
-        var sender = origAddTrack.apply(this, arguments);
+        const sender = origAddTrack.apply(this, arguments);
         sender._pc = this;
         return sender;
       };
@@ -243,11 +243,11 @@ module.exports = {
     if (window.RTCRtpSender && 'getStats' in window.RTCRtpReceiver.prototype) {
       return;
     }
-    var origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
+    const origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
     if (origGetReceivers) {
       window.RTCPeerConnection.prototype.getReceivers = function() {
-        var pc = this;
-        var receivers = origGetReceivers.apply(pc, []);
+        const pc = this;
+        const receivers = origGetReceivers.apply(pc, []);
         receivers.forEach(function(receiver) {
           receiver._pc = pc;
         });
@@ -269,7 +269,7 @@ module.exports = {
       return;
     }
     window.RTCPeerConnection.prototype.removeStream = function(stream) {
-      var pc = this;
+      const pc = this;
       utils.deprecated('removeStream', 'removeTrack');
       this.getSenders().forEach(function(sender) {
         if (sender.track && stream.getTracks().indexOf(sender.track) !== -1) {
@@ -293,7 +293,7 @@ module.exports = {
     }
     navigator.getDisplayMedia = function(constraints) {
       if (!(constraints && constraints.video)) {
-        var err = new DOMException('getDisplayMedia without video ' +
+        const err = new DOMException('getDisplayMedia without video ' +
             'constraints is undefined');
         err.name = 'NotFoundError';
         // from https://heycam.github.io/webidl/#idl-DOMException-error-names

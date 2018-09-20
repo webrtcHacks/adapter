@@ -8,8 +8,8 @@
  /* eslint-env node */
 'use strict';
 
-var SDPUtils = require('sdp');
-var utils = require('./utils');
+const SDPUtils = require('sdp');
+const utils = require('./utils');
 
 module.exports = {
   shimRTCIceCandidate(window) {
@@ -20,7 +20,7 @@ module.exports = {
       return;
     }
 
-    var NativeRTCIceCandidate = window.RTCIceCandidate;
+    const NativeRTCIceCandidate = window.RTCIceCandidate;
     window.RTCIceCandidate = function(args) {
       // Remove the a= which shouldn't be part of the candidate string.
       if (typeof args === 'object' && args.candidate &&
@@ -31,9 +31,9 @@ module.exports = {
 
       if (args.candidate && args.candidate.length) {
         // Augment the native candidate with the parsed fields.
-        var nativeCandidate = new NativeRTCIceCandidate(args);
-        var parsedCandidate = SDPUtils.parseCandidate(args.candidate);
-        var augmentedCandidate = Object.assign(nativeCandidate,
+        const nativeCandidate = new NativeRTCIceCandidate(args);
+        const parsedCandidate = SDPUtils.parseCandidate(args.candidate);
+        const augmentedCandidate = Object.assign(nativeCandidate,
             parsedCandidate);
 
         // Add a serializer that does not serialize the extra attributes.
@@ -68,7 +68,7 @@ module.exports = {
     if (window.RTCSctpTransport || !window.RTCPeerConnection) {
       return;
     }
-    var browserDetails = utils.detectBrowser(window);
+    const browserDetails = utils.detectBrowser(window);
 
     if (!('sctp' in window.RTCPeerConnection.prototype)) {
       Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {
@@ -78,33 +78,33 @@ module.exports = {
       });
     }
 
-    var sctpInDescription = function(description) {
-      var sections = SDPUtils.splitSections(description.sdp);
+    const sctpInDescription = function(description) {
+      const sections = SDPUtils.splitSections(description.sdp);
       sections.shift();
       return sections.some(function(mediaSection) {
-        var mLine = SDPUtils.parseMLine(mediaSection);
+        const mLine = SDPUtils.parseMLine(mediaSection);
         return mLine && mLine.kind === 'application'
             && mLine.protocol.indexOf('SCTP') !== -1;
       });
     };
 
-    var getRemoteFirefoxVersion = function(description) {
+    const getRemoteFirefoxVersion = function(description) {
       // TODO: Is there a better solution for detecting Firefox?
-      var match = description.sdp.match(/mozilla...THIS_IS_SDPARTA-(\d+)/);
+      const match = description.sdp.match(/mozilla...THIS_IS_SDPARTA-(\d+)/);
       if (match === null || match.length < 2) {
         return -1;
       }
-      var version = parseInt(match[1], 10);
+      const version = parseInt(match[1], 10);
       // Test for NaN (yes, this is ugly)
       return version !== version ? -1 : version;
     };
 
-    var getCanSendMaxMessageSize = function(remoteIsFirefox) {
+    const getCanSendMaxMessageSize = function(remoteIsFirefox) {
       // Every implementation we know can send at least 64 KiB.
       // Note: Although Chrome is technically able to send up to 256 KiB, the
       //       data does not reach the other peer reliably.
       //       See: https://bugs.chromium.org/p/webrtc/issues/detail?id=8419
-      var canSendMaxMessageSize = 65536;
+      let canSendMaxMessageSize = 65536;
       if (browserDetails.browser === 'firefox') {
         if (browserDetails.version < 57) {
           if (remoteIsFirefox === -1) {
@@ -131,10 +131,10 @@ module.exports = {
       return canSendMaxMessageSize;
     };
 
-    var getMaxMessageSize = function(description, remoteIsFirefox) {
+    const getMaxMessageSize = function(description, remoteIsFirefox) {
       // Note: 65536 bytes is the default value from the SDP spec. Also,
       //       every implementation we know supports receiving 65536 bytes.
-      var maxMessageSize = 65536;
+      let maxMessageSize = 65536;
 
       // FF 57 has a slightly incorrect default remote max message size, so
       // we need to adjust it here to avoid a failure when sending.
@@ -144,7 +144,7 @@ module.exports = {
         maxMessageSize = 65535;
       }
 
-      var match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
+      const match = SDPUtils.matchPrefix(description.sdp, 'a=max-message-size:');
       if (match.length > 0) {
         maxMessageSize = parseInt(match[0].substr(19), 10);
       } else if (browserDetails.browser === 'firefox' &&
@@ -157,24 +157,24 @@ module.exports = {
       return maxMessageSize;
     };
 
-    var origSetRemoteDescription =
+    const origSetRemoteDescription =
         window.RTCPeerConnection.prototype.setRemoteDescription;
     window.RTCPeerConnection.prototype.setRemoteDescription = function() {
-      var pc = this;
+      const pc = this;
       pc._sctp = null;
 
       if (sctpInDescription(arguments[0])) {
         // Check if the remote is FF.
-        var isFirefox = getRemoteFirefoxVersion(arguments[0]);
+        const isFirefox = getRemoteFirefoxVersion(arguments[0]);
 
         // Get the maximum message size the local peer is capable of sending
-        var canSendMMS = getCanSendMaxMessageSize(isFirefox);
+        const canSendMMS = getCanSendMaxMessageSize(isFirefox);
 
         // Get the maximum message size of the remote peer.
-        var remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
+        const remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
 
         // Determine final maximum message size
-        var maxMessageSize;
+        let maxMessageSize;
         if (canSendMMS === 0 && remoteMMS === 0) {
           maxMessageSize = Number.POSITIVE_INFINITY;
         } else if (canSendMMS === 0 || remoteMMS === 0) {
@@ -185,7 +185,7 @@ module.exports = {
 
         // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
         // attribute.
-        var sctp = {};
+        const sctp = {};
         Object.defineProperty(sctp, 'maxMessageSize', {
           get() {
             return maxMessageSize;
@@ -209,10 +209,10 @@ module.exports = {
     //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
 
     function wrapDcSend(dc, pc) {
-      var origDataChannelSend = dc.send;
+      const origDataChannelSend = dc.send;
       dc.send = function() {
-        var data = arguments[0];
-        var length = data.length || data.size || data.byteLength;
+        const data = arguments[0];
+        const length = data.length || data.size || data.byteLength;
         if (dc.readyState === 'open' &&
             pc.sctp && length > pc.sctp.maxMessageSize) {
           throw new TypeError('Message too large (can send a maximum of ' +
@@ -221,11 +221,11 @@ module.exports = {
         return origDataChannelSend.apply(dc, arguments);
       };
     }
-    var origCreateDataChannel =
+    const origCreateDataChannel =
       window.RTCPeerConnection.prototype.createDataChannel;
     window.RTCPeerConnection.prototype.createDataChannel = function() {
-      var pc = this;
-      var dataChannel = origCreateDataChannel.apply(pc, arguments);
+      const pc = this;
+      const dataChannel = origCreateDataChannel.apply(pc, arguments);
       wrapDcSend(dataChannel, pc);
       return dataChannel;
     };

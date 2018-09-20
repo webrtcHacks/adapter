@@ -9,5 +9,5 @@
 
 'use strict';
 
-var adapterFactory = require('./adapter_factory.js');
+const adapterFactory = require('./adapter_factory.js');
 module.exports = adapterFactory({window: global.window});

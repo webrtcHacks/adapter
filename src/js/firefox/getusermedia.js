@@ -8,16 +8,16 @@
  /* eslint-env node */
 'use strict';
 
-var utils = require('../utils');
-var logging = utils.log;
+const utils = require('../utils');
+const logging = utils.log;
 
 // Expose public methods.
 module.exports = function(window) {
-  var browserDetails = utils.detectBrowser(window);
-  var navigator = window && window.navigator;
-  var MediaStreamTrack = window && window.MediaStreamTrack;
+  const browserDetails = utils.detectBrowser(window);
+  const navigator = window && window.navigator;
+  const MediaStreamTrack = window && window.MediaStreamTrack;
 
-  var shimError_ = function(e) {
+  const shimError_ = function(e) {
     return {
       name: {
         InternalError: 'NotReadableError',
@@ -37,8 +37,8 @@ module.exports = function(window) {
   };
 
   // getUserMedia constraints shim.
-  var getUserMedia_ = function(constraints, onSuccess, onError) {
-    var constraintsToFF37_ = function(c) {
+  const getUserMedia_ = function(constraints, onSuccess, onError) {
+    const constraintsToFF37_ = function(c) {
       if (typeof c !== 'object' || c.require) {
         return c;
       }
@@ -47,7 +47,7 @@ module.exports = function(window) {
         if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
           return;
         }
-        var r = c[key] = (typeof c[key] === 'object') ?
+        const r = c[key] = (typeof c[key] === 'object') ?
             c[key] : {ideal: c[key]};
         if (r.min !== undefined ||
             r.max !== undefined || r.exact !== undefined) {
@@ -63,7 +63,7 @@ module.exports = function(window) {
         }
         if (r.ideal !== undefined) {
           c.advanced = c.advanced || [];
-          var oc = {};
+          const oc = {};
           if (typeof r.ideal === 'number') {
             oc[key] = {min: r.ideal, max: r.ideal};
           } else {
@@ -98,7 +98,7 @@ module.exports = function(window) {
   };
 
   // Returns the result of getUserMedia as a Promise.
-  var getUserMediaPromise_ = function(constraints) {
+  const getUserMediaPromise_ = function(constraints) {
     return new Promise(function(resolve, reject) {
       getUserMedia_(constraints, resolve, reject);
     });
@@ -114,7 +114,7 @@ module.exports = function(window) {
   navigator.mediaDevices.enumerateDevices =
       navigator.mediaDevices.enumerateDevices || function() {
         return new Promise(function(resolve) {
-          var infos = [
+          const infos = [
             {kind: 'audioinput', deviceId: 'default', label: '', groupId: ''},
             {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''}
           ];
@@ -124,7 +124,7 @@ module.exports = function(window) {
 
   if (browserDetails.version < 41) {
     // Work around http://bugzil.la/1169665
-    var orgEnumerateDevices =
+    const orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
     navigator.mediaDevices.enumerateDevices = function() {
       return orgEnumerateDevices().then(undefined, function(e) {
@@ -136,7 +136,7 @@ module.exports = function(window) {
     };
   }
   if (browserDetails.version < 49) {
-    var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+    const origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
       return origGetUserMedia(c).then(function(stream) {
@@ -157,14 +157,14 @@ module.exports = function(window) {
   }
   if (!(browserDetails.version > 55 &&
       'autoGainControl' in navigator.mediaDevices.getSupportedConstraints())) {
-    var remap = function(obj, a, b) {
+    const remap = function(obj, a, b) {
       if (a in obj && !(b in obj)) {
         obj[b] = obj[a];
         delete obj[a];
       }
     };
 
-    var nativeGetUserMedia = navigator.mediaDevices.getUserMedia.
+    const nativeGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
       if (typeof c === 'object' && typeof c.audio === 'object') {
@@ -176,9 +176,9 @@ module.exports = function(window) {
     };
 
     if (MediaStreamTrack && MediaStreamTrack.prototype.getSettings) {
-      var nativeGetSettings = MediaStreamTrack.prototype.getSettings;
+      const nativeGetSettings = MediaStreamTrack.prototype.getSettings;
       MediaStreamTrack.prototype.getSettings = function() {
-        var obj = nativeGetSettings.apply(this, arguments);
+        const obj = nativeGetSettings.apply(this, arguments);
         remap(obj, 'mozAutoGainControl', 'autoGainControl');
         remap(obj, 'mozNoiseSuppression', 'noiseSuppression');
         return obj;
@@ -186,7 +186,7 @@ module.exports = function(window) {
     }
 
     if (MediaStreamTrack && MediaStreamTrack.prototype.applyConstraints) {
-      var nativeApplyConstraints = MediaStreamTrack.prototype.applyConstraints;
+      const nativeApplyConstraints = MediaStreamTrack.prototype.applyConstraints;
       MediaStreamTrack.prototype.applyConstraints = function(c) {
         if (this.kind === 'audio' && typeof c === 'object') {
           c = JSON.parse(JSON.stringify(c));

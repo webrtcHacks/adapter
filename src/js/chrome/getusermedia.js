@@ -7,28 +7,28 @@
  */
  /* eslint-env node */
 'use strict';
-var utils = require('../utils.js');
-var logging = utils.log;
+const utils = require('../utils.js');
+const logging = utils.log;
 
 // Expose public methods.
 module.exports = function(window) {
-  var browserDetails = utils.detectBrowser(window);
-  var navigator = window && window.navigator;
+  const browserDetails = utils.detectBrowser(window);
+  const navigator = window && window.navigator;
 
-  var constraintsToChrome_ = function(c) {
+  const constraintsToChrome_ = function(c) {
     if (typeof c !== 'object' || c.mandatory || c.optional) {
       return c;
     }
-    var cc = {};
+    const cc = {};
     Object.keys(c).forEach(function(key) {
       if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
         return;
       }
-      var r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
+      const r = (typeof c[key] === 'object') ? c[key] : {ideal: c[key]};
       if (r.exact !== undefined && typeof r.exact === 'number') {
         r.min = r.max = r.exact;
       }
-      var oldname_ = function(prefix, name) {
+      const oldname_ = function(prefix, name) {
         if (prefix) {
           return prefix + name.charAt(0).toUpperCase() + name.slice(1);
         }
@@ -36,7 +36,7 @@ module.exports = function(window) {
       };
       if (r.ideal !== undefined) {
         cc.optional = cc.optional || [];
-        var oc = {};
+        let oc = {};
         if (typeof r.ideal === 'number') {
           oc[oldname_('min', key)] = r.ideal;
           cc.optional.push(oc);
@@ -66,13 +66,13 @@ module.exports = function(window) {
     return cc;
   };
 
-  var shimConstraints_ = function(constraints, func) {
+  const shimConstraints_ = function(constraints, func) {
     if (browserDetails.version >= 61) {
       return func(constraints);
     }
     constraints = JSON.parse(JSON.stringify(constraints));
     if (constraints && typeof constraints.audio === 'object') {
-      var remap = function(obj, a, b) {
+      const remap = function(obj, a, b) {
         if (a in obj && !(b in obj)) {
           obj[b] = obj[a];
           delete obj[a];
@@ -85,9 +85,9 @@ module.exports = function(window) {
     }
     if (constraints && typeof constraints.video === 'object') {
       // Shim facingMode for mobile & surface pro.
-      var face = constraints.video.facingMode;
+      let face = constraints.video.facingMode;
       face = face && ((typeof face === 'object') ? face : {ideal: face});
-      var getSupportedFacingModeLies = browserDetails.version < 66;
+      const getSupportedFacingModeLies = browserDetails.version < 66;
 
       if ((face && (face.exact === 'user' || face.exact === 'environment' ||
                     face.ideal === 'user' || face.ideal === 'environment')) &&
@@ -95,7 +95,7 @@ module.exports = function(window) {
             navigator.mediaDevices.getSupportedConstraints().facingMode &&
             !getSupportedFacingModeLies)) {
         delete constraints.video.facingMode;
-        var matches;
+        let matches;
         if (face.exact === 'environment' || face.ideal === 'environment') {
           matches = ['back', 'rear'];
         } else if (face.exact === 'user' || face.ideal === 'user') {
@@ -108,7 +108,7 @@ module.exports = function(window) {
             devices = devices.filter(function(d) {
               return d.kind === 'videoinput';
             });
-            var dev = devices.find(function(d) {
+            let dev = devices.find(function(d) {
               return matches.some(function(match) {
                 return d.label.toLowerCase().indexOf(match) !== -1;
               });
@@ -132,7 +132,7 @@ module.exports = function(window) {
     return func(constraints);
   };
 
-  var shimError_ = function(e) {
+  const shimError_ = function(e) {
     if (browserDetails.version >= 64) {
       return e;
     }
@@ -158,7 +158,7 @@ module.exports = function(window) {
     };
   };
 
-  var getUserMedia_ = function(constraints, onSuccess, onError) {
+  const getUserMedia_ = function(constraints, onSuccess, onError) {
     shimConstraints_(constraints, function(c) {
       navigator.webkitGetUserMedia(c, onSuccess, function(e) {
         if (onError) {
@@ -171,7 +171,7 @@ module.exports = function(window) {
   navigator.getUserMedia = getUserMedia_;
 
   // Returns the result of getUserMedia as a Promise.
-  var getUserMediaPromise_ = function(constraints) {
+  const getUserMediaPromise_ = function(constraints) {
     return new Promise(function(resolve, reject) {
       navigator.getUserMedia(constraints, resolve, reject);
     });
@@ -182,7 +182,7 @@ module.exports = function(window) {
       getUserMedia: getUserMediaPromise_,
       enumerateDevices() {
         return new Promise(function(resolve) {
-          var kinds = {audio: 'audioinput', video: 'videoinput'};
+          const kinds = {audio: 'audioinput', video: 'videoinput'};
           return window.MediaStreamTrack.getSources(function(devices) {
             resolve(devices.map(function(device) {
               return {label: device.label,
@@ -212,7 +212,7 @@ module.exports = function(window) {
     // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
     // function which returns a Promise, it does not accept spec-style
     // constraints.
-    var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+    const origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(cs) {
       return shimConstraints_(cs, function(c) {

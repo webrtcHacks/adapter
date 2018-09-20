@@ -8,8 +8,8 @@
  */
  /* eslint-env node */
 'use strict';
-var utils = require('../utils.js');
-var logging = utils.log;
+const utils = require('../utils.js');
+const logging = utils.log;
 
 /* iterates the stats graph recursively. */
 function walkStats(stats, base, resultSet) {
@@ -30,12 +30,12 @@ function walkStats(stats, base, resultSet) {
 
 /* filter getStats for a sender/receiver track. */
 function filterStats(result, track, outbound) {
-  var streamStatsType = outbound ? 'outbound-rtp' : 'inbound-rtp';
-  var filteredResult = new Map();
+  const streamStatsType = outbound ? 'outbound-rtp' : 'inbound-rtp';
+  const filteredResult = new Map();
   if (track === null) {
     return filteredResult;
   }
-  var trackStats = [];
+  const trackStats = [];
   result.forEach(function(value) {
     if (value.type === 'track' &&
         value.trackIdentifier === track.id) {
@@ -74,16 +74,16 @@ module.exports = {
         enumerable: true,
         configurable: true
       });
-      var origSetRemoteDescription =
+      const origSetRemoteDescription =
           window.RTCPeerConnection.prototype.setRemoteDescription;
       window.RTCPeerConnection.prototype.setRemoteDescription = function() {
-        var pc = this;
+        const pc = this;
         if (!pc._ontrackpoly) {
           pc._ontrackpoly = function(e) {
             // onaddstream does not fire when a track is added to an existing
             // stream. But stream.onaddtrack is implemented so we use that.
             e.stream.addEventListener('addtrack', function(te) {
-              var receiver;
+              let receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
                 receiver = pc.getReceivers().find(function(r) {
                   return r.track && r.track.id === te.track.id;
@@ -92,7 +92,7 @@ module.exports = {
                 receiver = {track: te.track};
               }
 
-              var event = new Event('track');
+              const event = new Event('track');
               event.track = te.track;
               event.receiver = receiver;
               event.transceiver = {receiver};
@@ -100,7 +100,7 @@ module.exports = {
               pc.dispatchEvent(event);
             });
             e.stream.getTracks().forEach(function(track) {
-              var receiver;
+              let receiver;
               if (window.RTCPeerConnection.prototype.getReceivers) {
                 receiver = pc.getReceivers().find(function(r) {
                   return r.track && r.track.id === track.id;
@@ -108,7 +108,7 @@ module.exports = {
               } else {
                 receiver = {track};
               }
-              var event = new Event('track');
+              const event = new Event('track');
               event.track = track;
               event.receiver = receiver;
               event.transceiver = {receiver};
@@ -139,7 +139,7 @@ module.exports = {
     if (typeof window === 'object' && window.RTCPeerConnection &&
         !('getSenders' in window.RTCPeerConnection.prototype) &&
         'createDTMFSender' in window.RTCPeerConnection.prototype) {
-      var shimSenderWithDtmf = function(pc, track) {
+      const shimSenderWithDtmf = function(pc, track) {
         return {
           track,
           get dtmf() {
@@ -162,10 +162,10 @@ module.exports = {
           this._senders = this._senders || [];
           return this._senders.slice(); // return a copy of the internal state.
         };
-        var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
+        const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
         window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
-          var pc = this;
-          var sender = origAddTrack.apply(pc, arguments);
+          const pc = this;
+          let sender = origAddTrack.apply(pc, arguments);
           if (!sender) {
             sender = shimSenderWithDtmf(pc, track);
             pc._senders.push(sender);
@@ -173,19 +173,19 @@ module.exports = {
           return sender;
         };
 
-        var origRemoveTrack = window.RTCPeerConnection.prototype.removeTrack;
+        const origRemoveTrack = window.RTCPeerConnection.prototype.removeTrack;
         window.RTCPeerConnection.prototype.removeTrack = function(sender) {
-          var pc = this;
+          const pc = this;
           origRemoveTrack.apply(pc, arguments);
-          var idx = pc._senders.indexOf(sender);
+          const idx = pc._senders.indexOf(sender);
           if (idx !== -1) {
             pc._senders.splice(idx, 1);
           }
         };
       }
-      var origAddStream = window.RTCPeerConnection.prototype.addStream;
+      const origAddStream = window.RTCPeerConnection.prototype.addStream;
       window.RTCPeerConnection.prototype.addStream = function(stream) {
-        var pc = this;
+        const pc = this;
         pc._senders = pc._senders || [];
         origAddStream.apply(pc, [stream]);
         stream.getTracks().forEach(function(track) {
@@ -193,14 +193,14 @@ module.exports = {
         });
       };
 
-      var origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
+      const origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
       window.RTCPeerConnection.prototype.removeStream = function(stream) {
-        var pc = this;
+        const pc = this;
         pc._senders = pc._senders || [];
         origRemoveStream.apply(pc, [stream]);
 
         stream.getTracks().forEach(function(track) {
-          var sender = pc._senders.find(function(s) {
+          const sender = pc._senders.find(function(s) {
             return s.track === track;
           });
           if (sender) {
@@ -213,10 +213,10 @@ module.exports = {
                'createDTMFSender' in window.RTCPeerConnection.prototype &&
                window.RTCRtpSender &&
                !('dtmf' in window.RTCRtpSender.prototype)) {
-      var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
+      const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
       window.RTCPeerConnection.prototype.getSenders = function() {
-        var pc = this;
-        var senders = origGetSenders.apply(pc, []);
+        const pc = this;
+        const senders = origGetSenders.apply(pc, []);
         senders.forEach(function(sender) {
           sender._pc = pc;
         });
@@ -246,11 +246,11 @@ module.exports = {
 
     // shim sender stats.
     if (!('getStats' in window.RTCRtpSender.prototype)) {
-      var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
+      const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
       if (origGetSenders) {
         window.RTCPeerConnection.prototype.getSenders = function() {
-          var pc = this;
-          var senders = origGetSenders.apply(pc, []);
+          const pc = this;
+          const senders = origGetSenders.apply(pc, []);
           senders.forEach(function(sender) {
             sender._pc = pc;
           });
@@ -258,16 +258,16 @@ module.exports = {
         };
       }
 
-      var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
+      const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
       if (origAddTrack) {
         window.RTCPeerConnection.prototype.addTrack = function() {
-          var sender = origAddTrack.apply(this, arguments);
+          const sender = origAddTrack.apply(this, arguments);
           sender._pc = this;
           return sender;
         };
       }
       window.RTCRtpSender.prototype.getStats = function() {
-        var sender = this;
+        const sender = this;
         return this._pc.getStats().then(function(result) {
           /* Note: this will include stats of all senders that
            *   send a track with the same id as sender.track as
@@ -280,11 +280,11 @@ module.exports = {
 
     // shim receiver stats.
     if (!('getStats' in window.RTCRtpReceiver.prototype)) {
-      var origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
+      const origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
       if (origGetReceivers) {
         window.RTCPeerConnection.prototype.getReceivers = function() {
-          var pc = this;
-          var receivers = origGetReceivers.apply(pc, []);
+          const pc = this;
+          const receivers = origGetReceivers.apply(pc, []);
           receivers.forEach(function(receiver) {
             receiver._pc = pc;
           });
@@ -296,7 +296,7 @@ module.exports = {
         return e;
       });
       window.RTCRtpReceiver.prototype.getStats = function() {
-        var receiver = this;
+        const receiver = this;
         return this._pc.getStats().then(function(result) {
           return filterStats(result, receiver.track, false);
         });
@@ -309,15 +309,15 @@ module.exports = {
     }
 
     // shim RTCPeerConnection.getStats(track).
-    var origGetStats = window.RTCPeerConnection.prototype.getStats;
+    const origGetStats = window.RTCPeerConnection.prototype.getStats;
     window.RTCPeerConnection.prototype.getStats = function() {
-      var pc = this;
+      const pc = this;
       if (arguments.length > 0 &&
           arguments[0] instanceof window.MediaStreamTrack) {
-        var track = arguments[0];
-        var sender;
-        var receiver;
-        var err;
+        const track = arguments[0];
+        let sender;
+        let receiver;
+        let err;
         pc.getSenders().forEach(function(s) {
           if (s.track === track) {
             if (sender) {
@@ -355,7 +355,7 @@ module.exports = {
   },
 
   shimSourceObject(window) {
-    var URL = window && window.URL;
+    const URL = window && window.URL;
 
     if (typeof window === 'object') {
       if (window.HTMLMediaElement &&
@@ -366,7 +366,7 @@ module.exports = {
             return this._srcObject;
           },
           set(stream) {
-            var self = this;
+            const self = this;
             // Use _srcObject as a private property for this shim
             this._srcObject = stream;
             if (this.src) {
@@ -403,21 +403,21 @@ module.exports = {
     // the interactions with legacy getLocalStreams behave as in other browsers.
     // Keeps a mapping stream.id => [stream, rtpsenders...]
     window.RTCPeerConnection.prototype.getLocalStreams = function() {
-      var pc = this;
+      const pc = this;
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
       return Object.keys(this._shimmedLocalStreams).map(function(streamId) {
         return pc._shimmedLocalStreams[streamId][0];
       });
     };
 
-    var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
+    const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
     window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
       if (!stream) {
         return origAddTrack.apply(this, arguments);
       }
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
 
-      var sender = origAddTrack.apply(this, arguments);
+      const sender = origAddTrack.apply(this, arguments);
       if (!this._shimmedLocalStreams[stream.id]) {
         this._shimmedLocalStreams[stream.id] = [stream, sender];
       } else if (this._shimmedLocalStreams[stream.id].indexOf(sender) === -1) {
@@ -426,13 +426,13 @@ module.exports = {
       return sender;
     };
 
-    var origAddStream = window.RTCPeerConnection.prototype.addStream;
+    const origAddStream = window.RTCPeerConnection.prototype.addStream;
     window.RTCPeerConnection.prototype.addStream = function(stream) {
-      var pc = this;
+      const pc = this;
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
 
       stream.getTracks().forEach(function(track) {
-        var alreadyExists = pc.getSenders().find(function(s) {
+        const alreadyExists = pc.getSenders().find(function(s) {
           return s.track === track;
         });
         if (alreadyExists) {
@@ -440,28 +440,28 @@ module.exports = {
               'InvalidAccessError');
         }
       });
-      var existingSenders = pc.getSenders();
+      const existingSenders = pc.getSenders();
       origAddStream.apply(this, arguments);
-      var newSenders = pc.getSenders().filter(function(newSender) {
+      const newSenders = pc.getSenders().filter(function(newSender) {
         return existingSenders.indexOf(newSender) === -1;
       });
       this._shimmedLocalStreams[stream.id] = [stream].concat(newSenders);
     };
 
-    var origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
+    const origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
     window.RTCPeerConnection.prototype.removeStream = function(stream) {
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
       delete this._shimmedLocalStreams[stream.id];
       return origRemoveStream.apply(this, arguments);
     };
 
-    var origRemoveTrack = window.RTCPeerConnection.prototype.removeTrack;
+    const origRemoveTrack = window.RTCPeerConnection.prototype.removeTrack;
     window.RTCPeerConnection.prototype.removeTrack = function(sender) {
-      var pc = this;
+      const pc = this;
       this._shimmedLocalStreams = this._shimmedLocalStreams || {};
       if (sender) {
         Object.keys(this._shimmedLocalStreams).forEach(function(streamId) {
-          var idx = pc._shimmedLocalStreams[streamId].indexOf(sender);
+          const idx = pc._shimmedLocalStreams[streamId].indexOf(sender);
           if (idx !== -1) {
             pc._shimmedLocalStreams[streamId].splice(idx, 1);
           }
@@ -475,7 +475,7 @@ module.exports = {
   },
 
   shimAddTrackRemoveTrack(window) {
-    var browserDetails = utils.detectBrowser(window);
+    const browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack &&
         browserDetails.version >= 65) {
@@ -484,25 +484,25 @@ module.exports = {
 
     // also shim pc.getLocalStreams when addTrack is shimmed
     // to return the original streams.
-    var origGetLocalStreams = window.RTCPeerConnection.prototype
+    const origGetLocalStreams = window.RTCPeerConnection.prototype
         .getLocalStreams;
     window.RTCPeerConnection.prototype.getLocalStreams = function() {
-      var pc = this;
-      var nativeStreams = origGetLocalStreams.apply(this);
+      const pc = this;
+      const nativeStreams = origGetLocalStreams.apply(this);
       pc._reverseStreams = pc._reverseStreams || {};
       return nativeStreams.map(function(stream) {
         return pc._reverseStreams[stream.id];
       });
     };
 
-    var origAddStream = window.RTCPeerConnection.prototype.addStream;
+    const origAddStream = window.RTCPeerConnection.prototype.addStream;
     window.RTCPeerConnection.prototype.addStream = function(stream) {
-      var pc = this;
+      const pc = this;
       pc._streams = pc._streams || {};
       pc._reverseStreams = pc._reverseStreams || {};
 
       stream.getTracks().forEach(function(track) {
-        var alreadyExists = pc.getSenders().find(function(s) {
+        const alreadyExists = pc.getSenders().find(function(s) {
           return s.track === track;
         });
         if (alreadyExists) {
@@ -513,7 +513,7 @@ module.exports = {
       // Add identity mapping for consistency with addTrack.
       // Unless this is being used with a stream from addTrack.
       if (!pc._reverseStreams[stream.id]) {
-        var newStream = new window.MediaStream(stream.getTracks());
+        const newStream = new window.MediaStream(stream.getTracks());
         pc._streams[stream.id] = newStream;
         pc._reverseStreams[newStream.id] = stream;
         stream = newStream;
@@ -521,9 +521,9 @@ module.exports = {
       origAddStream.apply(pc, [stream]);
     };
 
-    var origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
+    const origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
     window.RTCPeerConnection.prototype.removeStream = function(stream) {
-      var pc = this;
+      const pc = this;
       pc._streams = pc._streams || {};
       pc._reverseStreams = pc._reverseStreams || {};
 
@@ -534,13 +534,13 @@ module.exports = {
     };
 
     window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
-      var pc = this;
+      const pc = this;
       if (pc.signalingState === 'closed') {
         throw new DOMException(
           'The RTCPeerConnection\'s signalingState is \'closed\'.',
           'InvalidStateError');
       }
-      var streams = [].slice.call(arguments, 1);
+      const streams = [].slice.call(arguments, 1);
       if (streams.length !== 1 ||
           !streams[0].getTracks().find(function(t) {
             return t === track;
@@ -553,7 +553,7 @@ module.exports = {
           'NotSupportedError');
       }
 
-      var alreadyExists = pc.getSenders().find(function(s) {
+      const alreadyExists = pc.getSenders().find(function(s) {
         return s.track === track;
       });
       if (alreadyExists) {
@@ -563,7 +563,7 @@ module.exports = {
 
       pc._streams = pc._streams || {};
       pc._reverseStreams = pc._reverseStreams || {};
-      var oldStream = pc._streams[stream.id];
+      const oldStream = pc._streams[stream.id];
       if (oldStream) {
         // this is using odd Chrome behaviour, use with caution:
         // https://bugs.chromium.org/p/webrtc/issues/detail?id=7815
@@ -576,7 +576,7 @@ module.exports = {
           pc.dispatchEvent(new Event('negotiationneeded'));
         });
       } else {
-        var newStream = new window.MediaStream([track]);
+        const newStream = new window.MediaStream([track]);
         pc._streams[stream.id] = newStream;
         pc._reverseStreams[newStream.id] = stream;
         pc.addStream(newStream);
@@ -589,10 +589,10 @@ module.exports = {
     // replace the internal stream id with the external one and
     // vice versa.
     function replaceInternalStreamId(pc, description) {
-      var sdp = description.sdp;
+      let sdp = description.sdp;
       Object.keys(pc._reverseStreams || []).forEach(function(internalId) {
-        var externalStream = pc._reverseStreams[internalId];
-        var internalStream = pc._streams[externalStream.id];
+        const externalStream = pc._reverseStreams[internalId];
+        const internalStream = pc._streams[externalStream.id];
         sdp = sdp.replace(new RegExp(internalStream.id, 'g'),
             externalStream.id);
       });
@@ -602,10 +602,10 @@ module.exports = {
       });
     }
     function replaceExternalStreamId(pc, description) {
-      var sdp = description.sdp;
+      let sdp = description.sdp;
       Object.keys(pc._reverseStreams || []).forEach(function(internalId) {
-        var externalStream = pc._reverseStreams[internalId];
-        var internalStream = pc._streams[externalStream.id];
+        const externalStream = pc._reverseStreams[internalId];
+        const internalStream = pc._streams[externalStream.id];
         sdp = sdp.replace(new RegExp(externalStream.id, 'g'),
             internalStream.id);
       });
@@ -615,16 +615,16 @@ module.exports = {
       });
     }
     ['createOffer', 'createAnswer'].forEach(function(method) {
-      var nativeMethod = window.RTCPeerConnection.prototype[method];
+      const nativeMethod = window.RTCPeerConnection.prototype[method];
       window.RTCPeerConnection.prototype[method] = function() {
-        var pc = this;
-        var args = arguments;
-        var isLegacyCall = arguments.length &&
+        const pc = this;
+        const args = arguments;
+        const isLegacyCall = arguments.length &&
             typeof arguments[0] === 'function';
         if (isLegacyCall) {
           return nativeMethod.apply(pc, [
             function(description) {
-              var desc = replaceInternalStreamId(pc, description);
+              const desc = replaceInternalStreamId(pc, description);
               args[0].apply(null, [desc]);
             },
             function(err) {
@@ -641,10 +641,10 @@ module.exports = {
       };
     });
 
-    var origSetLocalDescription =
+    const origSetLocalDescription =
         window.RTCPeerConnection.prototype.setLocalDescription;
     window.RTCPeerConnection.prototype.setLocalDescription = function() {
-      var pc = this;
+      const pc = this;
       if (!arguments.length || !arguments[0].type) {
         return origSetLocalDescription.apply(pc, arguments);
       }
@@ -654,13 +654,13 @@ module.exports = {
 
     // TODO: mangle getStats: https://w3c.github.io/webrtc-stats/#dom-rtcmediastreamstats-streamidentifier
 
-    var origLocalDescription = Object.getOwnPropertyDescriptor(
+    const origLocalDescription = Object.getOwnPropertyDescriptor(
         window.RTCPeerConnection.prototype, 'localDescription');
     Object.defineProperty(window.RTCPeerConnection.prototype,
         'localDescription', {
           get() {
-            var pc = this;
-            var description = origLocalDescription.get.apply(this);
+            const pc = this;
+            const description = origLocalDescription.get.apply(this);
             if (description.type === '') {
               return description;
             }
@@ -669,7 +669,7 @@ module.exports = {
         });
 
     window.RTCPeerConnection.prototype.removeTrack = function(sender) {
-      var pc = this;
+      const pc = this;
       if (pc.signalingState === 'closed') {
         throw new DOMException(
           'The RTCPeerConnection\'s signalingState is \'closed\'.',
@@ -681,7 +681,7 @@ module.exports = {
         throw new DOMException('Argument 1 of RTCPeerConnection.removeTrack ' +
             'does not implement interface RTCRtpSender.', 'TypeError');
       }
-      var isLocal = sender._pc === pc;
+      const isLocal = sender._pc === pc;
       if (!isLocal) {
         throw new DOMException('Sender was not created by this connection.',
             'InvalidAccessError');
@@ -689,9 +689,9 @@ module.exports = {
 
       // Search for the native stream the senders track belongs to.
       pc._streams = pc._streams || {};
-      var stream;
+      let stream;
       Object.keys(pc._streams).forEach(function(streamid) {
-        var hasTrack = pc._streams[streamid].getTracks().find(function(track) {
+        const hasTrack = pc._streams[streamid].getTracks().find(function(track) {
           return sender.track === track;
         });
         if (hasTrack) {
@@ -714,7 +714,7 @@ module.exports = {
   },
 
   shimPeerConnection(window) {
-    var browserDetails = utils.detectBrowser(window);
+    const browserDetails = utils.detectBrowser(window);
 
     // The RTCPeerConnection object.
     if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
@@ -741,11 +741,11 @@ module.exports = {
       }
     }
 
-    var origGetStats = window.RTCPeerConnection.prototype.getStats;
+    const origGetStats = window.RTCPeerConnection.prototype.getStats;
     window.RTCPeerConnection.prototype.getStats = function(selector,
         successCallback, errorCallback) {
-      var pc = this;
-      var args = arguments;
+      const pc = this;
+      const args = arguments;
 
       // If selector is a function then we are in the old style stats so just
       // pass back the original getStats format to avoid breaking old users.
@@ -760,11 +760,11 @@ module.exports = {
         return origGetStats.apply(this, []);
       }
 
-      var fixChromeStats_ = function(response) {
-        var standardReport = {};
-        var reports = response.result();
+      const fixChromeStats_ = function(response) {
+        const standardReport = {};
+        const reports = response.result();
         reports.forEach(function(report) {
-          var standardStats = {
+          const standardStats = {
             id: report.id,
             timestamp: report.timestamp,
             type: {
@@ -782,14 +782,14 @@ module.exports = {
       };
 
       // shim getStats with maplike support
-      var makeMapStats = function(stats) {
+      const makeMapStats = function(stats) {
         return new Map(Object.keys(stats).map(function(key) {
           return [key, stats[key]];
         }));
       };
 
       if (arguments.length >= 2) {
-        var successCallbackWrapper_ = function(response) {
+        const successCallbackWrapper_ = function(response) {
           args[1](makeMapStats(fixChromeStats_(response)));
         };
 
@@ -810,11 +810,11 @@ module.exports = {
     if (browserDetails.version < 51) {
       ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
           .forEach(function(method) {
-            var nativeMethod = window.RTCPeerConnection.prototype[method];
+            const nativeMethod = window.RTCPeerConnection.prototype[method];
             window.RTCPeerConnection.prototype[method] = function() {
-              var args = arguments;
-              var pc = this;
-              var promise = new Promise(function(resolve, reject) {
+              const args = arguments;
+              const pc = this;
+              const promise = new Promise(function(resolve, reject) {
                 nativeMethod.apply(pc, [args[0], resolve, reject]);
               });
               if (args.length < 2) {
@@ -836,12 +836,12 @@ module.exports = {
     // bugs) since M52: crbug/619289
     if (browserDetails.version < 52) {
       ['createOffer', 'createAnswer'].forEach(function(method) {
-        var nativeMethod = window.RTCPeerConnection.prototype[method];
+        const nativeMethod = window.RTCPeerConnection.prototype[method];
         window.RTCPeerConnection.prototype[method] = function() {
-          var pc = this;
+          const pc = this;
           if (arguments.length < 1 || (arguments.length === 1 &&
               typeof arguments[0] === 'object')) {
-            var opts = arguments.length === 1 ? arguments[0] : undefined;
+            const opts = arguments.length === 1 ? arguments[0] : undefined;
             return new Promise(function(resolve, reject) {
               nativeMethod.apply(pc, [resolve, reject, opts]);
             });
@@ -854,7 +854,7 @@ module.exports = {
     // shim implicit creation of RTCSessionDescription/RTCIceCandidate
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
         .forEach(function(method) {
-          var nativeMethod = window.RTCPeerConnection.prototype[method];
+          const nativeMethod = window.RTCPeerConnection.prototype[method];
           window.RTCPeerConnection.prototype[method] = function() {
             arguments[0] = new ((method === 'addIceCandidate') ?
                 window.RTCIceCandidate :
@@ -864,7 +864,7 @@ module.exports = {
         });
 
     // support for addIceCandidate(null or undefined)
-    var nativeAddIceCandidate =
+    const nativeAddIceCandidate =
         window.RTCPeerConnection.prototype.addIceCandidate;
     window.RTCPeerConnection.prototype.addIceCandidate = function() {
       if (!arguments[0]) {
@@ -879,7 +879,7 @@ module.exports = {
 
   fixNegotiationNeeded(window) {
     utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function(e) {
-      var pc = e.target;
+      const pc = e.target;
       if (pc.signalingState !== 'stable') {
         return;
       }
