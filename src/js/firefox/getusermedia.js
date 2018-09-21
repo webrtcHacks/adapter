@@ -5,19 +5,18 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
-var utils = require('../utils');
-var logging = utils.log;
+import * as utils from '../utils';
+const logging = utils.log;
 
-// Expose public methods.
-module.exports = function(window) {
-  var browserDetails = utils.detectBrowser(window);
-  var navigator = window && window.navigator;
-  var MediaStreamTrack = window && window.MediaStreamTrack;
+export function shimGetUserMedia(window) {
+  const browserDetails = utils.detectBrowser(window);
+  const navigator = window && window.navigator;
+  const MediaStreamTrack = window && window.MediaStreamTrack;
 
-  var shimError_ = function(e) {
+  const shimError_ = function(e) {
     return {
       name: {
         InternalError: 'NotReadableError',
@@ -30,24 +29,24 @@ module.exports = function(window) {
         'user agent or the platform in the current context.'
       }[e.message] || e.message,
       constraint: e.constraint,
-      toString: function() {
+      toString() {
         return this.name + (this.message && ': ') + this.message;
       }
     };
   };
 
   // getUserMedia constraints shim.
-  var getUserMedia_ = function(constraints, onSuccess, onError) {
-    var constraintsToFF37_ = function(c) {
+  const getUserMedia_ = function(constraints, onSuccess, onError) {
+    const constraintsToFF37_ = function(c) {
       if (typeof c !== 'object' || c.require) {
         return c;
       }
       var require = [];
-      Object.keys(c).forEach(function(key) {
+      Object.keys(c).forEach(key => {
         if (key === 'require' || key === 'advanced' || key === 'mediaSource') {
           return;
         }
-        var r = c[key] = (typeof c[key] === 'object') ?
+        const r = c[key] = (typeof c[key] === 'object') ?
             c[key] : {ideal: c[key]};
         if (r.min !== undefined ||
             r.max !== undefined || r.exact !== undefined) {
@@ -63,7 +62,7 @@ module.exports = function(window) {
         }
         if (r.ideal !== undefined) {
           c.advanced = c.advanced || [];
-          var oc = {};
+          const oc = {};
           if (typeof r.ideal === 'number') {
             oc[key] = {min: r.ideal, max: r.ideal};
           } else {
@@ -92,14 +91,14 @@ module.exports = function(window) {
       }
       logging('ff37: ' + JSON.stringify(constraints));
     }
-    return navigator.mozGetUserMedia(constraints, onSuccess, function(e) {
+    return navigator.mozGetUserMedia(constraints, onSuccess, e => {
       onError(shimError_(e));
     });
   };
 
   // Returns the result of getUserMedia as a Promise.
-  var getUserMediaPromise_ = function(constraints) {
-    return new Promise(function(resolve, reject) {
+  const getUserMediaPromise_ = function(constraints) {
+    return new Promise((resolve, reject) => {
       getUserMedia_(constraints, resolve, reject);
     });
   };
@@ -107,14 +106,14 @@ module.exports = function(window) {
   // Shim for mediaDevices on older versions.
   if (!navigator.mediaDevices) {
     navigator.mediaDevices = {getUserMedia: getUserMediaPromise_,
-      addEventListener: function() { },
-      removeEventListener: function() { }
+      addEventListener() { },
+      removeEventListener() { }
     };
   }
   navigator.mediaDevices.enumerateDevices =
       navigator.mediaDevices.enumerateDevices || function() {
-        return new Promise(function(resolve) {
-          var infos = [
+        return new Promise(resolve => {
+          const infos = [
             {kind: 'audioinput', deviceId: 'default', label: '', groupId: ''},
             {kind: 'videoinput', deviceId: 'default', label: '', groupId: ''}
           ];
@@ -124,10 +123,10 @@ module.exports = function(window) {
 
   if (browserDetails.version < 41) {
     // Work around http://bugzil.la/1169665
-    var orgEnumerateDevices =
+    const orgEnumerateDevices =
         navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
     navigator.mediaDevices.enumerateDevices = function() {
-      return orgEnumerateDevices().then(undefined, function(e) {
+      return orgEnumerateDevices().then(undefined, e => {
         if (e.name === 'NotFoundError') {
           return [];
         }
@@ -136,35 +135,33 @@ module.exports = function(window) {
     };
   }
   if (browserDetails.version < 49) {
-    var origGetUserMedia = navigator.mediaDevices.getUserMedia.
+    const origGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
-      return origGetUserMedia(c).then(function(stream) {
+      return origGetUserMedia(c).then(stream => {
         // Work around https://bugzil.la/802326
         if (c.audio && !stream.getAudioTracks().length ||
             c.video && !stream.getVideoTracks().length) {
-          stream.getTracks().forEach(function(track) {
+          stream.getTracks().forEach(track => {
             track.stop();
           });
           throw new DOMException('The object can not be found here.',
                                  'NotFoundError');
         }
         return stream;
-      }, function(e) {
-        return Promise.reject(shimError_(e));
-      });
+      }, e => Promise.reject(shimError_(e)));
     };
   }
   if (!(browserDetails.version > 55 &&
       'autoGainControl' in navigator.mediaDevices.getSupportedConstraints())) {
-    var remap = function(obj, a, b) {
+    const remap = function(obj, a, b) {
       if (a in obj && !(b in obj)) {
         obj[b] = obj[a];
         delete obj[a];
       }
     };
 
-    var nativeGetUserMedia = navigator.mediaDevices.getUserMedia.
+    const nativeGetUserMedia = navigator.mediaDevices.getUserMedia.
         bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
       if (typeof c === 'object' && typeof c.audio === 'object') {
@@ -176,9 +173,9 @@ module.exports = function(window) {
     };
 
     if (MediaStreamTrack && MediaStreamTrack.prototype.getSettings) {
-      var nativeGetSettings = MediaStreamTrack.prototype.getSettings;
+      const nativeGetSettings = MediaStreamTrack.prototype.getSettings;
       MediaStreamTrack.prototype.getSettings = function() {
-        var obj = nativeGetSettings.apply(this, arguments);
+        const obj = nativeGetSettings.apply(this, arguments);
         remap(obj, 'mozAutoGainControl', 'autoGainControl');
         remap(obj, 'mozNoiseSuppression', 'noiseSuppression');
         return obj;
@@ -186,7 +183,8 @@ module.exports = function(window) {
     }
 
     if (MediaStreamTrack && MediaStreamTrack.prototype.applyConstraints) {
-      var nativeApplyConstraints = MediaStreamTrack.prototype.applyConstraints;
+      const nativeApplyConstraints =
+        MediaStreamTrack.prototype.applyConstraints;
       MediaStreamTrack.prototype.applyConstraints = function(c) {
         if (this.kind === 'audio' && typeof c === 'object') {
           c = JSON.parse(JSON.stringify(c));
@@ -206,4 +204,4 @@ module.exports = function(window) {
         'navigator.mediaDevices.getUserMedia');
     navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
   };
-};
+}
