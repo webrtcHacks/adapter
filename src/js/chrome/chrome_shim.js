@@ -665,8 +665,6 @@ export function shimAddTrackRemoveTrack(window) {
 }
 
 export function shimPeerConnection(window) {
-  const browserDetails = utils.detectBrowser(window);
-
   // The RTCPeerConnection object.
   if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
     window.RTCPeerConnection = function(pcConfig, pcConstraints) {
@@ -753,49 +751,6 @@ export function shimPeerConnection(window) {
         }, reject]);
     }).then(successCallback, errorCallback);
   };
-
-  // add promise support -- natively available in Chrome 51
-  if (browserDetails.version < 51) {
-    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-        .forEach(function(method) {
-          const nativeMethod = window.RTCPeerConnection.prototype[method];
-          window.RTCPeerConnection.prototype[method] = function() {
-            const args = arguments;
-            const promise = new Promise((resolve, reject) => {
-              nativeMethod.apply(this, [args[0], resolve, reject]);
-            });
-            if (args.length < 2) {
-              return promise;
-            }
-            return promise.then(() => {
-              args[1].apply(null, []);
-            },
-            err => {
-              if (args.length >= 3) {
-                args[2].apply(null, [err]);
-              }
-            });
-          };
-        });
-  }
-
-  // promise support for createOffer and createAnswer. Available (without
-  // bugs) since M52: crbug/619289
-  if (browserDetails.version < 52) {
-    ['createOffer', 'createAnswer'].forEach(function(method) {
-      const nativeMethod = window.RTCPeerConnection.prototype[method];
-      window.RTCPeerConnection.prototype[method] = function() {
-        if (arguments.length < 1 || (arguments.length === 1 &&
-            typeof arguments[0] === 'object')) {
-          const opts = arguments.length === 1 ? arguments[0] : undefined;
-          return new Promise((resolve, reject) => {
-            nativeMethod.apply(this, [resolve, reject, opts]);
-          });
-        }
-        return nativeMethod.apply(this, arguments);
-      };
-    });
-  }
 
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
   ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
