@@ -50,24 +50,6 @@ export function shimOnTrack(window) {
   }
 }
 
-export function shimSourceObject(window) {
-  // Firefox has supported mozSrcObject since FF22, unprefixed in 42.
-  if (typeof window === 'object') {
-    if (window.HTMLMediaElement &&
-      !('srcObject' in window.HTMLMediaElement.prototype)) {
-      // Shim the srcObject property, once, when HTMLMediaElement is found.
-      Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-        get() {
-          return this.mozSrcObject;
-        },
-        set(stream) {
-          this.mozSrcObject = stream;
-        }
-      });
-    }
-  }
-}
-
 export function shimPeerConnection(window) {
   const browserDetails = utils.detectBrowser(window);
 

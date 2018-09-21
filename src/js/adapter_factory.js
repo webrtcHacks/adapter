@@ -54,7 +54,6 @@ export function adapterFactory({window} = {}, options = {
 
       chromeShim.shimGetUserMedia(window);
       chromeShim.shimMediaStream(window);
-      chromeShim.shimSourceObject(window);
       chromeShim.shimPeerConnection(window);
       chromeShim.shimOnTrack(window);
       chromeShim.shimAddTrackRemoveTrack(window);
@@ -77,7 +76,6 @@ export function adapterFactory({window} = {}, options = {
       adapter.browserShim = firefoxShim;
 
       firefoxShim.shimGetUserMedia(window);
-      firefoxShim.shimSourceObject(window);
       firefoxShim.shimPeerConnection(window);
       firefoxShim.shimOnTrack(window);
       firefoxShim.shimRemoveStream(window);

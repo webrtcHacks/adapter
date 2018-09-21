@@ -333,50 +333,6 @@ export function shimSenderReceiverGetStats(window) {
   };
 }
 
-export function shimSourceObject(window) {
-  const URL = window && window.URL;
-
-  if (typeof window === 'object') {
-    if (window.HTMLMediaElement &&
-      !('srcObject' in window.HTMLMediaElement.prototype)) {
-      // Shim the srcObject property, once, when HTMLMediaElement is found.
-      Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-        get() {
-          return this._srcObject;
-        },
-        set(stream) {
-          const self = this;
-          // Use _srcObject as a private property for this shim
-          this._srcObject = stream;
-          if (this.src) {
-            URL.revokeObjectURL(this.src);
-          }
-
-          if (!stream) {
-            this.src = '';
-            return undefined;
-          }
-          this.src = URL.createObjectURL(stream);
-          // We need to recreate the blob url when a track is added or
-          // removed. Doing it manually since we want to avoid a recursion.
-          stream.addEventListener('addtrack', () => {
-            if (self.src) {
-              URL.revokeObjectURL(self.src);
-            }
-            self.src = URL.createObjectURL(stream);
-          });
-          stream.addEventListener('removetrack', () => {
-            if (self.src) {
-              URL.revokeObjectURL(self.src);
-            }
-            self.src = URL.createObjectURL(stream);
-          });
-        }
-      });
-    }
-  }
-}
-
 export function shimAddTrackRemoveTrackWithNative(window) {
   // shim addTrack/removeTrack with native variants in order to make
   // the interactions with legacy getLocalStreams behave as in other browsers.
