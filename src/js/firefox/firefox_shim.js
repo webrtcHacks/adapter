@@ -12,33 +12,6 @@ import * as utils from '../utils';
 export {shimGetUserMedia} from './getusermedia';
 
 export function shimOnTrack(window) {
-  if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
-      window.RTCPeerConnection.prototype)) {
-    Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-      get() {
-        return this._ontrack;
-      },
-      set(f) {
-        if (this._ontrack) {
-          this.removeEventListener('track', this._ontrack);
-          this.removeEventListener('addstream', this._ontrackpoly);
-        }
-        this.addEventListener('track', this._ontrack = f);
-        this.addEventListener('addstream', this._ontrackpoly = e => {
-          e.stream.getTracks().forEach(track => {
-            const event = new Event('track');
-            event.track = track;
-            event.receiver = {track};
-            event.transceiver = {receiver: event.receiver};
-            event.streams = [e.stream];
-            this.dispatchEvent(event);
-          });
-        });
-      },
-      enumerable: true,
-      configurable: true
-    });
-  }
   if (typeof window === 'object' && window.RTCTrackEvent &&
       ('receiver' in window.RTCTrackEvent.prototype) &&
       !('transceiver' in window.RTCTrackEvent.prototype)) {
