@@ -8,9 +8,6 @@
 /* eslint-env node */
 const chai = require('chai');
 const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
 
 /* a mock of the Chrome RTCLegacyStatReport */
 function RTCLegacyStatsReport() {
@@ -39,31 +36,14 @@ describe('Chrome shim', () => {
 
   beforeEach(() => {
     window = {
-      webkitRTCPeerConnection: function() {}
+      RTCPeerConnection: function() {}
     };
-  });
-
-  describe('shimPeerConnection', () => {
-    it('creates window.RTCPeerConnection', () => {
-      shim.shimPeerConnection(window);
-      expect(window.RTCPeerConnection).not.to.equal(undefined);
-    });
-  });
-
-  it('translates iceTransportPolicy to iceTransports ' +
-      'for webkitRTCPeerConnection', () => {
-    shim.shimPeerConnection(window);
-    sinon.spy(window, 'webkitRTCPeerConnection');
-    new window.RTCPeerConnection({iceTransportPolicy: 'relay'});
-    expect(window.webkitRTCPeerConnection).to.have.been.calledWith(sinon.match({
-      iceTransports: 'relay'
-    }));
   });
 
   describe('legacy getStats', () => {
     let pc;
     beforeEach(() => {
-      window.webkitRTCPeerConnection.prototype.getStats = function(cb) {
+      window.RTCPeerConnection.prototype.getStats = function(cb) {
         setTimeout(cb, 0, {
           result: () => [
             makeLegacyStatsReport('localcandidate', {

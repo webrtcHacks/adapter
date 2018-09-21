@@ -9,7 +9,6 @@
  /* eslint-env node */
 'use strict';
 import * as utils from '../utils.js';
-const logging = utils.log;
 
 /* iterates the stats graph recursively. */
 function walkStats(stats, base, resultSet) {
@@ -621,31 +620,6 @@ export function shimAddTrackRemoveTrack(window) {
 }
 
 export function shimPeerConnection(window) {
-  // The RTCPeerConnection object.
-  if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
-    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-      // Translate iceTransportPolicy to iceTransports,
-      // see https://code.google.com/p/webrtc/issues/detail?id=4869
-      // this was fixed in M56 along with unprefixing RTCPeerConnection.
-      logging('PeerConnection');
-      if (pcConfig && pcConfig.iceTransportPolicy) {
-        pcConfig.iceTransports = pcConfig.iceTransportPolicy;
-      }
-
-      return new window.webkitRTCPeerConnection(pcConfig, pcConstraints);
-    };
-    window.RTCPeerConnection.prototype =
-        window.webkitRTCPeerConnection.prototype;
-    // wrap static methods. Currently just generateCertificate.
-    if (window.webkitRTCPeerConnection.generateCertificate) {
-      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-        get() {
-          return window.webkitRTCPeerConnection.generateCertificate;
-        }
-      });
-    }
-  }
-
   const origGetStats = window.RTCPeerConnection.prototype.getStats;
   window.RTCPeerConnection.prototype.getStats = function(selector,
       successCallback, errorCallback) {
