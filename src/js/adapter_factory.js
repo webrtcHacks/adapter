@@ -25,13 +25,6 @@ export function adapterFactory({window} = {}, options = {
   const logging = utils.log;
   const browserDetails = utils.detectBrowser(window);
 
-  // Uncomment the line below if you want logging to occur, including logging
-  // for the switch statement below. Can also be turned on in the browser via
-  // adapter.disableLog(false), but then logging from the switch statement below
-  // will not appear.
-  // utils.disableLog(false);
-
-  // Export to the adapter global object visible in the browser.
   const adapter = {
     browserDetails,
     commonShim,
