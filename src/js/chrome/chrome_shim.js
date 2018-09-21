@@ -620,6 +620,11 @@ export function shimAddTrackRemoveTrack(window) {
 }
 
 export function shimPeerConnection(window) {
+  if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
+    // very basic support for old versions.
+    window.RTCPeerConnection = window.webkitRTCPeerConnection;
+  }
+
   const origGetStats = window.RTCPeerConnection.prototype.getStats;
   window.RTCPeerConnection.prototype.getStats = function(selector,
       successCallback, errorCallback) {

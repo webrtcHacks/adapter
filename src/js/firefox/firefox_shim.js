@@ -26,8 +26,13 @@ export function shimOnTrack(window) {
 export function shimPeerConnection(window) {
   const browserDetails = utils.detectBrowser(window);
 
-  if (typeof window !== 'object' || !window.RTCPeerConnection) {
+  if (typeof window !== 'object' ||
+      !(window.RTCPeerConnection || window.mozRTCPeerConnection)) {
     return; // probably media.peerconnection.enabled=false in about:config
+  }
+  if (!window.RTCPeerConnection && window.mozRTCPeerConnection) {
+    // very basic support for old versions.
+    window.RTCPeerConnection = window.mozRTCPeerConnection;
   }
 
   // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
