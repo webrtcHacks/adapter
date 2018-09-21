@@ -82,16 +82,6 @@ export function shimPeerConnection(window) {
     return nativeAddIceCandidate.apply(this, arguments);
   };
 
-  // shim getStats with maplike support
-  const makeMapStats = function(stats) {
-    const map = new Map();
-    Object.keys(stats).forEach(key => {
-      map.set(key, stats[key]);
-      map[key] = stats[key];
-    });
-    return map;
-  };
-
   const modernStatsTypes = {
     inboundrtp: 'inbound-rtp',
     outboundrtp: 'outbound-rtp',
@@ -108,9 +98,6 @@ export function shimPeerConnection(window) {
   ) {
     return nativeGetStats.apply(this, [selector || null])
       .then(stats => {
-        if (browserDetails.version < 48) {
-          stats = makeMapStats(stats);
-        }
         if (browserDetails.version < 53 && !onSucc) {
           // Shim only promise getStats with spec-hyphens in type names
           // Leave callback version alone; misc old uses of forEach before Map
