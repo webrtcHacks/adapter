@@ -53,54 +53,8 @@ export function shimOnTrack(window) {
 export function shimPeerConnection(window) {
   const browserDetails = utils.detectBrowser(window);
 
-  if (typeof window !== 'object' || !(window.RTCPeerConnection ||
-      window.mozRTCPeerConnection)) {
+  if (typeof window !== 'object' || !window.RTCPeerConnection) {
     return; // probably media.peerconnection.enabled=false in about:config
-  }
-  // The RTCPeerConnection object.
-  if (!window.RTCPeerConnection) {
-    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-      if (browserDetails.version < 38) {
-        // .urls is not supported in FF < 38.
-        // create RTCIceServers with a single url.
-        if (pcConfig && pcConfig.iceServers) {
-          const newIceServers = [];
-          for (let i = 0; i < pcConfig.iceServers.length; i++) {
-            const server = pcConfig.iceServers[i];
-            if (server.hasOwnProperty('urls')) {
-              for (let j = 0; j < server.urls.length; j++) {
-                const newServer = {
-                  url: server.urls[j]
-                };
-                if (server.urls[j].startsWith('turn')) {
-                  newServer.username = server.username;
-                  newServer.credential = server.credential;
-                }
-                newIceServers.push(newServer);
-              }
-            } else {
-              newIceServers.push(pcConfig.iceServers[i]);
-            }
-          }
-          pcConfig.iceServers = newIceServers;
-        }
-      }
-      return new window.mozRTCPeerConnection(pcConfig, pcConstraints);
-    };
-    window.RTCPeerConnection.prototype =
-        window.mozRTCPeerConnection.prototype;
-
-    // wrap static methods. Currently just generateCertificate.
-    if (window.mozRTCPeerConnection.generateCertificate) {
-      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-        get() {
-          return window.mozRTCPeerConnection.generateCertificate;
-        }
-      });
-    }
-
-    window.RTCSessionDescription = window.mozRTCSessionDescription;
-    window.RTCIceCandidate = window.mozRTCIceCandidate;
   }
 
   // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
