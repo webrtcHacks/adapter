@@ -40,7 +40,7 @@ before_script:
 
 script:
   - node_modules/.bin/grunt
-  - npm test
+  - npm test || npm test
 
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
