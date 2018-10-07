@@ -11,5 +11,5 @@
 
 import {adapterFactory} from './adapter_factory.js';
 
-const adapter = adapterFactory({window: global.window});
+const adapter = adapterFactory({window});
 module.exports = adapter;
