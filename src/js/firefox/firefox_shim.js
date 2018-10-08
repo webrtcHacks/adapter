@@ -12,33 +12,6 @@ import * as utils from '../utils';
 export {shimGetUserMedia} from './getusermedia';
 
 export function shimOnTrack(window) {
-  if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
-      window.RTCPeerConnection.prototype)) {
-    Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
-      get() {
-        return this._ontrack;
-      },
-      set(f) {
-        if (this._ontrack) {
-          this.removeEventListener('track', this._ontrack);
-          this.removeEventListener('addstream', this._ontrackpoly);
-        }
-        this.addEventListener('track', this._ontrack = f);
-        this.addEventListener('addstream', this._ontrackpoly = e => {
-          e.stream.getTracks().forEach(track => {
-            const event = new Event('track');
-            event.track = track;
-            event.receiver = {track};
-            event.transceiver = {receiver: event.receiver};
-            event.streams = [e.stream];
-            this.dispatchEvent(event);
-          });
-        });
-      },
-      enumerable: true,
-      configurable: true
-    });
-  }
   if (typeof window === 'object' && window.RTCTrackEvent &&
       ('receiver' in window.RTCTrackEvent.prototype) &&
       !('transceiver' in window.RTCTrackEvent.prototype)) {
@@ -50,75 +23,16 @@ export function shimOnTrack(window) {
   }
 }
 
-export function shimSourceObject(window) {
-  // Firefox has supported mozSrcObject since FF22, unprefixed in 42.
-  if (typeof window === 'object') {
-    if (window.HTMLMediaElement &&
-      !('srcObject' in window.HTMLMediaElement.prototype)) {
-      // Shim the srcObject property, once, when HTMLMediaElement is found.
-      Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-        get() {
-          return this.mozSrcObject;
-        },
-        set(stream) {
-          this.mozSrcObject = stream;
-        }
-      });
-    }
-  }
-}
-
 export function shimPeerConnection(window) {
   const browserDetails = utils.detectBrowser(window);
 
-  if (typeof window !== 'object' || !(window.RTCPeerConnection ||
-      window.mozRTCPeerConnection)) {
+  if (typeof window !== 'object' ||
+      !(window.RTCPeerConnection || window.mozRTCPeerConnection)) {
     return; // probably media.peerconnection.enabled=false in about:config
   }
-  // The RTCPeerConnection object.
-  if (!window.RTCPeerConnection) {
-    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-      if (browserDetails.version < 38) {
-        // .urls is not supported in FF < 38.
-        // create RTCIceServers with a single url.
-        if (pcConfig && pcConfig.iceServers) {
-          const newIceServers = [];
-          for (let i = 0; i < pcConfig.iceServers.length; i++) {
-            const server = pcConfig.iceServers[i];
-            if (server.hasOwnProperty('urls')) {
-              for (let j = 0; j < server.urls.length; j++) {
-                const newServer = {
-                  url: server.urls[j]
-                };
-                if (server.urls[j].startsWith('turn')) {
-                  newServer.username = server.username;
-                  newServer.credential = server.credential;
-                }
-                newIceServers.push(newServer);
-              }
-            } else {
-              newIceServers.push(pcConfig.iceServers[i]);
-            }
-          }
-          pcConfig.iceServers = newIceServers;
-        }
-      }
-      return new window.mozRTCPeerConnection(pcConfig, pcConstraints);
-    };
-    window.RTCPeerConnection.prototype =
-        window.mozRTCPeerConnection.prototype;
-
-    // wrap static methods. Currently just generateCertificate.
-    if (window.mozRTCPeerConnection.generateCertificate) {
-      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-        get() {
-          return window.mozRTCPeerConnection.generateCertificate;
-        }
-      });
-    }
-
-    window.RTCSessionDescription = window.mozRTCSessionDescription;
-    window.RTCIceCandidate = window.mozRTCIceCandidate;
+  if (!window.RTCPeerConnection && window.mozRTCPeerConnection) {
+    // very basic support for old versions.
+    window.RTCPeerConnection = window.mozRTCPeerConnection;
   }
 
   // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
@@ -146,16 +60,6 @@ export function shimPeerConnection(window) {
     return nativeAddIceCandidate.apply(this, arguments);
   };
 
-  // shim getStats with maplike support
-  const makeMapStats = function(stats) {
-    const map = new Map();
-    Object.keys(stats).forEach(key => {
-      map.set(key, stats[key]);
-      map[key] = stats[key];
-    });
-    return map;
-  };
-
   const modernStatsTypes = {
     inboundrtp: 'inbound-rtp',
     outboundrtp: 'outbound-rtp',
@@ -172,9 +76,6 @@ export function shimPeerConnection(window) {
   ) {
     return nativeGetStats.apply(this, [selector || null])
       .then(stats => {
-        if (browserDetails.version < 48) {
-          stats = makeMapStats(stats);
-        }
         if (browserDetails.version < 53 && !onSucc) {
           // Shim only promise getStats with spec-hyphens in type names
           // Leave callback version alone; misc old uses of forEach before Map

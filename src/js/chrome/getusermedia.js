@@ -161,77 +161,23 @@ export function shimGetUserMedia(window) {
       });
     });
   };
+  navigator.getUserMedia = getUserMedia_.bind(navigator);
 
-  navigator.getUserMedia = getUserMedia_;
-
-  // Returns the result of getUserMedia as a Promise.
-  const getUserMediaPromise_ = function(constraints) {
-    return new Promise((resolve, reject) => {
-      navigator.getUserMedia(constraints, resolve, reject);
-    });
-  };
-
-  if (!navigator.mediaDevices) {
-    navigator.mediaDevices = {
-      getUserMedia: getUserMediaPromise_,
-      enumerateDevices() {
-        return new Promise(resolve => {
-          const kinds = {audio: 'audioinput', video: 'videoinput'};
-          return window.MediaStreamTrack.getSources(devices => {
-            resolve(devices.map(device => ({
-              label: device.label,
-              kind: kinds[device.kind],
-              deviceId: device.id,
-              groupId: ''
-            })));
-          });
+  // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
+  // function which returns a Promise, it does not accept spec-style
+  // constraints.
+  const origGetUserMedia = navigator.mediaDevices.getUserMedia.
+      bind(navigator.mediaDevices);
+  navigator.mediaDevices.getUserMedia = function(cs) {
+    return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
+      if (c.audio && !stream.getAudioTracks().length ||
+          c.video && !stream.getVideoTracks().length) {
+        stream.getTracks().forEach(track => {
+          track.stop();
         });
-      },
-      getSupportedConstraints() {
-        return {
-          deviceId: true, echoCancellation: true, facingMode: true,
-          frameRate: true, height: true, width: true
-        };
+        throw new DOMException('', 'NotFoundError');
       }
-    };
-  }
-
-  // A shim for getUserMedia method on the mediaDevices object.
-  // TODO(KaptenJansson) remove once implemented in Chrome stable.
-  if (!navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia = function(constraints) {
-      return getUserMediaPromise_(constraints);
-    };
-  } else {
-    // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
-    // function which returns a Promise, it does not accept spec-style
-    // constraints.
-    const origGetUserMedia = navigator.mediaDevices.getUserMedia.
-        bind(navigator.mediaDevices);
-    navigator.mediaDevices.getUserMedia = function(cs) {
-      return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
-        if (c.audio && !stream.getAudioTracks().length ||
-            c.video && !stream.getVideoTracks().length) {
-          stream.getTracks().forEach(track => {
-            track.stop();
-          });
-          throw new DOMException('', 'NotFoundError');
-        }
-        return stream;
-      }, e => Promise.reject(shimError_(e))));
-    };
-  }
-
-  // Dummy devicechange event methods.
-  // TODO(KaptenJansson) remove once implemented in Chrome stable.
-  if (typeof navigator.mediaDevices.addEventListener === 'undefined') {
-    navigator.mediaDevices.addEventListener = function() {
-      logging('Dummy mediaDevices.addEventListener called.');
-    };
-  }
-  if (typeof navigator.mediaDevices.removeEventListener === 'undefined') {
-    navigator.mediaDevices.removeEventListener = function() {
-      logging('Dummy mediaDevices.removeEventListener called.');
-    };
-  }
+      return stream;
+    }, e => Promise.reject(shimError_(e))));
+  };
 }

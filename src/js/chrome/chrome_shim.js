@@ -9,7 +9,6 @@
  /* eslint-env node */
 'use strict';
 import * as utils from '../utils.js';
-const logging = utils.log;
 
 /* iterates the stats graph recursively. */
 function walkStats(stats, base, resultSet) {
@@ -333,50 +332,6 @@ export function shimSenderReceiverGetStats(window) {
   };
 }
 
-export function shimSourceObject(window) {
-  const URL = window && window.URL;
-
-  if (typeof window === 'object') {
-    if (window.HTMLMediaElement &&
-      !('srcObject' in window.HTMLMediaElement.prototype)) {
-      // Shim the srcObject property, once, when HTMLMediaElement is found.
-      Object.defineProperty(window.HTMLMediaElement.prototype, 'srcObject', {
-        get() {
-          return this._srcObject;
-        },
-        set(stream) {
-          const self = this;
-          // Use _srcObject as a private property for this shim
-          this._srcObject = stream;
-          if (this.src) {
-            URL.revokeObjectURL(this.src);
-          }
-
-          if (!stream) {
-            this.src = '';
-            return undefined;
-          }
-          this.src = URL.createObjectURL(stream);
-          // We need to recreate the blob url when a track is added or
-          // removed. Doing it manually since we want to avoid a recursion.
-          stream.addEventListener('addtrack', () => {
-            if (self.src) {
-              URL.revokeObjectURL(self.src);
-            }
-            self.src = URL.createObjectURL(stream);
-          });
-          stream.addEventListener('removetrack', () => {
-            if (self.src) {
-              URL.revokeObjectURL(self.src);
-            }
-            self.src = URL.createObjectURL(stream);
-          });
-        }
-      });
-    }
-  }
-}
-
 export function shimAddTrackRemoveTrackWithNative(window) {
   // shim addTrack/removeTrack with native variants in order to make
   // the interactions with legacy getLocalStreams behave as in other browsers.
@@ -665,31 +620,9 @@ export function shimAddTrackRemoveTrack(window) {
 }
 
 export function shimPeerConnection(window) {
-  const browserDetails = utils.detectBrowser(window);
-
-  // The RTCPeerConnection object.
   if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
-    window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-      // Translate iceTransportPolicy to iceTransports,
-      // see https://code.google.com/p/webrtc/issues/detail?id=4869
-      // this was fixed in M56 along with unprefixing RTCPeerConnection.
-      logging('PeerConnection');
-      if (pcConfig && pcConfig.iceTransportPolicy) {
-        pcConfig.iceTransports = pcConfig.iceTransportPolicy;
-      }
-
-      return new window.webkitRTCPeerConnection(pcConfig, pcConstraints);
-    };
-    window.RTCPeerConnection.prototype =
-        window.webkitRTCPeerConnection.prototype;
-    // wrap static methods. Currently just generateCertificate.
-    if (window.webkitRTCPeerConnection.generateCertificate) {
-      Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
-        get() {
-          return window.webkitRTCPeerConnection.generateCertificate;
-        }
-      });
-    }
+    // very basic support for old versions.
+    window.RTCPeerConnection = window.webkitRTCPeerConnection;
   }
 
   const origGetStats = window.RTCPeerConnection.prototype.getStats;
@@ -753,49 +686,6 @@ export function shimPeerConnection(window) {
         }, reject]);
     }).then(successCallback, errorCallback);
   };
-
-  // add promise support -- natively available in Chrome 51
-  if (browserDetails.version < 51) {
-    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-        .forEach(function(method) {
-          const nativeMethod = window.RTCPeerConnection.prototype[method];
-          window.RTCPeerConnection.prototype[method] = function() {
-            const args = arguments;
-            const promise = new Promise((resolve, reject) => {
-              nativeMethod.apply(this, [args[0], resolve, reject]);
-            });
-            if (args.length < 2) {
-              return promise;
-            }
-            return promise.then(() => {
-              args[1].apply(null, []);
-            },
-            err => {
-              if (args.length >= 3) {
-                args[2].apply(null, [err]);
-              }
-            });
-          };
-        });
-  }
-
-  // promise support for createOffer and createAnswer. Available (without
-  // bugs) since M52: crbug/619289
-  if (browserDetails.version < 52) {
-    ['createOffer', 'createAnswer'].forEach(function(method) {
-      const nativeMethod = window.RTCPeerConnection.prototype[method];
-      window.RTCPeerConnection.prototype[method] = function() {
-        if (arguments.length < 1 || (arguments.length === 1 &&
-            typeof arguments[0] === 'object')) {
-          const opts = arguments.length === 1 ? arguments[0] : undefined;
-          return new Promise((resolve, reject) => {
-            nativeMethod.apply(this, [resolve, reject, opts]);
-          });
-        }
-        return nativeMethod.apply(this, arguments);
-      };
-    });
-  }
 
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
   ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']

@@ -20,26 +20,6 @@ export function shimLocalStreamsAPI(window) {
       return this._localStreams;
     };
   }
-  if (!('getStreamById' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.getStreamById = function(id) {
-      let result = null;
-      if (this._localStreams) {
-        this._localStreams.forEach(stream => {
-          if (stream.id === id) {
-            result = stream;
-          }
-        });
-      }
-      if (this._remoteStreams) {
-        this._remoteStreams.forEach(stream => {
-          if (stream.id === id) {
-            result = stream;
-          }
-        });
-      }
-      return result;
-    };
-  }
   if (!('addStream' in window.RTCPeerConnection.prototype)) {
     const _addTrack = window.RTCPeerConnection.prototype.addTrack;
     window.RTCPeerConnection.prototype.addStream = function(stream) {
@@ -209,16 +189,12 @@ export function shimCallbacksAPI(window) {
 export function shimGetUserMedia(window) {
   const navigator = window && window.navigator;
 
-  if (!navigator.getUserMedia) {
-    if (navigator.webkitGetUserMedia) {
-      navigator.getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
-    } else if (navigator.mediaDevices &&
-        navigator.mediaDevices.getUserMedia) {
-      navigator.getUserMedia = function(constraints, cb, errcb) {
-        navigator.mediaDevices.getUserMedia(constraints)
-        .then(cb, errcb);
-      }.bind(navigator);
-    }
+  if (!navigator.getUserMedia && navigator.mediaDevices &&
+    navigator.mediaDevices.getUserMedia) {
+    navigator.getUserMedia = function(constraints, cb, errcb) {
+      navigator.mediaDevices.getUserMedia(constraints)
+      .then(cb, errcb);
+    }.bind(navigator);
   }
 }
 
