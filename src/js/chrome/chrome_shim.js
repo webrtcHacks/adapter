@@ -741,11 +741,17 @@ export function shimGetDisplayMedia(window, getSourceId) {
           mandatory: {
             chromeMediaSource: 'desktop',
             chromeMediaSourceId: sourceId,
-            maxWidth: constraints.video.width,
-            maxHeight: constraints.video.height,
             maxFrameRate: constraints.video.frameRate || 3
           }
         };
+        if (constraints.video) {
+          if (constraints.video.height) {
+            constraints.video.maxWidth = constraints.video.width;
+          }
+          if (constraints.video.width) {
+            constraints.video.maxHeight = constraints.video.height;
+          }
+        }
         return navigator.mediaDevices.getUserMedia(constraints);
       });
   };
