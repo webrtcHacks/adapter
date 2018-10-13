@@ -1794,6 +1794,8 @@ module.exports = {
             mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: sourceId,
+              maxWidth: constraints.video.width,
+              maxHeight: constraints.video.height,
               maxFrameRate: constraints.video.frameRate || 3
             }
           };
