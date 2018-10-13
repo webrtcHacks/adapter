@@ -12,4 +12,4 @@
 import {adapterFactory} from './adapter_factory.js';
 
 const adapter = adapterFactory({window});
-export default adapter;
+module.exports = adapter; // this is the difference from adapter_core.

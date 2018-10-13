@@ -3,7 +3,8 @@
   "version": "6.4.0",
   "description": "A shim to insulate apps from WebRTC spec changes and browser prefix differences",
   "license": "BSD-3-Clause",
-  "main": "./dist/adapter_core.js",
+  "main": "./src/js/adapter_core5.js",
+  "module": "./src/js/adapter_core.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/webrtchacks/adapter.git"
