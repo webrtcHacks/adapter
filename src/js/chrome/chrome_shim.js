@@ -737,20 +737,22 @@ export function shimGetDisplayMedia(window, getSourceId) {
   navigator.getDisplayMedia = function(constraints) {
     return getSourceId(constraints)
       .then(sourceId => {
+        const widthSpecified = constraints.video && constraints.video.width;
+        const heightSpecified = constraints.video && constraints.video.height;
+        const frameRateSpecified = constraints.video &&
+          constraints.video.frameRate;
         constraints.video = {
           mandatory: {
             chromeMediaSource: 'desktop',
             chromeMediaSourceId: sourceId,
-            maxFrameRate: constraints.video.frameRate || 3
+            maxFrameRate: frameRateSpecified || 3
           }
         };
-        if (constraints.video) {
-          if (constraints.video.height) {
-            constraints.video.maxWidth = constraints.video.width;
-          }
-          if (constraints.video.width) {
-            constraints.video.maxHeight = constraints.video.height;
-          }
+        if (widthSpecified) {
+          constraints.video.mandatory.maxWidth = widthSpecified;
+        }
+        if (heightSpecified) {
+          constraints.video.mandatory.maxHeight = heightSpecified;
         }
         return navigator.mediaDevices.getUserMedia(constraints);
       });
