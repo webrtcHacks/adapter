@@ -8,6 +8,9 @@
 /* eslint-env node */
 const chai = require('chai');
 const expect = chai.expect;
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+chai.use(sinonChai);
 
 describe('Edge shim', () => {
   const shim = require('../../dist/edge/edge_shim');
@@ -21,8 +24,9 @@ describe('Edge shim', () => {
     window = {
       navigator: {
         userAgent: ua15025,
-        mediaDevices: function() {}
-      }
+        mediaDevices: {},
+        getDisplayMedia: sinon.stub,
+      },
     };
     shim.shimPeerConnection(window);
   });
@@ -116,6 +120,32 @@ describe('Edge shim', () => {
           {urls: ['turn:stun.l.google.com:19301?transport=udp']}
         ]);
       });
+    });
+  });
+
+  describe('getDisplayMedia shim', () => {
+    it('does nothing if navigator.getDisplayMedia does not exist', () => {
+      delete window.navigator.getDisplayMedia;
+      shim.shimGetDisplayMedia(window);
+      expect(window.navigator.mediaDevices.getDisplayMedia).to.equal(undefined);
+    });
+
+    it('does not if navigator.mediaDevices does not exist', () => {
+      delete window.navigator.mediaDevices;
+      shim.shimGetDisplayMedia(window);
+      expect(window.navigator.mediaDevices).to.equal(undefined);
+    });
+
+    it('does not overwrite an existing ' +
+        'navigator.mediaDevices.getDisplayMedia', () => {
+      window.navigator.mediaDevices.getDisplayMedia = 'foo';
+      shim.shimGetDisplayMedia(window);
+      expect(window.navigator.mediaDevices.getDisplayMedia).to.equal('foo');
+    });
+
+    it('shims navigator.mediaDevices.getDisplayMedia', () => {
+      shim.shimGetDisplayMedia(window);
+      expect(window.navigator.mediaDevices.getDisplayMedia).to.be.a('function');
     });
   });
 });

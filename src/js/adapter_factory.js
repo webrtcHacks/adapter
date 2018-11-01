@@ -90,6 +90,7 @@ export function adapterFactory({window} = {}, options = {
       adapter.browserShim = edgeShim;
 
       edgeShim.shimGetUserMedia(window);
+      edgeShim.shimGetDisplayMedia(window);
       edgeShim.shimPeerConnection(window);
       edgeShim.shimReplaceTrack(window);
 
