@@ -13,6 +13,7 @@ import {filterIceServers} from './filtericeservers';
 import shimRTCPeerConnection from 'rtcpeerconnection-shim';
 
 export {shimGetUserMedia} from './getusermedia';
+export {shimGetDisplayMedia} from './getdisplaymedia';
 
 export function shimPeerConnection(window) {
   const browserDetails = utils.detectBrowser(window);

@@ -8,6 +8,9 @@
 /* eslint-env node */
 const chai = require('chai');
 const expect = chai.expect;
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+chai.use(sinonChai);
 
 /* a mock of the Chrome RTCLegacyStatReport */
 function RTCLegacyStatsReport() {
@@ -36,6 +39,11 @@ describe('Chrome shim', () => {
 
   beforeEach(() => {
     window = {
+      navigator: {
+        mediaDevices: {
+          getUserMedia: sinon.stub().returns(Promise.resolve('stream')),
+        },
+      },
       RTCPeerConnection: function() {}
     };
   });
@@ -81,6 +89,85 @@ describe('Chrome shim', () => {
       .then(result => {
         expect(result).to.be.a('Map');
       });
+    });
+  });
+
+  describe('getDisplayMedia shim', () => {
+    const getSourceId = sinon.stub().returns(Promise.resolve('abc'));
+
+    it('does not overwrite an existing ' +
+        'navigator.mediaDevices.getDisplayMedia', () => {
+      window.navigator.mediaDevices.getDisplayMedia = 'foo';
+      shim.shimGetDisplayMedia(window, getSourceId);
+      expect(window.navigator.mediaDevices.getDisplayMedia).to.equal('foo');
+    });
+
+    it('does not if navigator.mediaDevices does not exist', () => {
+      delete window.navigator.mediaDevices;
+      shim.shimGetDisplayMedia(window);
+      expect(window.navigator.mediaDevices).to.equal(undefined);
+    });
+
+    it('shims navigator.mediaDevices.getDisplayMedia', () => {
+      shim.shimGetDisplayMedia(window, getSourceId);
+      expect(window.navigator.mediaDevices.getDisplayMedia).to.be.a('function');
+    });
+
+    it('calls getUserMedia with the sourceId', () => {
+      shim.shimGetDisplayMedia(window, getSourceId);
+      return window.navigator.mediaDevices.getDisplayMedia({video: true})
+        .then(() => {
+          expect(window.navigator.mediaDevices.getUserMedia)
+            .to.have.been.calledWith({video: {mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: 'abc',
+              maxFrameRate: 3,
+            }}});
+        });
+    });
+
+    it('translates frameRate to legacy maxFrameRate', () => {
+      shim.shimGetDisplayMedia(window, getSourceId);
+      return window.navigator.mediaDevices
+        .getDisplayMedia({video: {frameRate: 25}})
+        .then(() => {
+          expect(window.navigator.mediaDevices.getUserMedia)
+            .to.have.been.calledWith({video: {mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: 'abc',
+              maxFrameRate: 25,
+            }}});
+        });
+    });
+
+    it('translates width to legacy maxWidth', () => {
+      shim.shimGetDisplayMedia(window, getSourceId);
+      return window.navigator.mediaDevices
+        .getDisplayMedia({video: {width: 640}})
+        .then(() => {
+          expect(window.navigator.mediaDevices.getUserMedia)
+            .to.have.been.calledWith({video: {mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: 'abc',
+              maxFrameRate: 3,
+              maxWidth: 640,
+            }}});
+        });
+    });
+
+    it('translates height to legacy maxHeight', () => {
+      shim.shimGetDisplayMedia(window, getSourceId);
+      return window.navigator.mediaDevices
+        .getDisplayMedia({video: {height: 480}})
+        .then(() => {
+          expect(window.navigator.mediaDevices.getUserMedia)
+            .to.have.been.calledWith({video: {mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: 'abc',
+              maxFrameRate: 3,
+              maxHeight: 480,
+            }}});
+        });
     });
   });
 });

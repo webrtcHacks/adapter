@@ -52,6 +52,7 @@ function filterStats(result, track, outbound) {
 }
 
 export {shimGetUserMedia} from './getusermedia';
+export {shimGetDisplayMedia} from './getdisplaymedia';
 
 export function shimMediaStream(window) {
   window.MediaStream = window.MediaStream || window.webkitMediaStream;
@@ -721,40 +722,4 @@ export function fixNegotiationNeeded(window) {
     }
     return e;
   });
-}
-
-export function shimGetDisplayMedia(window, getSourceId) {
-  if ('getDisplayMedia' in window.navigator) {
-    return;
-  }
-  // getSourceId is a function that returns a promise resolving with
-  // the sourceId of the screen/window/tab to be shared.
-  if (typeof getSourceId !== 'function') {
-    console.error('shimGetDisplayMedia: getSourceId argument is not ' +
-        'a function');
-    return;
-  }
-  navigator.getDisplayMedia = function(constraints) {
-    return getSourceId(constraints)
-      .then(sourceId => {
-        const widthSpecified = constraints.video && constraints.video.width;
-        const heightSpecified = constraints.video && constraints.video.height;
-        const frameRateSpecified = constraints.video &&
-          constraints.video.frameRate;
-        constraints.video = {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: sourceId,
-            maxFrameRate: frameRateSpecified || 3
-          }
-        };
-        if (widthSpecified) {
-          constraints.video.mandatory.maxWidth = widthSpecified;
-        }
-        if (heightSpecified) {
-          constraints.video.mandatory.maxHeight = heightSpecified;
-        }
-        return navigator.mediaDevices.getUserMedia(constraints);
-      });
-  };
 }
