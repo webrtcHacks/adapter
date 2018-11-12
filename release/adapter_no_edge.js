@@ -850,6 +850,7 @@ module.exports = function(dependencies, opts) {
       edgeShim.shimGetUserMedia(window);
       edgeShim.shimPeerConnection(window);
       edgeShim.shimReplaceTrack(window);
+      edgeShim.shimGetDisplayMedia(window);
 
       // the edge shim implements the full RTCIceCandidate object.
 
@@ -1777,7 +1778,8 @@ module.exports = {
   },
 
   shimGetDisplayMedia: function(window, getSourceId) {
-    if ('getDisplayMedia' in window.navigator) {
+    if (!window.navigator || !window.navigator.mediaDevices ||
+        'getDisplayMedia' in window.navigator.mediaDevices) {
       return;
     }
     // getSourceId is a function that returns a promise resolving with
@@ -1787,7 +1789,7 @@ module.exports = {
           'a function');
       return;
     }
-    navigator.getDisplayMedia = function(constraints) {
+    window.navigator.mediaDevices.getDisplayMedia = function(constraints) {
       return getSourceId(constraints)
         .then(function(sourceId) {
           var widthSpecified = constraints.video && constraints.video.width;
@@ -1807,8 +1809,13 @@ module.exports = {
           if (heightSpecified) {
             constraints.video.mandatory.maxHeight = heightSpecified;
           }
-          return navigator.mediaDevices.getUserMedia(constraints);
+          return window.navigator.mediaDevices.getUserMedia(constraints);
         });
+    };
+    window.navigator.getDisplayМedia = function(constraints) {
+      utils.deprecated('navigator.getDisplayMedia',
+          'navigator.mediaDevices.getDisplayMedia');
+      return window.navigator.mediaDevices.getDisplayMedia(constraints);
     };
   }
 };
@@ -2645,10 +2652,11 @@ module.exports = {
   },
 
   shimGetDisplayMedia: function(window, preferredMediaSource) {
-    if ('getDisplayMedia' in window.navigator) {
+    if (!window.navigator || !window.navigator.mediaDevices ||
+        'getDisplayMedia' in window.navigator.mediaDevices) {
       return;
     }
-    navigator.getDisplayMedia = function(constraints) {
+    window.navigator.mediaDevices.getDisplayMedia = function(constraints) {
       if (!(constraints && constraints.video)) {
         var err = new DOMException('getDisplayMedia without video ' +
             'constraints is undefined');
@@ -2662,7 +2670,12 @@ module.exports = {
       } else {
         constraints.video.mediaSource = preferredMediaSource;
       }
-      return navigator.mediaDevices.getUserMedia(constraints);
+      return window.navigator.mediaDevices.getUserMedia(constraints);
+    };
+    window.navigator.getDisplayМedia = function(constraints) {
+      utils.deprecated('navigator.getDisplayMedia',
+          'navigator.mediaDevices.getDisplayMedia');
+      return window.navigator.mediaDevices.getDisplayMedia(constraints);
     };
   }
 };
