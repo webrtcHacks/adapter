@@ -117,6 +117,7 @@ module.exports = function(dependencies, opts) {
       edgeShim.shimGetUserMedia(window);
       edgeShim.shimPeerConnection(window);
       edgeShim.shimReplaceTrack(window);
+      edgeShim.shimGetDisplayMedia(window);
 
       // the edge shim implements the full RTCIceCandidate object.
 
