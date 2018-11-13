@@ -403,6 +403,9 @@ export function shimAddTrackRemoveTrackWithNative(window) {
 }
 
 export function shimAddTrackRemoveTrack(window) {
+  if (!window.RTCPeerConnection) {
+    return;
+  }
   const browserDetails = utils.detectBrowser(window);
   // shim addTrack and removeTrack.
   if (window.RTCPeerConnection.prototype.addTrack &&
@@ -624,6 +627,9 @@ export function shimPeerConnection(window) {
   if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
     // very basic support for old versions.
     window.RTCPeerConnection = window.webkitRTCPeerConnection;
+  }
+  if (!window.RTCPeerConnection) {
+    return;
   }
 
   const origGetStats = window.RTCPeerConnection.prototype.getStats;
