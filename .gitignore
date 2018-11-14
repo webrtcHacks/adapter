@@ -8,3 +8,4 @@ validation-report.json
 validation-status.json
 npm-debug.log
 *~
+.idea
