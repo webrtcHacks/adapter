@@ -92,6 +92,32 @@ describe('Chrome shim', () => {
     });
   });
 
+  describe('PeerConnection shim', () => {
+    it('fail silently if RTCPeerConnection is not present', () => {
+      window = {};
+
+      shim.shimPeerConnection(window);
+    });
+  });
+
+  describe('AddTrackRemoveTrack shim', () => {
+    it('fail silently if RTCPeerConnection is not present', () => {
+      window = {};
+
+      shim.shimAddTrackRemoveTrack(window);
+    });
+  });
+
+  describe('getUserMedia shim', () => {
+    it('fail silently if navigator.mediaDevices is not present', () => {
+      window = {
+        navigator: {}
+      };
+
+      shim.shimGetUserMedia(window);
+    });
+  });
+
   describe('getDisplayMedia shim', () => {
     const getSourceId = sinon.stub().returns(Promise.resolve('abc'));
 
