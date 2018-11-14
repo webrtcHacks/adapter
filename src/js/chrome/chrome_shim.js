@@ -475,6 +475,9 @@ module.exports = {
   },
 
   shimAddTrackRemoveTrack: function(window) {
+    if (!window.RTCPeerConnection) {
+      return;
+    }
     var browserDetails = utils.detectBrowser(window);
     // shim addTrack and removeTrack.
     if (window.RTCPeerConnection.prototype.addTrack &&
@@ -739,6 +742,9 @@ module.exports = {
           }
         });
       }
+    }
+    if (!window.RTCPeerConnection) {
+      return;
     }
 
     var origGetStats = window.RTCPeerConnection.prototype.getStats;
