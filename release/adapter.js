@@ -3664,7 +3664,7 @@ module.exports = {
           return window.navigator.mediaDevices.getUserMedia(constraints);
         });
     };
-    window.navigator.getDisplayМedia = function(constraints) {
+    window.navigator.getDisplayMedia = function(constraints) {
       utils.deprecated('navigator.getDisplayMedia',
           'navigator.mediaDevices.getDisplayMedia');
       return window.navigator.mediaDevices.getDisplayMedia(constraints);
@@ -4717,7 +4717,7 @@ module.exports = {
       }
       return window.navigator.mediaDevices.getUserMedia(constraints);
     };
-    window.navigator.getDisplayМedia = function(constraints) {
+    window.navigator.getDisplayMedia = function(constraints) {
       utils.deprecated('navigator.getDisplayMedia',
           'navigator.mediaDevices.getDisplayMedia');
       return window.navigator.mediaDevices.getDisplayMedia(constraints);
