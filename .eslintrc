@@ -8,6 +8,11 @@
     "default-case": 2,
     "dot-notation": 2,
     "eqeqeq": 2,
+    "id-match": ["error", "^[\x00-\x7F]+$", {
+        "properties": true,
+        "onlyDeclarations": false,
+        "ignoreDestructuring": false
+    }],
     "indent": [
         2,
         2,
