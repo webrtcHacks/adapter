@@ -93,12 +93,12 @@ module.exports = {
     }
     var origGetDisplayMedia = window.navigator.getDisplayMedia;
     window.navigator.mediaDevices.getDisplayMedia = function(constraints) {
-      return origGetDisplayMedia(constraints);
+      return origGetDisplayMedia.call(window.navigator, constraints);
     };
     window.navigator.getDisplayMedia = function(constraints) {
       utils.deprecated('navigator.getDisplayMedia',
           'navigator.mediaDevices.getDisplayMedia');
-      return origGetDisplayMedia(constraints);
+      return origGetDisplayMedia.call(window.navigator, constraints);
     };
   }
 };
