@@ -18,7 +18,7 @@ module.exports = function(grunt) {
     },
     browserify: {
       adapterGlobalObject: {
-        src: ['./dist/adapter_core.js'],
+        src: ['./dist/adapter_core5.js'],
         dest: './out/adapter.js',
         options: {
           browserifyOptions: {
@@ -31,12 +31,12 @@ module.exports = function(grunt) {
       // Use this if you do not want adapter to expose anything to the global
       // scope.
       adapterAndNoGlobalObject: {
-        src: ['./dist/adapter_core.js'],
+        src: ['./dist/adapter_core5.js'],
         dest: './out/adapter_no_global.js'
       },
       // Use this if you do not want Microsoft Edge shim to be included.
       adapterNoEdge: {
-        src: ['./dist/adapter_core.js'],
+        src: ['./dist/adapter_core5.js'],
         dest: './out/adapter_no_edge.js',
         options: {
           // These files will be skipped.
@@ -52,7 +52,7 @@ module.exports = function(grunt) {
       // Use this if you do not want Microsoft Edge shim to be included and
       // do not want adapter to expose anything to the global scope.
       adapterNoEdgeAndNoGlobalObject: {
-        src: ['./dist/adapter_core.js'],
+        src: ['./dist/adapter_core5.js'],
         dest: './out/adapter_no_edge_no_global.js',
         options: {
           ignore: [
