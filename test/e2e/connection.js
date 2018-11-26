@@ -284,4 +284,20 @@ describe('establishes a connection', () => {
     })
     .catch(throwError);
   });
+
+  it('and triggers the connectionstatechange event', (done) => {
+    pc1.onconnectionstatechange = function() {
+      if (pc1.connectionState === 'connected') {
+        done();
+      }
+    };
+
+    var constraints = {video: true};
+    navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream) {
+      pc1.addStream(stream);
+      return negotiate(pc1, pc2);
+    })
+    .catch(throwError);
+  });
 });

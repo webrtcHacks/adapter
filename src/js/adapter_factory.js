@@ -55,6 +55,7 @@ export function adapterFactory({window} = {}, options = {
       chromeShim.fixNegotiationNeeded(window);
 
       commonShim.shimRTCIceCandidate(window);
+      commonShim.shimConnectionState(window);
       commonShim.shimMaxMessageSize(window);
       commonShim.shimSendThrowTypeError(window);
       break;
@@ -77,6 +78,7 @@ export function adapterFactory({window} = {}, options = {
       firefoxShim.shimRTCDataChannel(window);
 
       commonShim.shimRTCIceCandidate(window);
+      commonShim.shimConnectionState(window);
       commonShim.shimMaxMessageSize(window);
       commonShim.shimSendThrowTypeError(window);
       break;
