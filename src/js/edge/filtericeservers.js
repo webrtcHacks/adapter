@@ -28,17 +28,19 @@ export function filterIceServers(iceServers, edgeVersion) {
         urls = [urls];
       }
       urls = urls.filter(url => {
+        // filter STUN unconditionally.
+        if (url.indexOf('stun:') === 0) {
+          return false;
+        }
+
         const validTurn = url.startsWith('turn') &&
             !url.startsWith('turn:[') &&
-            url.includes('transport=udp') &&
-            !hasTurn;
-
-        if (validTurn) {
+            url.includes('transport=udp');
+        if (validTurn && !hasTurn) {
           hasTurn = true;
           return true;
         }
-        return url.indexOf('stun:') === 0 && edgeVersion >= 14393 &&
-            url.indexOf('?transport=udp') === -1;
+        return validTurn && !hasTurn;
       });
 
       delete server.url;
