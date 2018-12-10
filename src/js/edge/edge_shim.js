@@ -72,9 +72,9 @@ export function shimPeerConnection(window) {
       browserDetails.version);
   window.RTCPeerConnection = function(config) {
     if (config && config.iceServers) {
-      // TODO: pass browserDetails.version again. See #903 for
-      //       why this is not done.
-      config.iceServers = filterIceServers(config.iceServers);
+      config.iceServers = filterIceServers(config.iceServers,
+        browserDetails.version);
+      utils.log('ICE servers after filtering:', config.iceServers);
     }
     return new RTCPeerConnectionShim(config);
   };

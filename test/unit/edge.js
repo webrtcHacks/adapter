@@ -49,10 +49,10 @@ describe('Edge shim', () => {
 
     it('converts legacy url member to urls', () => {
       const result = filterIceServers([
-        {url: 'stun:stun.l.google.com'}
+        {url: 'turn:stun.l.google.com:19302?transport=udp'}
       ], edgeVersion);
       expect(result).to.deep.equal([
-        {urls: 'stun:stun.l.google.com'}
+        {urls: 'turn:stun.l.google.com:19302?transport=udp'}
       ]);
     });
 
@@ -63,13 +63,11 @@ describe('Edge shim', () => {
       expect(result).to.deep.equal([]);
     });
 
-    it('does not filter STUN without protocol after r14393', () => {
+    it('does filter STUN without protocol after r14393', () => {
       const result = filterIceServers([
         {urls: 'stun:stun.l.google.com'}
       ], edgeVersion);
-      expect(result).to.deep.equal([
-        {urls: 'stun:stun.l.google.com'}
-      ]);
+      expect(result).to.deep.equal([]);
     });
 
     it('does filter STUN with protocol even after r14393', () => {
@@ -102,21 +100,18 @@ describe('Edge shim', () => {
           {urls: 'turn:stun.l.google.com:19302?transport=udp'}
         ], edgeVersion);
         expect(result).to.deep.equal([
-          {urls: 'stun:stun.l.google.com'},
           {urls: 'turn:stun.l.google.com:19301?transport=udp'}
         ]);
       });
 
       it('in urls entries', () => {
         const result = filterIceServers([
-          {urls: 'stun:stun.l.google.com'},
           {urls: [
             'turn:stun.l.google.com:19301?transport=udp',
             'turn:stun.l.google.com:19302?transport=udp'
           ]}
         ], edgeVersion);
         expect(result).to.deep.equal([
-          {urls: 'stun:stun.l.google.com'},
           {urls: ['turn:stun.l.google.com:19301?transport=udp']}
         ]);
       });
