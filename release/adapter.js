@@ -1560,9 +1560,8 @@ function shimPeerConnection(window) {
   var RTCPeerConnectionShim = (0, _rtcpeerconnectionShim2.default)(window, browserDetails.version);
   window.RTCPeerConnection = function (config) {
     if (config && config.iceServers) {
-      // TODO: pass browserDetails.version again. See #903 for
-      //       why this is not done.
-      config.iceServers = (0, _filtericeservers.filterIceServers)(config.iceServers);
+      config.iceServers = (0, _filtericeservers.filterIceServers)(config.iceServers, browserDetails.version);
+      utils.log('ICE servers after filtering:', config.iceServers);
     }
     return new RTCPeerConnectionShim(config);
   };
@@ -1617,13 +1616,17 @@ function filterIceServers(iceServers, edgeVersion) {
         urls = [urls];
       }
       urls = urls.filter(function (url) {
-        var validTurn = url.startsWith('turn') && !url.startsWith('turn:[') && url.includes('transport=udp') && !hasTurn;
+        // filter STUN unconditionally.
+        if (url.indexOf('stun:') === 0) {
+          return false;
+        }
 
-        if (validTurn) {
+        var validTurn = url.startsWith('turn') && !url.startsWith('turn:[') && url.includes('transport=udp');
+        if (validTurn && !hasTurn) {
           hasTurn = true;
           return true;
         }
-        return url.indexOf('stun:') === 0 && edgeVersion >= 14393 && url.indexOf('?transport=udp') === -1;
+        return validTurn && !hasTurn;
       });
 
       delete server.url;
@@ -3841,7 +3844,9 @@ module.exports = function(window, edgeVersion) {
       failed: 0
     };
     this.transceivers.forEach(function(transceiver) {
-      states[transceiver.iceTransport.state]++;
+      if (transceiver.iceTransport && !transceiver.rejected) {
+        states[transceiver.iceTransport.state]++;
+      }
     });
 
     newState = 'new';
@@ -3879,8 +3884,11 @@ module.exports = function(window, edgeVersion) {
       failed: 0
     };
     this.transceivers.forEach(function(transceiver) {
-      states[transceiver.iceTransport.state]++;
-      states[transceiver.dtlsTransport.state]++;
+      if (transceiver.iceTransport && transceiver.dtlsTransport &&
+          !transceiver.rejected) {
+        states[transceiver.iceTransport.state]++;
+        states[transceiver.dtlsTransport.state]++;
+      }
     });
     // ICETransport.completed and connected are the same for this purpose.
     states.connected += states.completed;
