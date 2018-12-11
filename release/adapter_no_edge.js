@@ -644,7 +644,7 @@ function shimAddTrackRemoveTrack(window) {
   var browserDetails = utils.detectBrowser(window);
   // shim addTrack and removeTrack.
   if (window.RTCPeerConnection.prototype.addTrack && browserDetails.version >= 65) {
-    return this.shimAddTrackRemoveTrackWithNative(window);
+    return shimAddTrackRemoveTrackWithNative(window);
   }
 
   // also shim pc.getLocalStreams when addTrack is shimmed
