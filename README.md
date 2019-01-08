@@ -59,7 +59,7 @@ Head over to [test/README.md](https://github.com/webrtcHacks/adapter/blob/gh-pag
 * Go to the releases tab in the GitHub web ui and edit the tag.
 * Add a summary of the recent commits in the tag summary and a link to the diff between the previous and current version in the description, [example](https://github.com/webrtcHacks/adapter/releases/tag/v3.4.1).
 * Go back to your checkout and run `git pull`
-* Run `npm publish` (you need access to the [webrtc-adapter npmjs package](https://www.npmjs.com/package/webrtc-adapter)). For big changes, consider using a [tag version](https://docs.npmjs.com/adding-dist-tags-to-packages) such as `next`.
+* Run `npm publish` (you need access to the [webrtc-adapter npmjs package](https://www.npmjs.com/package/webrtc-adapter)). For big changes, consider using a [tag version](https://docs.npmjs.com/adding-dist-tags-to-packages) such as `next` and then [change the dist-tag after testing](https://docs.npmjs.com/cli/dist-tag).
 * Done! There should now be a new release published to NPM and the gh-pages branch.
 
 Note: Currently only tested on Linux, not sure about Mac but will definitely not work on Windows.
