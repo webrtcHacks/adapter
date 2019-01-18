@@ -189,6 +189,15 @@ export function shimCallbacksAPI(window) {
 export function shimGetUserMedia(window) {
   const navigator = window && window.navigator;
 
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // shim not needed in Safari 12.1
+    const mediaDevices = navigator.mediaDevices;
+    const _getUserMedia = mediaDevices.getUserMedia.bind(mediaDevices);
+    navigator.mediaDevices.getUserMedia = (constraints) => {
+      return _getUserMedia(shimConstraints(constraints));
+    };
+  }
+
   if (!navigator.getUserMedia && navigator.mediaDevices &&
     navigator.mediaDevices.getUserMedia) {
     navigator.getUserMedia = function(constraints, cb, errcb) {
@@ -196,6 +205,17 @@ export function shimGetUserMedia(window) {
       .then(cb, errcb);
     }.bind(navigator);
   }
+}
+
+export function shimConstraints(constraints) {
+  if (constraints && constraints.video !== undefined) {
+    return Object.assign({},
+      constraints,
+      {video: utils.compactObject(constraints.video)}
+    );
+  }
+
+  return constraints;
 }
 
 export function shimRTCIceServerUrls(window) {

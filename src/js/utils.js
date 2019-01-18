@@ -171,3 +171,25 @@ export function detectBrowser(window) {
 
   return result;
 }
+
+/**
+ * Remove all empty objects and undefined values
+ * from a nested object -- an enhanced and vanilla version
+ * of Lodash's `compact`.
+ */
+export function compactObject(data) {
+  if (typeof data !== 'object') {
+    return data;
+  }
+
+  return Object.keys(data).reduce(function(accumulator, key) {
+    const isObject = typeof data[key] === 'object';
+    const value = isObject ? compactObject(data[key]) : data[key];
+    const isEmptyObject = isObject && !Object.keys(value).length;
+    if (value === undefined || isEmptyObject) {
+      return accumulator;
+    }
+
+    return Object.assign(accumulator, {[key]: value});
+  }, {});
+}
