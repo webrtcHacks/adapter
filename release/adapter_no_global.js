@@ -104,6 +104,7 @@ function adapterFactory() {
       commonShim.shimConnectionState(window);
       commonShim.shimMaxMessageSize(window);
       commonShim.shimSendThrowTypeError(window);
+      commonShim.removeAllowExtmapMixed(window);
       break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection || !options.shimFirefox) {
@@ -166,6 +167,7 @@ function adapterFactory() {
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
       commonShim.shimSendThrowTypeError(window);
+      commonShim.removeAllowExtmapMixed(window);
       break;
     default:
       logging('Unsupported browser!');
@@ -1236,6 +1238,7 @@ exports.shimRTCIceCandidate = shimRTCIceCandidate;
 exports.shimMaxMessageSize = shimMaxMessageSize;
 exports.shimSendThrowTypeError = shimSendThrowTypeError;
 exports.shimConnectionState = shimConnectionState;
+exports.removeAllowExtmapMixed = removeAllowExtmapMixed;
 
 var _sdp = require('sdp');
 
@@ -1517,6 +1520,26 @@ function shimConnectionState(window) {
       return origMethod.apply(this, arguments);
     };
   });
+}
+
+function removeAllowExtmapMixed(window) {
+  /* remove a=extmap-allow-mixed for Chrome < M71 */
+  if (!window.RTCPeerConnection) {
+    return;
+  }
+  var browserDetails = utils.detectBrowser(window);
+  if (browserDetails.browser === 'chrome' && browserDetails.version >= 71) {
+    return;
+  }
+  var nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;
+  window.RTCPeerConnection.prototype.setRemoteDescription = function (desc) {
+    if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
+      desc.sdp = desc.sdp.split('\n').filter(function (line) {
+        return line.trim() !== 'a=extmap-allow-mixed';
+      }).join('\n');
+    }
+    return nativeSRD.apply(this, arguments);
+  };
 }
 
 },{"./utils":15,"sdp":17}],7:[function(require,module,exports){
@@ -2113,6 +2136,7 @@ exports.shimLocalStreamsAPI = shimLocalStreamsAPI;
 exports.shimRemoteStreamsAPI = shimRemoteStreamsAPI;
 exports.shimCallbacksAPI = shimCallbacksAPI;
 exports.shimGetUserMedia = shimGetUserMedia;
+exports.shimConstraints = shimConstraints;
 exports.shimRTCIceServerUrls = shimRTCIceServerUrls;
 exports.shimTrackEventTransceiver = shimTrackEventTransceiver;
 exports.shimCreateOfferLegacy = shimCreateOfferLegacy;
@@ -2311,11 +2335,28 @@ function shimCallbacksAPI(window) {
 function shimGetUserMedia(window) {
   var navigator = window && window.navigator;
 
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // shim not needed in Safari 12.1
+    var mediaDevices = navigator.mediaDevices;
+    var _getUserMedia = mediaDevices.getUserMedia.bind(mediaDevices);
+    navigator.mediaDevices.getUserMedia = function (constraints) {
+      return _getUserMedia(shimConstraints(constraints));
+    };
+  }
+
   if (!navigator.getUserMedia && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.getUserMedia = function (constraints, cb, errcb) {
       navigator.mediaDevices.getUserMedia(constraints).then(cb, errcb);
     }.bind(navigator);
   }
+}
+
+function shimConstraints(constraints) {
+  if (constraints && constraints.video !== undefined) {
+    return Object.assign({}, constraints, { video: utils.compactObject(constraints.video) });
+  }
+
+  return constraints;
 }
 
 function shimRTCIceServerUrls(window) {
@@ -2447,6 +2488,10 @@ exports.disableWarnings = disableWarnings;
 exports.log = log;
 exports.deprecated = deprecated;
 exports.detectBrowser = detectBrowser;
+exports.compactObject = compactObject;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var logDisabled_ = true;
 var deprecationWarnings_ = true;
 
@@ -2600,6 +2645,28 @@ function detectBrowser(window) {
   }
 
   return result;
+}
+
+/**
+ * Remove all empty objects and undefined values
+ * from a nested object -- an enhanced and vanilla version
+ * of Lodash's `compact`.
+ */
+function compactObject(data) {
+  if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') {
+    return data;
+  }
+
+  return Object.keys(data).reduce(function (accumulator, key) {
+    var isObject = _typeof(data[key]) === 'object';
+    var value = isObject ? compactObject(data[key]) : data[key];
+    var isEmptyObject = isObject && !Object.keys(value).length;
+    if (value === undefined || isEmptyObject) {
+      return accumulator;
+    }
+
+    return Object.assign(accumulator, _defineProperty({}, key, value));
+  }, {});
 }
 
 },{}],16:[function(require,module,exports){
