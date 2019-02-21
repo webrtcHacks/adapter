@@ -1748,7 +1748,7 @@ function shimGetDisplayMedia(window) {
   if (window.navigator.mediaDevices && 'getDisplayMedia' in window.navigator.mediaDevices) {
     return;
   }
-  window.navigator.mediaDevices.getDisplayMedia = window.navigator.getDisplayMedia.bind(window.navigator.mediaDevices);
+  window.navigator.mediaDevices.getDisplayMedia = window.navigator.getDisplayMedia.bind(window.navigator);
 }
 
 },{}],10:[function(require,module,exports){
