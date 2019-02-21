@@ -20,5 +20,5 @@ export function shimGetDisplayMedia(window) {
     return;
   }
   window.navigator.mediaDevices.getDisplayMedia =
-    window.navigator.getDisplayMedia.bind(window.navigator.mediaDevices);
+    window.navigator.getDisplayMedia.bind(window.navigator);
 }
