@@ -64,7 +64,7 @@ describe('Chrome shim', () => {
           ]
         });
       };
-      shim.shimPeerConnection(window);
+      shim.shimGetStats(window);
       pc = new window.RTCPeerConnection();
     });
 

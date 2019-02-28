@@ -51,6 +51,7 @@ export function adapterFactory({window} = {}, options = {
       chromeShim.shimOnTrack(window);
       chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
+      chromeShim.shimGetStats(window);
       chromeShim.shimSenderReceiverGetStats(window);
       chromeShim.fixNegotiationNeeded(window);
 
