@@ -10,47 +10,6 @@
 'use strict';
 import * as utils from '../utils.js';
 
-/* iterates the stats graph recursively. */
-function walkStats(stats, base, resultSet) {
-  if (!base || resultSet.has(base.id)) {
-    return;
-  }
-  resultSet.set(base.id, base);
-  Object.keys(base).forEach(name => {
-    if (name.endsWith('Id')) {
-      walkStats(stats, stats.get(base[name]), resultSet);
-    } else if (name.endsWith('Ids')) {
-      base[name].forEach(id => {
-        walkStats(stats, stats.get(id), resultSet);
-      });
-    }
-  });
-}
-
-/* filter getStats for a sender/receiver track. */
-function filterStats(result, track, outbound) {
-  const streamStatsType = outbound ? 'outbound-rtp' : 'inbound-rtp';
-  const filteredResult = new Map();
-  if (track === null) {
-    return filteredResult;
-  }
-  const trackStats = [];
-  result.forEach(value => {
-    if (value.type === 'track' &&
-        value.trackIdentifier === track.id) {
-      trackStats.push(value);
-    }
-  });
-  trackStats.forEach(trackStat => {
-    result.forEach(stats => {
-      if (stats.type === streamStatsType && stats.trackId === trackStat.id) {
-        walkStats(result, stats, filteredResult);
-      }
-    });
-  });
-  return filteredResult;
-}
-
 export {shimGetUserMedia} from './getusermedia';
 export {shimGetDisplayMedia} from './getdisplaymedia';
 
@@ -258,7 +217,7 @@ export function shimSenderReceiverGetStats(window) {
          *   send a track with the same id as sender.track as
          *   it is not possible to identify the RTCRtpSender.
          */
-        filterStats(result, sender.track, true));
+        utils.filterStats(result, sender.track, true));
     };
   }
 
@@ -279,7 +238,7 @@ export function shimSenderReceiverGetStats(window) {
     window.RTCRtpReceiver.prototype.getStats = function() {
       const receiver = this;
       return this._pc.getStats().then(result =>
-        filterStats(result, receiver.track, false));
+        utils.filterStats(result, receiver.track, false));
     };
   }
 
