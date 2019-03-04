@@ -226,6 +226,74 @@ export function shimGetSendersWithDtmf(window) {
   }
 }
 
+export function shimGetStats(window) {
+  if (!window.RTCPeerConnection) {
+    return;
+  }
+
+  const origGetStats = window.RTCPeerConnection.prototype.getStats;
+  window.RTCPeerConnection.prototype.getStats = function(selector,
+      successCallback, errorCallback) {
+    const args = arguments;
+
+    // If selector is a function then we are in the old style stats so just
+    // pass back the original getStats format to avoid breaking old users.
+    if (arguments.length > 0 && typeof selector === 'function') {
+      return origGetStats.apply(this, arguments);
+    }
+
+    // When spec-style getStats is supported, return those when called with
+    // either no arguments or the selector argument is null.
+    if (origGetStats.length === 0 && (arguments.length === 0 ||
+        typeof arguments[0] !== 'function')) {
+      return origGetStats.apply(this, []);
+    }
+
+    const fixChromeStats_ = function(response) {
+      const standardReport = {};
+      const reports = response.result();
+      reports.forEach(report => {
+        const standardStats = {
+          id: report.id,
+          timestamp: report.timestamp,
+          type: {
+            localcandidate: 'local-candidate',
+            remotecandidate: 'remote-candidate'
+          }[report.type] || report.type
+        };
+        report.names().forEach(name => {
+          standardStats[name] = report.stat(name);
+        });
+        standardReport[standardStats.id] = standardStats;
+      });
+
+      return standardReport;
+    };
+
+    // shim getStats with maplike support
+    const makeMapStats = function(stats) {
+      return new Map(Object.keys(stats).map(key => [key, stats[key]]));
+    };
+
+    if (arguments.length >= 2) {
+      const successCallbackWrapper_ = function(response) {
+        args[1](makeMapStats(fixChromeStats_(response)));
+      };
+
+      return origGetStats.apply(this, [successCallbackWrapper_,
+        arguments[0]]);
+    }
+
+    // promise-support
+    return new Promise((resolve, reject) => {
+      origGetStats.apply(this, [
+        function(response) {
+          resolve(makeMapStats(fixChromeStats_(response)));
+        }, reject]);
+    }).then(successCallback, errorCallback);
+  };
+}
+
 export function shimSenderReceiverGetStats(window) {
   if (!(typeof window === 'object' && window.RTCPeerConnection &&
       window.RTCRtpSender && window.RTCRtpReceiver)) {
@@ -631,68 +699,6 @@ export function shimPeerConnection(window) {
   if (!window.RTCPeerConnection) {
     return;
   }
-
-  const origGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function(selector,
-      successCallback, errorCallback) {
-    const args = arguments;
-
-    // If selector is a function then we are in the old style stats so just
-    // pass back the original getStats format to avoid breaking old users.
-    if (arguments.length > 0 && typeof selector === 'function') {
-      return origGetStats.apply(this, arguments);
-    }
-
-    // When spec-style getStats is supported, return those when called with
-    // either no arguments or the selector argument is null.
-    if (origGetStats.length === 0 && (arguments.length === 0 ||
-        typeof arguments[0] !== 'function')) {
-      return origGetStats.apply(this, []);
-    }
-
-    const fixChromeStats_ = function(response) {
-      const standardReport = {};
-      const reports = response.result();
-      reports.forEach(report => {
-        const standardStats = {
-          id: report.id,
-          timestamp: report.timestamp,
-          type: {
-            localcandidate: 'local-candidate',
-            remotecandidate: 'remote-candidate'
-          }[report.type] || report.type
-        };
-        report.names().forEach(name => {
-          standardStats[name] = report.stat(name);
-        });
-        standardReport[standardStats.id] = standardStats;
-      });
-
-      return standardReport;
-    };
-
-    // shim getStats with maplike support
-    const makeMapStats = function(stats) {
-      return new Map(Object.keys(stats).map(key => [key, stats[key]]));
-    };
-
-    if (arguments.length >= 2) {
-      const successCallbackWrapper_ = function(response) {
-        args[1](makeMapStats(fixChromeStats_(response)));
-      };
-
-      return origGetStats.apply(this, [successCallbackWrapper_,
-        arguments[0]]);
-    }
-
-    // promise-support
-    return new Promise((resolve, reject) => {
-      origGetStats.apply(this, [
-        function(response) {
-          resolve(makeMapStats(fixChromeStats_(response)));
-        }, reject]);
-    }).then(successCallback, errorCallback);
-  };
 
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
   ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
