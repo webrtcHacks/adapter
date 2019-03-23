@@ -1,1 +1,0 @@
-ERR RTCIceCandidate with empty candidate.candidate does not throw AssertionError
