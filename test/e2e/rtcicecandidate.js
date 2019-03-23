@@ -15,14 +15,14 @@ describe('RTCIceCandidate', () => {
 
   describe('is augmented in', () => {
     it('the onicecandidate callback', (done) => {
-      let hasProperty = false;
+      let hasAddress = false;
       const pc = new window.RTCPeerConnection();
       pc.onicecandidate = (e) => {
         if (!e.candidate) {
-          expect(hasProperty).to.equal(true);
+          expect(hasAddress).to.equal(true);
           done();
         } else {
-          hasProperty = e.candidate.hasOwnProperty('address');
+          hasAddress = !!e.candidate.address;
         }
       };
       pc.createOffer({offerToReceiveAudio: true})
@@ -30,14 +30,14 @@ describe('RTCIceCandidate', () => {
     });
 
     it('the icecandidate event', (done) => {
-      let hasProperty = false;
+      let hasAddress = false;
       const pc = new window.RTCPeerConnection();
       pc.addEventListener('icecandidate', (e) => {
         if (!e.candidate) {
-          expect(hasProperty).to.equal(true);
+          expect(hasAddress).to.equal(true);
           done();
         } else {
-          hasProperty = e.candidate.hasOwnProperty('port');
+          hasAddress = !!e.candidate.address;
         }
       });
       pc.createOffer({offerToReceiveAudio: true})
