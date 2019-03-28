@@ -144,6 +144,11 @@ export function detectBrowser(window) {
     return result;
   }
 
+  if (window.isSecureContext === false) {
+    result.browser = 'Insecure Contexts are no longer supported.';
+    return result;
+  }
+
   if (navigator.mozGetUserMedia) { // Firefox.
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent,
