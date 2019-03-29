@@ -78,6 +78,9 @@ export function shimMaxMessageSize(window) {
   }
 
   const sctpInDescription = function(description) {
+    if (!description || !description.sdp) {
+      return false;
+    }
     const sections = SDPUtils.splitSections(description.sdp);
     sections.shift();
     return sections.some(mediaSection => {
