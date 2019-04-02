@@ -171,18 +171,20 @@ export function shimGetUserMedia(window) {
   // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
   // function which returns a Promise, it does not accept spec-style
   // constraints.
-  const origGetUserMedia = navigator.mediaDevices.getUserMedia.
-      bind(navigator.mediaDevices);
-  navigator.mediaDevices.getUserMedia = function(cs) {
-    return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
-      if (c.audio && !stream.getAudioTracks().length ||
-          c.video && !stream.getVideoTracks().length) {
-        stream.getTracks().forEach(track => {
-          track.stop();
-        });
-        throw new DOMException('', 'NotFoundError');
-      }
-      return stream;
-    }, e => Promise.reject(shimError_(e))));
-  };
+  if (navigator.mediaDevices.getUserMedia) {
+    const origGetUserMedia = navigator.mediaDevices.getUserMedia.
+        bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = function(cs) {
+      return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
+        if (c.audio && !stream.getAudioTracks().length ||
+            c.video && !stream.getVideoTracks().length) {
+          stream.getTracks().forEach(track => {
+            track.stop();
+          });
+          throw new DOMException('', 'NotFoundError');
+        }
+        return stream;
+      }, e => Promise.reject(shimError_(e))));
+    };
+  }
 }
