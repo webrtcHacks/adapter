@@ -148,9 +148,13 @@ export function detectBrowser(window) {
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent,
         /Firefox\/(\d+)\./, 1);
-  } else if (navigator.webkitGetUserMedia) {
+  } else if (navigator.webkitGetUserMedia ||
+      (window.isSecureContext === false && window.webkitRTCPeerConnection &&
+       !window.RTCIceGatherer)) {
     // Chrome, Chromium, Webview, Opera.
     // Version matches Chrome/WebRTC version.
+    // Chrome 74 removed webkitGetUserMedia on http as well so we need the
+    // more complicated fallback to webkitRTCPeerConnection.
     result.browser = 'chrome';
     result.version = extractVersion(navigator.userAgent,
         /Chrom(e|ium)\/(\d+)\./, 2);
