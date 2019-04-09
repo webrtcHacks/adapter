@@ -2141,7 +2141,7 @@ function shimCreateOfferLegacy(window) {
         offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
       }
       var audioTransceiver = this.getTransceivers().find(function (transceiver) {
-        return transceiver.sender.track && transceiver.sender.track.kind === 'audio';
+        return transceiver.receiver.track.kind === 'audio';
       });
       if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
         if (audioTransceiver.direction === 'sendrecv') {
@@ -2166,7 +2166,7 @@ function shimCreateOfferLegacy(window) {
         offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
       }
       var videoTransceiver = this.getTransceivers().find(function (transceiver) {
-        return transceiver.sender.track && transceiver.sender.track.kind === 'video';
+        return transceiver.receiver.track.kind === 'video';
       });
       if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
         if (videoTransceiver.direction === 'sendrecv') {
@@ -2353,9 +2353,11 @@ function detectBrowser(window) {
     // Firefox.
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent, /Firefox\/(\d+)\./, 1);
-  } else if (navigator.webkitGetUserMedia) {
+  } else if (navigator.webkitGetUserMedia || window.isSecureContext === false && window.webkitRTCPeerConnection && !window.RTCIceGatherer) {
     // Chrome, Chromium, Webview, Opera.
     // Version matches Chrome/WebRTC version.
+    // Chrome 74 removed webkitGetUserMedia on http as well so we need the
+    // more complicated fallback to webkitRTCPeerConnection.
     result.browser = 'chrome';
     result.version = extractVersion(navigator.userAgent, /Chrom(e|ium)\/(\d+)\./, 2);
   } else if (navigator.mediaDevices && navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) {
