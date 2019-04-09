@@ -276,8 +276,7 @@ export function shimCreateOfferLegacy(window) {
         offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
       }
       const audioTransceiver = this.getTransceivers().find(transceiver =>
-        transceiver.sender.track &&
-        transceiver.sender.track.kind === 'audio');
+        transceiver.receiver.track.kind === 'audio');
       if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
         if (audioTransceiver.direction === 'sendrecv') {
           if (audioTransceiver.setDirection) {
@@ -302,8 +301,7 @@ export function shimCreateOfferLegacy(window) {
         offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
       }
       const videoTransceiver = this.getTransceivers().find(transceiver =>
-        transceiver.sender.track &&
-        transceiver.sender.track.kind === 'video');
+        transceiver.receiver.track.kind === 'video');
       if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
         if (videoTransceiver.direction === 'sendrecv') {
           if (videoTransceiver.setDirection) {
