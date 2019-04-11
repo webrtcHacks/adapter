@@ -177,23 +177,32 @@ export function detectBrowser(window) {
 }
 
 /**
+ * Checks if something is an object.
+ *
+ * @param {*} val The something you want to check.
+ * @return true if val is an object, false otherwise.
+ */
+function isObject(val) {
+  return Object.prototype.toString.call(val) === '[object Object]';
+}
+
+/**
  * Remove all empty objects and undefined values
  * from a nested object -- an enhanced and vanilla version
  * of Lodash's `compact`.
  */
 export function compactObject(data) {
-  if (typeof data !== 'object') {
+  if (!isObject(data)) {
     return data;
   }
 
   return Object.keys(data).reduce(function(accumulator, key) {
-    const isObject = typeof data[key] === 'object';
-    const value = isObject ? compactObject(data[key]) : data[key];
-    const isEmptyObject = isObject && !Object.keys(value).length;
+    const isObj = isObject(data[key]);
+    const value = isObj ? compactObject(data[key]) : data[key];
+    const isEmptyObject = isObj && !Object.keys(value).length;
     if (value === undefined || isEmptyObject) {
       return accumulator;
     }
-
     return Object.assign(accumulator, {[key]: value});
   }, {});
 }
