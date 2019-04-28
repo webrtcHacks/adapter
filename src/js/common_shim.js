@@ -319,3 +319,31 @@ export function removeAllowExtmapMixed(window) {
     return nativeSRD.apply(this, arguments);
   };
 }
+
+export function shimRestartIce(window) {
+  if (!window.RTCPeerConnection) {
+    return;
+  }
+  if ('restartIce' in window.RTCPeerConnection.prototype) {
+    return;
+  }
+  window.RTCPeerConnection.prototype.restartIce = function() {
+    this._needsIceRestart = true;
+    this.dispatchEvent(new Event('negotiationneeded'));
+  }
+  const nativeCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+  // TODO: support for legacy callbacks.
+  window.RTCPeerConnection.prototype.createOffer = function(args) {
+    if (this._needѕIceRestart) {
+      if (!args) {
+        args = {};
+      }
+      if (typeof args === 'object' &&
+        (args.iceRestart === true || args.iceRestart === undefined))) {
+        args.iceRestart = true;
+        delete this._needsIceRestart;
+      }
+    }
+    return nativeCreateOffer.apply(this, [args]);
+  }
+}
