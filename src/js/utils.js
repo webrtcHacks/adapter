@@ -168,6 +168,8 @@ export function detectBrowser(window) {
     result.browser = 'safari';
     result.version = extractVersion(navigator.userAgent,
         /AppleWebKit\/(\d+)\./, 1);
+    result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
+        'currentDirection' in window.RTCRtpTransceiver.prototype;
   } else { // Default fallthrough: not supported.
     result.browser = 'Not a supported browser.';
     return result;
