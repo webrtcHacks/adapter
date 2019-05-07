@@ -19,10 +19,10 @@ describe('RTCIceCandidate', () => {
       const pc = new window.RTCPeerConnection();
       pc.onicecandidate = (e) => {
         if (!e.candidate) {
-          expect(hasAddress).to.equal(true);
+          expect(hasAddress).to.equal(1);
           done();
         } else {
-          hasAddress = !!e.candidate.address;
+          hasAddress |= !!e.candidate.address;
         }
       };
       pc.createOffer({offerToReceiveAudio: true})
@@ -34,10 +34,10 @@ describe('RTCIceCandidate', () => {
       const pc = new window.RTCPeerConnection();
       pc.addEventListener('icecandidate', (e) => {
         if (!e.candidate) {
-          expect(hasAddress).to.equal(true);
+          expect(hasAddress).to.equal(1);
           done();
         } else {
-          hasAddress = !!e.candidate.address;
+          hasAddress |= !!e.candidate.address;
         }
       });
       pc.createOffer({offerToReceiveAudio: true})
