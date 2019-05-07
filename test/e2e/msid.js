@@ -53,7 +53,7 @@ describe('MSID', () => {
     });
   });
 
-  it('puts the track msid attribute into the localDescription', () => {
+  it('puts the stream msid attribute into the localDescription', () => {
     return navigator.mediaDevices.getUserMedia({video: true})
     .then((stream) => {
       localStream = stream;
@@ -61,9 +61,8 @@ describe('MSID', () => {
       return negotiate(pc1, pc2);
     })
     .then(() => {
-      const track = localStream.getTracks()[0];
       expect(pc1.localDescription.sdp)
-          .to.contain('msid:' + localStream.id + ' ' + track.id);
+          .to.contain('msid:' + localStream.id + ' ');
     });
   });
 });
