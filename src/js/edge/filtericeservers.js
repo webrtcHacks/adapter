@@ -28,19 +28,8 @@ export function filterIceServers(iceServers, edgeVersion) {
         urls = [urls];
       }
       urls = urls.filter(url => {
-        // filter STUN unconditionally.
-        if (url.indexOf('stun:') === 0) {
-          return false;
-        }
-
-        const validTurn = url.startsWith('turn') &&
-            !url.startsWith('turn:[') &&
-            url.includes('transport=udp');
-        if (validTurn && !hasTurn) {
-          hasTurn = true;
-          return true;
-        }
-        return validTurn && !hasTurn;
+        // Make sure only 'turn:' and 'stun:', ipV4 only, pass. 'turns:' is not supported by edge 
+        return ((url.startsWith('turn:') && !url.startsWith('turn:[')) || (url.startsWith('stun:') && !url.startsWith('stun:[')));
       });
 
       delete server.url;
