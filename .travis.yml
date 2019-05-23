@@ -27,9 +27,6 @@ env:
 matrix:
   fast_finish: true
 
-  allow_failures:
-    - env: BROWSER=chrome  BVER=unstable
-
 before_script:
   - export CHROME_BIN=browsers/bin/chrome-${BVER}
   - export FIREFOX_BIN=browsers/bin/firefox-${BVER}
