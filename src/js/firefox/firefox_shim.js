@@ -36,17 +36,19 @@ export function shimPeerConnection(window) {
     window.RTCPeerConnection = window.mozRTCPeerConnection;
   }
 
-  // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
-  ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-      .forEach(function(method) {
-        const nativeMethod = window.RTCPeerConnection.prototype[method];
-        window.RTCPeerConnection.prototype[method] = function() {
-          arguments[0] = new ((method === 'addIceCandidate') ?
-              window.RTCIceCandidate :
-              window.RTCSessionDescription)(arguments[0]);
-          return nativeMethod.apply(this, arguments);
-        };
-      });
+  if (browserDetails.version < 53) {
+    // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          const nativeMethod = window.RTCPeerConnection.prototype[method];
+          window.RTCPeerConnection.prototype[method] = function() {
+            arguments[0] = new ((method === 'addIceCandidate') ?
+                window.RTCIceCandidate :
+                window.RTCSessionDescription)(arguments[0]);
+            return nativeMethod.apply(this, arguments);
+          };
+        });
+  }
 
   // support for addIceCandidate(null or undefined)
   const nativeAddIceCandidate =

@@ -651,6 +651,8 @@ export function shimAddTrackRemoveTrack(window) {
 }
 
 export function shimPeerConnection(window) {
+  const browserDetails = utils.detectBrowser(window);
+
   if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
     // very basic support for old versions.
     window.RTCPeerConnection = window.webkitRTCPeerConnection;
@@ -660,16 +662,18 @@ export function shimPeerConnection(window) {
   }
 
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
-  ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-      .forEach(function(method) {
-        const nativeMethod = window.RTCPeerConnection.prototype[method];
-        window.RTCPeerConnection.prototype[method] = function() {
-          arguments[0] = new ((method === 'addIceCandidate') ?
-              window.RTCIceCandidate :
-              window.RTCSessionDescription)(arguments[0]);
-          return nativeMethod.apply(this, arguments);
-        };
-      });
+  if (browserDetails.version < 53) {
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          const nativeMethod = window.RTCPeerConnection.prototype[method];
+          window.RTCPeerConnection.prototype[method] = function() {
+            arguments[0] = new ((method === 'addIceCandidate') ?
+                window.RTCIceCandidate :
+                window.RTCSessionDescription)(arguments[0]);
+            return nativeMethod.apply(this, arguments);
+          };
+        });
+  }
 
   // support for addIceCandidate(null or undefined)
   const nativeAddIceCandidate =
