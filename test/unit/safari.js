@@ -39,12 +39,13 @@ describe('Safari shim', () => {
     });
     it('local streams API', () => {
       const pc = new window.RTCPeerConnection();
-      pc.getSenders = () => {
-        return [];
+      pc.getSenders = () => [];
+      const stream = {
+        id: 'id1',
+        getTracks: () => [],
+        getAudioTracks: () => [],
+        getVideoTracks: () => [],
       };
-      var stream = {id: 'id1', getTracks: () => {
-        return [];
-      }};
       expect(pc.getLocalStreams().length).to.equal(0);
       expect(pc.getRemoteStreams().length).to.equal(0);
 
@@ -52,7 +53,12 @@ describe('Safari shim', () => {
       expect(pc.getLocalStreams()[0]).to.equal(stream);
       expect(pc.getRemoteStreams().length).to.equal(0);
 
-      var stream2 = {id: 'id2', getTracks: stream.getTracks};
+      const stream2 = {
+        id: 'id2',
+        getTracks: () => [],
+        getAudioTracks: () => [],
+        getVideoTracks: () => [],
+      };
       pc.removeStream(stream2);
       expect(pc.getLocalStreams()[0]).to.equal(stream);
 

@@ -29,7 +29,12 @@ export function shimLocalStreamsAPI(window) {
       if (!this._localStreams.includes(stream)) {
         this._localStreams.push(stream);
       }
-      stream.getTracks().forEach(track => _addTrack.call(this, track, stream));
+      // Try to emulate Chrome's behaviour of adding in audio-video order.
+      // Safari orders by track id.
+      stream.getAudioTracks().forEach(track => _addTrack.call(this, track,
+        stream));
+      stream.getVideoTracks().forEach(track => _addTrack.call(this, track,
+        stream));
     };
 
     window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
