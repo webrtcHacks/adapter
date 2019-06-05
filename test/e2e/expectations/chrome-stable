@@ -1,0 +1,3 @@
+ERR maxMessageSize send largest possible single message AssertionError
+ERR maxMessageSize throws an exception if the message is too large AssertionError
+ERR maxMessageSize throws an exception if the message is too large (using a secondary data channel) AssertionError
