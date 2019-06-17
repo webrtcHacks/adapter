@@ -20,7 +20,7 @@ export function shimRTCIceCandidate(window) {
   }
 
   const NativeRTCIceCandidate = window.RTCIceCandidate;
-  window.RTCIceCandidate = function(args) {
+  window.RTCIceCandidate = function RTCIceCandidate(args) {
     // Remove the a= which shouldn't be part of the candidate string.
     if (typeof args === 'object' && args.candidate &&
         args.candidate.indexOf('a=') === 0) {
@@ -36,7 +36,7 @@ export function shimRTCIceCandidate(window) {
           parsedCandidate);
 
       // Add a serializer that does not serialize the extra attributes.
-      augmentedCandidate.toJSON = function() {
+      augmentedCandidate.toJSON = function toJSON() {
         return {
           candidate: augmentedCandidate.candidate,
           sdpMid: augmentedCandidate.sdpMid,
@@ -162,7 +162,7 @@ export function shimMaxMessageSize(window) {
 
   const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
-  window.RTCPeerConnection.prototype.setRemoteDescription = function() {
+  window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription() {
     this._sctp = null;
     // Chrome decided to not expose .sctp in plan-b mode.
     // As usual, adapter.js has to do an 'ugly worakaround'
@@ -227,7 +227,7 @@ export function shimSendThrowTypeError(window) {
 
   function wrapDcSend(dc, pc) {
     const origDataChannelSend = dc.send;
-    dc.send = function() {
+    dc.send = function send() {
       const data = arguments[0];
       const length = data.length || data.size || data.byteLength;
       if (dc.readyState === 'open' &&
@@ -240,7 +240,7 @@ export function shimSendThrowTypeError(window) {
   }
   const origCreateDataChannel =
     window.RTCPeerConnection.prototype.createDataChannel;
-  window.RTCPeerConnection.prototype.createDataChannel = function() {
+  window.RTCPeerConnection.prototype.createDataChannel = function createDataChannel() {
     const dataChannel = origCreateDataChannel.apply(this, arguments);
     wrapDcSend(dataChannel, this);
     return dataChannel;
@@ -325,7 +325,7 @@ export function removeAllowExtmapMixed(window) {
     return;
   }
   const nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;
-  window.RTCPeerConnection.prototype.setRemoteDescription = function(desc) {
+  window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription(desc) {
     if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
       desc.sdp = desc.sdp.split('\n').filter((line) => {
         return line.trim() !== 'a=extmap-allow-mixed';

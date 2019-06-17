@@ -13,7 +13,7 @@ export function shimLocalStreamsAPI(window) {
     return;
   }
   if (!('getLocalStreams' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.getLocalStreams = function() {
+    window.RTCPeerConnection.prototype.getLocalStreams = function getLocalStreams() {
       if (!this._localStreams) {
         this._localStreams = [];
       }
@@ -22,7 +22,7 @@ export function shimLocalStreamsAPI(window) {
   }
   if (!('addStream' in window.RTCPeerConnection.prototype)) {
     const _addTrack = window.RTCPeerConnection.prototype.addTrack;
-    window.RTCPeerConnection.prototype.addStream = function(stream) {
+    window.RTCPeerConnection.prototype.addStream = function addStream(stream) {
       if (!this._localStreams) {
         this._localStreams = [];
       }
@@ -37,7 +37,7 @@ export function shimLocalStreamsAPI(window) {
         stream));
     };
 
-    window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
+    window.RTCPeerConnection.prototype.addTrack = function addTrack(track, stream) {
       if (stream) {
         if (!this._localStreams) {
           this._localStreams = [stream];
@@ -49,7 +49,7 @@ export function shimLocalStreamsAPI(window) {
     };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.removeStream = function(stream) {
+    window.RTCPeerConnection.prototype.removeStream = function removeStream(stream) {
       if (!this._localStreams) {
         this._localStreams = [];
       }
@@ -73,7 +73,7 @@ export function shimRemoteStreamsAPI(window) {
     return;
   }
   if (!('getRemoteStreams' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.getRemoteStreams = function() {
+    window.RTCPeerConnection.prototype.getRemoteStreams = function getRemoteStreams() {
       return this._remoteStreams ? this._remoteStreams : [];
     };
   }
@@ -106,10 +106,10 @@ export function shimRemoteStreamsAPI(window) {
     });
     const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
-    window.RTCPeerConnection.prototype.setRemoteDescription = function() {
+    window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription() {
       const pc = this;
       if (!this._onaddstreampoly) {
-        this.addEventListener('track', this._onaddstreampoly = function(e) {
+        this.addEventListener('track', this._onaddstreampoly = function _onaddstreampoly(e) {
           e.streams.forEach(stream => {
             if (!pc._remoteStreams) {
               pc._remoteStreams = [];
@@ -140,7 +140,7 @@ export function shimCallbacksAPI(window) {
   const setRemoteDescription = prototype.setRemoteDescription;
   const addIceCandidate = prototype.addIceCandidate;
 
-  prototype.createOffer = function(successCallback, failureCallback) {
+  prototype.createOffer = function createOffer(successCallback, failureCallback) {
     const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
     const promise = createOffer.apply(this, [options]);
     if (!failureCallback) {
@@ -150,7 +150,7 @@ export function shimCallbacksAPI(window) {
     return Promise.resolve();
   };
 
-  prototype.createAnswer = function(successCallback, failureCallback) {
+  prototype.createAnswer = function createAnswer(successCallback, failureCallback) {
     const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
     const promise = createAnswer.apply(this, [options]);
     if (!failureCallback) {
@@ -205,7 +205,7 @@ export function shimGetUserMedia(window) {
 
   if (!navigator.getUserMedia && navigator.mediaDevices &&
     navigator.mediaDevices.getUserMedia) {
-    navigator.getUserMedia = function(constraints, cb, errcb) {
+    navigator.getUserMedia = function getUserMedia(constraints, cb, errcb) {
       navigator.mediaDevices.getUserMedia(constraints)
       .then(cb, errcb);
     }.bind(navigator);
@@ -226,7 +226,7 @@ export function shimConstraints(constraints) {
 export function shimRTCIceServerUrls(window) {
   // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
   const OrigPeerConnection = window.RTCPeerConnection;
-  window.RTCPeerConnection = function(pcConfig, pcConstraints) {
+  window.RTCPeerConnection = function RTCPeerConnection(pcConfig, pcConstraints) {
     if (pcConfig && pcConfig.iceServers) {
       const newIceServers = [];
       for (let i = 0; i < pcConfig.iceServers.length; i++) {
@@ -274,7 +274,7 @@ export function shimTrackEventTransceiver(window) {
 
 export function shimCreateOfferLegacy(window) {
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
-  window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
+  window.RTCPeerConnection.prototype.createOffer = function createOffer(offerOptions) {
     if (offerOptions) {
       if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
         // support bit values

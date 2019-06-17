@@ -22,7 +22,7 @@ export function shimGetDisplayMedia(window, getSourceId) {
         'a function');
     return;
   }
-  window.navigator.mediaDevices.getDisplayMedia = function(constraints) {
+  window.navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints) {
     return getSourceId(constraints)
       .then(sourceId => {
         const widthSpecified = constraints.video && constraints.video.width;

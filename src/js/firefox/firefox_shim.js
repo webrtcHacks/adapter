@@ -41,7 +41,7 @@ export function shimPeerConnection(window) {
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
         .forEach(function(method) {
           const nativeMethod = window.RTCPeerConnection.prototype[method];
-          window.RTCPeerConnection.prototype[method] = function() {
+          window.RTCPeerConnection.prototype[method] = function prototype[method]() {
             arguments[0] = new ((method === 'addIceCandidate') ?
                 window.RTCIceCandidate :
                 window.RTCSessionDescription)(arguments[0]);
@@ -53,7 +53,7 @@ export function shimPeerConnection(window) {
   // support for addIceCandidate(null or undefined)
   const nativeAddIceCandidate =
       window.RTCPeerConnection.prototype.addIceCandidate;
-  window.RTCPeerConnection.prototype.addIceCandidate = function() {
+  window.RTCPeerConnection.prototype.addIceCandidate = function addIceCandidate() {
     if (!arguments[0]) {
       if (arguments[1]) {
         arguments[1].apply(null);
@@ -72,7 +72,7 @@ export function shimPeerConnection(window) {
   };
 
   const nativeGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function(
+  window.RTCPeerConnection.prototype.getStats = function getStats(
     selector,
     onSucc,
     onErr
@@ -114,7 +114,7 @@ export function shimSenderGetStats(window) {
   }
   const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
   if (origGetSenders) {
-    window.RTCPeerConnection.prototype.getSenders = function() {
+    window.RTCPeerConnection.prototype.getSenders = function getSenders() {
       const senders = origGetSenders.apply(this, []);
       senders.forEach(sender => sender._pc = this);
       return senders;
@@ -123,13 +123,13 @@ export function shimSenderGetStats(window) {
 
   const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
   if (origAddTrack) {
-    window.RTCPeerConnection.prototype.addTrack = function() {
+    window.RTCPeerConnection.prototype.addTrack = function addTrack() {
       const sender = origAddTrack.apply(this, arguments);
       sender._pc = this;
       return sender;
     };
   }
-  window.RTCRtpSender.prototype.getStats = function() {
+  window.RTCRtpSender.prototype.getStats = function getStats() {
     return this.track ? this._pc.getStats(this.track) :
         Promise.resolve(new Map());
   };
@@ -145,7 +145,7 @@ export function shimReceiverGetStats(window) {
   }
   const origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
   if (origGetReceivers) {
-    window.RTCPeerConnection.prototype.getReceivers = function() {
+    window.RTCPeerConnection.prototype.getReceivers = function getReceivers() {
       const receivers = origGetReceivers.apply(this, []);
       receivers.forEach(receiver => receiver._pc = this);
       return receivers;
@@ -155,7 +155,7 @@ export function shimReceiverGetStats(window) {
     e.receiver._pc = e.srcElement;
     return e;
   });
-  window.RTCRtpReceiver.prototype.getStats = function() {
+  window.RTCRtpReceiver.prototype.getStats = function getStats() {
     return this._pc.getStats(this.track);
   };
 }
@@ -165,7 +165,7 @@ export function shimRemoveStream(window) {
       'removeStream' in window.RTCPeerConnection.prototype) {
     return;
   }
-  window.RTCPeerConnection.prototype.removeStream = function(stream) {
+  window.RTCPeerConnection.prototype.removeStream = function removeStream(stream) {
     utils.deprecated('removeStream', 'removeTrack');
     this.getSenders().forEach(sender => {
       if (sender.track && stream.getTracks().includes(sender.track)) {

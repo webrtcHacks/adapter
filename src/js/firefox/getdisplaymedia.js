@@ -16,7 +16,7 @@ export function shimGetDisplayMedia(window, preferredMediaSource) {
   if (!(window.navigator.mediaDevices)) {
     return;
   }
-  window.navigator.mediaDevices.getDisplayMedia = function(constraints) {
+  window.navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints) {
     if (!(constraints && constraints.video)) {
       const err = new DOMException('getDisplayMedia without video ' +
           'constraints is undefined');
