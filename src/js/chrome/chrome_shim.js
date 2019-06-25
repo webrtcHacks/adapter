@@ -560,7 +560,7 @@ export function shimAddTrackRemoveTrack(window) {
   }
   ['createOffer', 'createAnswer'].forEach(function(method) {
     const nativeMethod = window.RTCPeerConnection.prototype[method];
-    window.RTCPeerConnection.prototype[method] = function prototype[method]() {
+    const methodObj = {[method]() {
       const args = arguments;
       const isLegacyCall = arguments.length &&
           typeof arguments[0] === 'function';
@@ -579,7 +579,8 @@ export function shimAddTrackRemoveTrack(window) {
       }
       return nativeMethod.apply(this, arguments)
       .then(description => replaceInternalStreamId(this, description));
-    };
+    }};
+    window.RTCPeerConnection.prototype[method] = methodObj[method];
   });
 
   const origSetLocalDescription =
@@ -666,12 +667,13 @@ export function shimPeerConnection(window) {
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
         .forEach(function(method) {
           const nativeMethod = window.RTCPeerConnection.prototype[method];
-          window.RTCPeerConnection.prototype[method] = function prototype[method]() {
+          const methodObj = {[method]() {
             arguments[0] = new ((method === 'addIceCandidate') ?
                 window.RTCIceCandidate :
                 window.RTCSessionDescription)(arguments[0]);
             return nativeMethod.apply(this, arguments);
-          };
+          }};
+          window.RTCPeerConnection.prototype[method] = methodObj[method];
         });
   }
 
