@@ -72,11 +72,11 @@ export function shimPeerConnection(window) {
   };
 
   const nativeGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function(
-    selector,
-    onSucc,
-    onErr
-  ) {
+  window.RTCPeerConnection.prototype.getStats = function() {
+    var selector = arguments[0]
+    var onSucc = arguments[1]
+    var onErr = arguments[2]
+
     return nativeGetStats.apply(this, [selector || null])
       .then(stats => {
         if (browserDetails.version < 53 && !onSucc) {
