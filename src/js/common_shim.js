@@ -64,7 +64,7 @@ export function shimRTCIceCandidate(window) {
 }
 
 export function shimMaxMessageSize(window) {
-  if (window.RTCSctpTransport || !window.RTCPeerConnection) {
+  if (!window.RTCPeerConnection) {
     return;
   }
   const browserDetails = utils.detectBrowser(window);
@@ -164,6 +164,21 @@ export function shimMaxMessageSize(window) {
       window.RTCPeerConnection.prototype.setRemoteDescription;
   window.RTCPeerConnection.prototype.setRemoteDescription = function() {
     this._sctp = null;
+    // Chrome decided to not expose .sctp in plan-b mode.
+    // As usual, adapter.js has to do an 'ugly worakaround'
+    // to cover up the mess.
+    if (browserDetails.browser === 'chrome' && browserDetails.version >= 76) {
+      const {sdpSemantics} = this.getConfiguration();
+      if (sdpSemantics === 'plan-b') {
+        Object.defineProperty(this, 'sctp', {
+          get() {
+            return typeof this._sctp === 'undefined' ? null : this._sctp;
+          },
+          enumerable: true,
+          configurable: true,
+        });
+      }
+    }
 
     if (sctpInDescription(arguments[0])) {
       // Check if the remote is FF.
