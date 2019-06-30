@@ -702,6 +702,12 @@ export function shimPeerConnection(window) {
         }
         return Promise.resolve();
       }
+      // Firefox 68+ emits and processes {candidate: "", ...}, ignore
+      // in older versions. Native support planned for Chrome M77.
+      if (browserDetails.version < 78 &&
+        arguments[0] && arguments[0].candidate === '') {
+        return Promise.resolve();
+      }
       return nativeAddIceCandidate.apply(this, arguments);
     };
 }
