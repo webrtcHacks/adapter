@@ -13,12 +13,13 @@ export function shimLocalStreamsAPI(window) {
     return;
   }
   if (!('getLocalStreams' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.getLocalStreams = function getLocalStreams() {
-      if (!this._localStreams) {
-        this._localStreams = [];
-      }
-      return this._localStreams;
-    };
+    window.RTCPeerConnection.prototype.getLocalStreams =
+      function getLocalStreams() {
+        if (!this._localStreams) {
+          this._localStreams = [];
+        }
+        return this._localStreams;
+      };
   }
   if (!('addStream' in window.RTCPeerConnection.prototype)) {
     const _addTrack = window.RTCPeerConnection.prototype.addTrack;
@@ -37,34 +38,36 @@ export function shimLocalStreamsAPI(window) {
         stream));
     };
 
-    window.RTCPeerConnection.prototype.addTrack = function addTrack(track, stream) {
-      if (stream) {
-        if (!this._localStreams) {
-          this._localStreams = [stream];
-        } else if (!this._localStreams.includes(stream)) {
-          this._localStreams.push(stream);
+    window.RTCPeerConnection.prototype.addTrack =
+      function addTrack(track, stream) {
+        if (stream) {
+          if (!this._localStreams) {
+            this._localStreams = [stream];
+          } else if (!this._localStreams.includes(stream)) {
+            this._localStreams.push(stream);
+          }
         }
-      }
-      return _addTrack.call(this, track, stream);
-    };
+        return _addTrack.call(this, track, stream);
+      };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.removeStream = function removeStream(stream) {
-      if (!this._localStreams) {
-        this._localStreams = [];
-      }
-      const index = this._localStreams.indexOf(stream);
-      if (index === -1) {
-        return;
-      }
-      this._localStreams.splice(index, 1);
-      const tracks = stream.getTracks();
-      this.getSenders().forEach(sender => {
-        if (tracks.includes(sender.track)) {
-          this.removeTrack(sender);
+    window.RTCPeerConnection.prototype.removeStream =
+      function removeStream(stream) {
+        if (!this._localStreams) {
+          this._localStreams = [];
         }
-      });
-    };
+        const index = this._localStreams.indexOf(stream);
+        if (index === -1) {
+          return;
+        }
+        this._localStreams.splice(index, 1);
+        const tracks = stream.getTracks();
+        this.getSenders().forEach(sender => {
+          if (tracks.includes(sender.track)) {
+            this.removeTrack(sender);
+          }
+        });
+      };
   }
 }
 
@@ -73,9 +76,10 @@ export function shimRemoteStreamsAPI(window) {
     return;
   }
   if (!('getRemoteStreams' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.getRemoteStreams = function getRemoteStreams() {
-      return this._remoteStreams ? this._remoteStreams : [];
-    };
+    window.RTCPeerConnection.prototype.getRemoteStreams =
+      function getRemoteStreams() {
+        return this._remoteStreams ? this._remoteStreams : [];
+      };
   }
   if (!('onaddstream' in window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'onaddstream', {
@@ -106,26 +110,27 @@ export function shimRemoteStreamsAPI(window) {
     });
     const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
-    window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription() {
-      const pc = this;
-      if (!this._onaddstreampoly) {
-        this.addEventListener('track', this._onaddstreampoly = function(e) {
-          e.streams.forEach(stream => {
-            if (!pc._remoteStreams) {
-              pc._remoteStreams = [];
-            }
-            if (pc._remoteStreams.indexOf(stream) >= 0) {
-              return;
-            }
-            pc._remoteStreams.push(stream);
-            const event = new Event('addstream');
-            event.stream = stream;
-            pc.dispatchEvent(event);
+    window.RTCPeerConnection.prototype.setRemoteDescription =
+      function setRemoteDescription() {
+        const pc = this;
+        if (!this._onaddstreampoly) {
+          this.addEventListener('track', this._onaddstreampoly = function(e) {
+            e.streams.forEach(stream => {
+              if (!pc._remoteStreams) {
+                pc._remoteStreams = [];
+              }
+              if (pc._remoteStreams.indexOf(stream) >= 0) {
+                return;
+              }
+              pc._remoteStreams.push(stream);
+              const event = new Event('addstream');
+              event.stream = stream;
+              pc.dispatchEvent(event);
+            });
           });
-        });
-      }
-      return origSetRemoteDescription.apply(pc, arguments);
-    };
+        }
+        return origSetRemoteDescription.apply(pc, arguments);
+      };
   }
 }
 
@@ -140,25 +145,27 @@ export function shimCallbacksAPI(window) {
   const setRemoteDescription = prototype.setRemoteDescription;
   const addIceCandidate = prototype.addIceCandidate;
 
-  prototype.createOffer = function createOffer(successCallback, failureCallback) {
-    const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-    const promise = origCreateOffer.apply(this, [options]);
-    if (!failureCallback) {
-      return promise;
-    }
-    promise.then(successCallback, failureCallback);
-    return Promise.resolve();
-  };
+  prototype.createOffer =
+    function createOffer(successCallback, failureCallback) {
+      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      const promise = origCreateOffer.apply(this, [options]);
+      if (!failureCallback) {
+        return promise;
+      }
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    };
 
-  prototype.createAnswer = function createAnswer(successCallback, failureCallback) {
-    const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-    const promise = origCreateAnswer.apply(this, [options]);
-    if (!failureCallback) {
-      return promise;
-    }
-    promise.then(successCallback, failureCallback);
-    return Promise.resolve();
-  };
+  prototype.createAnswer =
+    function createAnswer(successCallback, failureCallback) {
+      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      const promise = origCreateAnswer.apply(this, [options]);
+      if (!failureCallback) {
+        return promise;
+      }
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    };
 
   let withCallback = function(description, successCallback, failureCallback) {
     const promise = setLocalDescription.apply(this, [description]);
@@ -226,26 +233,27 @@ export function shimConstraints(constraints) {
 export function shimRTCIceServerUrls(window) {
   // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
   const OrigPeerConnection = window.RTCPeerConnection;
-  window.RTCPeerConnection = function RTCPeerConnection(pcConfig, pcConstraints) {
-    if (pcConfig && pcConfig.iceServers) {
-      const newIceServers = [];
-      for (let i = 0; i < pcConfig.iceServers.length; i++) {
-        let server = pcConfig.iceServers[i];
-        if (!server.hasOwnProperty('urls') &&
-            server.hasOwnProperty('url')) {
-          utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
-          server = JSON.parse(JSON.stringify(server));
-          server.urls = server.url;
-          delete server.url;
-          newIceServers.push(server);
-        } else {
-          newIceServers.push(pcConfig.iceServers[i]);
+  window.RTCPeerConnection =
+    function RTCPeerConnection(pcConfig, pcConstraints) {
+      if (pcConfig && pcConfig.iceServers) {
+        const newIceServers = [];
+        for (let i = 0; i < pcConfig.iceServers.length; i++) {
+          let server = pcConfig.iceServers[i];
+          if (!server.hasOwnProperty('urls') &&
+              server.hasOwnProperty('url')) {
+            utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
+            server = JSON.parse(JSON.stringify(server));
+            server.urls = server.url;
+            delete server.url;
+            newIceServers.push(server);
+          } else {
+            newIceServers.push(pcConfig.iceServers[i]);
+          }
         }
+        pcConfig.iceServers = newIceServers;
       }
-      pcConfig.iceServers = newIceServers;
-    }
-    return new OrigPeerConnection(pcConfig, pcConstraints);
-  };
+      return new OrigPeerConnection(pcConfig, pcConstraints);
+    };
   window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
   // wrap static methods. Currently just generateCertificate.
   if ('generateCertificate' in window.RTCPeerConnection) {
@@ -274,58 +282,61 @@ export function shimTrackEventTransceiver(window) {
 
 export function shimCreateOfferLegacy(window) {
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
-  window.RTCPeerConnection.prototype.createOffer = function createOffer(offerOptions) {
-    if (offerOptions) {
-      if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
-        // support bit values
-        offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
-      }
-      const audioTransceiver = this.getTransceivers().find(transceiver =>
-        transceiver.receiver.track.kind === 'audio');
-      if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
-        if (audioTransceiver.direction === 'sendrecv') {
-          if (audioTransceiver.setDirection) {
-            audioTransceiver.setDirection('sendonly');
-          } else {
-            audioTransceiver.direction = 'sendonly';
-          }
-        } else if (audioTransceiver.direction === 'recvonly') {
-          if (audioTransceiver.setDirection) {
-            audioTransceiver.setDirection('inactive');
-          } else {
-            audioTransceiver.direction = 'inactive';
-          }
+  window.RTCPeerConnection.prototype.createOffer =
+    function createOffer(offerOptions) {
+      if (offerOptions) {
+        if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
+          // support bit values
+          offerOptions.offerToReceiveAudio =
+            !!offerOptions.offerToReceiveAudio;
         }
-      } else if (offerOptions.offerToReceiveAudio === true &&
-          !audioTransceiver) {
-        this.addTransceiver('audio');
-      }
+        const audioTransceiver = this.getTransceivers().find(transceiver =>
+          transceiver.receiver.track.kind === 'audio');
+        if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
+          if (audioTransceiver.direction === 'sendrecv') {
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('sendonly');
+            } else {
+              audioTransceiver.direction = 'sendonly';
+            }
+          } else if (audioTransceiver.direction === 'recvonly') {
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('inactive');
+            } else {
+              audioTransceiver.direction = 'inactive';
+            }
+          }
+        } else if (offerOptions.offerToReceiveAudio === true &&
+            !audioTransceiver) {
+          this.addTransceiver('audio');
+        }
 
-      if (typeof offerOptions.offerToReceiveVideo !== 'undefined') {
-        // support bit values
-        offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
-      }
-      const videoTransceiver = this.getTransceivers().find(transceiver =>
-        transceiver.receiver.track.kind === 'video');
-      if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
-        if (videoTransceiver.direction === 'sendrecv') {
-          if (videoTransceiver.setDirection) {
-            videoTransceiver.setDirection('sendonly');
-          } else {
-            videoTransceiver.direction = 'sendonly';
-          }
-        } else if (videoTransceiver.direction === 'recvonly') {
-          if (videoTransceiver.setDirection) {
-            videoTransceiver.setDirection('inactive');
-          } else {
-            videoTransceiver.direction = 'inactive';
-          }
+        if (typeof offerOptions.offerToReceiveVideo !== 'undefined') {
+          // support bit values
+          offerOptions.offerToReceiveVideo =
+            !!offerOptions.offerToReceiveVideo;
         }
-      } else if (offerOptions.offerToReceiveVideo === true &&
-          !videoTransceiver) {
-        this.addTransceiver('video');
+        const videoTransceiver = this.getTransceivers().find(transceiver =>
+          transceiver.receiver.track.kind === 'video');
+        if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
+          if (videoTransceiver.direction === 'sendrecv') {
+            if (videoTransceiver.setDirection) {
+              videoTransceiver.setDirection('sendonly');
+            } else {
+              videoTransceiver.direction = 'sendonly';
+            }
+          } else if (videoTransceiver.direction === 'recvonly') {
+            if (videoTransceiver.setDirection) {
+              videoTransceiver.setDirection('inactive');
+            } else {
+              videoTransceiver.direction = 'inactive';
+            }
+          }
+        } else if (offerOptions.offerToReceiveVideo === true &&
+            !videoTransceiver) {
+          this.addTransceiver('video');
+        }
       }
-    }
-    return origCreateOffer.apply(this, arguments);
-  };
+      return origCreateOffer.apply(this, arguments);
+    };
 }

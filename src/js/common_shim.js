@@ -162,57 +162,58 @@ export function shimMaxMessageSize(window) {
 
   const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
-  window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription() {
-    this._sctp = null;
-    // Chrome decided to not expose .sctp in plan-b mode.
-    // As usual, adapter.js has to do an 'ugly worakaround'
-    // to cover up the mess.
-    if (browserDetails.browser === 'chrome' && browserDetails.version >= 76) {
-      const {sdpSemantics} = this.getConfiguration();
-      if (sdpSemantics === 'plan-b') {
-        Object.defineProperty(this, 'sctp', {
-          get() {
-            return typeof this._sctp === 'undefined' ? null : this._sctp;
-          },
-          enumerable: true,
-          configurable: true,
-        });
-      }
-    }
-
-    if (sctpInDescription(arguments[0])) {
-      // Check if the remote is FF.
-      const isFirefox = getRemoteFirefoxVersion(arguments[0]);
-
-      // Get the maximum message size the local peer is capable of sending
-      const canSendMMS = getCanSendMaxMessageSize(isFirefox);
-
-      // Get the maximum message size of the remote peer.
-      const remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
-
-      // Determine final maximum message size
-      let maxMessageSize;
-      if (canSendMMS === 0 && remoteMMS === 0) {
-        maxMessageSize = Number.POSITIVE_INFINITY;
-      } else if (canSendMMS === 0 || remoteMMS === 0) {
-        maxMessageSize = Math.max(canSendMMS, remoteMMS);
-      } else {
-        maxMessageSize = Math.min(canSendMMS, remoteMMS);
-      }
-
-      // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
-      // attribute.
-      const sctp = {};
-      Object.defineProperty(sctp, 'maxMessageSize', {
-        get() {
-          return maxMessageSize;
+  window.RTCPeerConnection.prototype.setRemoteDescription =
+    function setRemoteDescription() {
+      this._sctp = null;
+      // Chrome decided to not expose .sctp in plan-b mode.
+      // As usual, adapter.js has to do an 'ugly worakaround'
+      // to cover up the mess.
+      if (browserDetails.browser === 'chrome' && browserDetails.version >= 76) {
+        const {sdpSemantics} = this.getConfiguration();
+        if (sdpSemantics === 'plan-b') {
+          Object.defineProperty(this, 'sctp', {
+            get() {
+              return typeof this._sctp === 'undefined' ? null : this._sctp;
+            },
+            enumerable: true,
+            configurable: true,
+          });
         }
-      });
-      this._sctp = sctp;
-    }
+      }
 
-    return origSetRemoteDescription.apply(this, arguments);
-  };
+      if (sctpInDescription(arguments[0])) {
+        // Check if the remote is FF.
+        const isFirefox = getRemoteFirefoxVersion(arguments[0]);
+
+        // Get the maximum message size the local peer is capable of sending
+        const canSendMMS = getCanSendMaxMessageSize(isFirefox);
+
+        // Get the maximum message size of the remote peer.
+        const remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
+
+        // Determine final maximum message size
+        let maxMessageSize;
+        if (canSendMMS === 0 && remoteMMS === 0) {
+          maxMessageSize = Number.POSITIVE_INFINITY;
+        } else if (canSendMMS === 0 || remoteMMS === 0) {
+          maxMessageSize = Math.max(canSendMMS, remoteMMS);
+        } else {
+          maxMessageSize = Math.min(canSendMMS, remoteMMS);
+        }
+
+        // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
+        // attribute.
+        const sctp = {};
+        Object.defineProperty(sctp, 'maxMessageSize', {
+          get() {
+            return maxMessageSize;
+          }
+        });
+        this._sctp = sctp;
+      }
+
+      return origSetRemoteDescription.apply(this, arguments);
+    };
 }
 
 export function shimSendThrowTypeError(window) {
@@ -240,11 +241,12 @@ export function shimSendThrowTypeError(window) {
   }
   const origCreateDataChannel =
     window.RTCPeerConnection.prototype.createDataChannel;
-  window.RTCPeerConnection.prototype.createDataChannel = function createDataChannel() {
-    const dataChannel = origCreateDataChannel.apply(this, arguments);
-    wrapDcSend(dataChannel, this);
-    return dataChannel;
-  };
+  window.RTCPeerConnection.prototype.createDataChannel =
+    function createDataChannel() {
+      const dataChannel = origCreateDataChannel.apply(this, arguments);
+      wrapDcSend(dataChannel, this);
+      return dataChannel;
+    };
   utils.wrapPeerConnectionEvent(window, 'datachannel', e => {
     wrapDcSend(e.channel, e.target);
     return e;
@@ -325,12 +327,13 @@ export function removeAllowExtmapMixed(window) {
     return;
   }
   const nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;
-  window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription(desc) {
+  window.RTCPeerConnection.prototype.setRemoteDescription =
+  function setRemoteDescription(desc) {
     if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
-      desc.sdp = desc.sdp.split('\n').filter((line) => {
-        return line.trim() !== 'a=extmap-allow-mixed';
-      }).join('\n');
-    }
-    return nativeSRD.apply(this, arguments);
-  };
+        desc.sdp = desc.sdp.split('\n').filter((line) => {
+          return line.trim() !== 'a=extmap-allow-mixed';
+        }).join('\n');
+      }
+      return nativeSRD.apply(this, arguments);
+    };
 }

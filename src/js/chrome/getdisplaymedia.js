@@ -22,27 +22,29 @@ export function shimGetDisplayMedia(window, getSourceId) {
         'a function');
     return;
   }
-  window.navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints) {
-    return getSourceId(constraints)
-      .then(sourceId => {
-        const widthSpecified = constraints.video && constraints.video.width;
-        const heightSpecified = constraints.video && constraints.video.height;
-        const frameRateSpecified = constraints.video &&
-          constraints.video.frameRate;
-        constraints.video = {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: sourceId,
-            maxFrameRate: frameRateSpecified || 3
+  window.navigator.mediaDevices.getDisplayMedia =
+    function getDisplayMedia(constraints) {
+      return getSourceId(constraints)
+        .then(sourceId => {
+          const widthSpecified = constraints.video && constraints.video.width;
+          const heightSpecified = constraints.video &&
+            constraints.video.height;
+          const frameRateSpecified = constraints.video &&
+            constraints.video.frameRate;
+          constraints.video = {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: sourceId,
+              maxFrameRate: frameRateSpecified || 3
+            }
+          };
+          if (widthSpecified) {
+            constraints.video.mandatory.maxWidth = widthSpecified;
           }
-        };
-        if (widthSpecified) {
-          constraints.video.mandatory.maxWidth = widthSpecified;
-        }
-        if (heightSpecified) {
-          constraints.video.mandatory.maxHeight = heightSpecified;
-        }
-        return window.navigator.mediaDevices.getUserMedia(constraints);
-      });
-  };
+          if (heightSpecified) {
+            constraints.video.mandatory.maxHeight = heightSpecified;
+          }
+          return window.navigator.mediaDevices.getUserMedia(constraints);
+        });
+    };
 }

@@ -54,15 +54,16 @@ export function shimPeerConnection(window) {
   // support for addIceCandidate(null or undefined)
   const nativeAddIceCandidate =
       window.RTCPeerConnection.prototype.addIceCandidate;
-  window.RTCPeerConnection.prototype.addIceCandidate = function addIceCandidate() {
+  window.RTCPeerConnection.prototype.addIceCandidate =
+  function addIceCandidate() {
     if (!arguments[0]) {
-      if (arguments[1]) {
-        arguments[1].apply(null);
+        if (arguments[1]) {
+          arguments[1].apply(null);
+        }
+        return Promise.resolve();
       }
-      return Promise.resolve();
-    }
-    return nativeAddIceCandidate.apply(this, arguments);
-  };
+      return nativeAddIceCandidate.apply(this, arguments);
+    };
 
   const modernStatsTypes = {
     inboundrtp: 'inbound-rtp',
@@ -166,14 +167,15 @@ export function shimRemoveStream(window) {
       'removeStream' in window.RTCPeerConnection.prototype) {
     return;
   }
-  window.RTCPeerConnection.prototype.removeStream = function removeStream(stream) {
-    utils.deprecated('removeStream', 'removeTrack');
-    this.getSenders().forEach(sender => {
-      if (sender.track && stream.getTracks().includes(sender.track)) {
-        this.removeTrack(sender);
-      }
-    });
-  };
+  window.RTCPeerConnection.prototype.removeStream =
+    function removeStream(stream) {
+      utils.deprecated('removeStream', 'removeTrack');
+      this.getSenders().forEach(sender => {
+        if (sender.track && stream.getTracks().includes(sender.track)) {
+          this.removeTrack(sender);
+        }
+      });
+    };
 }
 
 export function shimRTCDataChannel(window) {

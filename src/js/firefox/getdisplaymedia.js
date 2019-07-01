@@ -16,20 +16,21 @@ export function shimGetDisplayMedia(window, preferredMediaSource) {
   if (!(window.navigator.mediaDevices)) {
     return;
   }
-  window.navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints) {
-    if (!(constraints && constraints.video)) {
-      const err = new DOMException('getDisplayMedia without video ' +
-          'constraints is undefined');
-      err.name = 'NotFoundError';
-      // from https://heycam.github.io/webidl/#idl-DOMException-error-names
-      err.code = 8;
-      return Promise.reject(err);
-    }
-    if (constraints.video === true) {
-      constraints.video = {mediaSource: preferredMediaSource};
-    } else {
-      constraints.video.mediaSource = preferredMediaSource;
-    }
-    return window.navigator.mediaDevices.getUserMedia(constraints);
-  };
+  window.navigator.mediaDevices.getDisplayMedia =
+    function getDisplayMedia(constraints) {
+      if (!(constraints && constraints.video)) {
+        const err = new DOMException('getDisplayMedia without video ' +
+            'constraints is undefined');
+        err.name = 'NotFoundError';
+        // from https://heycam.github.io/webidl/#idl-DOMException-error-names
+        err.code = 8;
+        return Promise.reject(err);
+      }
+      if (constraints.video === true) {
+        constraints.video = {mediaSource: preferredMediaSource};
+      } else {
+        constraints.video.mediaSource = preferredMediaSource;
+      }
+      return window.navigator.mediaDevices.getUserMedia(constraints);
+    };
 }
