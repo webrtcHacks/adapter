@@ -109,7 +109,7 @@ export function shimRemoteStreamsAPI(window) {
     window.RTCPeerConnection.prototype.setRemoteDescription = function setRemoteDescription() {
       const pc = this;
       if (!this._onaddstreampoly) {
-        this.addEventListener('track', this._onaddstreampoly = function _onaddstreampoly(e) {
+        this.addEventListener('track', this._onaddstreampoly = function(e) {
           e.streams.forEach(stream => {
             if (!pc._remoteStreams) {
               pc._remoteStreams = [];
@@ -134,15 +134,15 @@ export function shimCallbacksAPI(window) {
     return;
   }
   const prototype = window.RTCPeerConnection.prototype;
-  const createOffer = prototype.createOffer;
-  const createAnswer = prototype.createAnswer;
+  const origCreateOffer = prototype.createOffer;
+  const origCreateAnswer = prototype.createAnswer;
   const setLocalDescription = prototype.setLocalDescription;
   const setRemoteDescription = prototype.setRemoteDescription;
   const addIceCandidate = prototype.addIceCandidate;
 
   prototype.createOffer = function createOffer(successCallback, failureCallback) {
     const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-    const promise = createOffer.apply(this, [options]);
+    const promise = origCreateOffer.apply(this, [options]);
     if (!failureCallback) {
       return promise;
     }
@@ -152,7 +152,7 @@ export function shimCallbacksAPI(window) {
 
   prototype.createAnswer = function createAnswer(successCallback, failureCallback) {
     const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-    const promise = createAnswer.apply(this, [options]);
+    const promise = origCreateAnswer.apply(this, [options]);
     if (!failureCallback) {
       return promise;
     }
