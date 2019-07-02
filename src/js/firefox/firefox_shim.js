@@ -57,13 +57,13 @@ export function shimPeerConnection(window) {
   window.RTCPeerConnection.prototype.addIceCandidate =
   function addIceCandidate() {
     if (!arguments[0]) {
-        if (arguments[1]) {
-          arguments[1].apply(null);
-        }
-        return Promise.resolve();
+      if (arguments[1]) {
+        arguments[1].apply(null);
       }
-      return nativeAddIceCandidate.apply(this, arguments);
-    };
+      return Promise.resolve();
+    }
+    return nativeAddIceCandidate.apply(this, arguments);
+  };
 
   const modernStatsTypes = {
     inboundrtp: 'inbound-rtp',

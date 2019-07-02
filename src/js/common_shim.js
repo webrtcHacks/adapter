@@ -330,10 +330,10 @@ export function removeAllowExtmapMixed(window) {
   window.RTCPeerConnection.prototype.setRemoteDescription =
   function setRemoteDescription(desc) {
     if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
-        desc.sdp = desc.sdp.split('\n').filter((line) => {
-          return line.trim() !== 'a=extmap-allow-mixed';
-        }).join('\n');
-      }
-      return nativeSRD.apply(this, arguments);
-    };
+      desc.sdp = desc.sdp.split('\n').filter((line) => {
+        return line.trim() !== 'a=extmap-allow-mixed';
+      }).join('\n');
+    }
+    return nativeSRD.apply(this, arguments);
+  };
 }
