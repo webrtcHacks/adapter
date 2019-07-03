@@ -20,12 +20,12 @@ export function shimPeerConnection(window) {
 
   if (window.RTCIceGatherer) {
     if (!window.RTCIceCandidate) {
-      window.RTCIceCandidate = function(args) {
+      window.RTCIceCandidate = function RTCIceCandidate(args) {
         return args;
       };
     }
     if (!window.RTCSessionDescription) {
-      window.RTCSessionDescription = function(args) {
+      window.RTCSessionDescription = function RTCSessionDescription(args) {
         return args;
       };
     }
@@ -70,7 +70,7 @@ export function shimPeerConnection(window) {
 
   const RTCPeerConnectionShim = shimRTCPeerConnection(window,
       browserDetails.version);
-  window.RTCPeerConnection = function(config) {
+  window.RTCPeerConnection = function RTCPeerConnection(config) {
     if (config && config.iceServers) {
       config.iceServers = filterIceServers(config.iceServers,
         browserDetails.version);
