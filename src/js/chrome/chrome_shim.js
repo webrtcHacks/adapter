@@ -195,9 +195,8 @@ export function shimGetStats(window) {
   }
 
   const origGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function getStats(selector,
-      successCallback, errorCallback) {
-    const args = arguments;
+  window.RTCPeerConnection.prototype.getStats = function getStats() {
+    const [selector, onSucc, onErr] = arguments;
 
     // If selector is a function then we are in the old style stats so just
     // pass back the original getStats format to avoid breaking old users.
@@ -208,7 +207,7 @@ export function shimGetStats(window) {
     // When spec-style getStats is supported, return those when called with
     // either no arguments or the selector argument is null.
     if (origGetStats.length === 0 && (arguments.length === 0 ||
-        typeof arguments[0] !== 'function')) {
+        typeof selector !== 'function')) {
       return origGetStats.apply(this, []);
     }
 
@@ -240,11 +239,11 @@ export function shimGetStats(window) {
 
     if (arguments.length >= 2) {
       const successCallbackWrapper_ = function(response) {
-        args[1](makeMapStats(fixChromeStats_(response)));
+        onSucc(makeMapStats(fixChromeStats_(response)));
       };
 
       return origGetStats.apply(this, [successCallbackWrapper_,
-        arguments[0]]);
+        selector]);
     }
 
     // promise-support
@@ -253,7 +252,7 @@ export function shimGetStats(window) {
         function(response) {
           resolve(makeMapStats(fixChromeStats_(response)));
         }, reject]);
-    }).then(successCallback, errorCallback);
+    }).then(onSucc, onErr);
   };
 }
 
