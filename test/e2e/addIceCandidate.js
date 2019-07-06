@@ -50,5 +50,9 @@ describe('addIceCandidate', () => {
     it('resolves when called with undefined', () =>
       pc.addIceCandidate(undefined)
     );
+
+    it('resolves when called with {candidate: \'\'}', () =>
+      pc.addIceCandidate({candidate: '', sdpMid: 'mid1'})
+    );
   });
 });

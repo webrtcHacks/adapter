@@ -62,6 +62,12 @@ export function shimPeerConnection(window) {
       }
       return Promise.resolve();
     }
+    // Firefox 68+ emits and processes {candidate: "", ...}, ignore
+    // in older versions.
+    if (browserDetails.version < 68 &&
+      arguments[0] && arguments[0].candidate === '') {
+      return Promise.resolve();
+    }
     return nativeAddIceCandidate.apply(this, arguments);
   };
 
