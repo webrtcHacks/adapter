@@ -7,3 +7,5 @@ validation-status.json
 npm-debug.log
 *~
 release/
+test/
+.github/
