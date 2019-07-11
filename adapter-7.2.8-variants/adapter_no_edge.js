@@ -1966,7 +1966,7 @@ function shimLocalStreamsAPI(window) {
           this._localStreams.push(stream);
         }
       }
-      return _addTrack.call.apply(_addTrack, [this].concat(Array.prototype.slice.call(arguments)));
+      return _addTrack.apply(this, arguments);
     };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
