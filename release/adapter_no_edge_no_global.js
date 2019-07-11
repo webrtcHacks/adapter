@@ -1957,7 +1957,8 @@ function shimLocalStreamsAPI(window) {
       });
     };
 
-    window.RTCPeerConnection.prototype.addTrack = function addTrack(track, stream) {
+    window.RTCPeerConnection.prototype.addTrack = function addTrack(track) {
+      var stream = arguments[1];
       if (stream) {
         if (!this._localStreams) {
           this._localStreams = [stream];
@@ -1965,7 +1966,7 @@ function shimLocalStreamsAPI(window) {
           this._localStreams.push(stream);
         }
       }
-      return _addTrack.call(this, track, stream);
+      return _addTrack.call(this, arguments);
     };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
