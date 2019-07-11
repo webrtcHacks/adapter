@@ -48,7 +48,7 @@ export function shimLocalStreamsAPI(window) {
             this._localStreams.push(stream);
           }
         }
-        return _addTrack.call(this, ...arguments);
+        return _addTrack.apply(this, arguments);
       };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
