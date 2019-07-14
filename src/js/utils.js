@@ -61,6 +61,10 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       unwrappedCb]);
   };
 
+  if (Object.getOwnPropertyNames(proto).indexOf('on' + eventNameToWrap) != -1) {
+    return;
+  }
+  
   Object.defineProperty(proto, 'on' + eventNameToWrap, {
     get() {
       return this['_on' + eventNameToWrap];
