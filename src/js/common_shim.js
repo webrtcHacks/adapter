@@ -53,7 +53,7 @@ export function shimRTCIceCandidate(window) {
   // Hook up the augmented candidate in onicecandidate and
   // addEventListener('icecandidate', ...)
   utils.wrapPeerConnectionEvent(window, 'icecandidate', e => {
-    if (e.candidate) {
+    if (e.candidate && e.candidate.length) {
       Object.defineProperty(e, 'candidate', {
         value: new window.RTCIceCandidate(e.candidate),
         writable: 'false'
