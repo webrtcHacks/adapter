@@ -1,5 +1,1 @@
-ERR maxMessageSize sctp and maxMessageSize set if SCTP negotiated timeout
-ERR maxMessageSize send largest possible single message timeout
-ERR maxMessageSize throws an exception if the message is too large timeout
-ERR maxMessageSize throws an exception if the message is too large (using a secondary data channel) timeout
 ERR removeTrack allows removeTrack twice AssertionError
