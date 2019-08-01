@@ -78,6 +78,8 @@ export function adapterFactory({window} = {}, options = {
       firefoxShim.shimSenderGetStats(window);
       firefoxShim.shimReceiverGetStats(window);
       firefoxShim.shimRTCDataChannel(window);
+      firefoxShim.shimAddTransceiver(window);
+      firefoxShim.shimCreateOffer(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimConnectionState(window);

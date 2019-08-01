@@ -190,3 +190,70 @@ export function shimRTCDataChannel(window) {
     window.RTCDataChannel = window.DataChannel;
   }
 }
+
+let setParametersPromises = [];
+export function shimAddTransceiver(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  const origAddTransceiver = window.RTCPeerConnection.prototype.addTransceiver;
+  if (origAddTransceiver) {
+    window.RTCPeerConnection.prototype.addTransceiver = function addTransceiver() {
+      const initParameters = arguments[1];
+      const shouldPerformCheck = initParameters && 'sendEncodings' in initParameters;
+      if (shouldPerformCheck) {
+        // If sendEncodings params are provided, validate grammar
+        initParameters.sendEncodings.forEach((encodgingParam) => {
+          if ('rid' in encodgingParam) {
+            const ridRegex = /^[a-z0-9]{0,16}$/i;
+            if (!ridRegex.test(encodgingParam.rid)) {
+              throw new TypeError('Invalid RID value provided.');
+            }
+          }
+          if ('scaleResolutionDownBy' in encodgingParam) {
+            if (!(parseFloat(encodgingParam.scaleResolutionDownBy) >= 1.0)) {
+              throw new RangeError('Attempted to set RtpParameters scale_resolution_down_by to an invalid number. scale_resolution_down_by must be >= 1.0');
+            }
+          }
+          if ('maxFramerate' in encodgingParam) {
+            if (!(parseFloat(encodgingParam.maxFramerate) >= 0)) {
+              throw new RangeError('Attempted to set RtpParameters max_framerate to an invalid number. max_framerate must be >= 0.0');
+            }
+          }
+        })
+      }
+      const transceiver = origAddTransceiver.apply(this, arguments);
+      if (shouldPerformCheck) {
+        // Check if the init options were applied. if not we do this in asynchronous way and save the promise reference in a global object.
+        // This is an ugly hack but at the same time way more robust than checking the sender parameters before and after the createOffer
+        // Also note that after the createoffer we are not 100% sure that the params were asynchronously applied so we might miss the opportunity to recreate offer.
+        const sender = transceiver.sender;
+        if (sender) {
+          const params = sender.getParameters();
+          if (!('encodings' in params)) {
+            setParametersPromises.push(sender.setParameters({ encodings: initParameters.sendEncodings }).catch(() => Promise.resolve()));
+          }
+        }
+      }
+      return transceiver;
+    }
+  }
+}
+
+export function shimCreateOffer(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+  if (origCreateOffer) {
+    window.RTCPeerConnection.prototype.createOffer = function createOffer() {
+      return Promise.all(setParametersPromises)
+      .then(() => {
+        return origCreateOffer.apply(this, arguments)
+      })
+      .finally(() => {
+        setParametersPromises = [];
+      })
+    }
+  }
+}
