@@ -1,1 +1,2 @@
 ERR removeTrack allows removeTrack twice AssertionError
+ERR simulcast using transceiver APIs Error
