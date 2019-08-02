@@ -259,17 +259,17 @@ export function shimCreateOffer(window) {
     return;
   }
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
-  if (this.setParametersPromises && !this.setParametersPromises.length) {
-    return origCreateOffer.apply(this, arguments);
-  }
   window.RTCPeerConnection.prototype.createOffer = function createOffer() {
-    return Promise.all(this.setParametersPromises)
-    .then(() => {
-      return origCreateOffer.apply(this, arguments);
-    })
-    .finally(() => {
-      this.setParametersPromises = [];
-    });
+    if (this.setParametersPromises && this.setParametersPromises.length) {
+      return Promise.all(this.setParametersPromises)
+      .then(() => {
+        return origCreateOffer.apply(this, arguments);
+      })
+      .finally(() => {
+        this.setParametersPromises = [];
+      });
+    }
+    return origCreateOffer.apply(this, arguments);
   };
 }
 
@@ -281,16 +281,16 @@ export function shimCreateAnswer(window) {
     return;
   }
   const origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
-  if (this.setParametersPromises && !this.setParametersPromises.length) {
-    return origCreateAnswer.apply(this, arguments);
-  }
   window.RTCPeerConnection.prototype.createAnswer = function createAnswer() {
-    return Promise.all(this.setParametersPromises)
-    .then(() => {
-      return origCreateAnswer.apply(this, arguments);
-    })
-    .finally(() => {
-      this.setParametersPromises = [];
-    });
+    if (this.setParametersPromises && this.setParametersPromises.length) {
+      return Promise.all(this.setParametersPromises)
+      .then(() => {
+        return origCreateAnswer.apply(this, arguments);
+      })
+      .finally(() => {
+        this.setParametersPromises = [];
+      });
+    }
+    return origCreateAnswer.apply(this, arguments);
   };
 }
