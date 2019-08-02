@@ -191,34 +191,37 @@ export function shimRTCDataChannel(window) {
   }
 }
 
-let setParametersPromises = [];
 export function shimAddTransceiver(window) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
   const origAddTransceiver = window.RTCPeerConnection.prototype.addTransceiver;
   if (origAddTransceiver) {
     window.RTCPeerConnection.prototype.addTransceiver =
       function addTransceiver() {
+        this.setParametersPromises = [];
         const initParameters = arguments[1];
         const shouldPerformCheck = initParameters &&
                                   'sendEncodings' in initParameters;
         if (shouldPerformCheck) {
           // If sendEncodings params are provided, validate grammar
-          initParameters.sendEncodings.forEach((encodgingParam) => {
-            if ('rid' in encodgingParam) {
+          initParameters.sendEncodings.forEach((encodingParam) => {
+            if ('rid' in encodingParam) {
               const ridRegex = /^[a-z0-9]{0,16}$/i;
-              if (!ridRegex.test(encodgingParam.rid)) {
+              if (!ridRegex.test(encodingParam.rid)) {
                 throw new TypeError('Invalid RID value provided.');
               }
             }
-            if ('scaleResolutionDownBy' in encodgingParam) {
-              if (!(parseFloat(encodgingParam.scaleResolutionDownBy) >= 1.0)) {
+            if ('scaleResolutionDownBy' in encodingParam) {
+              if (!(parseFloat(encodingParam.scaleResolutionDownBy) >= 1.0)) {
                 throw new RangeError('scale_resolution_down_by must be >= 1.0');
               }
             }
-            if ('maxFramerate' in encodgingParam) {
-              if (!(parseFloat(encodgingParam.maxFramerate) >= 0)) {
+            if ('maxFramerate' in encodingParam) {
+              if (!(parseFloat(encodingParam.maxFramerate) >= 0)) {
                 throw new RangeError('max_framerate must be >= 0.0');
               }
             }
@@ -233,15 +236,14 @@ export function shimAddTransceiver(window) {
           // Also note that after the createoffer we are not 100% sure that
           // the params were asynchronously applied so we might miss the
           // opportunity to recreate offer.
-          const sender = transceiver.sender;
-          if (sender) {
-            const params = sender.getParameters();
-            if (!('encodings' in params)) {
-              setParametersPromises.push(
-                sender.setParameters({encodings: initParameters.sendEncodings})
-                .catch(() => Promise.resolve())
-              );
-            }
+          const {sender} = transceiver;
+          const params = sender.getParameters();
+          if (!('encodings' in params)) {
+            params.encodings = initParameters.sendEncodings;
+            this.setParametersPromises.push(
+              sender.setParameters(params)
+              .catch(() => {})
+            );
           }
         }
         return transceiver;
@@ -253,16 +255,42 @@ export function shimCreateOffer(window) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
-  const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
-  if (origCreateOffer) {
-    window.RTCPeerConnection.prototype.createOffer = function createOffer() {
-      return Promise.all(setParametersPromises)
-      .then(() => {
-        return origCreateOffer.apply(this, arguments);
-      })
-      .finally(() => {
-        setParametersPromises = [];
-      });
-    };
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
   }
+  const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+  if (this.setParametersPromises && !this.setParametersPromises.length) {
+    return origCreateOffer.apply(this, arguments);
+  }
+  window.RTCPeerConnection.prototype.createOffer = function createOffer() {
+    return Promise.all(this.setParametersPromises)
+    .then(() => {
+      return origCreateOffer.apply(this, arguments);
+    })
+    .finally(() => {
+      this.setParametersPromises = [];
+    });
+  };
+}
+
+export function shimCreateAnswer(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  const origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
+  if (this.setParametersPromises && !this.setParametersPromises.length) {
+    return origCreateAnswer.apply(this, arguments);
+  }
+  window.RTCPeerConnection.prototype.createAnswer = function createAnswer() {
+    return Promise.all(this.setParametersPromises)
+    .then(() => {
+      return origCreateAnswer.apply(this, arguments);
+    })
+    .finally(() => {
+      this.setParametersPromises = [];
+    });
+  };
 }

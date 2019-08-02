@@ -80,6 +80,7 @@ export function adapterFactory({window} = {}, options = {
       firefoxShim.shimRTCDataChannel(window);
       firefoxShim.shimAddTransceiver(window);
       firefoxShim.shimCreateOffer(window);
+      firefoxShim.shimCreateAnswer(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimConnectionState(window);
