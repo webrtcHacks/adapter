@@ -10,10 +10,6 @@
 
 describe('simulcast', () => {
   let pc1;
-  function throwError(err) {
-    console.error(err.toString());
-    throw err;
-  }
 
   beforeEach(() => {
     pc1 = new RTCPeerConnection(null);
@@ -22,30 +18,29 @@ describe('simulcast', () => {
     pc1.close();
   });
 
-  it('using transceivers APIs', (done) => {
+  it('using transceivers APIs', function() {
     if (window.adapter.browserDetails.browser === 'edge' ||
       window.adapter.browserDetails.browser === 'safari') {
       this.skip();
     }
-    var constraints = {video: true};
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then(function(stream) {
+    const constraints = {video: true};
+    return navigator.mediaDevices.getUserMedia(constraints)
+      .then((stream) => {
         const initOpts = {
           sendEncodings: [
-            {'rid': 'high'},
-            {'rid': 'medium', 'scaleResolutionDownBy': 2},
-            {'rid': 'low', 'scaleResolutionDownBy': 3}
+            {rid: 'original'},
+            {rid: 'high', scaleResolutionDownBy: 2},
+            {rid: 'medium', scaleResolutionDownBy: 3},
+            {rid: 'low', scaleResolutionDownBy: 3}
           ]
         };
         pc1.addTransceiver(stream.getVideoTracks()[0], initOpts);
 
-        pc1.createOffer().then((offer) => {
-          const simulcastRegex = /a=simulcast:.*send .*high;medium;low/g;
-          expect(simulcastRegex.test(offer.sdp)).to.equal(true);
-          done();
-        })
-        .catch(throwError);
-      })
-      .catch(throwError);
+        return pc1.createOffer().then((offer) => {
+          const simulcastRegex =
+          /a=simulcast:[\s]?send (?:rid=)?original;high;medium;low/g;
+          return expect(simulcastRegex.test(offer.sdp)).to.equal(true);
+        });
+      });
   });
 });
