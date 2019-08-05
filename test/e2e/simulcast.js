@@ -31,7 +31,7 @@ describe('simulcast', () => {
             {rid: 'original'},
             {rid: 'high', scaleResolutionDownBy: 2},
             {rid: 'medium', scaleResolutionDownBy: 3},
-            {rid: 'low', scaleResolutionDownBy: 3}
+            {rid: 'low', scaleResolutionDownBy: 4}
           ]
         };
         pc1.addTransceiver(stream.getVideoTracks()[0], initOpts);
