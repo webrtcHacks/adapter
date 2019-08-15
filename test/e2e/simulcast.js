@@ -37,7 +37,7 @@ describe('simulcast', () => {
 
         return pc1.createOffer().then((offer) => {
           const simulcastRegex =
-          /a=simulcast:[\s]?send (?:rid=)?original;high;medium;low/g;
+          /a=simulcast:[\s]?send (?:rid=)?high;medium;low/g;
           return expect(simulcastRegex.test(offer.sdp)).to.equal(true);
         });
       });
