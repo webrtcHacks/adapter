@@ -28,9 +28,8 @@ describe('simulcast', () => {
       .then((stream) => {
         const initOpts = {
           sendEncodings: [
-            {rid: 'original'},
-            {rid: 'high', scaleResolutionDownBy: 2},
-            {rid: 'medium', scaleResolutionDownBy: 3},
+            {rid: 'high'},
+            {rid: 'medium', scaleResolutionDownBy: 2},
             {rid: 'low', scaleResolutionDownBy: 4}
           ]
         };
