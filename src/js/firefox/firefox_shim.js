@@ -190,3 +190,107 @@ export function shimRTCDataChannel(window) {
     window.RTCDataChannel = window.DataChannel;
   }
 }
+
+export function shimAddTransceiver(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  const origAddTransceiver = window.RTCPeerConnection.prototype.addTransceiver;
+  if (origAddTransceiver) {
+    window.RTCPeerConnection.prototype.addTransceiver =
+      function addTransceiver() {
+        this.setParametersPromises = [];
+        const initParameters = arguments[1];
+        const shouldPerformCheck = initParameters &&
+                                  'sendEncodings' in initParameters;
+        if (shouldPerformCheck) {
+          // If sendEncodings params are provided, validate grammar
+          initParameters.sendEncodings.forEach((encodingParam) => {
+            if ('rid' in encodingParam) {
+              const ridRegex = /^[a-z0-9]{0,16}$/i;
+              if (!ridRegex.test(encodingParam.rid)) {
+                throw new TypeError('Invalid RID value provided.');
+              }
+            }
+            if ('scaleResolutionDownBy' in encodingParam) {
+              if (!(parseFloat(encodingParam.scaleResolutionDownBy) >= 1.0)) {
+                throw new RangeError('scale_resolution_down_by must be >= 1.0');
+              }
+            }
+            if ('maxFramerate' in encodingParam) {
+              if (!(parseFloat(encodingParam.maxFramerate) >= 0)) {
+                throw new RangeError('max_framerate must be >= 0.0');
+              }
+            }
+          });
+        }
+        const transceiver = origAddTransceiver.apply(this, arguments);
+        if (shouldPerformCheck) {
+          // Check if the init options were applied. If not we do this in an
+          // asynchronous way and save the promise reference in a global object.
+          // This is an ugly hack, but at the same time is way more robust than
+          // checking the sender parameters before and after the createOffer
+          // Also note that after the createoffer we are not 100% sure that
+          // the params were asynchronously applied so we might miss the
+          // opportunity to recreate offer.
+          const {sender} = transceiver;
+          const params = sender.getParameters();
+          if (!('encodings' in params)) {
+            params.encodings = initParameters.sendEncodings;
+            this.setParametersPromises.push(
+              sender.setParameters(params)
+              .catch(() => {})
+            );
+          }
+        }
+        return transceiver;
+      };
+  }
+}
+
+export function shimCreateOffer(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+  window.RTCPeerConnection.prototype.createOffer = function createOffer() {
+    if (this.setParametersPromises && this.setParametersPromises.length) {
+      return Promise.all(this.setParametersPromises)
+      .then(() => {
+        return origCreateOffer.apply(this, arguments);
+      })
+      .finally(() => {
+        this.setParametersPromises = [];
+      });
+    }
+    return origCreateOffer.apply(this, arguments);
+  };
+}
+
+export function shimCreateAnswer(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  const origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
+  window.RTCPeerConnection.prototype.createAnswer = function createAnswer() {
+    if (this.setParametersPromises && this.setParametersPromises.length) {
+      return Promise.all(this.setParametersPromises)
+      .then(() => {
+        return origCreateAnswer.apply(this, arguments);
+      })
+      .finally(() => {
+        this.setParametersPromises = [];
+      });
+    }
+    return origCreateAnswer.apply(this, arguments);
+  };
+}
