@@ -49,7 +49,7 @@ In node_modules/webrtc-adapter/out/ folder you will find 4 files:
 Include the file that suits your need in your project.
 
 ## Development ##
-Head over to [test/README.md](https://github.com/webrtcHacks/adapter/blob/gh-pages/test/README.md) and get started developing.
+Head over to [test/README.md](https://github.com/webrtcHacks/adapter/blob/master/test/README.md) and get started developing.
 
 ## Publish a new version ##
 * Go to the adapter repository root directory
