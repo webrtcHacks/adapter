@@ -1,4 +1,4 @@
-dist: trusty
+dist: bionic
 language: node_js
 node_js:
 - 12
@@ -29,11 +29,13 @@ env:
 
 matrix:
   fast_finish: true
+  allow_failures:
+    - env: BROWSER=firefox BVER=stable
 
 before_script:
   - export CHROME_BIN=browsers/bin/chrome-${BVER}
   - export FIREFOX_BIN=browsers/bin/firefox-${BVER}
-  - sh -e /etc/init.d/xvfb start
+  - Xvfb :99 &
   - pulseaudio --start
   - if [ "$BROWSER" = "Electron" ]; then npm i karma-electron electron@3 karma-stability-reporter; fi
 
