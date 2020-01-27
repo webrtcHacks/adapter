@@ -910,6 +910,8 @@ function shimPeerConnection(window) {
     return;
   }
 
+  var addIceCandidateNullSupported = window.RTCPeerConnection.prototype.addIceCandidate.length === 0;
+
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
   if (browserDetails.version < 53) {
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate'].forEach(function (method) {
@@ -925,7 +927,7 @@ function shimPeerConnection(window) {
   // support for addIceCandidate(null or undefined)
   var nativeAddIceCandidate = window.RTCPeerConnection.prototype.addIceCandidate;
   window.RTCPeerConnection.prototype.addIceCandidate = function addIceCandidate() {
-    if (!arguments[0]) {
+    if (!addIceCandidateNullSupported && !arguments[0]) {
       if (arguments[1]) {
         arguments[1].apply(null);
       }
