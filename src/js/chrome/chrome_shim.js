@@ -676,7 +676,8 @@ export function shimPeerConnection(window) {
   }
 
   const addIceCandidateNullSupported =
-    window.RTCPeerConnection.prototype.addIceCandidate.length === 0;
+      window.RTCPeerConnection.prototype.addIceCandidate != null &&
+      window.RTCPeerConnection.prototype.addIceCandidate.length === 0;
 
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
   if (browserDetails.version < 53) {
