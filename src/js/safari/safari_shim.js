@@ -21,20 +21,6 @@ export function shimLocalStreamsAPI(window) {
         return this._localStreams;
       };
   }
-  if (!('addTrack' in window.RTCPeerConnection.prototype)) {
-    const _addTrack = window.RTCPeerConnection.prototype.addTrack;
-    window.RTCPeerConnection.prototype.addTrack = function addTrack(track) {
-      const stream = arguments[1];
-      if (stream) {
-        if (!this._localStreams) {
-          this._localStreams = [stream];
-        } else if (!this._localStreams.includes(stream)) {
-          this._localStreams.push(stream);
-        }
-      }
-      return _addTrack.apply(this, arguments);
-    };
-  }
   if (!('addStream' in window.RTCPeerConnection.prototype)) {
     const _addTrack = window.RTCPeerConnection.prototype.addTrack;
     window.RTCPeerConnection.prototype.addStream = function addStream(stream) {
@@ -50,6 +36,17 @@ export function shimLocalStreamsAPI(window) {
         stream));
       stream.getVideoTracks().forEach(track => _addTrack.call(this, track,
         stream));
+    };
+
+    window.RTCPeerConnection.prototype.addTrack = function addTrack(track, stream) {
+      if (stream) {
+        if (!this._localStreams) {
+          this._localStreams = [stream];
+        } else if (!this._localStreams.includes(stream)) {
+          this._localStreams.push(stream);
+        }
+      }
+      return _addTrack.apply(this, arguments);
     };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
