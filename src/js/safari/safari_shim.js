@@ -22,6 +22,7 @@ export function shimLocalStreamsAPI(window) {
       };
   }
   if (!('addTrack' in window.RTCPeerConnection.prototype)) {
+    const _addTrack = window.RTCPeerConnection.prototype.addTrack;
     window.RTCPeerConnection.prototype.addTrack = function addTrack(track) {
       const stream = arguments[1];
       if (stream) {
