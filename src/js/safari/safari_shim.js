@@ -38,16 +38,17 @@ export function shimLocalStreamsAPI(window) {
         stream));
     };
 
-    window.RTCPeerConnection.prototype.addTrack = function addTrack(track, stream) {
-      if (stream) {
-        if (!this._localStreams) {
-          this._localStreams = [stream];
-        } else if (!this._localStreams.includes(stream)) {
-          this._localStreams.push(stream);
+    window.RTCPeerConnection.prototype.addTrack = 
+      function addTrack(track, stream) {
+        if (stream) {
+          if (!this._localStreams) {
+            this._localStreams = [stream];
+          } else if (!this._localStreams.includes(stream)) {
+            this._localStreams.push(stream);
+          }
         }
-      }
-      return _addTrack.apply(this, arguments);
-    };
+        return _addTrack.apply(this, arguments);
+      };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
     window.RTCPeerConnection.prototype.removeStream =
