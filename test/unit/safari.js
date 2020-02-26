@@ -61,6 +61,7 @@ describe('Safari shim', () => {
       pc.removeStream(stream2);
       expect(pc.getLocalStreams()[0]).to.equal(stream);
 
+      window.RTCPeerConnection.prototype.addTrack = sinon.stub();
       pc.addTrack({}, stream2);
       expect(pc.getLocalStreams().length).to.equal(2);
       expect(pc.getLocalStreams()[0]).to.equal(stream);
