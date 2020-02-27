@@ -31,7 +31,7 @@ describe('Safari shim', () => {
 
     it('shimStreamsAPI existence', () => {
       const prototype = window.RTCPeerConnection.prototype;
-      expect(prototype.addTrack.length).to.equal(2);
+      expect(prototype.addTrack.length).to.equal(1);
       expect(prototype.addStream.length).to.equal(1);
       expect(prototype.removeStream.length).to.equal(1);
       expect(prototype.getLocalStreams.length).to.equal(0);
