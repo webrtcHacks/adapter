@@ -39,7 +39,7 @@ export function shimLocalStreamsAPI(window) {
     };
 
     window.RTCPeerConnection.prototype.addTrack =
-      function addTrack(track, stream) {
+      function addTrack(track, ...stream) {
         if (stream) {
           if (!this._localStreams) {
             this._localStreams = [stream];
