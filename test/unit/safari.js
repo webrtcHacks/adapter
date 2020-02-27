@@ -63,7 +63,7 @@ describe('Safari shim', () => {
       expect(pc.getLocalStreams()[0]).to.equal(stream);
 
       pc.addTrack({}, stream2);
-      expect(pc.getLocalStreams().length).to.equal(1);
+      expect(pc.getLocalStreams().length).to.equal(2);
       expect(pc.getLocalStreams()[0]).to.equal(stream);
       expect(pc.getLocalStreams()[1]).to.equal(stream2);
 
