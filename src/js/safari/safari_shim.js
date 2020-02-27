@@ -41,11 +41,13 @@ export function shimLocalStreamsAPI(window) {
     window.RTCPeerConnection.prototype.addTrack =
       function addTrack(track, ...stream) {
         if (stream) {
-          if (!this._localStreams) {
-            this._localStreams = [stream];
-          } else if (!this._localStreams.includes(stream)) {
-            this._localStreams.push(stream);
-          }
+          stream.forEach((s) => {
+            if (!this._localStreams) {
+              this._localStreams = [s];
+            } else if (!this._localStreams.includes(s)) {
+              this._localStreams.push(s);
+            }
+          });
         }
         return _addTrack.apply(this, arguments);
       };
