@@ -1,10 +1,9 @@
 [![Build Status](https://travis-ci.org/webrtcHacks/adapter.svg)](https://travis-ci.org/webrtcHacks/adapter)
 
 # WebRTC adapter #
-adapter.js is a shim to insulate apps from spec changes and prefix differences. In fact, the standards and protocols used for WebRTC implementations are highly stable, and there are only a few prefixed names. For full interop information, see [webrtc.org/web-apis/interop](https://www.webrtc.org/web-apis/interop).
+adapter.js is a shim to insulate apps from spec changes and prefix differences in WebRTC. The prefix differences are mostly gone these days but differences between browse remain.
 
-This repository used to be part of the WebRTC organisation on github but moved. We aim to keep
-the old repository updated with new releases.
+This repository used to be part of the WebRTC organisation on github but moved. We aim to keep the old repository updated with new releases.
 
 ## Install ##
 
