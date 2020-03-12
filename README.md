@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/webrtcHacks/adapter.svg)](https://travis-ci.org/webrtcHacks/adapter)
 
 # WebRTC adapter #
-adapter.js is a shim to insulate apps from spec changes and prefix differences in WebRTC. The prefix differences are mostly gone these days but differences between browse remain.
+adapter.js is a shim to insulate apps from spec changes and prefix differences in WebRTC. The prefix differences are mostly gone these days but differences in behaviour between browsers remain.
 
 This repository used to be part of the WebRTC organisation on github but moved. We aim to keep the old repository updated with new releases.
 
@@ -23,7 +23,16 @@ Just import adapter:
 ```
 import adapter from 'webrtc-adapter';
 ```
-No further action is required.
+No further action is required. You might want to use adapters browser detection
+which detects which webrtc quirks are required. You can look at
+```
+adapter.browserDetails.browser
+```
+for webrtc engine detection (which will for example detect Opera or the Chromium based Edge as 'chrome') and
+```
+adapter.browserDetails.version
+```
+for the version according to the user-agent string.
 
 ##### NPM
 Copy to desired location in your src tree or use a minify/vulcanize tool (node_modules is usually not published with the code).
