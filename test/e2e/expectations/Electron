@@ -1,2 +1,0 @@
-ERR RTCIceCandidate with empty candidate.candidate does not throw AssertionError
-ERR simulcast using transceivers APIs timeout
