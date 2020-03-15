@@ -2071,20 +2071,27 @@ function shimLocalStreamsAPI(window) {
     };
 
     window.RTCPeerConnection.prototype.addTrack = function addTrack(track) {
-      var stream = arguments[1];
-      if (stream) {
-        if (!this._localStreams) {
-          this._localStreams = [stream];
-        } else if (!this._localStreams.includes(stream)) {
-          this._localStreams.push(stream);
-        }
+      var _this2 = this;
+
+      for (var _len = arguments.length, streams = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        streams[_key - 1] = arguments[_key];
+      }
+
+      if (streams) {
+        streams.forEach(function (stream) {
+          if (!_this2._localStreams) {
+            _this2._localStreams = [stream];
+          } else if (!_this2._localStreams.includes(stream)) {
+            _this2._localStreams.push(stream);
+          }
+        });
       }
       return _addTrack.apply(this, arguments);
     };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
     window.RTCPeerConnection.prototype.removeStream = function removeStream(stream) {
-      var _this2 = this;
+      var _this3 = this;
 
       if (!this._localStreams) {
         this._localStreams = [];
@@ -2097,7 +2104,7 @@ function shimLocalStreamsAPI(window) {
       var tracks = stream.getTracks();
       this.getSenders().forEach(function (sender) {
         if (tracks.includes(sender.track)) {
-          _this2.removeTrack(sender);
+          _this3.removeTrack(sender);
         }
       });
     };
@@ -2119,7 +2126,7 @@ function shimRemoteStreamsAPI(window) {
         return this._onaddstream;
       },
       set: function set(f) {
-        var _this3 = this;
+        var _this4 = this;
 
         if (this._onaddstream) {
           this.removeEventListener('addstream', this._onaddstream);
@@ -2128,16 +2135,16 @@ function shimRemoteStreamsAPI(window) {
         this.addEventListener('addstream', this._onaddstream = f);
         this.addEventListener('track', this._onaddstreampoly = function (e) {
           e.streams.forEach(function (stream) {
-            if (!_this3._remoteStreams) {
-              _this3._remoteStreams = [];
+            if (!_this4._remoteStreams) {
+              _this4._remoteStreams = [];
             }
-            if (_this3._remoteStreams.includes(stream)) {
+            if (_this4._remoteStreams.includes(stream)) {
               return;
             }
-            _this3._remoteStreams.push(stream);
+            _this4._remoteStreams.push(stream);
             var event = new Event('addstream');
             event.stream = stream;
-            _this3.dispatchEvent(event);
+            _this4.dispatchEvent(event);
           });
         });
       }
