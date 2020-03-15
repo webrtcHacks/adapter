@@ -25,7 +25,6 @@ env:
     - BROWSER=firefox BVER=beta
     - BROWSER=firefox BVER=nightly
     - BROWSER=firefox BVER=esr
-    - BROWSER=Electron
 
 matrix:
   fast_finish: true
@@ -37,7 +36,6 @@ before_script:
   - export FIREFOX_BIN=browsers/bin/firefox-${BVER}
   - Xvfb :99 &
   - pulseaudio --start
-  - if [ "$BROWSER" = "Electron" ]; then npm i karma-electron electron@3 karma-stability-reporter; fi
 
 script:
   - node_modules/.bin/grunt
