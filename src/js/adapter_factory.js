@@ -41,6 +41,10 @@ export function adapterFactory({window} = {}, options = {
         logging('Chrome shim is not included in this adapter release.');
         return adapter;
       }
+      if (browserDetails.version === null) {
+        logging('Chrome shim can not determine version, not shimming.');
+        return adapter;
+      }
       logging('adapter.js shimming chrome.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = chromeShim;
