@@ -340,3 +340,10 @@ export function shimCreateOfferLegacy(window) {
       return origCreateOffer.apply(this, arguments);
     };
 }
+
+export function shimAudioContext(window) {
+  if (typeof window !== 'object' || window.AudioContext) {
+    return;
+  }
+  window.AudioContext = window.webkitAudioContext;
+}
