@@ -126,6 +126,7 @@ export function adapterFactory({window} = {}, options = {
       safariShim.shimRemoteStreamsAPI(window);
       safariShim.shimTrackEventTransceiver(window);
       safariShim.shimGetUserMedia(window);
+      safariShim.shimAudioContext(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
