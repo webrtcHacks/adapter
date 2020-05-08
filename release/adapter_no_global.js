@@ -87,6 +87,10 @@ function adapterFactory() {
         logging('Chrome shim is not included in this adapter release.');
         return adapter;
       }
+      if (browserDetails.version === null) {
+        logging('Chrome shim can not determine version, not shimming.');
+        return adapter;
+      }
       logging('adapter.js shimming chrome.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = chromeShim;
@@ -167,6 +171,7 @@ function adapterFactory() {
       safariShim.shimRemoteStreamsAPI(window);
       safariShim.shimTrackEventTransceiver(window);
       safariShim.shimGetUserMedia(window);
+      safariShim.shimAudioContext(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
@@ -2277,6 +2282,7 @@ exports.shimConstraints = shimConstraints;
 exports.shimRTCIceServerUrls = shimRTCIceServerUrls;
 exports.shimTrackEventTransceiver = shimTrackEventTransceiver;
 exports.shimCreateOfferLegacy = shimCreateOfferLegacy;
+exports.shimAudioContext = shimAudioContext;
 
 var _utils = require('../utils');
 
@@ -2609,6 +2615,13 @@ function shimCreateOfferLegacy(window) {
     }
     return origCreateOffer.apply(this, arguments);
   };
+}
+
+function shimAudioContext(window) {
+  if ((typeof window === 'undefined' ? 'undefined' : _typeof(window)) !== 'object' || window.AudioContext) {
+    return;
+  }
+  window.AudioContext = window.webkitAudioContext;
 }
 
 },{"../utils":15}],15:[function(require,module,exports){
