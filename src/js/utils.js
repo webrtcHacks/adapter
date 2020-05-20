@@ -40,7 +40,11 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     const wrappedCallback = (e) => {
       const modifiedEvent = wrapper(e);
       if (modifiedEvent) {
-        cb(modifiedEvent);
+        if (cb.handleEvent) {
+          cb.handleEvent(modifiedEvent);
+        } else {
+          cb(modifiedEvent);
+        }
       }
     };
     this._eventMap = this._eventMap || {};
