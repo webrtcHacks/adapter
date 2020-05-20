@@ -1,4 +1,3 @@
-
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -714,11 +713,16 @@ export function shimPeerConnection(window) {
     };
 }
 
+// Attempt to fix ONN in plan-b mode.
 export function fixNegotiationNeeded(window) {
+  const browserDetails = utils.detectBrowser(window);
   utils.wrapPeerConnectionEvent(window, 'negotiationneeded', e => {
     const pc = e.target;
-    if (pc.signalingState !== 'stable') {
-      return;
+    if (browserDetails.version < 72 || (pc.getConfiguration &&
+        pc.getConfiguration().sdpSemantics === 'plan-b')) {
+      if (pc.signalingState !== 'stable') {
+        return;
+      }
     }
     return e;
   });
