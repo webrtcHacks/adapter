@@ -1,1 +1,1 @@
-adapter-7.6.0.js
+adapter-7.6.1.js
