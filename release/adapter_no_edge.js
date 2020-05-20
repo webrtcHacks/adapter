@@ -189,7 +189,6 @@ function adapterFactory() {
 // Browser shims.
 
 },{"./chrome/chrome_shim":3,"./common_shim":6,"./edge/edge_shim":12,"./firefox/firefox_shim":7,"./safari/safari_shim":10,"./utils":11}],3:[function(require,module,exports){
-
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -947,11 +946,15 @@ function shimPeerConnection(window) {
   };
 }
 
+// Attempt to fix ONN in plan-b mode.
 function fixNegotiationNeeded(window) {
+  var browserDetails = utils.detectBrowser(window);
   utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function (e) {
     var pc = e.target;
-    if (pc.signalingState !== 'stable') {
-      return;
+    if (browserDetails.version < 72 || pc.getConfiguration && pc.getConfiguration().sdpSemantics === 'plan-b') {
+      if (pc.signalingState !== 'stable') {
+        return;
+      }
     }
     return e;
   });
