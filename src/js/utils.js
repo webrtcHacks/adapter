@@ -48,7 +48,10 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       }
     };
     this._eventMap = this._eventMap || {};
-    this._eventMap[cb] = wrappedCallback;
+    if (!this._eventMap[eventNameToWrap]) {
+      this._eventMap[eventNameToWrap] = [];
+    }
+    this._eventMap[eventNameToWrap].push([cb, wrappedCallback]);
     return nativeAddEventListener.apply(this, [nativeEventName,
       wrappedCallback]);
   };
@@ -56,11 +59,23 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   const nativeRemoveEventListener = proto.removeEventListener;
   proto.removeEventListener = function(nativeEventName, cb) {
     if (nativeEventName !== eventNameToWrap || !this._eventMap
-        || !this._eventMap[cb]) {
+        || !this._eventMap[eventNameToWrap]) {
       return nativeRemoveEventListener.apply(this, arguments);
     }
-    const unwrappedCb = this._eventMap[cb];
-    delete this._eventMap[cb];
+    const index = this._eventMap[eventNameToWrap].findIndex(([cb_, _]) => {
+      return cb_ === cb;
+    });
+    if (index === -1) {
+      return nativeRemoveEventListener.apply(this, arguments);
+    }
+    const unwrappedCb = this._eventMap[eventNameToWrap][index];
+    this._eventMap[eventNameToWrap].splice(index, 1);
+    if (this._eventMap[eventNameToWrap].length === 0) {
+      delete this._eventMap[eventNameToWrap];
+    }
+    if (Object.keys(this._eventMap).length === 0) {
+      delete this._eventMap;
+    }
     return nativeRemoveEventListener.apply(this, [nativeEventName,
       unwrappedCb]);
   };
