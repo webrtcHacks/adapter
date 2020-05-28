@@ -49,9 +49,9 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     };
     this._eventMap = this._eventMap || {};
     if (!this._eventMap[eventNameToWrap]) {
-      this._eventMap[eventNameToWrap] = [];
+      this._eventMap[eventNameToWrap] = new Map();
     }
-    this._eventMap[eventNameToWrap].push([cb, wrappedCallback]);
+    this._eventMap[eventNameToWrap].set(cb, wrappedCallback);
     return nativeAddEventListener.apply(this, [nativeEventName,
       wrappedCallback]);
   };
@@ -62,15 +62,12 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
         || !this._eventMap[eventNameToWrap]) {
       return nativeRemoveEventListener.apply(this, arguments);
     }
-    const index = this._eventMap[eventNameToWrap].findIndex(([cb_, _]) => {
-      return cb_ === cb;
-    });
-    if (index === -1) {
+    if (!this._eventMap[eventNameToWrap].has(cb)) {
       return nativeRemoveEventListener.apply(this, arguments);
     }
-    const unwrappedCb = this._eventMap[eventNameToWrap][index];
-    this._eventMap[eventNameToWrap].splice(index, 1);
-    if (this._eventMap[eventNameToWrap].length === 0) {
+    const unwrappedCb = this._eventMap[eventNameToWrap].get(cb);
+    this._eventMap[eventNameToWrap].delete(cb);
+    if (this._eventMap[eventNameToWrap].size === 0) {
       delete this._eventMap[eventNameToWrap];
     }
     if (Object.keys(this._eventMap).length === 0) {
