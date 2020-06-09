@@ -240,13 +240,34 @@ export function shimAddTransceiver(window) {
           const params = sender.getParameters();
           if (!('encodings' in params)) {
             params.encodings = initParameters.sendEncodings;
-            this.setParametersPromises.push(
-              sender.setParameters(params)
-              .catch(() => {})
+            sender.sendEncodings = initParameters.sendEncodings;
+            this.setParametersPromises.push(sender.setParameters(params)
+              .then(() => {
+                delete sender.sendEncodings;
+              }).catch(() => {
+                delete sender.sendEncodings;
+              })
             );
           }
         }
         return transceiver;
+      };
+  }
+}
+
+export function shimGetParameters(window) {
+  if (!(typeof window === 'object' && window.RTCRtpSender)) {
+    return;
+  }
+  const origGetParameters = window.RTCRtpSender.prototype.getParameters;
+  if (origGetParameters) {
+    window.RTCRtpSender.prototype.getParameters =
+      function getParameters() {
+        var params = origGetParameters.apply(this, arguments);
+        if (!('sendEncodings' in this)) {
+          return params;
+        }
+        return Object.assign({}, {encodings: this.sendEncodings}, params);
       };
   }
 }
