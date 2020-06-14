@@ -128,6 +128,7 @@ function adapterFactory() {
       firefoxShim.shimReceiverGetStats(window);
       firefoxShim.shimRTCDataChannel(window);
       firefoxShim.shimAddTransceiver(window);
+      firefoxShim.shimGetParameters(window);
       firefoxShim.shimCreateOffer(window);
       firefoxShim.shimCreateAnswer(window);
 
@@ -1545,12 +1546,15 @@ function shimConnectionState(window) {
 }
 
 function removeAllowExtmapMixed(window) {
-  /* remove a=extmap-allow-mixed for Chrome < M71 */
+  /* remove a=extmap-allow-mixed for webrtc.org < M71 */
   if (!window.RTCPeerConnection) {
     return;
   }
   var browserDetails = utils.detectBrowser(window);
   if (browserDetails.browser === 'chrome' && browserDetails.version >= 71) {
+    return;
+  }
+  if (browserDetails.browser === 'safari' && browserDetails.version >= 605) {
     return;
   }
   var nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;
@@ -1853,6 +1857,7 @@ exports.shimReceiverGetStats = shimReceiverGetStats;
 exports.shimRemoveStream = shimRemoveStream;
 exports.shimRTCDataChannel = shimRTCDataChannel;
 exports.shimAddTransceiver = shimAddTransceiver;
+exports.shimGetParameters = shimGetParameters;
 exports.shimCreateOffer = shimCreateOffer;
 exports.shimCreateAnswer = shimCreateAnswer;
 
@@ -2090,10 +2095,31 @@ function shimAddTransceiver(window) {
         var params = sender.getParameters();
         if (!('encodings' in params)) {
           params.encodings = initParameters.sendEncodings;
-          this.setParametersPromises.push(sender.setParameters(params).catch(function () {}));
+          sender.sendEncodings = initParameters.sendEncodings;
+          this.setParametersPromises.push(sender.setParameters(params).then(function () {
+            delete sender.sendEncodings;
+          }).catch(function () {
+            delete sender.sendEncodings;
+          }));
         }
       }
       return transceiver;
+    };
+  }
+}
+
+function shimGetParameters(window) {
+  if (!((typeof window === 'undefined' ? 'undefined' : _typeof(window)) === 'object' && window.RTCRtpSender)) {
+    return;
+  }
+  var origGetParameters = window.RTCRtpSender.prototype.getParameters;
+  if (origGetParameters) {
+    window.RTCRtpSender.prototype.getParameters = function getParameters() {
+      var params = origGetParameters.apply(this, arguments);
+      if (!('sendEncodings' in this)) {
+        return params;
+      }
+      return Object.assign({}, { encodings: this.sendEncodings }, params);
     };
   }
 }
@@ -2689,21 +2715,37 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     var wrappedCallback = function wrappedCallback(e) {
       var modifiedEvent = wrapper(e);
       if (modifiedEvent) {
-        cb(modifiedEvent);
+        if (cb.handleEvent) {
+          cb.handleEvent(modifiedEvent);
+        } else {
+          cb(modifiedEvent);
+        }
       }
     };
     this._eventMap = this._eventMap || {};
-    this._eventMap[cb] = wrappedCallback;
+    if (!this._eventMap[eventNameToWrap]) {
+      this._eventMap[eventNameToWrap] = new Map();
+    }
+    this._eventMap[eventNameToWrap].set(cb, wrappedCallback);
     return nativeAddEventListener.apply(this, [nativeEventName, wrappedCallback]);
   };
 
   var nativeRemoveEventListener = proto.removeEventListener;
   proto.removeEventListener = function (nativeEventName, cb) {
-    if (nativeEventName !== eventNameToWrap || !this._eventMap || !this._eventMap[cb]) {
+    if (nativeEventName !== eventNameToWrap || !this._eventMap || !this._eventMap[eventNameToWrap]) {
       return nativeRemoveEventListener.apply(this, arguments);
     }
-    var unwrappedCb = this._eventMap[cb];
-    delete this._eventMap[cb];
+    if (!this._eventMap[eventNameToWrap].has(cb)) {
+      return nativeRemoveEventListener.apply(this, arguments);
+    }
+    var unwrappedCb = this._eventMap[eventNameToWrap].get(cb);
+    this._eventMap[eventNameToWrap].delete(cb);
+    if (this._eventMap[eventNameToWrap].size === 0) {
+      delete this._eventMap[eventNameToWrap];
+    }
+    if (Object.keys(this._eventMap).length === 0) {
+      delete this._eventMap;
+    }
     return nativeRemoveEventListener.apply(this, [nativeEventName, unwrappedCb]);
   };
 
