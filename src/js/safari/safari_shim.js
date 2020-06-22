@@ -233,6 +233,9 @@ export function shimConstraints(constraints) {
 }
 
 export function shimRTCIceServerUrls(window) {
+  if (!window.RTCPeerConnection) {
+    return;
+  }
   // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
   const OrigPeerConnection = window.RTCPeerConnection;
   window.RTCPeerConnection =
@@ -258,7 +261,7 @@ export function shimRTCIceServerUrls(window) {
     };
   window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
   // wrap static methods. Currently just generateCertificate.
-  if ('generateCertificate' in window.RTCPeerConnection) {
+  if ('generateCertificate' in OrigPeerConnection) {
     Object.defineProperty(window.RTCPeerConnection, 'generateCertificate', {
       get() {
         return OrigPeerConnection.generateCertificate;
