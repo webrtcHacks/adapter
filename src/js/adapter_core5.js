@@ -11,5 +11,5 @@
 
 import {adapterFactory} from './adapter_factory.js';
 
-const adapter = adapterFactory({window});
+const adapter = adapterFactory({window: typeof window === 'undefined' ? undefined : window});
 module.exports = adapter; // this is the difference from adapter_core.

@@ -149,8 +149,6 @@ export function deprecated(oldMethod, newMethod) {
  *     properties.
  */
 export function detectBrowser(window) {
-  const {navigator} = window;
-
   // Returned result object.
   const result = {browser: null, version: null};
 
@@ -159,6 +157,8 @@ export function detectBrowser(window) {
     result.browser = 'Not a browser.';
     return result;
   }
+
+  const {navigator} = window;
 
   if (navigator.mozGetUserMedia) { // Firefox.
     result.browser = 'firefox';
