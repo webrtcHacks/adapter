@@ -12,7 +12,7 @@
 
 var _adapter_factory = require('./adapter_factory.js');
 
-var adapter = (0, _adapter_factory.adapterFactory)({ window: window });
+var adapter = (0, _adapter_factory.adapterFactory)({ window: typeof window === 'undefined' ? undefined : window });
 module.exports = adapter; // this is the difference from adapter_core.
 
 },{"./adapter_factory.js":2}],2:[function(require,module,exports){
@@ -2819,10 +2819,7 @@ function deprecated(oldMethod, newMethod) {
  *     properties.
  */
 function detectBrowser(window) {
-  var navigator = window.navigator;
-
   // Returned result object.
-
   var result = { browser: null, version: null };
 
   // Fail early if it's not a browser
@@ -2830,6 +2827,9 @@ function detectBrowser(window) {
     result.browser = 'Not a browser.';
     return result;
   }
+
+  var navigator = window.navigator;
+
 
   if (navigator.mozGetUserMedia) {
     // Firefox.
