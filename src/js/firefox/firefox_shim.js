@@ -264,10 +264,10 @@ export function shimGetParameters(window) {
     window.RTCRtpSender.prototype.getParameters =
       function getParameters() {
         var params = origGetParameters.apply(this, arguments);
-        if (!('sendEncodings' in this)) {
-          return params;
+        if (!('encodings' in params)) {
+          params.encodings = [].concat(this.sendEncodings || [{}]);
         }
-        return Object.assign({}, {encodings: this.sendEncodings}, params);
+        return params;
       };
   }
 }
