@@ -238,7 +238,10 @@ export function shimAddTransceiver(window) {
           // opportunity to recreate offer.
           const {sender} = transceiver;
           const params = sender.getParameters();
-          if (!('encodings' in params)) {
+          if (!('encodings' in params) ||
+              // Avoid being fooled by patched getParameters() below.
+              (params.encodings.length === 1 &&
+               Object.keys(params.encodings[0]).length === 0)) {
             params.encodings = initParameters.sendEncodings;
             sender.sendEncodings = initParameters.sendEncodings;
             this.setParametersPromises.push(sender.setParameters(params)
@@ -263,11 +266,11 @@ export function shimGetParameters(window) {
   if (origGetParameters) {
     window.RTCRtpSender.prototype.getParameters =
       function getParameters() {
-        var params = origGetParameters.apply(this, arguments);
-        if (!('sendEncodings' in this)) {
-          return params;
+        const params = origGetParameters.apply(this, arguments);
+        if (!('encodings' in params)) {
+          params.encodings = [].concat(this.sendEncodings || [{}]);
         }
-        return Object.assign({}, {encodings: this.sendEncodings}, params);
+        return params;
       };
   }
 }
