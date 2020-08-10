@@ -19,7 +19,7 @@ export function filterIceServers(iceServers, edgeVersion) {
   iceServers = JSON.parse(JSON.stringify(iceServers));
   return iceServers.filter(server => {
     if (server && (server.urls || server.url)) {
-      var urls = server.urls || server.url;
+      let urls = server.urls || server.url;
       if (server.url && !server.urls) {
         utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
       }
