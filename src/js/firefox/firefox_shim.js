@@ -263,7 +263,7 @@ export function shimGetParameters(window) {
   if (origGetParameters) {
     window.RTCRtpSender.prototype.getParameters =
       function getParameters() {
-        var params = origGetParameters.apply(this, arguments);
+        const params = origGetParameters.apply(this, arguments);
         if (!('encodings' in params)) {
           params.encodings = [].concat(this.sendEncodings || [{}]);
         }
