@@ -240,8 +240,8 @@ export function shimAddTransceiver(window) {
           const params = sender.getParameters();
           if (!('encodings' in params) ||
               // Avoid being fooled by patched getParameters() below.
-              (params.encodings.length == 1 &&
-               Object.keys(params.encodings[0]).length == 0)) {
+              (params.encodings.length === 1 &&
+               Object.keys(params.encodings[0]).length === 0)) {
             params.encodings = initParameters.sendEncodings;
             sender.sendEncodings = initParameters.sendEncodings;
             this.setParametersPromises.push(sender.setParameters(params)
