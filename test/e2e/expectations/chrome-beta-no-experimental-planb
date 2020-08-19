@@ -1,2 +1,2 @@
-ERR removeTrack allows removeTrack twice AssertionError
+ERR removeTrack allows removeTrack twice timeout
 ERR simulcast using transceivers APIs timeout

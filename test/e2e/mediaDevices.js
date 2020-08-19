@@ -52,7 +52,7 @@ describe('navigator.mediaDevices', () => {
       });
 
       ['audioinput', 'videoinput', 'audiooutput'].forEach(kind => {
-        it('some ' + kind + ' devices', () => {
+        it.only('some ' + kind + ' devices', () => {
           return navigator.mediaDevices.enumerateDevices()
           .then(devices => {
             expect(devices.find(d => d.kind === kind)).not.to.equal(undefined);
