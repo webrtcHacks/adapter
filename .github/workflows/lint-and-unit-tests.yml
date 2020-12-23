@@ -6,7 +6,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-    - run: npm install
-    - run: npm run lint-and-unit-tests
+    - id: browser
+      uses: fippo/multirunner-action@0.2
+    - run: ${{steps.browser.outputs.path}} --version
