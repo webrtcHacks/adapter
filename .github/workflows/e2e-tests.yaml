@@ -1,0 +1,35 @@
+name: e2e-tests
+
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+        version: [stable, beta]
+        include:
+          - browser: chrome
+            version: unstable
+          - browser: chrome
+            version: stable
+            disableunifiedplan: true
+          - browser: firefox
+            version: nightly
+          - browser: firefox
+            version: esr
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+    - run: npm install
+    - run: Xvfb :99 &
+    - name: e2e-tests
+      env:
+        BROWSER: ${{matrix.browser}}
+        BVER: ${{matrix.version}}
+        CHROME_BIN: browsers/bin/chrome-${{matrix.version}}
+        FIREFOX_BIN: browsers/bin/firefox-${{matrix.version}}
+        DISPLAY: :99.0
+        PLANB: ${{matrix.disableunifiedplan}}
+      run: npm run e2e-tests
