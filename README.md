@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/webrtcHacks/adapter.svg)](https://travis-ci.org/webrtcHacks/adapter)
-
 # WebRTC adapter #
 adapter.js is a shim to insulate apps from spec changes and prefix differences in WebRTC. The prefix differences are mostly gone these days but differences in behaviour between browsers remain.
 
