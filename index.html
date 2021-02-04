@@ -1,1 +1,6 @@
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <a href='https://github.com/webrtchacks/adapter'>adapter.js on github</a>
+<div id="detect"></div>
+<script>
+document.getElementById("detect").innerText = 'WebRTC as detected by adapter.js:\n' + JSON.stringify(adapter.browserDetails, null, ' ');
+</script>
