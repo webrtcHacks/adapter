@@ -49,6 +49,9 @@ export function adapterFactory({window} = {}, options = {
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = chromeShim;
 
+      // Must be called before shimPeerConnection.
+      commonShim.shimAddIceCandidateNullOrEmpty(window);
+
       chromeShim.shimGetUserMedia(window);
       chromeShim.shimMediaStream(window);
       chromeShim.shimPeerConnection(window);
@@ -74,6 +77,9 @@ export function adapterFactory({window} = {}, options = {
       logging('adapter.js shimming firefox.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = firefoxShim;
+
+      // Must be called before shimPeerConnection.
+      commonShim.shimAddIceCandidateNullOrEmpty(window);
 
       firefoxShim.shimGetUserMedia(window);
       firefoxShim.shimPeerConnection(window);
@@ -119,6 +125,9 @@ export function adapterFactory({window} = {}, options = {
       logging('adapter.js shimming safari.');
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = safariShim;
+
+      // Must be called before shimCallbackAPI.
+      commonShim.shimAddIceCandidateNullOrEmpty(window);
 
       safariShim.shimRTCIceServerUrls(window);
       safariShim.shimCreateOfferLegacy(window);
