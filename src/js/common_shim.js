@@ -317,12 +317,11 @@ export function shimConnectionState(window) {
   });
 }
 
-export function removeAllowExtmapMixed(window) {
+export function removeExtmapAllowMixed(window, browserDetails) {
   /* remove a=extmap-allow-mixed for webrtc.org < M71 */
   if (!window.RTCPeerConnection) {
     return;
   }
-  const browserDetails = utils.detectBrowser(window);
   if (browserDetails.browser === 'chrome' && browserDetails.version >= 71) {
     return;
   }

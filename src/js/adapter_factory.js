@@ -66,7 +66,7 @@ export function adapterFactory({window} = {}, options = {
       commonShim.shimConnectionState(window);
       commonShim.shimMaxMessageSize(window);
       commonShim.shimSendThrowTypeError(window);
-      commonShim.removeAllowExtmapMixed(window);
+      commonShim.removeExtmapAllowMixed(window, browserDetails);
       break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection ||
@@ -141,7 +141,7 @@ export function adapterFactory({window} = {}, options = {
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
       commonShim.shimSendThrowTypeError(window);
-      commonShim.removeAllowExtmapMixed(window);
+      commonShim.removeExtmapAllowMixed(window, browserDetails);
       break;
     default:
       logging('Unsupported browser!');
