@@ -50,7 +50,7 @@ export function adapterFactory({window} = {}, options = {
       adapter.browserShim = chromeShim;
 
       // Must be called before shimPeerConnection.
-      commonShim.shimAddIceCandidateNullOrEmpty(window);
+      commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
 
       chromeShim.shimGetUserMedia(window);
       chromeShim.shimMediaStream(window);
@@ -79,7 +79,7 @@ export function adapterFactory({window} = {}, options = {
       adapter.browserShim = firefoxShim;
 
       // Must be called before shimPeerConnection.
-      commonShim.shimAddIceCandidateNullOrEmpty(window);
+      commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
 
       firefoxShim.shimGetUserMedia(window);
       firefoxShim.shimPeerConnection(window);
@@ -127,7 +127,7 @@ export function adapterFactory({window} = {}, options = {
       adapter.browserShim = safariShim;
 
       // Must be called before shimCallbackAPI.
-      commonShim.shimAddIceCandidateNullOrEmpty(window);
+      commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
 
       safariShim.shimRTCIceServerUrls(window);
       safariShim.shimCreateOfferLegacy(window);

@@ -341,12 +341,11 @@ export function removeAllowExtmapMixed(window) {
   };
 }
 
-export function shimAddIceCandidateNullOrEmpty(window) {
+export function shimAddIceCandidateNullOrEmpty(window, browserDetails) {
   // Support for addIceCandidate(null or undefined)
   // as well as addIceCandidate({candidate: "", ...})
   // https://bugs.chromium.org/p/chromium/issues/detail?id=978582
   // Note: must be called before other polyfills which change the signature.
-  const browserDetails = utils.detectBrowser(window);
   if (!(window.RTCPeerConnection && window.RTCPeerConnection.prototype)) {
     return;
   }
