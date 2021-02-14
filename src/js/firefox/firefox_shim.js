@@ -51,28 +51,6 @@ export function shimPeerConnection(window) {
         });
   }
 
-  // support for addIceCandidate(null or undefined)
-  // as well as ignoring {sdpMid, candidate: ""}
-  if (browserDetails.version < 68) {
-    const nativeAddIceCandidate =
-        window.RTCPeerConnection.prototype.addIceCandidate;
-    window.RTCPeerConnection.prototype.addIceCandidate =
-    function addIceCandidate() {
-      if (!arguments[0]) {
-        if (arguments[1]) {
-          arguments[1].apply(null);
-        }
-        return Promise.resolve();
-      }
-      // Firefox 68+ emits and processes {candidate: "", ...}, ignore
-      // in older versions.
-      if (arguments[0] && arguments[0].candidate === '') {
-        return Promise.resolve();
-      }
-      return nativeAddIceCandidate.apply(this, arguments);
-    };
-  }
-
   const modernStatsTypes = {
     inboundrtp: 'inbound-rtp',
     outboundrtp: 'outbound-rtp',

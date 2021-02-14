@@ -340,3 +340,40 @@ export function removeAllowExtmapMixed(window) {
     return nativeSRD.apply(this, arguments);
   };
 }
+
+export function shimAddIceCandidateNullOrEmpty(window, browserDetails) {
+  // Support for addIceCandidate(null or undefined)
+  // as well as addIceCandidate({candidate: "", ...})
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=978582
+  // Note: must be called before other polyfills which change the signature.
+  if (!(window.RTCPeerConnection && window.RTCPeerConnection.prototype)) {
+    return;
+  }
+  const nativeAddIceCandidate =
+      window.RTCPeerConnection.prototype.addIceCandidate;
+  if (!nativeAddIceCandidate || nativeAddIceCandidate.length === 0) {
+    return;
+  }
+  window.RTCPeerConnection.prototype.addIceCandidate =
+    function addIceCandidate() {
+      if (!arguments[0]) {
+        if (arguments[1]) {
+          arguments[1].apply(null);
+        }
+        return Promise.resolve();
+      }
+      // Firefox 68+ emits and processes {candidate: "", ...}, ignore
+      // in older versions.
+      // Native support for ignoring exists for Chrome M77+.
+      // Safari ignores as well, exact version unknown but works in the same
+      // version that also ignores addIceCandidate(null).
+      if (((browserDetails.browser === 'chrome' && browserDetails.version < 78)
+           || (browserDetails.browser === 'firefox'
+               && browserDetails.version < 68)
+           || (browserDetails.browser === 'safari'))
+          && arguments[0] && arguments[0].candidate === '') {
+        return Promise.resolve();
+      }
+      return nativeAddIceCandidate.apply(this, arguments);
+    };
+}

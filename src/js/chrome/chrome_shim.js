@@ -674,9 +674,6 @@ export function shimPeerConnection(window) {
     return;
   }
 
-  const addIceCandidateNullSupported =
-    window.RTCPeerConnection.prototype.addIceCandidate.length === 0;
-
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
   if (browserDetails.version < 53) {
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
@@ -691,26 +688,6 @@ export function shimPeerConnection(window) {
           window.RTCPeerConnection.prototype[method] = methodObj[method];
         });
   }
-
-  // support for addIceCandidate(null or undefined)
-  const nativeAddIceCandidate =
-      window.RTCPeerConnection.prototype.addIceCandidate;
-  window.RTCPeerConnection.prototype.addIceCandidate =
-    function addIceCandidate() {
-      if (!addIceCandidateNullSupported && !arguments[0]) {
-        if (arguments[1]) {
-          arguments[1].apply(null);
-        }
-        return Promise.resolve();
-      }
-      // Firefox 68+ emits and processes {candidate: "", ...}, ignore
-      // in older versions. Native support planned for Chrome M77.
-      if (browserDetails.version < 78 &&
-        arguments[0] && arguments[0].candidate === '') {
-        return Promise.resolve();
-      }
-      return nativeAddIceCandidate.apply(this, arguments);
-    };
 }
 
 // Attempt to fix ONN in plan-b mode.
