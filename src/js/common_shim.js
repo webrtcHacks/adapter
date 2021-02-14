@@ -63,11 +63,10 @@ export function shimRTCIceCandidate(window) {
   });
 }
 
-export function shimMaxMessageSize(window) {
+export function shimMaxMessageSize(window, browserDetails) {
   if (!window.RTCPeerConnection) {
     return;
   }
-  const browserDetails = utils.detectBrowser(window);
 
   if (!('sctp' in window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {

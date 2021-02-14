@@ -179,7 +179,7 @@ describe('maxMessageSize', () => {
     fakeWindow.RTCPeerConnection = function() {};
     fakeWindow.RTCPeerConnection.prototype.setRemoteDescription = () => {};
     fakeWindow.RTCPeerConnection.prototype.getConfiguration = () => ({});
-    window.adapter.commonShim.shimMaxMessageSize(fakeWindow);
+    window.adapter.commonShim.shimMaxMessageSize(fakeWindow, browserDetails);
 
     // Map specific browser versions to a test case.
     // You can use the following version comparators: '<=', '>=' and '=='.

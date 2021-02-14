@@ -10,8 +10,7 @@
 
 import * as utils from '../utils';
 
-export function shimGetUserMedia(window) {
-  const browserDetails = utils.detectBrowser(window);
+export function shimGetUserMedia(window, browserDetails) {
   const navigator = window && window.navigator;
   const MediaStreamTrack = window && window.MediaStreamTrack;
 

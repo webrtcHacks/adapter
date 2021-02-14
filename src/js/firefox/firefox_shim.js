@@ -24,9 +24,7 @@ export function shimOnTrack(window) {
   }
 }
 
-export function shimPeerConnection(window) {
-  const browserDetails = utils.detectBrowser(window);
-
+export function shimPeerConnection(window, browserDetails) {
   if (typeof window !== 'object' ||
       !(window.RTCPeerConnection || window.mozRTCPeerConnection)) {
     return; // probably media.peerconnection.enabled=false in about:config

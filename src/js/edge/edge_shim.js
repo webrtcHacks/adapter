@@ -15,9 +15,7 @@ import shimRTCPeerConnection from 'rtcpeerconnection-shim';
 export {shimGetUserMedia} from './getusermedia';
 export {shimGetDisplayMedia} from './getdisplaymedia';
 
-export function shimPeerConnection(window) {
-  const browserDetails = utils.detectBrowser(window);
-
+export function shimPeerConnection(window, browserDetails) {
   if (window.RTCIceGatherer) {
     if (!window.RTCIceCandidate) {
       window.RTCIceCandidate = function RTCIceCandidate(args) {
