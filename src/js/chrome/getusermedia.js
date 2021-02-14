@@ -10,14 +10,12 @@
 import * as utils from '../utils.js';
 const logging = utils.log;
 
-export function shimGetUserMedia(window) {
+export function shimGetUserMedia(window, browserDetails) {
   const navigator = window && window.navigator;
 
   if (!navigator.mediaDevices) {
     return;
   }
-
-  const browserDetails = utils.detectBrowser(window);
 
   const constraintsToChrome_ = function(c) {
     if (typeof c !== 'object' || c.mandatory || c.optional) {

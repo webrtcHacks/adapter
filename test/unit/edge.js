@@ -28,18 +28,18 @@ describe('Edge shim', () => {
         getDisplayMedia: sinon.stub,
       },
     };
-    shim.shimPeerConnection(window);
+    shim.shimPeerConnection(window, {});
   });
 
   it('creates window.RTCPeerConnection', () => {
     delete window.RTCPeerConnection;
-    shim.shimPeerConnection(window);
+    shim.shimPeerConnection(window, {});
     expect(window.RTCPeerConnection).not.to.equal(undefined);
   });
 
   it('overrides window.RTCPeerConnection if it exists', () => {
     window.RTCPeerConnection = true;
-    shim.shimPeerConnection(window);
+    shim.shimPeerConnection(window, {});
     expect(window.RTCPeerConnection).not.to.equal(true);
   });
 

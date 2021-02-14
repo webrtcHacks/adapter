@@ -436,11 +436,10 @@ export function shimAddTrackRemoveTrackWithNative(window) {
     };
 }
 
-export function shimAddTrackRemoveTrack(window) {
+export function shimAddTrackRemoveTrack(window, browserDetails) {
   if (!window.RTCPeerConnection) {
     return;
   }
-  const browserDetails = utils.detectBrowser(window);
   // shim addTrack and removeTrack.
   if (window.RTCPeerConnection.prototype.addTrack &&
       browserDetails.version >= 65) {
@@ -663,9 +662,7 @@ export function shimAddTrackRemoveTrack(window) {
     };
 }
 
-export function shimPeerConnection(window) {
-  const browserDetails = utils.detectBrowser(window);
-
+export function shimPeerConnection(window, browserDetails) {
   if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
     // very basic support for old versions.
     window.RTCPeerConnection = window.webkitRTCPeerConnection;
@@ -691,8 +688,7 @@ export function shimPeerConnection(window) {
 }
 
 // Attempt to fix ONN in plan-b mode.
-export function fixNegotiationNeeded(window) {
-  const browserDetails = utils.detectBrowser(window);
+export function fixNegotiationNeeded(window, browserDetails) {
   utils.wrapPeerConnectionEvent(window, 'negotiationneeded', e => {
     const pc = e.target;
     if (browserDetails.version < 72 || (pc.getConfiguration &&

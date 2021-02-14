@@ -52,20 +52,20 @@ export function adapterFactory({window} = {}, options = {
       // Must be called before shimPeerConnection.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
 
-      chromeShim.shimGetUserMedia(window);
-      chromeShim.shimMediaStream(window);
-      chromeShim.shimPeerConnection(window);
-      chromeShim.shimOnTrack(window);
-      chromeShim.shimAddTrackRemoveTrack(window);
-      chromeShim.shimGetSendersWithDtmf(window);
-      chromeShim.shimGetStats(window);
-      chromeShim.shimSenderReceiverGetStats(window);
-      chromeShim.fixNegotiationNeeded(window);
+      chromeShim.shimGetUserMedia(window, browserDetails);
+      chromeShim.shimMediaStream(window, browserDetails);
+      chromeShim.shimPeerConnection(window, browserDetails);
+      chromeShim.shimOnTrack(window, browserDetails);
+      chromeShim.shimAddTrackRemoveTrack(window, browserDetails);
+      chromeShim.shimGetSendersWithDtmf(window, browserDetails);
+      chromeShim.shimGetStats(window, browserDetails);
+      chromeShim.shimSenderReceiverGetStats(window, browserDetails);
+      chromeShim.fixNegotiationNeeded(window, browserDetails);
 
-      commonShim.shimRTCIceCandidate(window);
-      commonShim.shimConnectionState(window);
-      commonShim.shimMaxMessageSize(window);
-      commonShim.shimSendThrowTypeError(window);
+      commonShim.shimRTCIceCandidate(window, browserDetails);
+      commonShim.shimConnectionState(window, browserDetails);
+      commonShim.shimMaxMessageSize(window, browserDetails);
+      commonShim.shimSendThrowTypeError(window, browserDetails);
       commonShim.removeExtmapAllowMixed(window, browserDetails);
       break;
     case 'firefox':
@@ -81,22 +81,22 @@ export function adapterFactory({window} = {}, options = {
       // Must be called before shimPeerConnection.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
 
-      firefoxShim.shimGetUserMedia(window);
-      firefoxShim.shimPeerConnection(window);
-      firefoxShim.shimOnTrack(window);
-      firefoxShim.shimRemoveStream(window);
-      firefoxShim.shimSenderGetStats(window);
-      firefoxShim.shimReceiverGetStats(window);
-      firefoxShim.shimRTCDataChannel(window);
-      firefoxShim.shimAddTransceiver(window);
-      firefoxShim.shimGetParameters(window);
-      firefoxShim.shimCreateOffer(window);
-      firefoxShim.shimCreateAnswer(window);
+      firefoxShim.shimGetUserMedia(window, browserDetails);
+      firefoxShim.shimPeerConnection(window, browserDetails);
+      firefoxShim.shimOnTrack(window, browserDetails);
+      firefoxShim.shimRemoveStream(window, browserDetails);
+      firefoxShim.shimSenderGetStats(window, browserDetails);
+      firefoxShim.shimReceiverGetStats(window, browserDetails);
+      firefoxShim.shimRTCDataChannel(window, browserDetails);
+      firefoxShim.shimAddTransceiver(window, browserDetails);
+      firefoxShim.shimGetParameters(window, browserDetails);
+      firefoxShim.shimCreateOffer(window, browserDetails);
+      firefoxShim.shimCreateAnswer(window, browserDetails);
 
-      commonShim.shimRTCIceCandidate(window);
-      commonShim.shimConnectionState(window);
-      commonShim.shimMaxMessageSize(window);
-      commonShim.shimSendThrowTypeError(window);
+      commonShim.shimRTCIceCandidate(window, browserDetails);
+      commonShim.shimConnectionState(window, browserDetails);
+      commonShim.shimMaxMessageSize(window, browserDetails);
+      commonShim.shimSendThrowTypeError(window, browserDetails);
       break;
     case 'edge':
       if (!edgeShim || !edgeShim.shimPeerConnection || !options.shimEdge) {
@@ -107,15 +107,15 @@ export function adapterFactory({window} = {}, options = {
       // Export to the adapter global object visible in the browser.
       adapter.browserShim = edgeShim;
 
-      edgeShim.shimGetUserMedia(window);
-      edgeShim.shimGetDisplayMedia(window);
-      edgeShim.shimPeerConnection(window);
-      edgeShim.shimReplaceTrack(window);
+      edgeShim.shimGetUserMedia(window, browserDetails);
+      edgeShim.shimGetDisplayMedia(window, browserDetails);
+      edgeShim.shimPeerConnection(window, browserDetails);
+      edgeShim.shimReplaceTrack(window, browserDetails);
 
       // the edge shim implements the full RTCIceCandidate object.
 
-      commonShim.shimMaxMessageSize(window);
-      commonShim.shimSendThrowTypeError(window);
+      commonShim.shimMaxMessageSize(window, browserDetails);
+      commonShim.shimSendThrowTypeError(window, browserDetails);
       break;
     case 'safari':
       if (!safariShim || !options.shimSafari) {
@@ -129,18 +129,18 @@ export function adapterFactory({window} = {}, options = {
       // Must be called before shimCallbackAPI.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
 
-      safariShim.shimRTCIceServerUrls(window);
-      safariShim.shimCreateOfferLegacy(window);
-      safariShim.shimCallbacksAPI(window);
-      safariShim.shimLocalStreamsAPI(window);
-      safariShim.shimRemoteStreamsAPI(window);
-      safariShim.shimTrackEventTransceiver(window);
-      safariShim.shimGetUserMedia(window);
-      safariShim.shimAudioContext(window);
+      safariShim.shimRTCIceServerUrls(window, browserDetails);
+      safariShim.shimCreateOfferLegacy(window, browserDetails);
+      safariShim.shimCallbacksAPI(window, browserDetails);
+      safariShim.shimLocalStreamsAPI(window, browserDetails);
+      safariShim.shimRemoteStreamsAPI(window, browserDetails);
+      safariShim.shimTrackEventTransceiver(window, browserDetails);
+      safariShim.shimGetUserMedia(window, browserDetails);
+      safariShim.shimAudioContext(window, browserDetails);
 
-      commonShim.shimRTCIceCandidate(window);
-      commonShim.shimMaxMessageSize(window);
-      commonShim.shimSendThrowTypeError(window);
+      commonShim.shimRTCIceCandidate(window, browserDetails);
+      commonShim.shimMaxMessageSize(window, browserDetails);
+      commonShim.shimSendThrowTypeError(window, browserDetails);
       commonShim.removeExtmapAllowMixed(window, browserDetails);
       break;
     default:
