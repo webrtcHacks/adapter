@@ -160,7 +160,7 @@ export function detectBrowser(window) {
 
   const {navigator} = window;
 
-  if (navigator.mozGetUserMedia) { // Firefox.
+  if (navigator.mozGetUserMedia || window.mozRTCPeerConnection) { // Firefox.
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent,
         /Firefox\/(\d+)\./, 1);
