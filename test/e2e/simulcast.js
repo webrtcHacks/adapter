@@ -19,8 +19,7 @@ describe('simulcast', () => {
   });
 
   it('using transceivers APIs', function() {
-    if (window.adapter.browserDetails.browser === 'edge' ||
-      window.adapter.browserDetails.browser === 'safari') {
+    if (window.adapter.browserDetails.browser === 'safari') {
       this.skip();
     }
     const constraints = {video: true};

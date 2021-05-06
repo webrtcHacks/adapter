@@ -41,17 +41,6 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).to.equal(45);
   });
 
-  it('detects Edge if navigator.mediaDevices exists', () => {
-    navigator.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-        'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 ' +
-        'Safari/537.36 Edge/13.10547';
-    navigator.mediaDevices = function() {};
-
-    const browserDetails = detectBrowser(window);
-    expect(browserDetails.browser).to.equal('edge');
-    expect(browserDetails.version).to.equal(10547);
-  });
-
   it('detects Safari if window.RTCPeerConnection exists', () => {
     navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
