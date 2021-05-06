@@ -9,7 +9,6 @@ import * as utils from './utils';
 
   // Browser shims.
 import * as chromeShim from './chrome/chrome_shim';
-import * as edgeShim from './edge/edge_shim';
 import * as firefoxShim from './firefox/firefox_shim';
 import * as safariShim from './safari/safari_shim';
 import * as commonShim from './common_shim';
@@ -18,7 +17,6 @@ import * as commonShim from './common_shim';
 export function adapterFactory({window} = {}, options = {
   shimChrome: true,
   shimFirefox: true,
-  shimEdge: true,
   shimSafari: true,
 }) {
   // Utils.
@@ -95,25 +93,6 @@ export function adapterFactory({window} = {}, options = {
 
       commonShim.shimRTCIceCandidate(window, browserDetails);
       commonShim.shimConnectionState(window, browserDetails);
-      commonShim.shimMaxMessageSize(window, browserDetails);
-      commonShim.shimSendThrowTypeError(window, browserDetails);
-      break;
-    case 'edge':
-      if (!edgeShim || !edgeShim.shimPeerConnection || !options.shimEdge) {
-        logging('MS edge shim is not included in this adapter release.');
-        return adapter;
-      }
-      logging('adapter.js shimming edge.');
-      // Export to the adapter global object visible in the browser.
-      adapter.browserShim = edgeShim;
-
-      edgeShim.shimGetUserMedia(window, browserDetails);
-      edgeShim.shimGetDisplayMedia(window, browserDetails);
-      edgeShim.shimPeerConnection(window, browserDetails);
-      edgeShim.shimReplaceTrack(window, browserDetails);
-
-      // the edge shim implements the full RTCIceCandidate object.
-
       commonShim.shimMaxMessageSize(window, browserDetails);
       commonShim.shimSendThrowTypeError(window, browserDetails);
       break;

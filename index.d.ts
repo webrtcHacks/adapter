@@ -25,11 +25,6 @@ declare module "webrtc-adapter" {
         fixNegotiationNeeded(window: Window): void;
     }
 
-    interface IEdgeShim {
-        shimPeerConnection(window: Window): void;
-        shimReplaceTrack(window: Window): void;
-    }
-
     interface IFirefoxShim {
         shimOnTrack(window: Window): void;
         shimPeerConnection(window: Window): void;
@@ -53,7 +48,7 @@ declare module "webrtc-adapter" {
     export interface IAdapter {
         browserDetails: IBrowserDetails;
         commonShim: ICommonShim;
-        browserShim: IChromeShim | IEdgeShim | IFirefoxShim | ISafariShim | undefined;
+        browserShim: IChromeShim | IFirefoxShim | ISafariShim | undefined;
         extractVersion(uastring: string, expr: string, pos: number): number;
         disableLog(disable: boolean): void;
         disableWarnings(disable: boolean): void;

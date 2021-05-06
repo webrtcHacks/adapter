@@ -25,7 +25,6 @@
     "e2e-tests": "grunt && grunt downloadBrowser && karma start test/karma.conf.js"
   },
   "dependencies": {
-    "rtcpeerconnection-shim": "^1.2.15",
     "sdp": "^2.12.0"
   },
   "engines": {
@@ -49,7 +48,6 @@
     "karma-browserify": "^5.2.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
-    "karma-edge-launcher": "^0.4.1",
     "karma-firefox-launcher": "^1.3.0",
     "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.3",

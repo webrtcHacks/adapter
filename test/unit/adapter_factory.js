@@ -27,7 +27,7 @@ describe('adapter factory', () => {
     afterEach(() => {
       utils.detectBrowser.restore();
     });
-    ['Chrome', 'Firefox', 'Safari', 'Edge'].forEach(browser => {
+    ['Chrome', 'Firefox', 'Safari'].forEach(browser => {
       it(browser + ' when disabled', () => {
         sinon.stub(utils, 'detectBrowser').returns({
           browser: browser.toLowerCase()

@@ -174,11 +174,6 @@ export function detectBrowser(window) {
     result.browser = 'chrome';
     result.version = extractVersion(navigator.userAgent,
         /Chrom(e|ium)\/(\d+)\./, 2);
-  } else if (navigator.mediaDevices &&
-      navigator.userAgent.match(/Edge\/(\d+).(\d+)$/)) { // Edge.
-    result.browser = 'edge';
-    result.version = extractVersion(navigator.userAgent,
-        /Edge\/(\d+).(\d+)$/, 2);
   } else if (window.RTCPeerConnection &&
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';

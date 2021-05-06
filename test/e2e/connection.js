@@ -212,9 +212,6 @@ describe('establishes a connection', () => {
   });
 
   it('with no explicit end-of-candidates', function(done) {
-    if (window.adapter.browserDetails.browser === 'edge') {
-      this.timeout(10000);
-    }
     pc1.oniceconnectionstatechange = function() {
       if (pc1.iceConnectionState === 'connected' ||
           pc1.iceConnectionState === 'completed') {
@@ -245,12 +242,6 @@ describe('establishes a connection', () => {
   });
 
   describe('with datachannel', function() {
-    beforeEach(function() {
-      if (window.adapter.browserDetails.browser === 'edge') {
-        this.skip();
-      }
-    });
-
     it('establishes a connection', (done) => {
       pc1.oniceconnectionstatechange = function() {
         if (pc1.iceConnectionState === 'connected' ||

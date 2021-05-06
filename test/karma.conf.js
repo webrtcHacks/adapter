@@ -12,9 +12,7 @@ const os = require('os');
 
 let browsers;
 if (process.env.BROWSER) {
-  if (process.env.BROWSER === 'MicrosoftEdge') {
-    browsers = ['Edge'];
-  } else if (process.env.BROWSER === 'safari') {
+  if (process.env.BROWSER === 'safari') {
     browsers = ['Safari'];
   } else if (process.env.BROWSER === 'Electron') {
     browsers = ['electron'];
@@ -24,7 +22,7 @@ if (process.env.BROWSER) {
 } else if (os.platform() === 'darwin') {
   browsers = ['chrome', 'firefox', 'Safari'];
 } else if (os.platform() === 'win32') {
-  browsers = ['chrome', 'firefox', 'Edge'];
+  browsers = ['chrome', 'firefox'];
 } else {
   browsers = ['chrome', 'firefox'];
 }
