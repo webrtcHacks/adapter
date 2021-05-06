@@ -13,6 +13,7 @@ import * as edgeShim from './edge/edge_shim';
 import * as firefoxShim from './firefox/firefox_shim';
 import * as safariShim from './safari/safari_shim';
 import * as commonShim from './common_shim';
+import * as sdp from 'sdp';
 
 // Shimming starts here.
 export function adapterFactory({window} = {}, options = {
@@ -30,7 +31,9 @@ export function adapterFactory({window} = {}, options = {
     commonShim,
     extractVersion: utils.extractVersion,
     disableLog: utils.disableLog,
-    disableWarnings: utils.disableWarnings
+    disableWarnings: utils.disableWarnings,
+    // Expose sdp as a convenience. For production apps include directly.
+    sdp,
   };
 
   // Shim browser if found.
