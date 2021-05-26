@@ -1,7 +1,6 @@
 [![Build Status](https://travis-ci.org/webrtc/samples.svg)](https://travis-ci.org/webrtc/samples)
 
 # Intro #
-# Intro #
 
 Functional unit tests located in `test/unit` are run in node using [Mocha](https://mochajs.org/), [Chai](http://chaijs.com/) and [Sinon](http://sinonjs.org/).
 They are preferred way to test the behaviour of isolated pieces of code or when behaviour depends on the browser version.
