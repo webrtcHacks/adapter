@@ -392,6 +392,6 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
       }
       const func = desc.type === 'offer' ? this.createOffer : this.createAnswer;
       return func.apply(this)
-        .then(description => nativeSetLocalDescription.apply(this, [description]));
+        .then(d => nativeSetLocalDescription.apply(this, [d]));
     };
 }
