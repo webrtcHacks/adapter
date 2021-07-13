@@ -377,20 +377,20 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
       desc = {type: desc.type, sdp: desc.sdp};
       if (!desc.type) {
         switch (this.signalingState) {
-          case "stable":
-          case "have-local-offer":
-          case "have-remote-pranswer":
-            desc.type = "offer";
+          case 'stable':
+          case 'have-local-offer':
+          case 'have-remote-pranswer':
+            desc.type = 'offer';
             break;
           default:
-            desc.type = "answer";
+            desc.type = 'answer';
             break;
         }
       }
-      if (desc.sdp || (desc.type != "offer" && desc.type != "answer")) {
+      if (desc.sdp || (desc.type != 'offer' && desc.type != 'answer')) {
         return nativeSetLocalDescription.apply(this, [desc]);
       }
-      const func = desc.type == "offer" ? this.createOffer : this.createAnswer;
+      const func = desc.type == 'offer' ? this.createOffer : this.createAnswer;
       return func.apply(this)
         .then(desc => nativeSetLocalDescription.apply(this, [desc]));
     };
