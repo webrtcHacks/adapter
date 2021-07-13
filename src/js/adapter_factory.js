@@ -113,6 +113,7 @@ export function adapterFactory({window} = {}, options = {
 
       safariShim.shimRTCIceServerUrls(window, browserDetails);
       safariShim.shimCreateOfferLegacy(window, browserDetails);
+      safariShim.shimParameterlessSetLocalDescription(window, browserDetails);
       safariShim.shimCallbacksAPI(window, browserDetails);
       safariShim.shimLocalStreamsAPI(window, browserDetails);
       safariShim.shimRemoteStreamsAPI(window, browserDetails);
