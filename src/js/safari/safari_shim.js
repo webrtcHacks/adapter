@@ -364,7 +364,7 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
   window.RTCPeerConnection.prototype.setLocalDescription =
     function setLocalDescription() {
       let desc = arguments[0] || {};
-      if (typeof desc != "object" || (desc.type && desc.sdp)) {
+      if (typeof desc !== "object" || (desc.type && desc.sdp)) {
         return nativeSetLocalDescription.apply(this, arguments);
       }
       // The remaining steps should technically happen when SLD comes off the
