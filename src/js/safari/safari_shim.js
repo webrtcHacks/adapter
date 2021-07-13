@@ -364,7 +364,7 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
   window.RTCPeerConnection.prototype.setLocalDescription =
     function setLocalDescription() {
       let desc = arguments[0] || {};
-      if (typeof desc !== "object" || (desc.type && desc.sdp)) {
+      if (typeof desc !== 'object' || (desc.type && desc.sdp)) {
         return nativeSetLocalDescription.apply(this, arguments);
       }
       // The remaining steps should technically happen when SLD comes off the
@@ -387,11 +387,11 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
             break;
         }
       }
-      if (desc.sdp || (desc.type != 'offer' && desc.type != 'answer')) {
+      if (desc.sdp || (desc.type !== 'offer' && desc.type !== 'answer')) {
         return nativeSetLocalDescription.apply(this, [desc]);
       }
-      const func = desc.type == 'offer' ? this.createOffer : this.createAnswer;
+      const func = desc.type === 'offer' ? this.createOffer : this.createAnswer;
       return func.apply(this)
-        .then(desc => nativeSetLocalDescription.apply(this, [desc]));
+        .then(description => nativeSetLocalDescription.apply(this, [description]));
     };
 }
