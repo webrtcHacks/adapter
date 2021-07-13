@@ -387,7 +387,7 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
             break;
         }
       }
-      if (desc.sdp) {
+      if (desc.sdp || (desc.type != "offer" && desc.type != "answer")) {
         return nativeSetLocalDescription.apply(this, [desc]);
       }
       const func = desc.type == "offer" ? this.createOffer : this.createAnswer;
