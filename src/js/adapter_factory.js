@@ -52,6 +52,7 @@ export function adapterFactory({window} = {}, options = {
 
       // Must be called before shimPeerConnection.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
+      commonShim.shimParameterlessSetLocalDescription(window, browserDetails);
 
       chromeShim.shimGetUserMedia(window, browserDetails);
       chromeShim.shimMediaStream(window, browserDetails);
@@ -81,6 +82,7 @@ export function adapterFactory({window} = {}, options = {
 
       // Must be called before shimPeerConnection.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
+      commonShim.shimParameterlessSetLocalDescription(window, browserDetails);
 
       firefoxShim.shimGetUserMedia(window, browserDetails);
       firefoxShim.shimPeerConnection(window, browserDetails);
@@ -110,10 +112,10 @@ export function adapterFactory({window} = {}, options = {
 
       // Must be called before shimCallbackAPI.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
+      commonShim.shimParameterlessSetLocalDescription(window, browserDetails);
 
       safariShim.shimRTCIceServerUrls(window, browserDetails);
       safariShim.shimCreateOfferLegacy(window, browserDetails);
-      safariShim.shimParameterlessSetLocalDescription(window, browserDetails);
       safariShim.shimCallbacksAPI(window, browserDetails);
       safariShim.shimLocalStreamsAPI(window, browserDetails);
       safariShim.shimRemoteStreamsAPI(window, browserDetails);
