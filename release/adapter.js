@@ -98,6 +98,7 @@ function adapterFactory() {
 
       // Must be called before shimPeerConnection.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
+      commonShim.shimParameterlessSetLocalDescription(window, browserDetails);
 
       chromeShim.shimGetUserMedia(window, browserDetails);
       chromeShim.shimMediaStream(window, browserDetails);
@@ -126,6 +127,7 @@ function adapterFactory() {
 
       // Must be called before shimPeerConnection.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
+      commonShim.shimParameterlessSetLocalDescription(window, browserDetails);
 
       firefoxShim.shimGetUserMedia(window, browserDetails);
       firefoxShim.shimPeerConnection(window, browserDetails);
@@ -155,6 +157,7 @@ function adapterFactory() {
 
       // Must be called before shimCallbackAPI.
       commonShim.shimAddIceCandidateNullOrEmpty(window, browserDetails);
+      commonShim.shimParameterlessSetLocalDescription(window, browserDetails);
 
       safariShim.shimRTCIceServerUrls(window, browserDetails);
       safariShim.shimCreateOfferLegacy(window, browserDetails);
@@ -1208,6 +1211,7 @@ exports.shimSendThrowTypeError = shimSendThrowTypeError;
 exports.shimConnectionState = shimConnectionState;
 exports.removeExtmapAllowMixed = removeExtmapAllowMixed;
 exports.shimAddIceCandidateNullOrEmpty = shimAddIceCandidateNullOrEmpty;
+exports.shimParameterlessSetLocalDescription = shimParameterlessSetLocalDescription;
 
 var _sdp = require('sdp');
 
@@ -1570,6 +1574,53 @@ function shimAddIceCandidateNullOrEmpty(window, browserDetails) {
       return Promise.resolve();
     }
     return nativeAddIceCandidate.apply(this, arguments);
+  };
+}
+
+// Note: Make sure to call this ahead of APIs that modify
+// setLocalDescription.length
+function shimParameterlessSetLocalDescription(window, browserDetails) {
+  if (!(window.RTCPeerConnection && window.RTCPeerConnection.prototype)) {
+    return;
+  }
+  var nativeSetLocalDescription = window.RTCPeerConnection.prototype.setLocalDescription;
+  if (!nativeSetLocalDescription || nativeSetLocalDescription.length === 0) {
+    return;
+  }
+  window.RTCPeerConnection.prototype.setLocalDescription = function setLocalDescription() {
+    var _this = this;
+
+    var desc = arguments[0] || {};
+    if ((typeof desc === 'undefined' ? 'undefined' : _typeof(desc)) !== 'object' || desc.type && desc.sdp) {
+      return nativeSetLocalDescription.apply(this, arguments);
+    }
+    // The remaining steps should technically happen when SLD comes off the
+    // RTCPeerConnection's operations chain (not ahead of going on it), but
+    // this is too difficult to shim. Instead, this shim only covers the
+    // common case where the operations chain is empty. This is imperfect, but
+    // should cover many cases. Rationale: Even if we can't reduce the glare
+    // window to zero on imperfect implementations, there's value in tapping
+    // into the perfect negotiation pattern that several browsers support.
+    desc = { type: desc.type, sdp: desc.sdp };
+    if (!desc.type) {
+      switch (this.signalingState) {
+        case 'stable':
+        case 'have-local-offer':
+        case 'have-remote-pranswer':
+          desc.type = 'offer';
+          break;
+        default:
+          desc.type = 'answer';
+          break;
+      }
+    }
+    if (desc.sdp || desc.type !== 'offer' && desc.type !== 'answer') {
+      return nativeSetLocalDescription.apply(this, [desc]);
+    }
+    var func = desc.type === 'offer' ? this.createOffer : this.createAnswer;
+    return func.apply(this).then(function (d) {
+      return nativeSetLocalDescription.apply(_this, [d]);
+    });
   };
 }
 
@@ -2697,13 +2748,13 @@ SDPUtils.splitSections = function (blob) {
   });
 };
 
-// returns the session description.
+// Returns the session description.
 SDPUtils.getDescription = function (blob) {
   var sections = SDPUtils.splitSections(blob);
   return sections && sections[0];
 };
 
-// returns the individual media sections.
+// Returns the individual media sections.
 SDPUtils.getMediaSections = function (blob) {
   var sections = SDPUtils.splitSections(blob);
   sections.shift();
@@ -2720,6 +2771,7 @@ SDPUtils.matchPrefix = function (blob, prefix) {
 // Parses an ICE candidate line. Sample input:
 // candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8
 // rport 55996"
+// Input can be prefixed with a=.
 SDPUtils.parseCandidate = function (line) {
   var parts = void 0;
   // Parse both variants.
@@ -2731,7 +2783,7 @@ SDPUtils.parseCandidate = function (line) {
 
   var candidate = {
     foundation: parts[0],
-    component: { 1: 'rtp', 2: 'rtcp' }[parts[1]],
+    component: { 1: 'rtp', 2: 'rtcp' }[parts[1]] || parts[1],
     protocol: parts[2].toLowerCase(),
     priority: parseInt(parts[3], 10),
     ip: parts[4],
@@ -2768,6 +2820,7 @@ SDPUtils.parseCandidate = function (line) {
 };
 
 // Translates a candidate object into SDP candidate attribute.
+// This does not include the a= prefix!
 SDPUtils.writeCandidate = function (candidate) {
   var sdp = [];
   sdp.push(candidate.foundation);
@@ -2806,12 +2859,13 @@ SDPUtils.writeCandidate = function (candidate) {
 };
 
 // Parses an ice-options line, returns an array of option tags.
+// Sample input:
 // a=ice-options:foo bar
 SDPUtils.parseIceOptions = function (line) {
   return line.substr(14).split(' ');
 };
 
-// Parses an rtpmap line, returns RTCRtpCoddecParameters. Sample input:
+// Parses a rtpmap line, returns RTCRtpCoddecParameters. Sample input:
 // a=rtpmap:111 opus/48000/2
 SDPUtils.parseRtpMap = function (line) {
   var parts = line.substr(9).split(' ');
@@ -2829,7 +2883,7 @@ SDPUtils.parseRtpMap = function (line) {
   return parsed;
 };
 
-// Generate an a=rtpmap line from RTCRtpCodecCapability or
+// Generates a rtpmap line from RTCRtpCodecCapability or
 // RTCRtpCodecParameters.
 SDPUtils.writeRtpMap = function (codec) {
   var pt = codec.payloadType;
@@ -2840,7 +2894,7 @@ SDPUtils.writeRtpMap = function (codec) {
   return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate + (channels !== 1 ? '/' + channels : '') + '\r\n';
 };
 
-// Parses an a=extmap line (headerextension from RFC 5285). Sample input:
+// Parses a extmap line (headerextension from RFC 5285). Sample input:
 // a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
 // a=extmap:2/sendonly urn:ietf:params:rtp-hdrext:toffset
 SDPUtils.parseExtmap = function (line) {
@@ -2852,13 +2906,13 @@ SDPUtils.parseExtmap = function (line) {
   };
 };
 
-// Generates a=extmap line from RTCRtpHeaderExtensionParameters or
+// Generates an extmap line from RTCRtpHeaderExtensionParameters or
 // RTCRtpHeaderExtension.
 SDPUtils.writeExtmap = function (headerExtension) {
   return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) + (headerExtension.direction && headerExtension.direction !== 'sendrecv' ? '/' + headerExtension.direction : '') + ' ' + headerExtension.uri + '\r\n';
 };
 
-// Parses an ftmp line, returns dictionary. Sample input:
+// Parses a fmtp line, returns dictionary. Sample input:
 // a=fmtp:96 vbr=on;cng=on
 // Also deals with vbr=on; cng=on
 SDPUtils.parseFmtp = function (line) {
@@ -2872,7 +2926,7 @@ SDPUtils.parseFmtp = function (line) {
   return parsed;
 };
 
-// Generates an a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
+// Generates a fmtp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
 SDPUtils.writeFmtp = function (codec) {
   var line = '';
   var pt = codec.payloadType;
@@ -2882,7 +2936,7 @@ SDPUtils.writeFmtp = function (codec) {
   if (codec.parameters && Object.keys(codec.parameters).length) {
     var params = [];
     Object.keys(codec.parameters).forEach(function (param) {
-      if (codec.parameters[param]) {
+      if (codec.parameters[param] !== undefined) {
         params.push(param + '=' + codec.parameters[param]);
       } else {
         params.push(param);
@@ -2893,7 +2947,7 @@ SDPUtils.writeFmtp = function (codec) {
   return line;
 };
 
-// Parses an rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
+// Parses a rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
 // a=rtcp-fb:98 nack rpsi
 SDPUtils.parseRtcpFb = function (line) {
   var parts = line.substr(line.indexOf(' ') + 1).split(' ');
@@ -2902,6 +2956,7 @@ SDPUtils.parseRtcpFb = function (line) {
     parameter: parts.join(' ')
   };
 };
+
 // Generate a=rtcp-fb lines from RTCRtpCodecCapability or RTCRtpCodecParameters.
 SDPUtils.writeRtcpFb = function (codec) {
   var lines = '';
@@ -2918,7 +2973,7 @@ SDPUtils.writeRtcpFb = function (codec) {
   return lines;
 };
 
-// Parses an RFC 5576 ssrc media attribute. Sample input:
+// Parses a RFC 5576 ssrc media attribute. Sample input:
 // a=ssrc:3735928559 cname:something
 SDPUtils.parseSsrcMedia = function (line) {
   var sp = line.indexOf(' ');
@@ -2935,6 +2990,8 @@ SDPUtils.parseSsrcMedia = function (line) {
   return parts;
 };
 
+// Parse a ssrc-group line (see RFC 5576). Sample input:
+// a=ssrc-group:semantics 12 34
 SDPUtils.parseSsrcGroup = function (line) {
   var parts = line.substr(13).split(' ');
   return {
@@ -2946,7 +3003,7 @@ SDPUtils.parseSsrcGroup = function (line) {
 };
 
 // Extracts the MID (RFC 5888) from a media section.
-// returns the MID or undefined if no mid line was found.
+// Returns the MID or undefined if no mid line was found.
 SDPUtils.getMid = function (mediaSection) {
   var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0];
   if (mid) {
@@ -2954,11 +3011,12 @@ SDPUtils.getMid = function (mediaSection) {
   }
 };
 
+// Parses a fingerprint line for DTLS-SRTP.
 SDPUtils.parseFingerprint = function (line) {
   var parts = line.substr(14).split(' ');
   return {
     algorithm: parts[0].toLowerCase(), // algorithm is case-sensitive in Edge.
-    value: parts[1]
+    value: parts[1].toUpperCase() // the definition is upper-case in RFC 4572.
   };
 };
 
@@ -2967,8 +3025,7 @@ SDPUtils.parseFingerprint = function (line) {
 //   get the fingerprint line as input. See also getIceParameters.
 SDPUtils.getDtlsParameters = function (mediaSection, sessionpart) {
   var lines = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=fingerprint:');
-  // Note: a=setup line is ignored since we use the 'auto' role.
-  // Note2: 'algorithm' is not case sensitive except in Edge.
+  // Note: a=setup line is ignored since we use the 'auto' role in Edge.
   return {
     role: 'auto',
     fingerprints: lines.map(SDPUtils.parseFingerprint)
