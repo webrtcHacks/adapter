@@ -59,7 +59,6 @@ describe('removal of extmap-allow-mixed', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.setRemoteDescription({sdp: '\n' + sdp});
-      console.log(origSetRemoteDescription.firstCall.args);
       expect(origSetRemoteDescription.firstCall.args[0].sdp).to.equal('\n');
     });
   });
@@ -90,7 +89,6 @@ describe('removal of extmap-allow-mixed', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.setRemoteDescription({sdp: '\n' + sdp});
-      console.log(origSetRemoteDescription.firstCall.args);
       expect(origSetRemoteDescription.firstCall.args[0].sdp).to.equal('\n');
     });
   });
