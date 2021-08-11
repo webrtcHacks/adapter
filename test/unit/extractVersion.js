@@ -109,33 +109,6 @@ describe('extractVersion', () => {
     });
   });
 
-  describe('Edge regular expression', () => {
-    const expr = /Edge\/(\d+).(\d+)$/;
-    it ('matches the Edge build number', () => {
-      ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-          '(KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10547';
-      expect(extractVersion(ua, expr, 2)).to.equal(10547);
-    });
-
-    it('does not match Chrome', () => {
-      ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
-          'Gecko) Chrome/45.0.2454.101 Safari/537.36';
-      expect(extractVersion(ua, expr, 2)).to.equal(null);
-    });
-
-    it('does not match Firefox', () => {
-      ua = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) Gecko/20100101 ' +
-          'Firefox/44.0';
-      expect(extractVersion(ua, expr, 2)).to.equal(null);
-    });
-
-    it('does not match Safari', () => {
-      ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
-          'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
-      expect(extractVersion(ua, expr, 2)).to.equal(null);
-    });
-  });
-
   describe('Safari regular expression', () => {
     const expr = /AppleWebKit\/(\d+)/;
     it('matches the webkit version', () => {
