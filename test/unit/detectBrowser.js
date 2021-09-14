@@ -41,6 +41,18 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).to.equal(45);
   });
 
+  it('detects chrome with reduced useragent', () => {
+    navigator.userAgent = 'Mozilla/5.0 (X11; Linux x86_64) ' +
+        'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.0.0 ' +
+        'Safari/537.36';
+    navigator.webkitGetUserMedia = function() {};
+    window.webkitRTCPeerConnection = function() {};
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).to.equal('chrome');
+    expect(browserDetails.version).to.equal(95);
+  });
+
   it('detects Safari if window.RTCPeerConnection exists', () => {
     navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
