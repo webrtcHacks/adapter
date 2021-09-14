@@ -20,7 +20,7 @@
     "postversion": "export GITTAG=\"echo $(git describe --abbrev=0 --tags | sed 's/^v//')\" && git push --force --set-upstream origin bumpVersion --follow-tags && git checkout gh-pages && git pull && cp out/adapter.js adapter.js && cp adapter.js adapter-`$GITTAG`.js && rm adapter-latest.js && ln -s adapter-`$GITTAG`.js adapter-latest.js && mkdir -p adapter-`$GITTAG`-variants && cp out/adapter.js adapter-`$GITTAG`-variants/ && cp out/adapter_*.js adapter-`$GITTAG`-variants/ && git add adapter.js adapter-latest.js adapter-`$GITTAG`.js adapter-`$GITTAG`-variants && git commit -m `$GITTAG` && git push --set-upstream origin gh-pages && git checkout master",
     "prepare": "grunt build",
     "prepublishonly": "npm test",
-    "test": "grunt && grunt downloadBrowser && mocha test/unit && karma start test/karma.conf.js",
+    "test": "grunt && mocha test/unit && grunt downloadBrowser && karma start test/karma.conf.js",
     "lint-and-unit-tests": "grunt && mocha test/unit",
     "e2e-tests": "grunt && grunt downloadBrowser && karma start test/karma.conf.js"
   },
