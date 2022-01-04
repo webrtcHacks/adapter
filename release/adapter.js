@@ -2405,7 +2405,7 @@ function shimCreateOfferLegacy(window) {
           }
         }
       } else if (offerOptions.offerToReceiveAudio === true && !audioTransceiver) {
-        this.addTransceiver('audio');
+        this.addTransceiver('audio', { direction: 'recvonly' });
       }
 
       if (typeof offerOptions.offerToReceiveVideo !== 'undefined') {
@@ -2430,7 +2430,7 @@ function shimCreateOfferLegacy(window) {
           }
         }
       } else if (offerOptions.offerToReceiveVideo === true && !videoTransceiver) {
-        this.addTransceiver('video');
+        this.addTransceiver('video', { direction: 'recvonly' });
       }
     }
     return origCreateOffer.apply(this, arguments);
