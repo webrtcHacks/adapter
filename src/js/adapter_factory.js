@@ -63,6 +63,7 @@ export function adapterFactory({window} = {}, options = {
       chromeShim.shimGetStats(window, browserDetails);
       chromeShim.shimSenderReceiverGetStats(window, browserDetails);
       chromeShim.fixNegotiationNeeded(window, browserDetails);
+      chromeShim.shimSelectAudioOutput(window, browserDetails);
 
       commonShim.shimRTCIceCandidate(window, browserDetails);
       commonShim.shimConnectionState(window, browserDetails);

@@ -11,6 +11,7 @@ import * as utils from '../utils.js';
 
 export {shimGetUserMedia} from './getusermedia';
 export {shimGetDisplayMedia} from './getdisplaymedia';
+export {shimSelectAudioOutput} from './selectaudiooutput';
 
 export function shimMediaStream(window) {
   window.MediaStream = window.MediaStream || window.webkitMediaStream;
