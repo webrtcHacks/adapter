@@ -31,5 +31,4 @@ jobs:
         CHROME_BIN: browsers/bin/chrome-${{matrix.version}}
         FIREFOX_BIN: browsers/bin/firefox-${{matrix.version}}
         DISPLAY: :99.0
-        PLANB: ${{matrix.disableunifiedplan}}
       run: npm run e2e-tests
