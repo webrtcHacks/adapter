@@ -59,9 +59,6 @@ let chromeFlags = [
 if (process.env.CHROMEEXPERIMENT !== 'false') {
   chromeFlags.push('--enable-experimental-web-platform-features');
 }
-if (process.env.PLANB) {
-  chromeFlags.push('--disable-features=RTCUnifiedPlanByDefault');
-}
 
 module.exports = function(config) {
   config.set({
@@ -111,8 +108,7 @@ module.exports = function(config) {
       path: 'test/e2e/expectations/' +
           process.env.BROWSER +
           (process.env.BVER ? '-' + process.env.BVER : '') +
-          (process.env.CHROMEEXPERIMENT === 'false' ? '-no-experimental' : '') +
-          (process.env.PLANB ? '-planb' : ''),
+          (process.env.CHROMEEXPERIMENT === 'false' ? '-no-experimental' : ''),
       update: process.env.UPDATE_STABILITYREPORTER || false,
     }
   });
