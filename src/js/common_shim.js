@@ -25,7 +25,7 @@ export function shimRTCIceCandidate(window) {
     if (typeof args === 'object' && args.candidate &&
         args.candidate.indexOf('a=') === 0) {
       args = JSON.parse(JSON.stringify(args));
-      args.candidate = args.candidate.substr(2);
+      args.candidate = args.candidate.slice(2);
     }
 
     if (args.candidate && args.candidate.length) {
@@ -148,7 +148,7 @@ export function shimMaxMessageSize(window, browserDetails) {
     const match = SDPUtils.matchPrefix(description.sdp,
       'a=max-message-size:');
     if (match.length > 0) {
-      maxMessageSize = parseInt(match[0].substr(19), 10);
+      maxMessageSize = parseInt(match[0].slice(19), 10);
     } else if (browserDetails.browser === 'firefox' &&
                 remoteIsFirefox !== -1) {
       // If the maximum message size is not present in the remote SDP and
