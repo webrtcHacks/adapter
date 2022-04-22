@@ -36,9 +36,6 @@ module.exports = function(grunt) {
       }
     },
     eslint: {
-      options: {
-        configFile: '.eslintrc'
-      },
       target: ['src/**/*.js', 'test/*.js', 'test/unit/*.js', 'test/e2e/*.js']
     },
     copy: {
