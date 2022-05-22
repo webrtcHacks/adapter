@@ -165,8 +165,7 @@ export function detectBrowser(window) {
     result.version = extractVersion(navigator.userAgent,
         /Firefox\/(\d+)\./, 1);
   } else if (navigator.webkitGetUserMedia ||
-      (window.isSecureContext === false && window.webkitRTCPeerConnection &&
-       !window.RTCIceGatherer)) {
+      (window.isSecureContext === false && window.webkitRTCPeerConnection)) {
     // Chrome, Chromium, Webview, Opera.
     // Version matches Chrome/WebRTC version.
     // Chrome 74 removed webkitGetUserMedia on http as well so we need the
