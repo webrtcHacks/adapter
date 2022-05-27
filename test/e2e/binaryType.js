@@ -28,7 +28,6 @@ describe('RTCDataChannel.binaryType', () => {
   it('can be changed to \'arraybuffer\' and back', () => {
     const channel = pc.createDataChannel('channel');
 
-    expect(channel.binaryType).to.equal('blob');
     channel.binaryType = 'arraybuffer';
     expect(channel.binaryType).to.equal('arraybuffer');
     channel.binaryType = 'blob';
@@ -63,15 +62,8 @@ describe('RTCDataChannel.binaryType', () => {
       .then(() => pc.setRemoteDescription(pc2.localDescription))
       // Then wait for our channels to open.
       .then(() => channelsOpen)
-      // Test that in the initial 'blob' state, the messages are `Blob`s
-      .then(() => new Promise(resolve => {
-        expect(channel1.binaryType).to.equal('blob');
-        channel1.onmessage = ev => resolve(ev.data);
-        channel2.send(new Uint8Array([1, 2, 3, 4]));
-      }))
-      .then(data => expect(data).to.be.instanceOf(Blob))
-      // Then test that when we change `binaryType` to 'arraybuffer',
-      // the messages are `ArrayBuffer`s
+      // Test that when we set `binaryType` to 'arraybuffer',
+      // the messages are `ArrayBuffer`s.
       .then(() => new Promise(resolve => {
         channel1.binaryType = 'arraybuffer';
         expect(channel1.binaryType).to.equal('arraybuffer');
@@ -79,7 +71,8 @@ describe('RTCDataChannel.binaryType', () => {
         channel2.send(new Uint8Array([1, 2, 3, 4]));
       }))
       .then(data => expect(data).to.be.instanceOf(ArrayBuffer))
-      // Then change it back to 'blob' and test that still works
+      // Test that when we set `binaryType` to 'blob',
+      // the messages are `Blob`s.
       .then(() => new Promise(resolve => {
         channel1.binaryType = 'blob';
         expect(channel1.binaryType).to.equal('blob');
