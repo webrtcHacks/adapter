@@ -70,6 +70,7 @@ export function adapterFactory({window} = {}, options = {
       commonShim.shimMaxMessageSize(window, browserDetails);
       commonShim.shimSendThrowTypeError(window, browserDetails);
       commonShim.removeExtmapAllowMixed(window, browserDetails);
+      commonShim.fixBinaryTypeDefault(window, browserDetails);
       break;
     case 'firefox':
       if (!firefoxShim || !firefoxShim.shimPeerConnection ||
@@ -128,6 +129,7 @@ export function adapterFactory({window} = {}, options = {
       commonShim.shimMaxMessageSize(window, browserDetails);
       commonShim.shimSendThrowTypeError(window, browserDetails);
       commonShim.removeExtmapAllowMixed(window, browserDetails);
+      commonShim.fixBinaryTypeDefault(window, browserDetails);
       break;
     default:
       logging('Unsupported browser!');

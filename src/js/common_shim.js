@@ -349,6 +349,19 @@ export function removeExtmapAllowMixed(window, browserDetails) {
   };
 }
 
+export function fixBinaryTypeDefault(window) {
+  // Changes the default value of `RTCDataChannel.binaryType`
+  // to be 'blob' as per the spec.
+  const origCreateDataChannel =
+    window.RTCPeerConnection.prototype.createDataChannel;
+  window.RTCPeerConnection.prototype.createDataChannel =
+    function createDataChannel() {
+      const channel = origCreateDataChannel.apply(this, arguments);
+      channel.binaryType = 'blob';
+      return channel;
+    };
+}
+
 export function shimAddIceCandidateNullOrEmpty(window, browserDetails) {
   // Support for addIceCandidate(null or undefined)
   // as well as addIceCandidate({candidate: "", ...})
