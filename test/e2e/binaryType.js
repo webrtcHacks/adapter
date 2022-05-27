@@ -47,7 +47,7 @@ describe('RTCDataChannel.binaryType', () => {
     const channelsOpen = new Promise(resolve => {
       pc2.ondatachannel = ev => {
         channel2 = ev.channel;
-        resolve();
+        channel2.onopen = () => resolve();
       };
       // Create the channel after setting the listener for it
       // to guarantee that it gets called.
