@@ -80,7 +80,7 @@ export function shimOnTrack(window) {
     // even if RTCRtpTransceiver is in window, it is only used and
     // emitted in unified-plan. Unfortunately this means we need
     // to unconditionally wrap the event.
-    utils.wrapPeerConnectionEvent(window, 'track', e => {
+    utils.wrapEvent(window.RTCPeerConnection, 'track', e => {
       if (!e.transceiver) {
         Object.defineProperty(e, 'transceiver',
           {value: {receiver: e.receiver}});
@@ -302,7 +302,7 @@ export function shimSenderReceiverGetStats(window) {
           return receivers;
         };
     }
-    utils.wrapPeerConnectionEvent(window, 'track', e => {
+    utils.wrapEvent(window.RTCPeerConnection, 'track', e => {
       e.receiver._pc = e.srcElement;
       return e;
     });
@@ -687,9 +687,53 @@ export function shimPeerConnection(window, browserDetails) {
   }
 }
 
+export function shimBinaryTypeBlob(window) {
+  const origBinaryType = Object.getOwnPropertyDescriptor(
+      window.RTCDataChannel.prototype, 'binaryType');
+  Object.defineProperty(window.RTCDataChannel.prototype, 'binaryType', {
+    get() {
+      if (this._blobShim) {
+        return 'blob';
+      }
+      return origBinaryType.get.call(this);
+    },
+    set(val) {
+      try {
+        origBinaryType.set.call(this, val);
+        this._blobShim = false;
+      } catch (e) {
+        if (val === 'blob') {
+          this._blobShim = true;
+        } else {
+          // Any other errors should be forwarded.
+          throw e;
+        }
+      }
+    },
+    enumerable: true,
+    configurable: true,
+  });
+
+  utils.wrapEvent(window.RTCDataChannel, 'message', function(e) {
+    if (this._blobShim) {
+      const data = new Blob([e.data]);
+      // `MessageEvent.data` is readonly, so we have to use
+      // `Object.defineProperty` rather than setting it normally.
+      Object.defineProperty(e, 'data', {
+        get() {
+          return data;
+        },
+        enumerable: true,
+        configurable: true,
+      });
+    }
+    return e;
+  });
+}
+
 // Attempt to fix ONN in plan-b mode.
 export function fixNegotiationNeeded(window, browserDetails) {
-  utils.wrapPeerConnectionEvent(window, 'negotiationneeded', e => {
+  utils.wrapEvent(window.RTCPeerConnection, 'negotiationneeded', e => {
     const pc = e.target;
     if (browserDetails.version < 72 || (pc.getConfiguration &&
         pc.getConfiguration().sdpSemantics === 'plan-b')) {

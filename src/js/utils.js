@@ -24,26 +24,25 @@ export function extractVersion(uastring, expr, pos) {
   return match && match.length >= pos && parseInt(match[pos], 10);
 }
 
-// Wraps the peerconnection event eventNameToWrap in a function
+// Wraps the target's event eventNameToWrap in a function
 // which returns the modified event object (or false to prevent
 // the event).
-export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
-  if (!window.RTCPeerConnection) {
-    return;
-  }
-  const proto = window.RTCPeerConnection.prototype;
+export function wrapEvent(target, eventNameToWrap, wrapper) {
+  const proto = target.prototype;
   const nativeAddEventListener = proto.addEventListener;
   proto.addEventListener = function(nativeEventName, cb) {
     if (nativeEventName !== eventNameToWrap) {
       return nativeAddEventListener.apply(this, arguments);
     }
-    const wrappedCallback = (e) => {
-      const modifiedEvent = wrapper(e);
+    // We specifically don't use an arrow function here
+    // so that `this` is available.
+    const wrappedCallback = function(e) {
+      const modifiedEvent = wrapper.call(this, e);
       if (modifiedEvent) {
         if (cb.handleEvent) {
-          cb.handleEvent(modifiedEvent);
+          cb.handleEvent.call(this, modifiedEvent);
         } else {
-          cb(modifiedEvent);
+          cb.call(this, modifiedEvent);
         }
       }
     };

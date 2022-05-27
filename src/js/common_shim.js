@@ -52,7 +52,7 @@ export function shimRTCIceCandidate(window) {
 
   // Hook up the augmented candidate in onicecandidate and
   // addEventListener('icecandidate', ...)
-  utils.wrapPeerConnectionEvent(window, 'icecandidate', e => {
+  utils.wrapEvent(window.RTCPeerConnection, 'icecandidate', e => {
     if (e.candidate) {
       Object.defineProperty(e, 'candidate', {
         value: new window.RTCIceCandidate(e.candidate),
@@ -246,7 +246,7 @@ export function shimSendThrowTypeError(window) {
       wrapDcSend(dataChannel, this);
       return dataChannel;
     };
-  utils.wrapPeerConnectionEvent(window, 'datachannel', e => {
+  utils.wrapEvent(window.RTCPeerConnection, 'datachannel', e => {
     wrapDcSend(e.channel, e.target);
     return e;
   });

@@ -62,6 +62,7 @@ export function adapterFactory({window} = {}, options = {
       chromeShim.shimGetSendersWithDtmf(window, browserDetails);
       chromeShim.shimGetStats(window, browserDetails);
       chromeShim.shimSenderReceiverGetStats(window, browserDetails);
+      chromeShim.shimBinaryTypeBlob(window, browserDetails);
       chromeShim.fixNegotiationNeeded(window, browserDetails);
 
       commonShim.shimRTCIceCandidate(window, browserDetails);

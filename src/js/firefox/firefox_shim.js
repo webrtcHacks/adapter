@@ -134,7 +134,7 @@ export function shimReceiverGetStats(window) {
       return receivers;
     };
   }
-  utils.wrapPeerConnectionEvent(window, 'track', e => {
+  utils.wrapEvent(window.RTCPeerConnection, 'track', e => {
     e.receiver._pc = e.srcElement;
     return e;
   });
