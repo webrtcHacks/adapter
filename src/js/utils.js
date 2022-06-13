@@ -160,6 +160,16 @@ export function detectBrowser(window) {
 
   const {navigator} = window;
 
+  // Prefer navigator.userAgentData.
+  if (navigator.userAgentData && navigator.userAgentData.brands) {
+    const chromium = navigator.userAgentData.brands.find((brand) => {
+      return brand.brand === 'Chromium';
+    });
+    if (chromium) {
+      return {browser: 'chrome', version: chromium.version};
+    }
+  }
+
   if (navigator.mozGetUserMedia) { // Firefox.
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent,
