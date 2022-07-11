@@ -7,25 +7,21 @@
  */
 /* eslint-env node */
 /* global beforeEach, afterEach */
-'use strict';
 
 /* wrap navigator.getUserMedia and navigator.mediaDevices.getUserMedia
  * so that any streams acquired are released after each test.
  */
 beforeEach(() => {
-  let streams = [];
-  let release = () => {
+  const streams = [];
+  const release = () => {
     streams.forEach((stream) => {
-      stream.getTracks().forEach((track) => {
-        track.stop();
-      });
+      stream.getTracks().forEach((track) => track.stop());
     });
-    streams = [];
+    streams.length = 0;
   };
 
-
   if (navigator.getUserMedia) {
-    let origGetUserMedia = navigator.getUserMedia.bind(navigator);
+    const origGetUserMedia = navigator.getUserMedia.bind(navigator);
     navigator.getUserMedia = (constraints, cb, eb) => {
       origGetUserMedia(constraints, (stream) => {
         streams.push(stream);
@@ -40,13 +36,14 @@ beforeEach(() => {
     };
   }
 
-  let origMediaDevicesGetUserMedia =
+  const origMediaDevicesGetUserMedia =
       navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia = (constraints) => {
-    return origMediaDevicesGetUserMedia(constraints, (stream) => {
-      streams.push(stream);
-      return stream;
-    });
+    return origMediaDevicesGetUserMedia(constraints)
+        .then((stream) => {
+          streams.push(stream);
+          return stream;
+        });
   };
   navigator.mediaDevices.getUserMedia.restore = () => {
     navigator.mediaDevices.getUserMedia = origMediaDevicesGetUserMedia;
@@ -60,3 +57,4 @@ afterEach(() => {
   }
   navigator.mediaDevices.getUserMedia.restore();
 });
+
