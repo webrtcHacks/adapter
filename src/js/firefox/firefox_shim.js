@@ -179,12 +179,16 @@ export function shimAddTransceiver(window) {
     window.RTCPeerConnection.prototype.addTransceiver =
       function addTransceiver() {
         this.setParametersPromises = [];
-        const initParameters = arguments[1];
-        const shouldPerformCheck = initParameters &&
-                                  'sendEncodings' in initParameters;
+        // WebIDL input coercion and validation
+        let sendEncodings = arguments[1] && arguments[1].sendEncodings;
+        if (sendEncodings === undefined) {
+          sendEncodings = [];
+        }
+        sendEncodings = [...sendEncodings];
+        const shouldPerformCheck = sendEncodings.length > 0;
         if (shouldPerformCheck) {
           // If sendEncodings params are provided, validate grammar
-          initParameters.sendEncodings.forEach((encodingParam) => {
+          sendEncodings.forEach((encodingParam) => {
             if ('rid' in encodingParam) {
               const ridRegex = /^[a-z0-9]{0,16}$/i;
               if (!ridRegex.test(encodingParam.rid)) {
@@ -218,8 +222,8 @@ export function shimAddTransceiver(window) {
               // Avoid being fooled by patched getParameters() below.
               (params.encodings.length === 1 &&
                Object.keys(params.encodings[0]).length === 0)) {
-            params.encodings = initParameters.sendEncodings;
-            sender.sendEncodings = initParameters.sendEncodings;
+            params.encodings = sendEncodings;
+            sender.sendEncodings = sendEncodings;
             this.setParametersPromises.push(sender.setParameters(params)
               .then(() => {
                 delete sender.sendEncodings;
