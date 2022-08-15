@@ -1676,6 +1676,8 @@ var utils = _interopRequireWildcard(_utils);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function shimOnTrack(window) {
@@ -1845,11 +1847,16 @@ function shimAddTransceiver(window) {
   if (origAddTransceiver) {
     window.RTCPeerConnection.prototype.addTransceiver = function addTransceiver() {
       this.setParametersPromises = [];
-      var initParameters = arguments[1];
-      var shouldPerformCheck = initParameters && 'sendEncodings' in initParameters;
+      // WebIDL input coercion and validation
+      var sendEncodings = arguments[1] && arguments[1].sendEncodings;
+      if (sendEncodings === undefined) {
+        sendEncodings = [];
+      }
+      sendEncodings = [].concat(_toConsumableArray(sendEncodings));
+      var shouldPerformCheck = sendEncodings.length > 0;
       if (shouldPerformCheck) {
         // If sendEncodings params are provided, validate grammar
-        initParameters.sendEncodings.forEach(function (encodingParam) {
+        sendEncodings.forEach(function (encodingParam) {
           if ('rid' in encodingParam) {
             var ridRegex = /^[a-z0-9]{0,16}$/i;
             if (!ridRegex.test(encodingParam.rid)) {
@@ -1883,8 +1890,8 @@ function shimAddTransceiver(window) {
         if (!('encodings' in params) ||
         // Avoid being fooled by patched getParameters() below.
         params.encodings.length === 1 && Object.keys(params.encodings[0]).length === 0) {
-          params.encodings = initParameters.sendEncodings;
-          sender.sendEncodings = initParameters.sendEncodings;
+          params.encodings = sendEncodings;
+          sender.sendEncodings = sendEncodings;
           this.setParametersPromises.push(sender.setParameters(params).then(function () {
             delete sender.sendEncodings;
           }).catch(function () {
@@ -2623,7 +2630,7 @@ function detectBrowser(window) {
     // Firefox.
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent, /Firefox\/(\d+)\./, 1);
-  } else if (navigator.webkitGetUserMedia || window.isSecureContext === false && window.webkitRTCPeerConnection && !window.RTCIceGatherer) {
+  } else if (navigator.webkitGetUserMedia || window.isSecureContext === false && window.webkitRTCPeerConnection) {
     // Chrome, Chromium, Webview, Opera.
     // Version matches Chrome/WebRTC version.
     // Chrome 74 removed webkitGetUserMedia on http as well so we need the
