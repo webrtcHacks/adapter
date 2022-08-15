@@ -14,6 +14,10 @@ export function shimGetUserMedia(window, browserDetails) {
   const navigator = window && window.navigator;
   const MediaStreamTrack = window && window.MediaStreamTrack;
 
+  if (!navigator.mediaDevices) {
+    return;
+  }
+
   navigator.getUserMedia = function(constraints, onSuccess, onError) {
     // Replace Firefox 44+'s deprecation warning with unprefixed version.
     utils.deprecated('navigator.getUserMedia',
