@@ -431,3 +431,66 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
         .then(d => nativeSetLocalDescription.apply(this, [d]));
     };
 }
+
+export function shimGetDataChannels(window, browserDetails) {
+  if (!(window.RTCPeerConnection && window.RTCPeerConnection.prototype)) {
+    return;
+  }
+  if (window.RTCPeerConnection.prototype.getDataChannels) {
+    return;
+  }
+  const origCreateDataChannel =
+    window.RTCPeerConnection.prototype.createDataChannel;
+  window.RTCPeerConnection.prototype.createDataChannel =
+    function createDataChannel() {
+      if (!this._localDataChannels) {
+        this._localDataChannels = [];
+      }
+      const dataChannel = origCreateDataChannel.apply(this, arguments);
+      dataChannel.addEventListener('close', () => {
+        const index = this._localDataChannels.indexOf(dataChannel);
+        if (index !== -1) {
+          this._localDataChannels.splice(index, 1);
+        }
+      });
+      const origClose = dataChannel.close;
+      dataChannel.close = () => {
+        const index = this._localDataChannels.indexOf(dataChannel);
+        if (index !== -1) {
+          this._localDataChannels.splice(index, 1);
+        }
+        origClose.apply(dataChannel, arguments);
+      };
+      this._localDataChannels.push(dataChannel);
+      return dataChannel;
+    };
+  utils.wrapPeerConnectionEvent(window, 'datachannel', e => {
+    const pc = e.target;
+    if (!pc._remoteDataChannels) {
+      pc._remoteDataChannels = [];
+    }
+    const dataChannel = e.channel;
+    dataChannel.addEventListener('close', () => {
+      const index = pc._remoteDataChannels.indexOf(dataChannel);
+      if (index !== -1) {
+        pc._remoteDataChannels.splice(index, 1);
+      }
+    });
+    const origClose = dataChannel.close;
+    dataChannel.close = () => {
+      const index = pc._remoteDataChannels.indexOf(dataChannel);
+      if (index !== -1) {
+        pc._remoteDataChannels.splice(index, 1);
+      }
+      origClose.apply(dataChannel, arguments);
+    };
+    if (pc._remoteDataChannels.indexOf(dataChannel) === -1) {
+      pc._remoteDataChannels.push(dataChannel);
+    }
+    return e;
+  });
+  window.RTCPeerConnection.prototype.getDataChannels = function() {
+    return (this._localDataChannels || [])
+      .concat(this._remoteDataChannels || []);
+  };
+}
