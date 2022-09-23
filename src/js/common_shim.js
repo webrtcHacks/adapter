@@ -63,6 +63,31 @@ export function shimRTCIceCandidate(window) {
   });
 }
 
+export function shimRTCIceCandidateRelayProtocol(window) {
+  if (!window.RTCIceCandidate || (window.RTCIceCandidate && 'relayProtocol' in
+      window.RTCIceCandidate.prototype)) {
+    return;
+  }
+
+  // Hook up the augmented candidate in onicecandidate and
+  // addEventListener('icecandidate', ...)
+  utils.wrapPeerConnectionEvent(window, 'icecandidate', e => {
+    if (e.candidate) {
+      const parsedCandidate = SDPUtils.parseCandidate(e.candidate.candidate);
+      if (parsedCandidate.type === 'relay') {
+        // This is a libwebrtc-specific mapping of local type preference
+        // to relayProtocol.
+        e.candidate.relayProtocol = {
+          0: 'tls',
+          1: 'tcp',
+          2: 'udp',
+        }[parsedCandidate.priority >> 24];
+      }
+    }
+    return e;
+  });
+}
+
 export function shimMaxMessageSize(window, browserDetails) {
   if (!window.RTCPeerConnection) {
     return;

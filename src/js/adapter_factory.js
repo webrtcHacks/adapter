@@ -65,6 +65,7 @@ export function adapterFactory({window} = {}, options = {
       chromeShim.fixNegotiationNeeded(window, browserDetails);
 
       commonShim.shimRTCIceCandidate(window, browserDetails);
+      commonShim.shimRTCIceCandidateRelayProtocol(window, browserDetails);
       commonShim.shimConnectionState(window, browserDetails);
       commonShim.shimMaxMessageSize(window, browserDetails);
       commonShim.shimSendThrowTypeError(window, browserDetails);
@@ -124,6 +125,7 @@ export function adapterFactory({window} = {}, options = {
       safariShim.shimAudioContext(window, browserDetails);
 
       commonShim.shimRTCIceCandidate(window, browserDetails);
+      commonShim.shimRTCIceCandidateRelayProtocol(window, browserDetails);
       commonShim.shimMaxMessageSize(window, browserDetails);
       commonShim.shimSendThrowTypeError(window, browserDetails);
       commonShim.removeExtmapAllowMixed(window, browserDetails);
