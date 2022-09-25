@@ -491,6 +491,7 @@ export function shimGetDataChannels(window, browserDetails) {
   });
   window.RTCPeerConnection.prototype.getDataChannels = function() {
     return (this._localDataChannels || [])
-      .concat(this._remoteDataChannels || []);
+      .concat(this._remoteDataChannels || [])
+      .filter(c => !!c);
   };
 }
