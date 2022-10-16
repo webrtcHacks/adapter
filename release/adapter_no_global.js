@@ -111,6 +111,7 @@ function adapterFactory() {
       chromeShim.fixNegotiationNeeded(window, browserDetails);
 
       commonShim.shimRTCIceCandidate(window, browserDetails);
+      commonShim.shimRTCIceCandidateRelayProtocol(window, browserDetails);
       commonShim.shimConnectionState(window, browserDetails);
       commonShim.shimMaxMessageSize(window, browserDetails);
       commonShim.shimSendThrowTypeError(window, browserDetails);
@@ -169,6 +170,7 @@ function adapterFactory() {
       safariShim.shimAudioContext(window, browserDetails);
 
       commonShim.shimRTCIceCandidate(window, browserDetails);
+      commonShim.shimRTCIceCandidateRelayProtocol(window, browserDetails);
       commonShim.shimMaxMessageSize(window, browserDetails);
       commonShim.shimSendThrowTypeError(window, browserDetails);
       commonShim.removeExtmapAllowMixed(window, browserDetails);
@@ -1206,6 +1208,7 @@ Object.defineProperty(exports, "__esModule", {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.shimRTCIceCandidate = shimRTCIceCandidate;
+exports.shimRTCIceCandidateRelayProtocol = shimRTCIceCandidateRelayProtocol;
 exports.shimMaxMessageSize = shimMaxMessageSize;
 exports.shimSendThrowTypeError = shimSendThrowTypeError;
 exports.shimConnectionState = shimConnectionState;
@@ -1269,6 +1272,30 @@ function shimRTCIceCandidate(window) {
         value: new window.RTCIceCandidate(e.candidate),
         writable: 'false'
       });
+    }
+    return e;
+  });
+}
+
+function shimRTCIceCandidateRelayProtocol(window) {
+  if (!window.RTCIceCandidate || window.RTCIceCandidate && 'relayProtocol' in window.RTCIceCandidate.prototype) {
+    return;
+  }
+
+  // Hook up the augmented candidate in onicecandidate and
+  // addEventListener('icecandidate', ...)
+  utils.wrapPeerConnectionEvent(window, 'icecandidate', function (e) {
+    if (e.candidate) {
+      var parsedCandidate = _sdp2.default.parseCandidate(e.candidate.candidate);
+      if (parsedCandidate.type === 'relay') {
+        // This is a libwebrtc-specific mapping of local type preference
+        // to relayProtocol.
+        e.candidate.relayProtocol = {
+          0: 'tls',
+          1: 'tcp',
+          2: 'udp'
+        }[parsedCandidate.priority >> 24];
+      }
     }
     return e;
   });
