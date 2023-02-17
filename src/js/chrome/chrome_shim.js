@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 import * as utils from '../utils.js';
 
@@ -399,7 +399,7 @@ export function shimAddTrackRemoveTrackWithNative(window) {
       const alreadyExists = this.getSenders().find(s => s.track === track);
       if (alreadyExists) {
         throw new DOMException('Track already exists.',
-            'InvalidAccessError');
+          'InvalidAccessError');
       }
     });
     const existingSenders = this.getSenders();
@@ -449,7 +449,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
   // also shim pc.getLocalStreams when addTrack is shimmed
   // to return the original streams.
   const origGetLocalStreams = window.RTCPeerConnection.prototype
-      .getLocalStreams;
+    .getLocalStreams;
   window.RTCPeerConnection.prototype.getLocalStreams =
     function getLocalStreams() {
       const nativeStreams = origGetLocalStreams.apply(this);
@@ -466,7 +466,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
       const alreadyExists = this.getSenders().find(s => s.track === track);
       if (alreadyExists) {
         throw new DOMException('Track already exists.',
-            'InvalidAccessError');
+          'InvalidAccessError');
       }
     });
     // Add identity mapping for consistency with addTrack.
@@ -488,7 +488,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
 
       origRemoveStream.apply(this, [(this._streams[stream.id] || stream)]);
       delete this._reverseStreams[(this._streams[stream.id] ?
-          this._streams[stream.id].id : stream.id)];
+        this._streams[stream.id].id : stream.id)];
       delete this._streams[stream.id];
     };
 
@@ -513,7 +513,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
       const alreadyExists = this.getSenders().find(s => s.track === track);
       if (alreadyExists) {
         throw new DOMException('Track already exists.',
-            'InvalidAccessError');
+          'InvalidAccessError');
       }
 
       this._streams = this._streams || {};
@@ -547,7 +547,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
       const externalStream = pc._reverseStreams[internalId];
       const internalStream = pc._streams[externalStream.id];
       sdp = sdp.replace(new RegExp(internalStream.id, 'g'),
-          externalStream.id);
+        externalStream.id);
     });
     return new RTCSessionDescription({
       type: description.type,
@@ -560,7 +560,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
       const externalStream = pc._reverseStreams[internalId];
       const internalStream = pc._streams[externalStream.id];
       sdp = sdp.replace(new RegExp(externalStream.id, 'g'),
-          internalStream.id);
+        internalStream.id);
     });
     return new RTCSessionDescription({
       type: description.type,
@@ -587,7 +587,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
         ]);
       }
       return nativeMethod.apply(this, arguments)
-      .then(description => replaceInternalStreamId(this, description));
+        .then(description => replaceInternalStreamId(this, description));
     }};
     window.RTCPeerConnection.prototype[method] = methodObj[method];
   });
@@ -606,17 +606,17 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
   // TODO: mangle getStats: https://w3c.github.io/webrtc-stats/#dom-rtcmediastreamstats-streamidentifier
 
   const origLocalDescription = Object.getOwnPropertyDescriptor(
-      window.RTCPeerConnection.prototype, 'localDescription');
+    window.RTCPeerConnection.prototype, 'localDescription');
   Object.defineProperty(window.RTCPeerConnection.prototype,
-      'localDescription', {
-        get() {
-          const description = origLocalDescription.get.apply(this);
-          if (description.type === '') {
-            return description;
-          }
-          return replaceInternalStreamId(this, description);
+    'localDescription', {
+      get() {
+        const description = origLocalDescription.get.apply(this);
+        if (description.type === '') {
+          return description;
         }
-      });
+        return replaceInternalStreamId(this, description);
+      }
+    });
 
   window.RTCPeerConnection.prototype.removeTrack =
     function removeTrack(sender) {
@@ -634,7 +634,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
       const isLocal = sender._pc === this;
       if (!isLocal) {
         throw new DOMException('Sender was not created by this connection.',
-            'InvalidAccessError');
+          'InvalidAccessError');
       }
 
       // Search for the native stream the senders track belongs to.
@@ -674,16 +674,16 @@ export function shimPeerConnection(window, browserDetails) {
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
   if (browserDetails.version < 53) {
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-        .forEach(function(method) {
-          const nativeMethod = window.RTCPeerConnection.prototype[method];
-          const methodObj = {[method]() {
-            arguments[0] = new ((method === 'addIceCandidate') ?
-                window.RTCIceCandidate :
-                window.RTCSessionDescription)(arguments[0]);
-            return nativeMethod.apply(this, arguments);
-          }};
-          window.RTCPeerConnection.prototype[method] = methodObj[method];
-        });
+      .forEach(function(method) {
+        const nativeMethod = window.RTCPeerConnection.prototype[method];
+        const methodObj = {[method]() {
+          arguments[0] = new ((method === 'addIceCandidate') ?
+            window.RTCIceCandidate :
+            window.RTCSessionDescription)(arguments[0]);
+          return nativeMethod.apply(this, arguments);
+        }};
+        window.RTCPeerConnection.prototype[method] = methodObj[method];
+      });
   }
 }
 

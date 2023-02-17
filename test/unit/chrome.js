@@ -86,9 +86,9 @@ describe('Chrome shim', () => {
 
     it('is translated into a Map', () => {
       return pc.getStats()
-      .then(result => {
-        expect(result).to.be.a('Map');
-      });
+        .then(result => {
+          expect(result).to.be.a('Map');
+        });
     });
   });
 

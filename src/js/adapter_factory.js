@@ -7,7 +7,7 @@
  */
 import * as utils from './utils';
 
-  // Browser shims.
+// Browser shims.
 import * as chromeShim from './chrome/chrome_shim';
 import * as firefoxShim from './firefox/firefox_shim';
 import * as safariShim from './safari/safari_shim';

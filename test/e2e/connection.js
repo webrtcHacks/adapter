@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('establishes a connection', () => {
@@ -19,17 +19,17 @@ describe('establishes a connection', () => {
 
   function negotiate(pc, otherPc) {
     return pc.createOffer()
-    .then(function(offer) {
-      return pc.setLocalDescription(offer);
-    }).then(function() {
-      return otherPc.setRemoteDescription(pc.localDescription);
-    }).then(function() {
-      return otherPc.createAnswer();
-    }).then(function(answer) {
-      return otherPc.setLocalDescription(answer);
-    }).then(function() {
-      return pc.setRemoteDescription(otherPc.localDescription);
-    });
+      .then(function(offer) {
+        return pc.setLocalDescription(offer);
+      }).then(function() {
+        return otherPc.setRemoteDescription(pc.localDescription);
+      }).then(function() {
+        return otherPc.createAnswer();
+      }).then(function(answer) {
+        return otherPc.setLocalDescription(answer);
+      }).then(function() {
+        return pc.setRemoteDescription(otherPc.localDescription);
+      });
   }
 
   beforeEach(() => {
@@ -60,36 +60,36 @@ describe('establishes a connection', () => {
 
     var constraints = {video: true};
     navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      pc1.addStream(stream);
+      .then(function(stream) {
+        pc1.addStream(stream);
 
-      pc1.createOffer(
-        function(offer) {
-          pc1.setLocalDescription(offer,
-            function() {
-              pc2.setRemoteDescription(offer,
-                function() {
-                  pc2.createAnswer(
-                    function(answer) {
-                      pc2.setLocalDescription(answer,
-                        function() {
-                          pc1.setRemoteDescription(answer, noop, throwError);
-                        },
-                        throwError
-                      );
-                    },
-                    throwError
-                  );
-                },
-                throwError
-              );
-            },
-            throwError
-          );
-        },
-        throwError
-      );
-    });
+        pc1.createOffer(
+          function(offer) {
+            pc1.setLocalDescription(offer,
+              function() {
+                pc2.setRemoteDescription(offer,
+                  function() {
+                    pc2.createAnswer(
+                      function(answer) {
+                        pc2.setLocalDescription(answer,
+                          function() {
+                            pc1.setRemoteDescription(answer, noop, throwError);
+                          },
+                          throwError
+                        );
+                      },
+                      throwError
+                    );
+                  },
+                  throwError
+                );
+              },
+              throwError
+            );
+          },
+          throwError
+        );
+      });
   });
 
   it('with promises', (done) => {
@@ -102,11 +102,11 @@ describe('establishes a connection', () => {
 
     var constraints = {video: true};
     navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      pc1.addStream(stream);
-      return negotiate(pc1, pc2);
-    })
-    .catch(throwError);
+      .then(function(stream) {
+        pc1.addStream(stream);
+        return negotiate(pc1, pc2);
+      })
+      .catch(throwError);
   });
 
   it('with streams in both directions', (done) => {
@@ -119,12 +119,12 @@ describe('establishes a connection', () => {
 
     var constraints = {video: true};
     navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      pc1.addStream(stream);
-      pc2.addStream(stream);
-      return negotiate(pc1, pc2);
-    })
-    .catch(throwError);
+      .then(function(stream) {
+        pc1.addStream(stream);
+        pc2.addStream(stream);
+        return negotiate(pc1, pc2);
+      })
+      .catch(throwError);
   });
 
   describe('with addTrack', () => {
@@ -144,13 +144,13 @@ describe('establishes a connection', () => {
 
       var constraints = {audio: true, video: true};
       navigator.mediaDevices.getUserMedia(constraints)
-      .then(function(stream) {
-        stream.getTracks().forEach(function(track) {
-          pc1.addTrack(track, stream);
-        });
-        return negotiate(pc1, pc2);
-      })
-      .catch(throwError);
+        .then(function(stream) {
+          stream.getTracks().forEach(function(track) {
+            pc1.addTrack(track, stream);
+          });
+          return negotiate(pc1, pc2);
+        })
+        .catch(throwError);
     });
 
     it('but only the audio track of an av stream', (done) => {
@@ -169,13 +169,13 @@ describe('establishes a connection', () => {
 
       var constraints = {audio: true, video: true};
       navigator.mediaDevices.getUserMedia(constraints)
-      .then(function(stream) {
-        stream.getAudioTracks().forEach(function(track) {
-          pc1.addTrack(track, stream);
-        });
-        return negotiate(pc1, pc2);
-      })
-      .catch(throwError);
+        .then(function(stream) {
+          stream.getAudioTracks().forEach(function(track) {
+            pc1.addTrack(track, stream);
+          });
+          return negotiate(pc1, pc2);
+        })
+        .catch(throwError);
     });
 
     it('as two streams', (done) => {
@@ -196,18 +196,18 @@ describe('establishes a connection', () => {
 
       var constraints = {audio: true, video: true};
       navigator.mediaDevices.getUserMedia(constraints)
-      .then(function(stream) {
-        var audioStream = new MediaStream(stream.getAudioTracks());
-        var videoStream = new MediaStream(stream.getVideoTracks());
-        audioStream.getTracks().forEach(function(track) {
-          pc1.addTrack(track, audioStream);
-        });
-        videoStream.getTracks().forEach(function(track) {
-          pc1.addTrack(track, videoStream);
-        });
-        return negotiate(pc1, pc2);
-      })
-      .catch(throwError);
+        .then(function(stream) {
+          var audioStream = new MediaStream(stream.getAudioTracks());
+          var videoStream = new MediaStream(stream.getVideoTracks());
+          audioStream.getTracks().forEach(function(track) {
+            pc1.addTrack(track, audioStream);
+          });
+          videoStream.getTracks().forEach(function(track) {
+            pc1.addTrack(track, videoStream);
+          });
+          return negotiate(pc1, pc2);
+        })
+        .catch(throwError);
     });
   });
 
@@ -232,13 +232,13 @@ describe('establishes a connection', () => {
 
     var constraints = {video: true};
     navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      stream.getTracks().forEach(function(track) {
-        pc1.addTrack(track, stream);
-      });
-      return negotiate(pc1, pc2);
-    })
-    .catch(throwError);
+      .then(function(stream) {
+        stream.getTracks().forEach(function(track) {
+          pc1.addTrack(track, stream);
+        });
+        return negotiate(pc1, pc2);
+      })
+      .catch(throwError);
   });
 
   describe('with datachannel', function() {
@@ -252,7 +252,7 @@ describe('establishes a connection', () => {
 
       pc1.createDataChannel('foo');
       negotiate(pc1, pc2)
-      .catch(throwError);
+        .catch(throwError);
     });
   });
 
@@ -267,13 +267,13 @@ describe('establishes a connection', () => {
     });
     var constraints = {video: true};
     navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      stream.getTracks().forEach(function(track) {
-        pc1.addTrack(track, stream);
-      });
-      return negotiate(pc1, pc2);
-    })
-    .catch(throwError);
+      .then(function(stream) {
+        stream.getTracks().forEach(function(track) {
+          pc1.addTrack(track, stream);
+        });
+        return negotiate(pc1, pc2);
+      })
+      .catch(throwError);
   });
 
   it('and triggers the connectionstatechange event', (done) => {
@@ -285,10 +285,10 @@ describe('establishes a connection', () => {
 
     var constraints = {video: true};
     navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      pc1.addStream(stream);
-      return negotiate(pc1, pc2);
-    })
-    .catch(throwError);
+      .then(function(stream) {
+        pc1.addStream(stream);
+        return negotiate(pc1, pc2);
+      })
+      .catch(throwError);
   });
 });

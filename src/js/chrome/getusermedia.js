@@ -106,21 +106,22 @@ export function shimGetUserMedia(window, browserDetails) {
         if (matches) {
           // Look for matches in label, or use last cam for back (typical).
           return navigator.mediaDevices.enumerateDevices()
-          .then(devices => {
-            devices = devices.filter(d => d.kind === 'videoinput');
-            let dev = devices.find(d => matches.some(match =>
-              d.label.toLowerCase().includes(match)));
-            if (!dev && devices.length && matches.includes('back')) {
-              dev = devices[devices.length - 1]; // more likely the back cam
-            }
-            if (dev) {
-              constraints.video.deviceId = face.exact ? {exact: dev.deviceId} :
-                                                        {ideal: dev.deviceId};
-            }
-            constraints.video = constraintsToChrome_(constraints.video);
-            logging('chrome: ' + JSON.stringify(constraints));
-            return func(constraints);
-          });
+            .then(devices => {
+              devices = devices.filter(d => d.kind === 'videoinput');
+              let dev = devices.find(d => matches.some(match =>
+                d.label.toLowerCase().includes(match)));
+              if (!dev && devices.length && matches.includes('back')) {
+                dev = devices[devices.length - 1]; // more likely the back cam
+              }
+              if (dev) {
+                constraints.video.deviceId = face.exact
+                  ? {exact: dev.deviceId}
+                  : {ideal: dev.deviceId};
+              }
+              constraints.video = constraintsToChrome_(constraints.video);
+              logging('chrome: ' + JSON.stringify(constraints));
+              return func(constraints);
+            });
         }
       }
       constraints.video = constraintsToChrome_(constraints.video);
@@ -171,7 +172,7 @@ export function shimGetUserMedia(window, browserDetails) {
   // constraints.
   if (navigator.mediaDevices.getUserMedia) {
     const origGetUserMedia = navigator.mediaDevices.getUserMedia.
-        bind(navigator.mediaDevices);
+      bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(cs) {
       return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
         if (c.audio && !stream.getAudioTracks().length ||
