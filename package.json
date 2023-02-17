@@ -56,6 +56,6 @@
     "mocha": "^10.1.0",
     "sinon": "^2.2.0",
     "sinon-chai": "^2.14.0",
-    "travis-multirunner": "^4.6.0"
+    "travis-multirunner": "^5.0.1"
   }
 }
