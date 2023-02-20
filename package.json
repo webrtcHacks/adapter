@@ -25,14 +25,14 @@
     "e2e-tests": "grunt && grunt downloadBrowser && karma start test/karma.conf.js"
   },
   "dependencies": {
-    "sdp": "^3.0.2"
+    "sdp": "^3.2.0"
   },
   "engines": {
     "npm": ">=3.10.0",
     "node": ">=6.0.0"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
+    "@babel/core": "^7.21.0",
     "babel-preset-env": "^1.7.0",
     "brfs": "^1.5.0",
     "chai": "^3.5.0",
