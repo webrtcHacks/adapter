@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('addIceCandidate', () => {
@@ -33,10 +33,10 @@ describe('addIceCandidate', () => {
         'a=ssrc:1001 cname:some\r\n';
     pc = new RTCPeerConnection();
     return pc.setRemoteDescription({type: 'offer', sdp})
-    .then(() => {
-      return pc.addIceCandidate({sdpMid: 'mid1', candidate:
+      .then(() => {
+        return pc.addIceCandidate({sdpMid: 'mid1', candidate:
           'candidate:702786350 1 udp 41819902 8.8.8.8 60769 typ host'});
-    });
+      });
   });
   afterEach(() => {
     pc.close();

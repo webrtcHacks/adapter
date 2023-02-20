@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('getStats', () => {
@@ -23,11 +23,11 @@ describe('getStats', () => {
 
   it('resolves the Promise with a Map(like)', () => {
     return pc.getStats()
-    .then(result => {
-      expect(result).to.have.property('get');
-      expect(result).to.have.property('keys');
-      expect(result).to.have.property('values');
-      expect(result).to.have.property('forEach');
-    });
+      .then(result => {
+        expect(result).to.have.property('get');
+        expect(result).to.have.property('keys');
+        expect(result).to.have.property('values');
+        expect(result).to.have.property('forEach');
+      });
   });
 });

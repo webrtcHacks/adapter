@@ -17,7 +17,7 @@ export function shimGetUserMedia(window, browserDetails) {
   navigator.getUserMedia = function(constraints, onSuccess, onError) {
     // Replace Firefox 44+'s deprecation warning with unprefixed version.
     utils.deprecated('navigator.getUserMedia',
-        'navigator.mediaDevices.getUserMedia');
+      'navigator.mediaDevices.getUserMedia');
     navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
   };
 
@@ -31,7 +31,7 @@ export function shimGetUserMedia(window, browserDetails) {
     };
 
     const nativeGetUserMedia = navigator.mediaDevices.getUserMedia.
-        bind(navigator.mediaDevices);
+      bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function(c) {
       if (typeof c === 'object' && typeof c.audio === 'object') {
         c = JSON.parse(JSON.stringify(c));

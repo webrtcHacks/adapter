@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('navigator.mediaDevices', () => {
@@ -20,9 +20,9 @@ describe('navigator.mediaDevices', () => {
 
     it('fulfills the promise', () => {
       return navigator.mediaDevices.getUserMedia({video: true})
-      .then((stream) => {
-        expect(stream.getTracks()).to.have.length(1);
-      });
+        .then((stream) => {
+          expect(stream.getTracks()).to.have.length(1);
+        });
     });
   });
 
@@ -46,17 +46,18 @@ describe('navigator.mediaDevices', () => {
     describe('returns', () => {
       it('an array of devices', () => {
         return navigator.mediaDevices.enumerateDevices()
-        .then(devices => {
-          expect(devices).to.be.an('Array');
-        });
+          .then(devices => {
+            expect(devices).to.be.an('Array');
+          });
       });
 
       ['audioinput', 'videoinput', 'audiooutput'].forEach(kind => {
         it('some ' + kind + ' devices', () => {
           return navigator.mediaDevices.enumerateDevices()
-          .then(devices => {
-            expect(devices.find(d => d.kind === kind)).not.to.equal(undefined);
-          });
+            .then(devices => {
+              expect(devices.find(d => d.kind === kind))
+                .not.to.equal(undefined);
+            });
         });
       });
     });

@@ -37,16 +37,16 @@ export function shimPeerConnection(window, browserDetails) {
   if (browserDetails.version < 53) {
     // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-        .forEach(function(method) {
-          const nativeMethod = window.RTCPeerConnection.prototype[method];
-          const methodObj = {[method]() {
-            arguments[0] = new ((method === 'addIceCandidate') ?
-                window.RTCIceCandidate :
-                window.RTCSessionDescription)(arguments[0]);
-            return nativeMethod.apply(this, arguments);
-          }};
-          window.RTCPeerConnection.prototype[method] = methodObj[method];
-        });
+      .forEach(function(method) {
+        const nativeMethod = window.RTCPeerConnection.prototype[method];
+        const methodObj = {[method]() {
+          arguments[0] = new ((method === 'addIceCandidate') ?
+            window.RTCIceCandidate :
+            window.RTCSessionDescription)(arguments[0]);
+          return nativeMethod.apply(this, arguments);
+        }};
+        window.RTCPeerConnection.prototype[method] = methodObj[method];
+      });
   }
 
   const modernStatsTypes = {
@@ -114,7 +114,7 @@ export function shimSenderGetStats(window) {
   }
   window.RTCRtpSender.prototype.getStats = function getStats() {
     return this.track ? this._pc.getStats(this.track) :
-        Promise.resolve(new Map());
+      Promise.resolve(new Map());
   };
 }
 
@@ -266,12 +266,12 @@ export function shimCreateOffer(window) {
   window.RTCPeerConnection.prototype.createOffer = function createOffer() {
     if (this.setParametersPromises && this.setParametersPromises.length) {
       return Promise.all(this.setParametersPromises)
-      .then(() => {
-        return origCreateOffer.apply(this, arguments);
-      })
-      .finally(() => {
-        this.setParametersPromises = [];
-      });
+        .then(() => {
+          return origCreateOffer.apply(this, arguments);
+        })
+        .finally(() => {
+          this.setParametersPromises = [];
+        });
     }
     return origCreateOffer.apply(this, arguments);
   };
@@ -288,12 +288,12 @@ export function shimCreateAnswer(window) {
   window.RTCPeerConnection.prototype.createAnswer = function createAnswer() {
     if (this.setParametersPromises && this.setParametersPromises.length) {
       return Promise.all(this.setParametersPromises)
-      .then(() => {
-        return origCreateAnswer.apply(this, arguments);
-      })
-      .finally(() => {
-        this.setParametersPromises = [];
-      });
+        .then(() => {
+          return origCreateAnswer.apply(this, arguments);
+        })
+        .finally(() => {
+          this.setParametersPromises = [];
+        });
     }
     return origCreateAnswer.apply(this, arguments);
   };

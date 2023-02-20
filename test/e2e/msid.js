@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('MSID', () => {
@@ -15,17 +15,17 @@ describe('MSID', () => {
 
   function negotiate(pc, otherPc) {
     return pc.createOffer()
-    .then(function(offer) {
-      return pc.setLocalDescription(offer);
-    }).then(function() {
-      return otherPc.setRemoteDescription(pc.localDescription);
-    }).then(function() {
-      return otherPc.createAnswer();
-    }).then(function(answer) {
-      return otherPc.setLocalDescription(answer);
-    }).then(function() {
-      return pc.setRemoteDescription(otherPc.localDescription);
-    });
+      .then(function(offer) {
+        return pc.setLocalDescription(offer);
+      }).then(function() {
+        return otherPc.setRemoteDescription(pc.localDescription);
+      }).then(function() {
+        return otherPc.createAnswer();
+      }).then(function(answer) {
+        return otherPc.setLocalDescription(answer);
+      }).then(function() {
+        return pc.setRemoteDescription(otherPc.localDescription);
+      });
   }
 
   beforeEach(() => {
@@ -46,23 +46,23 @@ describe('MSID', () => {
       done();
     };
     navigator.mediaDevices.getUserMedia({video: true})
-    .then((stream) => {
-      localStream = stream;
-      pc1.addTrack(stream.getTracks()[0], stream);
-      return negotiate(pc1, pc2);
-    });
+      .then((stream) => {
+        localStream = stream;
+        pc1.addTrack(stream.getTracks()[0], stream);
+        return negotiate(pc1, pc2);
+      });
   });
 
   it('puts the stream msid attribute into the localDescription', () => {
     return navigator.mediaDevices.getUserMedia({video: true})
-    .then((stream) => {
-      localStream = stream;
-      pc1.addTrack(stream.getTracks()[0], stream);
-      return negotiate(pc1, pc2);
-    })
-    .then(() => {
-      expect(pc1.localDescription.sdp)
+      .then((stream) => {
+        localStream = stream;
+        pc1.addTrack(stream.getTracks()[0], stream);
+        return negotiate(pc1, pc2);
+      })
+      .then(() => {
+        expect(pc1.localDescription.sdp)
           .to.contain('msid:' + localStream.id + ' ');
-    });
+      });
   });
 });

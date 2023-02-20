@@ -33,7 +33,7 @@ export function shimRTCIceCandidate(window) {
       const nativeCandidate = new NativeRTCIceCandidate(args);
       const parsedCandidate = SDPUtils.parseCandidate(args.candidate);
       const augmentedCandidate = Object.assign(nativeCandidate,
-          parsedCandidate);
+        parsedCandidate);
 
       // Add a serializer that does not serialize the extra attributes.
       augmentedCandidate.toJSON = function toJSON() {
@@ -308,12 +308,12 @@ export function shimConnectionState(window) {
     set(cb) {
       if (this._onconnectionstatechange) {
         this.removeEventListener('connectionstatechange',
-            this._onconnectionstatechange);
+          this._onconnectionstatechange);
         delete this._onconnectionstatechange;
       }
       if (cb) {
         this.addEventListener('connectionstatechange',
-            this._onconnectionstatechange = cb);
+          this._onconnectionstatechange = cb);
       }
     },
     enumerable: true,

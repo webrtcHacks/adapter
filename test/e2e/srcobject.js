@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('srcObject', () => {
@@ -15,16 +15,16 @@ describe('srcObject', () => {
         let constraints = {};
         constraints[mediaType] = true;
         navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-          const mediaElement = document.createElement(mediaType);
-          mediaElement.setAttribute('autoplay', 'true');
-          // If the srcObject shim works, we should get media
-          // at some point. This will trigger loadedmetadata.
-          mediaElement.addEventListener('loadedmetadata', function() {
-            done();
+          .then((stream) => {
+            const mediaElement = document.createElement(mediaType);
+            mediaElement.setAttribute('autoplay', 'true');
+            // If the srcObject shim works, we should get media
+            // at some point. This will trigger loadedmetadata.
+            mediaElement.addEventListener('loadedmetadata', function() {
+              done();
+            });
+            mediaElement.srcObject = stream;
           });
-          mediaElement.srcObject = stream;
-        });
       });
     });
 
@@ -33,30 +33,30 @@ describe('srcObject', () => {
         let constraints = {};
         constraints[mediaType] = true;
         return navigator.mediaDevices.getUserMedia(constraints)
-        .then((stream) => {
-          const mediaElement = document.createElement(mediaType);
-          mediaElement.setAttribute('autoplay', 'true');
-          mediaElement.setAttribute('id', mediaType);
-          mediaElement.srcObject = stream;
-          expect(mediaElement.srcObject).to.have.property('id');
-          expect(mediaElement.srcObject.id).to.equal(stream.id);
-        });
+          .then((stream) => {
+            const mediaElement = document.createElement(mediaType);
+            mediaElement.setAttribute('autoplay', 'true');
+            mediaElement.setAttribute('id', mediaType);
+            mediaElement.srcObject = stream;
+            expect(mediaElement.srcObject).to.have.property('id');
+            expect(mediaElement.srcObject.id).to.equal(stream.id);
+          });
       });
     });
   });
 
   it('setting from another object works', () => {
     return navigator.mediaDevices.getUserMedia({video: true})
-    .then(stream => {
-      const video = document.createElement('video');
-      video.autoplay = true;
-      video.srcObject = stream;
+      .then(stream => {
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.srcObject = stream;
 
-      const video2 = document.createElement('video2');
-      video2.autoplay = true;
-      video2.srcObject = video.srcObject;
+        const video2 = document.createElement('video2');
+        video2.autoplay = true;
+        video2.srcObject = video.srcObject;
 
-      expect(video2.srcObject.id).to.equal(video.srcObject.id);
-    });
+        expect(video2.srcObject.id).to.equal(video.srcObject.id);
+      });
   });
 });

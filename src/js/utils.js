@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 let logDisabled_ = true;
@@ -84,12 +84,12 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     set(cb) {
       if (this['_on' + eventNameToWrap]) {
         this.removeEventListener(eventNameToWrap,
-            this['_on' + eventNameToWrap]);
+          this['_on' + eventNameToWrap]);
         delete this['_on' + eventNameToWrap];
       }
       if (cb) {
         this.addEventListener(eventNameToWrap,
-            this['_on' + eventNameToWrap] = cb);
+          this['_on' + eventNameToWrap] = cb);
       }
     },
     enumerable: true,
@@ -104,7 +104,7 @@ export function disableLog(bool) {
   }
   logDisabled_ = bool;
   return (bool) ? 'adapter.js logging disabled' :
-      'adapter.js logging enabled';
+    'adapter.js logging enabled';
 }
 
 /**
@@ -163,7 +163,7 @@ export function detectBrowser(window) {
   if (navigator.mozGetUserMedia) { // Firefox.
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent,
-        /Firefox\/(\d+)\./, 1);
+      /Firefox\/(\d+)\./, 1);
   } else if (navigator.webkitGetUserMedia ||
       (window.isSecureContext === false && window.webkitRTCPeerConnection)) {
     // Chrome, Chromium, Webview, Opera.
@@ -172,12 +172,12 @@ export function detectBrowser(window) {
     // more complicated fallback to webkitRTCPeerConnection.
     result.browser = 'chrome';
     result.version = extractVersion(navigator.userAgent,
-        /Chrom(e|ium)\/(\d+)\./, 2);
+      /Chrom(e|ium)\/(\d+)\./, 2);
   } else if (window.RTCPeerConnection &&
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';
     result.version = extractVersion(navigator.userAgent,
-        /AppleWebKit\/(\d+)\./, 1);
+      /AppleWebKit\/(\d+)\./, 1);
     result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
         'currentDirection' in window.RTCRtpTransceiver.prototype;
   } else { // Default fallthrough: not supported.

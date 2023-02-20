@@ -216,7 +216,7 @@ export function shimGetUserMedia(window) {
     navigator.mediaDevices.getUserMedia) {
     navigator.getUserMedia = function getUserMedia(constraints, cb, errcb) {
       navigator.mediaDevices.getUserMedia(constraints)
-      .then(cb, errcb);
+        .then(cb, errcb);
     }.bind(navigator);
   }
 }
@@ -244,8 +244,7 @@ export function shimRTCIceServerUrls(window) {
         const newIceServers = [];
         for (let i = 0; i < pcConfig.iceServers.length; i++) {
           let server = pcConfig.iceServers[i];
-          if (!server.hasOwnProperty('urls') &&
-              server.hasOwnProperty('url')) {
+          if (server.urls === undefined && server.url) {
             utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
             server = JSON.parse(JSON.stringify(server));
             server.urls = server.url;

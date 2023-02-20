@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('maxMessageSize', () => {
@@ -19,25 +19,25 @@ describe('maxMessageSize', () => {
 
   function negotiate(pc, otherPc, mapRemoteDescriptionCallback) {
     return pc.createOffer()
-    .then((offer) => {
-      return pc.setLocalDescription(offer);
-    }).then(() => {
-      let description = pc.localDescription;
-      if (mapRemoteDescriptionCallback) {
-        description = mapRemoteDescriptionCallback(description);
-      }
-      return otherPc.setRemoteDescription(description);
-    }).then(() => {
-      return otherPc.createAnswer();
-    }).then((answer) => {
-      return otherPc.setLocalDescription(answer);
-    }).then(() => {
-      let description = otherPc.localDescription;
-      if (mapRemoteDescriptionCallback) {
-        description = mapRemoteDescriptionCallback(description);
-      }
-      return pc.setRemoteDescription(description);
-    });
+      .then((offer) => {
+        return pc.setLocalDescription(offer);
+      }).then(() => {
+        let description = pc.localDescription;
+        if (mapRemoteDescriptionCallback) {
+          description = mapRemoteDescriptionCallback(description);
+        }
+        return otherPc.setRemoteDescription(description);
+      }).then(() => {
+        return otherPc.createAnswer();
+      }).then((answer) => {
+        return otherPc.setLocalDescription(answer);
+      }).then(() => {
+        let description = otherPc.localDescription;
+        if (mapRemoteDescriptionCallback) {
+          description = mapRemoteDescriptionCallback(description);
+        }
+        return pc.setRemoteDescription(description);
+      });
   }
 
   function patchMaxMessageSizeFactory(maxMessageSize) {
@@ -45,7 +45,7 @@ describe('maxMessageSize', () => {
       description.sdp = description.sdp.replace(
         /^a=max-message-size:\s*(\d+)\s*$/gm, '');
       description.sdp = description.sdp.replace(
-        /(^m=application\s+\d+\s+[\w\/]*SCTP.*$)/m,
+        /(^m=application\s+\d+\s+[\w/]*SCTP.*$)/m,
         '$1\r\na=max-message-size:' + maxMessageSize);
       return description;
     });
@@ -73,25 +73,25 @@ describe('maxMessageSize', () => {
 
   it('sctp attribute is null if SCTP not negotiated', () => {
     return navigator.mediaDevices.getUserMedia({audio: true})
-    .then((stream) => {
-      pc1.addTrack(stream.getTracks()[0], stream);
-      return negotiate(pc1, pc2);
-    })
-    .then(() => {
-      expect(pc1.sctp).to.equal(null);
-      expect(pc2.sctp).to.equal(null);
-    });
+      .then((stream) => {
+        pc1.addTrack(stream.getTracks()[0], stream);
+        return negotiate(pc1, pc2);
+      })
+      .then(() => {
+        expect(pc1.sctp).to.equal(null);
+        expect(pc2.sctp).to.equal(null);
+      });
   });
 
   it('sctp and maxMessageSize set if SCTP negotiated', () => {
     pc1.createDataChannel('test');
     return negotiate(pc1, pc2)
-    .then(() => {
-      expect(pc1.sctp).to.have.property('maxMessageSize');
-      expect(pc2.sctp).to.have.property('maxMessageSize');
-      expect(pc1.sctp.maxMessageSize).to.be.at.least(defaultRemoteMMS);
-      expect(pc2.sctp.maxMessageSize).to.be.at.least(defaultRemoteMMS);
-    });
+      .then(() => {
+        expect(pc1.sctp).to.have.property('maxMessageSize');
+        expect(pc2.sctp).to.have.property('maxMessageSize');
+        expect(pc1.sctp.maxMessageSize).to.be.at.least(defaultRemoteMMS);
+        expect(pc2.sctp.maxMessageSize).to.be.at.least(defaultRemoteMMS);
+      });
   });
 
   it('send largest possible single message', () => {
@@ -101,22 +101,22 @@ describe('maxMessageSize', () => {
 
     pc1.createDataChannel('test');
     return negotiate(pc1, pc2, patchMaxMessageSize)
-    .then(() => {
-      expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
-      expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
+      .then(() => {
+        expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
+        expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
 
-      // Ensure TypeError is thrown when sending a message that's too large
-      return new Promise((resolve, reject) => {
-        const dc = pc1.createDataChannel('test2');
-        const send = () => {
-          dc.send(new Uint8Array(maxMessageSize));
-        };
-        dc.onopen = () => {
-          expect(send).not.to.throw();
-          resolve();
-        };
+        // Ensure TypeError is thrown when sending a message that's too large
+        return new Promise((resolve, reject) => {
+          const dc = pc1.createDataChannel('test2');
+          const send = () => {
+            dc.send(new Uint8Array(maxMessageSize));
+          };
+          dc.onopen = () => {
+            expect(send).not.to.throw();
+            resolve();
+          };
+        });
       });
-    });
   });
 
   describe('throws an exception', () => {
@@ -127,21 +127,21 @@ describe('maxMessageSize', () => {
 
       const dc = pc1.createDataChannel('test');
       return negotiate(pc1, pc2, patchMaxMessageSize)
-      .then(() => {
-        expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
-        expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
+        .then(() => {
+          expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
+          expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
 
-        // Ensure TypeError is thrown when sending a message that's too large
-        return new Promise((resolve, reject) => {
-          const send = () => {
-            dc.send(new Uint8Array(maxMessageSize + 1));
-          };
-          dc.onopen = () => {
-            expect(send).to.throw().with.property('name', 'TypeError');
-            resolve();
-          };
+          // Ensure TypeError is thrown when sending a message that's too large
+          return new Promise((resolve, reject) => {
+            const send = () => {
+              dc.send(new Uint8Array(maxMessageSize + 1));
+            };
+            dc.onopen = () => {
+              expect(send).to.throw().with.property('name', 'TypeError');
+              resolve();
+            };
+          });
         });
-      });
     });
 
     it('if the message is too large (using a secondary data channel)', () => {
@@ -154,22 +154,22 @@ describe('maxMessageSize', () => {
 
       pc1.createDataChannel('test');
       return negotiate(pc1, pc2, patchMaxMessageSize)
-      .then(() => {
-        expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
-        expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
+        .then(() => {
+          expect(pc1.sctp.maxMessageSize).to.equal(maxMessageSize);
+          expect(pc2.sctp.maxMessageSize).to.equal(maxMessageSize);
 
-        // Ensure TypeError is thrown when sending a message that's too large
-        return new Promise((resolve, reject) => {
-          const dc = pc1.createDataChannel('test2');
-          const send = () => {
-            dc.send(new Uint8Array(maxMessageSize + 1));
-          };
-          dc.onopen = () => {
-            expect(send).to.throw().with.property('name', 'TypeError');
-            resolve();
-          };
+          // Ensure TypeError is thrown when sending a message that's too large
+          return new Promise((resolve, reject) => {
+            const dc = pc1.createDataChannel('test2');
+            const send = () => {
+              dc.send(new Uint8Array(maxMessageSize + 1));
+            };
+            dc.onopen = () => {
+              expect(send).to.throw().with.property('name', 'TypeError');
+              resolve();
+            };
+          });
         });
-      });
     });
   });
 

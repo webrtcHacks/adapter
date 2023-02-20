@@ -40,10 +40,10 @@ beforeEach(() => {
       navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia = (constraints) => {
     return origMediaDevicesGetUserMedia(constraints)
-        .then((stream) => {
-          streams.push(stream);
-          return stream;
-        });
+      .then((stream) => {
+        streams.push(stream);
+        return stream;
+      });
   };
   navigator.mediaDevices.getUserMedia.restore = () => {
     navigator.mediaDevices.getUserMedia = origMediaDevicesGetUserMedia;

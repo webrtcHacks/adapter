@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 describe('RTCIceCandidate', () => {
@@ -26,7 +26,7 @@ describe('RTCIceCandidate', () => {
         }
       };
       pc.createOffer({offerToReceiveAudio: true})
-      .then(offer => pc.setLocalDescription(offer));
+        .then(offer => pc.setLocalDescription(offer));
     });
 
     it('the icecandidate event', (done) => {
@@ -41,7 +41,7 @@ describe('RTCIceCandidate', () => {
         }
       });
       pc.createOffer({offerToReceiveAudio: true})
-      .then(offer => pc.setLocalDescription(offer));
+        .then(offer => pc.setLocalDescription(offer));
     });
   });
 

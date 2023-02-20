@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 
@@ -16,24 +16,24 @@ describe('dtmf', () => {
     it('exists on audio senders', () => {
       const pc = new RTCPeerConnection();
       return navigator.mediaDevices.getUserMedia({audio: true})
-      .then(stream => {
-        pc.addStream(stream);
-        const senders = pc.getSenders();
-        const dtmf = senders[0].dtmf;
-        expect(dtmf).not.to.equal(null);
-        expect(dtmf).to.have.property('insertDTMF');
-      });
+        .then(stream => {
+          pc.addStream(stream);
+          const senders = pc.getSenders();
+          const dtmf = senders[0].dtmf;
+          expect(dtmf).not.to.equal(null);
+          expect(dtmf).to.have.property('insertDTMF');
+        });
     });
 
     it('does not exist on video senders', () => {
       const pc = new RTCPeerConnection();
       return navigator.mediaDevices.getUserMedia({video: true})
-      .then(stream => {
-        pc.addStream(stream);
-        const senders = pc.getSenders();
-        const dtmf = senders[0].dtmf;
-        expect(dtmf).to.equal(null);
-      });
+        .then(stream => {
+          pc.addStream(stream);
+          const senders = pc.getSenders();
+          const dtmf = senders[0].dtmf;
+          expect(dtmf).to.equal(null);
+        });
     });
   });
 
@@ -61,86 +61,88 @@ describe('dtmf', () => {
 
     it('when using addStream', () => {
       return navigator.mediaDevices.getUserMedia({audio: true})
-      .then(stream => pc1.addStream(stream))
-      .then(() => {
-        return pc1.iceConnectionState === 'connected' ||
+        .then(stream => pc1.addStream(stream))
+        .then(() => {
+          return pc1.iceConnectionState === 'connected' ||
             pc1.iceConnectionState === 'completed' ||
             new Promise(resolve => pc1.oniceconnectionstatechange =
               e => (pc1.iceConnectionState === 'connected' ||
               pc1.iceConnectionState === 'completed') && resolve());
-      })
-      .then(() => {
-        return pc2.iceConnectionState === 'connected' ||
+        })
+        .then(() => {
+          return pc2.iceConnectionState === 'connected' ||
             pc2.iceConnectionState === 'completed' ||
             new Promise(resolve => pc2.oniceconnectionstatechange =
               e => (pc2.iceConnectionState === 'connected' ||
               pc2.iceConnectionState === 'completed') && resolve());
-      })
-      .then(() => {
-        if (!(window.RTCDTMFSender &&
+        })
+        .then(() => {
+          if (!(window.RTCDTMFSender &&
             'canInsertDTMF' in window.RTCDTMFSender.prototype)) {
-          return;
-        }
-        return new Promise((resolve) => {
-          setTimeout(function canInsert() {
-            const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
-            if (sender.dtmf.canInsertDTMF) {
-              return resolve();
-            }
-            setTimeout(canInsert, 10);
-          }, 0);
+            return;
+          }
+          return new Promise((resolve) => {
+            setTimeout(function canInsert() {
+              const sender = pc1.getSenders()
+                .find(s => s.track.kind === 'audio');
+              if (sender.dtmf.canInsertDTMF) {
+                return resolve();
+              }
+              setTimeout(canInsert, 10);
+            }, 0);
+          });
+        })
+        .then(() => {
+          const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+          sender.dtmf.insertDTMF('1');
+          return new Promise(resolve => sender.dtmf.ontonechange = resolve);
+        })
+        .then(toneEvent => {
+          expect(toneEvent.tone).to.equal('1');
         });
-      })
-      .then(() => {
-        const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
-        sender.dtmf.insertDTMF('1');
-        return new Promise(resolve => sender.dtmf.ontonechange = resolve);
-      })
-      .then(toneEvent => {
-        expect(toneEvent.tone).to.equal('1');
-      });
     });
 
     it('when using addTrack', () => {
       return navigator.mediaDevices.getUserMedia({audio: true})
-      .then(stream => pc1.addTrack(stream.getAudioTracks()[0], stream))
-      .then(() => {
-        return pc1.iceConnectionState === 'connected' ||
+        .then(stream => pc1.addTrack(stream.getAudioTracks()[0], stream))
+        .then(() => {
+          return pc1.iceConnectionState === 'connected' ||
             pc1.iceConnectionState === 'completed' ||
             new Promise(resolve => pc1.oniceconnectionstatechange =
               e => (pc1.iceConnectionState === 'connected' ||
               pc1.iceConnectionState === 'completed') && resolve());
-      })
-      .then(() => {
-        return pc2.iceConnectionState === 'connected' ||
+        })
+        .then(() => {
+          return pc2.iceConnectionState === 'connected' ||
             pc2.iceConnectionState === 'completed' ||
             new Promise(resolve => pc2.oniceconnectionstatechange =
               e => (pc2.iceConnectionState === 'connected' ||
               pc2.iceConnectionState === 'completed') && resolve());
-      })
-      .then(() => {
-        if (!(window.RTCDTMFSender &&
+        })
+        .then(() => {
+          if (!(window.RTCDTMFSender &&
             'canInsertDTMF' in window.RTCDTMFSender.prototype)) {
-          return;
-        }
-        return new Promise((resolve) => {
-          setTimeout(function canInsert() {
-            const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
-            if (sender.dtmf.canInsertDTMF) {
-              return resolve();
-            }
-            setTimeout(canInsert, 10);
-          }, 0);
+            return;
+          }
+          return new Promise((resolve) => {
+            setTimeout(function canInsert() {
+              const sender = pc1.getSenders()
+                .find(s => s.track.kind === 'audio');
+              if (sender.dtmf.canInsertDTMF) {
+                return resolve();
+              }
+              setTimeout(canInsert, 10);
+            }, 0);
+          });
+        })
+        .then(() => {
+          const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
+          sender.dtmf.insertDTMF('1');
+          return new Promise(resolve => sender.dtmf.ontonechange = resolve);
+        })
+        .then(toneEvent => {
+          expect(toneEvent.tone).to.equal('1');
         });
-      })
-      .then(() => {
-        const sender = pc1.getSenders().find(s => s.track.kind === 'audio');
-        sender.dtmf.insertDTMF('1');
-        return new Promise(resolve => sender.dtmf.ontonechange = resolve);
-      })
-      .then(toneEvent => {
-        expect(toneEvent.tone).to.equal('1');
-      });
     });
   }).timeout(5000);
 });
