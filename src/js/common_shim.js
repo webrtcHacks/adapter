@@ -32,8 +32,9 @@ export function shimRTCIceCandidate(window) {
       // Augment the native candidate with the parsed fields.
       const nativeCandidate = new NativeRTCIceCandidate(args);
       const parsedCandidate = SDPUtils.parseCandidate(args.candidate);
-      const augmentedCandidate = Object.assign(nativeCandidate,
+      const augmentedCandidate = Object.assign({}, nativeCandidate,
         parsedCandidate);
+      augmentedCandidate.prototype = nativeCandidate.prototype;
 
       // Add a serializer that does not serialize the extra attributes.
       augmentedCandidate.toJSON = function toJSON() {
