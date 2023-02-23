@@ -32,20 +32,23 @@ export function shimRTCIceCandidate(window) {
       // Augment the native candidate with the parsed fields.
       const nativeCandidate = new NativeRTCIceCandidate(args);
       const parsedCandidate = SDPUtils.parseCandidate(args.candidate);
-      const augmentedCandidate = Object.assign({}, nativeCandidate,
-        parsedCandidate);
-      augmentedCandidate.prototype = nativeCandidate.prototype;
+      for (const key in parsedCandidate) {
+        if (!(key in nativeCandidate)) {
+          Object.defineProperty(nativeCandidate, key,
+            {value: parsedCandidate[key]});
+        }
+      }
 
-      // Add a serializer that does not serialize the extra attributes.
-      augmentedCandidate.toJSON = function toJSON() {
+      // Override serializer to not serialize the extra attributes.
+      nativeCandidate.toJSON = function toJSON() {
         return {
-          candidate: augmentedCandidate.candidate,
-          sdpMid: augmentedCandidate.sdpMid,
-          sdpMLineIndex: augmentedCandidate.sdpMLineIndex,
-          usernameFragment: augmentedCandidate.usernameFragment,
+          candidate: nativeCandidate.candidate,
+          sdpMid: nativeCandidate.sdpMid,
+          sdpMLineIndex: nativeCandidate.sdpMLineIndex,
+          usernameFragment: nativeCandidate.usernameFragment,
         };
       };
-      return augmentedCandidate;
+      return nativeCandidate;
     }
     return new NativeRTCIceCandidate(args);
   };
