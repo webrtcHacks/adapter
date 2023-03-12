@@ -5,7 +5,7 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     babel: {
       options: {
-        presets: ['babel-preset-env']
+        presets: ['@babel/preset-env']
       },
       dist: {
         files: [{
