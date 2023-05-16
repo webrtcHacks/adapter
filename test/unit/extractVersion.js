@@ -116,30 +116,30 @@ describe('extractVersion', () => {
   });
 
   describe('Safari regular expression', () => {
-    const expr = /AppleWebKit\/(\d+)/;
+    const expr = /version\/(\d+(\.?_?\d+)+)/i;
     it('matches the webkit version', () => {
       ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
-      expect(extractVersion(ua, expr, 1)).to.equal(604);
+      expect(extractVersion(ua, expr, 1)).to.equal(10.2);
     });
 
     it('matches the iphone simulator', () => {
       ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) ' +
           'AppleWebKit/600.1.3 (KHTML, like Gecko) Version/8.0 ' +
           'Mobile/12A4345d Safari/600.1.4';
-      expect(extractVersion(ua, expr, 1)).to.equal(600);
+      expect(extractVersion(ua, expr, 1)).to.equal(8.0);
     });
 
-    it('matches Chrome (by design, do not use for Chrome)', () => {
+    it('does not match Chrome', () => {
       ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
           'Gecko) Chrome/45.0.2454.101 Safari/537.36';
-      expect(extractVersion(ua, expr, 1)).to.equal(537);
+      expect(extractVersion(ua, expr, 1)).to.equal(null);
     });
 
-    it('matches Edge (by design, do not use for Edge', () => {
+    it('does not match Edge', () => {
       ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
           '(KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10547';
-      expect(extractVersion(ua, expr, 1)).to.equal(537);
+      expect(extractVersion(ua, expr, 1)).to.equal(null);
     });
 
     it('does not match Firefox', () => {

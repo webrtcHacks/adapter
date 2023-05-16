@@ -21,7 +21,11 @@ let deprecationWarnings_ = true;
  */
 export function extractVersion(uastring, expr, pos) {
   const match = uastring.match(expr);
-  return match && match.length >= pos && parseInt(match[pos], 10);
+  if (match === null) {
+    return null;
+  }
+  const versionParts = match[pos].split('.').slice(0, 2);
+  return match && match.length >= pos && parseFloat(versionParts.join('.'), 10);
 }
 
 // Wraps the peerconnection event eventNameToWrap in a function
@@ -177,7 +181,8 @@ export function detectBrowser(window) {
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';
     result.version = extractVersion(navigator.userAgent,
-      /AppleWebKit\/(\d+)\./, 1);
+      /version\/(\d+(\.?_?\d+)+)/i, 1);
+    console.log(result.version);
     result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
         'currentDirection' in window.RTCRtpTransceiver.prototype;
   } else { // Default fallthrough: not supported.
