@@ -177,7 +177,7 @@ export function detectBrowser(window) {
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';
     result.version = extractVersion(navigator.userAgent,
-      /version\/(\d+(\.?\d))/i, 1);
+      /version\/(\d+(\.?\d+))/i, 1);
     result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
         'currentDirection' in window.RTCRtpTransceiver.prototype;
   } else { // Default fallthrough: not supported.
