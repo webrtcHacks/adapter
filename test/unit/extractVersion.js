@@ -117,10 +117,17 @@ describe('extractVersion', () => {
 
   describe('Safari regular expression', () => {
     const expr = /version\/(\d+(\.?_?\d+)+)/i;
-    it('matches the webkit version', () => {
+    it('matches the Safari version', () => {
       ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
       expect(extractVersion(ua, expr, 1)).to.equal(10.2);
+    });
+
+    it('drops patch version numbers', () => {
+      ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) ' +
+          'AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0.4 ' +
+          'Mobile/11D167 Safari/9537.53';
+      expect(extractVersion(ua, expr, 1)).to.equal(7.0);
     });
 
     it('matches the iphone simulator', () => {

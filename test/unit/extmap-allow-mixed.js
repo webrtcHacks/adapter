@@ -70,11 +70,11 @@ describe('removal of extmap-allow-mixed', () => {
       window.RTCPeerConnection.prototype.setRemoteDescription = function() {
         return origSetRemoteDescription.apply(this, arguments);
       };
-      browserDetails = {browser: 'safari', version: '605'};
+      browserDetails = {browser: 'safari', version: 13.1};
     });
 
-    it('does not remove the extmap-allow-mixed line after 605', () => {
-      browserDetails.version = 605;
+    it('does not remove the extmap-allow-mixed line after 13.1', () => {
+      browserDetails.version = 13.1;
       shim.removeExtmapAllowMixed(window, browserDetails);
 
       const pc = new window.RTCPeerConnection();
@@ -83,8 +83,8 @@ describe('removal of extmap-allow-mixed', () => {
         .to.equal('\n' + sdp);
     });
 
-    it('does remove the extmap-allow-mixed line before 605', () => {
-      browserDetails.version = 604;
+    it('does remove the extmap-allow-mixed line before 13.1', () => {
+      browserDetails.version = 13.0;
       shim.removeExtmapAllowMixed(window, browserDetails);
 
       const pc = new window.RTCPeerConnection();
