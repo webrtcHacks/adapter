@@ -173,6 +173,9 @@ export function detectBrowser(window) {
     result.browser = 'chrome';
     result.version = extractVersion(navigator.userAgent,
       /Chrom(e|ium)\/(\d+)\./, 2);
+  } else if (navigator.product
+    && navigator.product === 'ReactNative') { // ReactNative.
+    result.browser = 'ReactNative';
   } else if (window.RTCPeerConnection &&
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';

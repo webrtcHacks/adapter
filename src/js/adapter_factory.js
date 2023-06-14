@@ -130,6 +130,8 @@ export function adapterFactory({window} = {}, options = {
       commonShim.shimSendThrowTypeError(window, browserDetails);
       commonShim.removeExtmapAllowMixed(window, browserDetails);
       break;
+    case 'ReactNative':
+      break;
     default:
       logging('Unsupported browser!');
       break;
