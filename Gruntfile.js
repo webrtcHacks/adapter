@@ -52,7 +52,7 @@ module.exports = function(grunt) {
     },
     shell: {
       downloadBrowser : {
-        command: 'BROWSER=${BROWSER-chrome} BVER=${BVER-stable} ./node_modules/travis-multirunner/setup.sh'
+        command: 'browsers install --path=' + process.cwd() + '/browsers ' + (process.env.BROWSER || 'chrome') + '@' + (process.env.BVER || 'stable')
       },
     },
   });

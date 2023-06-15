@@ -3,5 +3,8 @@
         "node": true,
         "es6": true
     },
-    "rules": {}
+    "rules": {},
+    "parserOptions": {
+        "ecmaVersion": 2022
+    }
 }

@@ -9,58 +9,70 @@
 'use strict';
 
 const os = require('os');
+const puppeteerBrowsers = require('@puppeteer/browsers');
 
-let browsers;
-if (process.env.BROWSER) {
-  if (process.env.BROWSER === 'safari') {
-    browsers = ['Safari'];
-  } else if (process.env.BROWSER === 'Electron') {
-    browsers = ['electron'];
+const firefoxChannelMapping = {
+  stable: 'release',
+};
+
+module.exports = async(config) => {
+  const cacheDir = process.cwd() + '/browsers';
+  const platform = puppeteerBrowsers.detectBrowserPlatform();
+
+  let browsers;
+  if (process.env.BROWSER) {
+    if (process.env.BROWSER === 'safari') {
+      browsers = ['Safari'];
+    } else {
+      browsers = [process.env.BROWSER];
+    }
+  } else if (os.platform() === 'darwin') {
+    browsers = ['chrome', 'firefox', 'Safari'];
+  } else if (os.platform() === 'win32') {
+    browsers = ['chrome', 'firefox'];
   } else {
-    browsers = [process.env.BROWSER];
+    browsers = ['chrome', 'firefox'];
   }
-} else if (os.platform() === 'darwin') {
-  browsers = ['chrome', 'firefox', 'Safari'];
-} else if (os.platform() === 'win32') {
-  browsers = ['chrome', 'firefox'];
-} else {
-  browsers = ['chrome', 'firefox'];
-}
 
-let reporters = ['mocha'];
-if (process.env.CI) {
-  // stability must be the last reporter as it munges the
-  // exit code and always returns 0.
-  reporters.push('stability');
-}
+  let reporters = ['mocha'];
+  if (process.env.CI) {
+    // stability must be the last reporter as it munges the
+    // exit code and always returns 0.
+    reporters.push('stability');
+  }
 
-// uses Safari Technology Preview.
-if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
-    !process.env.SAFARI_BIN) {
-  process.env.SAFARI_BIN = '/Applications/Safari Technology Preview.app' +
-      '/Contents/MacOS/Safari Technology Preview';
-}
+  // uses Safari Technology Preview.
+  if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
+      !process.env.SAFARI_BIN) {
+    process.env.SAFARI_BIN = '/Applications/Safari Technology Preview.app' +
+        '/Contents/MacOS/Safari Technology Preview';
+  }
 
-if (!process.env.FIREFOX_BIN) {
-  process.env.FIREFOX_BIN = process.cwd() + '/browsers/bin/firefox-'
-      + (process.env.BVER || 'stable');
-}
-if (!process.env.CHROME_BIN) {
-  process.env.CHROME_BIN = process.cwd() + '/browsers/bin/chrome-'
-      + (process.env.BVER || 'stable');
-}
+  if (browsers.includes('firefox') && !process.env.FIREFOX_BIN) {
+    const buildId = await puppeteerBrowsers
+      .resolveBuildId('firefox', platform,
+        firefoxChannelMapping[process.env.BVER || 'stable']);
 
-let chromeFlags = [
-  '--use-fake-device-for-media-stream',
-  '--use-fake-ui-for-media-stream',
-  '--no-sandbox',
-  '--headless', '--disable-gpu', '--remote-debugging-port=9222'
-];
-if (process.env.CHROMEEXPERIMENT !== 'false') {
-  chromeFlags.push('--enable-experimental-web-platform-features');
-}
+    process.env.FIREFOX_BIN = puppeteerBrowsers
+      .computeExecutablePath({browser: 'firefox', buildId, cacheDir, platform});
+  }
+  if (browsers.includes('chrome') && !process.env.CHROME_BIN) {
+    const buildId = await puppeteerBrowsers
+      .resolveBuildId('chrome', platform, process.env.BVER || 'stable');
+    process.env.CHROME_BIN = puppeteerBrowsers
+      .computeExecutablePath({browser: 'chrome', buildId, cacheDir, platform});
+  }
 
-module.exports = function(config) {
+  let chromeFlags = [
+    '--use-fake-device-for-media-stream',
+    '--use-fake-ui-for-media-stream',
+    '--no-sandbox',
+    '--headless', '--disable-gpu', '--remote-debugging-port=9222'
+  ];
+  if (process.env.CHROMEEXPERIMENT !== 'false') {
+    chromeFlags.push('--enable-experimental-web-platform-features');
+  }
+
   config.set({
     basePath: '..',
     frameworks: ['browserify', 'mocha', 'chai'],
@@ -82,10 +94,6 @@ module.exports = function(config) {
       chrome: {
         base: 'Chrome',
         flags: chromeFlags
-      },
-      electron: {
-        base: 'Electron',
-        flags: ['--use-fake-device-for-media-stream']
       },
       firefox: {
         base: 'Firefox',
