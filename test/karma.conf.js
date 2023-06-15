@@ -11,10 +11,6 @@
 const os = require('os');
 const puppeteerBrowsers = require('@puppeteer/browsers');
 
-const firefoxChannelMapping = {
-  stable: 'release',
-};
-
 module.exports = async(config) => {
   const cacheDir = process.cwd() + '/browsers';
   const platform = puppeteerBrowsers.detectBrowserPlatform();
@@ -23,6 +19,8 @@ module.exports = async(config) => {
   if (process.env.BROWSER) {
     if (process.env.BROWSER === 'safari') {
       browsers = ['Safari'];
+    } else if (process.env.BROWSER === 'Electron') {
+      browsers = ['electron'];
     } else {
       browsers = [process.env.BROWSER];
     }
@@ -42,16 +40,15 @@ module.exports = async(config) => {
   }
 
   // uses Safari Technology Preview.
-  if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
-      !process.env.SAFARI_BIN) {
+  if (browsers.includes('Safari') && os.platform() === 'darwin' &&
+      process.env.BVER === 'unstable' && !process.env.SAFARI_BIN) {
     process.env.SAFARI_BIN = '/Applications/Safari Technology Preview.app' +
         '/Contents/MacOS/Safari Technology Preview';
   }
 
   if (browsers.includes('firefox') && !process.env.FIREFOX_BIN) {
     const buildId = await puppeteerBrowsers
-      .resolveBuildId('firefox', platform,
-        firefoxChannelMapping[process.env.BVER || 'stable']);
+      .resolveBuildId('firefox', platform, process.env.BVER || 'release');
 
     process.env.FIREFOX_BIN = puppeteerBrowsers
       .computeExecutablePath({browser: 'firefox', buildId, cacheDir, platform});
@@ -94,6 +91,10 @@ module.exports = async(config) => {
       chrome: {
         base: 'Chrome',
         flags: chromeFlags
+      },
+      electron: {
+        base: 'Electron',
+        flags: ['--use-fake-device-for-media-stream']
       },
       firefox: {
         base: 'Firefox',

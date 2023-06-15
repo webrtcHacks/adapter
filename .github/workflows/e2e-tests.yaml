@@ -8,10 +8,7 @@ jobs:
     strategy:
       matrix:
         browser: [chrome]
-        version: [stable, beta]
-        include:
-          - browser: chrome
-            version: dev
+        version: [stable, beta, dev]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
