@@ -2487,7 +2487,7 @@ function detectBrowser(window) {
   };
 
   // Fail early if it's not a browser
-  if (typeof window === 'undefined' || !window.navigator) {
+  if (typeof window === 'undefined' || !window.navigator || !window.navigator.userAgent) {
     result.browser = 'Not a browser.';
     return result;
   }
