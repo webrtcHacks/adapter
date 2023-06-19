@@ -9,6 +9,9 @@ jobs:
       matrix:
         browser: [chrome]
         version: [stable, beta, dev]
+        include:
+          - browser: firefox
+            version: nightly
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3

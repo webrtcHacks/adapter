@@ -11,6 +11,40 @@
 const os = require('os');
 const puppeteerBrowsers = require('@puppeteer/browsers');
 
+async function determineFirefoxVersion(version) {
+  const rawVersions = await fetch('https://product-details.mozilla.org/1.0/firefox_versions.json');
+  const versions = await rawVersions.json();
+  return versions.FIREFOX_NIGHTLY;
+  // TODO: support stable, beta, nightly, esr.
+  // This has issues with the assumptions browsers makes about download urls
+  // (or Firefox about directory structure and where it includes the platform)
+  // This base url coems close:
+  // 'https://archive.mozilla.org/pub/firefox/releases/' + buildId + '/' + platform + '/en-US/';
+}
+
+async function download(browser, version, cacheDir, platform) {
+  if (browser === 'firefox') {
+    // TODO: see above, resolve stable, beta, nightly, esr
+    const buildId = await determineFirefoxVersion(version);
+    await puppeteerBrowsers.install({
+      browser,
+      buildId,
+      cacheDir,
+      platform,
+    });
+    return buildId;
+  }
+  const buildId = await puppeteerBrowsers
+    .resolveBuildId(browser, platform, version);
+  await puppeteerBrowsers.install({
+    browser,
+    buildId,
+    cacheDir,
+    platform
+  });
+  return buildId;
+}
+
 module.exports = async(config) => {
   const cacheDir = process.cwd() + '/browsers';
   const platform = puppeteerBrowsers.detectBrowserPlatform();
@@ -47,15 +81,14 @@ module.exports = async(config) => {
   }
 
   if (browsers.includes('firefox') && !process.env.FIREFOX_BIN) {
-    const buildId = await puppeteerBrowsers
-      .resolveBuildId('firefox', platform, process.env.BVER || 'release');
-
+    const buildId = await download('firefox', process.env.BVER || 'stable',
+      cacheDir, platform);
     process.env.FIREFOX_BIN = puppeteerBrowsers
       .computeExecutablePath({browser: 'firefox', buildId, cacheDir, platform});
   }
   if (browsers.includes('chrome') && !process.env.CHROME_BIN) {
-    const buildId = await puppeteerBrowsers
-      .resolveBuildId('chrome', platform, process.env.BVER || 'stable');
+    const buildId = await download('chrome', process.env.BVER || 'stable',
+      cacheDir, platform);
     process.env.CHROME_BIN = puppeteerBrowsers
       .computeExecutablePath({browser: 'chrome', buildId, cacheDir, platform});
   }

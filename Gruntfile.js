@@ -50,18 +50,12 @@ module.exports = function(grunt) {
         expand: true
       }
     },
-    shell: {
-      downloadBrowser : {
-        command: 'browsers install --path=' + process.cwd() + '/browsers ' + (process.env.BROWSER || 'chrome') + '@' + (process.env.BVER || 'stable')
-      },
-    },
   });
 
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['eslint', 'build']);
   grunt.registerTask('lint', ['eslint']);
