@@ -7,18 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        browser: [chrome, firefox]
-        version: [stable, beta]
+        browser: [chrome]
+        version: [stable, beta, dev]
         include:
-          - browser: chrome
-            version: unstable
-          - browser: chrome
-            version: stable
-            disableunifiedplan: true
           - browser: firefox
             version: nightly
-          - browser: firefox
-            version: esr
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
@@ -28,7 +21,5 @@ jobs:
       env:
         BROWSER: ${{matrix.browser}}
         BVER: ${{matrix.version}}
-        CHROME_BIN: browsers/bin/chrome-${{matrix.version}}
-        FIREFOX_BIN: browsers/bin/firefox-${{matrix.version}}
         DISPLAY: :99.0
       run: npm run e2e-tests

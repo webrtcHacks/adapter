@@ -9,58 +9,100 @@
 'use strict';
 
 const os = require('os');
+const puppeteerBrowsers = require('@puppeteer/browsers');
 
-let browsers;
-if (process.env.BROWSER) {
-  if (process.env.BROWSER === 'safari') {
-    browsers = ['Safari'];
-  } else if (process.env.BROWSER === 'Electron') {
-    browsers = ['electron'];
-  } else {
-    browsers = [process.env.BROWSER];
+async function determineFirefoxVersion(version) {
+  const rawVersions = await fetch('https://product-details.mozilla.org/1.0/firefox_versions.json');
+  const versions = await rawVersions.json();
+  return versions.FIREFOX_NIGHTLY;
+  // TODO: support stable, beta, nightly, esr.
+  // This has issues with the assumptions browsers makes about download urls
+  // (or Firefox about directory structure and where it includes the platform)
+  // This base url coems close:
+  // 'https://archive.mozilla.org/pub/firefox/releases/' + buildId + '/' + platform + '/en-US/';
+}
+
+async function download(browser, version, cacheDir, platform) {
+  if (browser === 'firefox') {
+    // TODO: see above, resolve stable, beta, nightly, esr
+    const buildId = await determineFirefoxVersion(version);
+    await puppeteerBrowsers.install({
+      browser,
+      buildId,
+      cacheDir,
+      platform,
+    });
+    return buildId;
   }
-} else if (os.platform() === 'darwin') {
-  browsers = ['chrome', 'firefox', 'Safari'];
-} else if (os.platform() === 'win32') {
-  browsers = ['chrome', 'firefox'];
-} else {
-  browsers = ['chrome', 'firefox'];
+  const buildId = await puppeteerBrowsers
+    .resolveBuildId(browser, platform, version);
+  await puppeteerBrowsers.install({
+    browser,
+    buildId,
+    cacheDir,
+    platform
+  });
+  return buildId;
 }
 
-let reporters = ['mocha'];
-if (process.env.CI) {
-  // stability must be the last reporter as it munges the
-  // exit code and always returns 0.
-  reporters.push('stability');
-}
+module.exports = async(config) => {
+  const cacheDir = process.cwd() + '/browsers';
+  const platform = puppeteerBrowsers.detectBrowserPlatform();
 
-// uses Safari Technology Preview.
-if (os.platform() === 'darwin' && process.env.BVER === 'unstable' &&
-    !process.env.SAFARI_BIN) {
-  process.env.SAFARI_BIN = '/Applications/Safari Technology Preview.app' +
-      '/Contents/MacOS/Safari Technology Preview';
-}
+  let browsers;
+  if (process.env.BROWSER) {
+    if (process.env.BROWSER === 'safari') {
+      browsers = ['Safari'];
+    } else if (process.env.BROWSER === 'Electron') {
+      browsers = ['electron'];
+    } else {
+      browsers = [process.env.BROWSER];
+    }
+  } else if (os.platform() === 'darwin') {
+    browsers = ['chrome', 'firefox', 'Safari'];
+  } else if (os.platform() === 'win32') {
+    browsers = ['chrome', 'firefox'];
+  } else {
+    browsers = ['chrome', 'firefox'];
+  }
 
-if (!process.env.FIREFOX_BIN) {
-  process.env.FIREFOX_BIN = process.cwd() + '/browsers/bin/firefox-'
-      + (process.env.BVER || 'stable');
-}
-if (!process.env.CHROME_BIN) {
-  process.env.CHROME_BIN = process.cwd() + '/browsers/bin/chrome-'
-      + (process.env.BVER || 'stable');
-}
+  let reporters = ['mocha'];
+  if (process.env.CI) {
+    // stability must be the last reporter as it munges the
+    // exit code and always returns 0.
+    reporters.push('stability');
+  }
 
-let chromeFlags = [
-  '--use-fake-device-for-media-stream',
-  '--use-fake-ui-for-media-stream',
-  '--no-sandbox',
-  '--headless', '--disable-gpu', '--remote-debugging-port=9222'
-];
-if (process.env.CHROMEEXPERIMENT !== 'false') {
-  chromeFlags.push('--enable-experimental-web-platform-features');
-}
+  // uses Safari Technology Preview.
+  if (browsers.includes('Safari') && os.platform() === 'darwin' &&
+      process.env.BVER === 'unstable' && !process.env.SAFARI_BIN) {
+    process.env.SAFARI_BIN = '/Applications/Safari Technology Preview.app' +
+        '/Contents/MacOS/Safari Technology Preview';
+  }
 
-module.exports = function(config) {
+  if (browsers.includes('firefox') && !process.env.FIREFOX_BIN) {
+    const buildId = await download('firefox', process.env.BVER || 'stable',
+      cacheDir, platform);
+    process.env.FIREFOX_BIN = puppeteerBrowsers
+      .computeExecutablePath({browser: 'firefox', buildId, cacheDir, platform});
+  }
+  if (browsers.includes('chrome') && !process.env.CHROME_BIN) {
+    const buildId = await download('chrome', process.env.BVER || 'stable',
+      cacheDir, platform);
+    process.env.CHROME_BIN = puppeteerBrowsers
+      .computeExecutablePath({browser: 'chrome', buildId, cacheDir, platform});
+  }
+
+  let chromeFlags = [
+    '--use-fake-device-for-media-stream',
+    '--use-fake-ui-for-media-stream',
+    '--no-sandbox',
+    '--headless', '--disable-gpu', '--remote-debugging-port=9222'
+  ];
+  if (process.env.CHROMEEXPERIMENT !== 'false') {
+    chromeFlags.push('--enable-experimental-web-platform-features');
+  }
+
   config.set({
     basePath: '..',
     frameworks: ['browserify', 'mocha', 'chai'],

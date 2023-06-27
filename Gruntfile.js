@@ -50,18 +50,12 @@ module.exports = function(grunt) {
         expand: true
       }
     },
-    shell: {
-      downloadBrowser : {
-        command: 'BROWSER=${BROWSER-chrome} BVER=${BVER-stable} ./node_modules/travis-multirunner/setup.sh'
-      },
-    },
   });
 
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['eslint', 'build']);
   grunt.registerTask('lint', ['eslint']);
