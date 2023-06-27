@@ -353,7 +353,7 @@ export function removeExtmapAllowMixed(window, browserDetails) {
   if (browserDetails.browser === 'chrome' && browserDetails.version >= 71) {
     return;
   }
-  if (browserDetails.browser === 'safari' && browserDetails.version >= 605) {
+  if (browserDetails.browser === 'safari' && browserDetails.version >= 13.1) {
     return;
   }
   const nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;

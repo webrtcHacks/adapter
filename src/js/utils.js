@@ -21,7 +21,7 @@ let deprecationWarnings_ = true;
  */
 export function extractVersion(uastring, expr, pos) {
   const match = uastring.match(expr);
-  return match && match.length >= pos && parseInt(match[pos], 10);
+  return match && match.length >= pos && parseFloat(match[pos], 10);
 }
 
 // Wraps the peerconnection event eventNameToWrap in a function
@@ -178,7 +178,7 @@ export function detectBrowser(window) {
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';
     result.version = extractVersion(navigator.userAgent,
-      /AppleWebKit\/(\d+)\./, 1);
+      /version\/(\d+(\.?\d+))/i, 1);
     result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
         'currentDirection' in window.RTCRtpTransceiver.prototype;
   } else { // Default fallthrough: not supported.
