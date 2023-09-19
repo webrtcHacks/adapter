@@ -5,15 +5,12 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-/* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
 
 describe('compactObject', () => {
   const compactObject = require('../../dist/utils.js').compactObject;
 
   it('returns an empty object as is', () => {
-    expect(compactObject({})).to.deep.equal({});
+    expect(compactObject({})).toEqual({});
   });
 
   it('removes undefined values', () => {
@@ -21,7 +18,7 @@ describe('compactObject', () => {
       nothing: undefined,
       value: 'hello',
       something: undefined,
-    })).to.deep.equal({
+    })).toEqual({
       value: 'hello',
     });
   });
@@ -30,7 +27,7 @@ describe('compactObject', () => {
     expect(compactObject({
       nothing: {},
       val: 12,
-    })).to.deep.equal({
+    })).toEqual({
       val: 12,
     });
   });
@@ -43,7 +40,7 @@ describe('compactObject', () => {
         nestedEmpty: {},
         nestedNothing: undefined,
       },
-    })).to.deep.equal({
+    })).toEqual({
       value: 'hello',
       something: {
         nestedValue: 12,
@@ -57,7 +54,7 @@ describe('compactObject', () => {
       nothing: undefined,
       value: arr,
       something: undefined,
-    })).to.deep.equal({
+    })).toEqual({
       value: arr,
     });
   });

@@ -5,22 +5,15 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-/* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
-
 describe('removal of extmap-allow-mixed', () => {
   const shim = require('../../dist/common_shim');
   let window;
   let origSetRemoteDescription;
   beforeEach(() => {
     window = {
-      RTCPeerConnection: sinon.stub(),
+      RTCPeerConnection: jest.fn(),
     };
-    origSetRemoteDescription = sinon.stub();
+    origSetRemoteDescription = jest.fn();
     window.RTCPeerConnection.prototype.setRemoteDescription =
       origSetRemoteDescription;
   });
@@ -29,7 +22,7 @@ describe('removal of extmap-allow-mixed', () => {
 
   describe('does nothing if', () => {
     it('RTCPeerConnection is not defined', () => {
-      expect(() => shim.removeExtmapAllowMixed({}, {})).not.to.throw();
+      expect(() => shim.removeExtmapAllowMixed({}, {})).not.toThrow();
     });
   });
 
@@ -49,8 +42,9 @@ describe('removal of extmap-allow-mixed', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.setRemoteDescription({sdp: '\n' + sdp});
-      expect(origSetRemoteDescription.firstCall.args[0].sdp)
-        .to.equal('\n' + sdp);
+      expect(origSetRemoteDescription.mock.calls.length).toBe(1);
+      expect(origSetRemoteDescription.mock.calls[0][0].sdp)
+        .toEqual('\n' + sdp);
     });
 
     it('does remove the extmap-allow-mixed line before Chrome 71', () => {
@@ -59,7 +53,9 @@ describe('removal of extmap-allow-mixed', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.setRemoteDescription({sdp: '\n' + sdp});
-      expect(origSetRemoteDescription.firstCall.args[0].sdp).to.equal('\n');
+      expect(origSetRemoteDescription.mock.calls.length).toBe(1);
+      expect(origSetRemoteDescription.mock.calls[0][0].sdp)
+        .toEqual('\n');
     });
   });
 
@@ -79,8 +75,9 @@ describe('removal of extmap-allow-mixed', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.setRemoteDescription({sdp: '\n' + sdp});
-      expect(origSetRemoteDescription.firstCall.args[0].sdp)
-        .to.equal('\n' + sdp);
+      expect(origSetRemoteDescription.mock.calls.length).toBe(1);
+      expect(origSetRemoteDescription.mock.calls[0][0].sdp)
+        .toEqual('\n' + sdp);
     });
 
     it('does remove the extmap-allow-mixed line before 605', () => {
@@ -89,7 +86,9 @@ describe('removal of extmap-allow-mixed', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.setRemoteDescription({sdp: '\n' + sdp});
-      expect(origSetRemoteDescription.firstCall.args[0].sdp).to.equal('\n');
+      expect(origSetRemoteDescription.mock.calls.length).toBe(1);
+      expect(origSetRemoteDescription.mock.calls[0][0].sdp)
+        .toEqual('\n');
     });
   });
 });

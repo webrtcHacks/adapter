@@ -5,12 +5,6 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-/* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
 
 /* a mock of the Chrome RTCLegacyStatReport */
 function RTCLegacyStatsReport() {
@@ -41,7 +35,7 @@ describe('Chrome shim', () => {
     window = {
       navigator: {
         mediaDevices: {
-          getUserMedia: sinon.stub().returns(Promise.resolve('stream')),
+          getUserMedia: jest.fn().mockReturnValue(Promise.resolve('stream')),
         },
       },
       RTCPeerConnection: function() {}
@@ -74,12 +68,12 @@ describe('Chrome shim', () => {
 
     it('returns chrome legacy getStats when called with a callback', (done) => {
       pc.getStats((result) => {
-        expect(result).to.have.property('result');
+        expect(result).toHaveProperty('result');
         const report = result.result()[0];
-        expect(report).to.have.property('id');
-        expect(report).to.have.property('type');
-        expect(report).to.have.property('timestamp');
-        expect(report).to.have.property('stat');
+        expect(report).toHaveProperty('id');
+        expect(report).toHaveProperty('type');
+        expect(report).toHaveProperty('timestamp');
+        expect(report).toHaveProperty('stat');
         done();
       });
     });
@@ -87,7 +81,7 @@ describe('Chrome shim', () => {
     it('is translated into a Map', () => {
       return pc.getStats()
         .then(result => {
-          expect(result).to.be.a('Map');
+          expect(result).toBeInstanceOf(Map);
         });
     });
   });
@@ -119,80 +113,97 @@ describe('Chrome shim', () => {
   });
 
   describe('getDisplayMedia shim', () => {
-    const getSourceId = sinon.stub().returns(Promise.resolve('abc'));
+    const getSourceId = jest.fn().mockReturnValue(Promise.resolve('abc'));
 
     it('does not overwrite an existing ' +
         'navigator.mediaDevices.getDisplayMedia', () => {
       window.navigator.mediaDevices.getDisplayMedia = 'foo';
       shim.shimGetDisplayMedia(window, getSourceId);
-      expect(window.navigator.mediaDevices.getDisplayMedia).to.equal('foo');
+      expect(window.navigator.mediaDevices.getDisplayMedia).toBe('foo');
     });
 
     it('does not if navigator.mediaDevices does not exist', () => {
       delete window.navigator.mediaDevices;
       shim.shimGetDisplayMedia(window);
-      expect(window.navigator.mediaDevices).to.equal(undefined);
+      expect(window.navigator.mediaDevices).toBe(undefined);
     });
 
     it('shims navigator.mediaDevices.getDisplayMedia', () => {
       shim.shimGetDisplayMedia(window, getSourceId);
-      expect(window.navigator.mediaDevices.getDisplayMedia).to.be.a('function');
+      expect(typeof window.navigator.mediaDevices.getDisplayMedia)
+        .toBe('function');
     });
 
-    it('calls getUserMedia with the sourceId', () => {
+    it('calls getUserMedia with the sourceId', async() => {
       shim.shimGetDisplayMedia(window, getSourceId);
-      return window.navigator.mediaDevices.getDisplayMedia({video: true})
-        .then(() => {
-          expect(window.navigator.mediaDevices.getUserMedia)
-            .to.have.been.calledWith({video: {mandatory: {
+      await window.navigator.mediaDevices.getDisplayMedia({video: true});
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls.length)
+        .toBe(1);
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls[0][0])
+        .toEqual({
+          video: {
+            mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: 'abc',
               maxFrameRate: 3,
-            }}});
+            }
+          }
         });
     });
 
-    it('translates frameRate to legacy maxFrameRate', () => {
+    it('translates frameRate to legacy maxFrameRate', async() => {
       shim.shimGetDisplayMedia(window, getSourceId);
-      return window.navigator.mediaDevices
-        .getDisplayMedia({video: {frameRate: 25}})
-        .then(() => {
-          expect(window.navigator.mediaDevices.getUserMedia)
-            .to.have.been.calledWith({video: {mandatory: {
+      await window.navigator.mediaDevices
+        .getDisplayMedia({video: {frameRate: 25}});
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls.length)
+        .toBe(1);
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls[0][0])
+        .toEqual({
+          video: {
+            mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: 'abc',
               maxFrameRate: 25,
-            }}});
+            }
+          }
         });
     });
 
-    it('translates width to legacy maxWidth', () => {
+    it('translates width to legacy maxWidth', async() => {
       shim.shimGetDisplayMedia(window, getSourceId);
-      return window.navigator.mediaDevices
-        .getDisplayMedia({video: {width: 640}})
-        .then(() => {
-          expect(window.navigator.mediaDevices.getUserMedia)
-            .to.have.been.calledWith({video: {mandatory: {
+      await window.navigator.mediaDevices
+        .getDisplayMedia({video: {width: 640}});
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls.length)
+        .toBe(1);
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls[0][0])
+        .toEqual({
+          video: {
+            mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: 'abc',
               maxFrameRate: 3,
               maxWidth: 640,
-            }}});
+            }
+          }
         });
     });
 
-    it('translates height to legacy maxHeight', () => {
+    it('translates height to legacy maxHeight', async() => {
       shim.shimGetDisplayMedia(window, getSourceId);
-      return window.navigator.mediaDevices
-        .getDisplayMedia({video: {height: 480}})
-        .then(() => {
-          expect(window.navigator.mediaDevices.getUserMedia)
-            .to.have.been.calledWith({video: {mandatory: {
+      await window.navigator.mediaDevices
+        .getDisplayMedia({video: {height: 480}});
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls.length)
+        .toBe(1);
+      expect(window.navigator.mediaDevices.getUserMedia.mock.calls[0][0])
+        .toEqual({
+          video: {
+            mandatory: {
               chromeMediaSource: 'desktop',
               chromeMediaSourceId: 'abc',
               maxFrameRate: 3,
               maxHeight: 480,
-            }}});
+            }
+          }
         });
     });
   });

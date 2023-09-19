@@ -5,12 +5,6 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-/* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
 
 describe('addIceCandidate with null or empty candidate', () => {
   const shim = require('../../dist/common_shim');
@@ -18,26 +12,26 @@ describe('addIceCandidate with null or empty candidate', () => {
   let origAddIceCandidate;
   beforeEach(() => {
     window = {
-      RTCPeerConnection: sinon.stub(),
+      RTCPeerConnection: jest.fn(),
     };
-    origAddIceCandidate = sinon.stub();
+    origAddIceCandidate = jest.fn();
     window.RTCPeerConnection.prototype.addIceCandidate = origAddIceCandidate;
   });
 
   describe('does nothing if', () => {
     it('RTCPeerConnection is not defined', () => {
-      expect(() => shim.shimAddIceCandidateNullOrEmpty({}, {})).not.to.throw();
+      expect(() => shim.shimAddIceCandidateNullOrEmpty({}, {})).not.toThrow();
     });
     it('RTCPeerConnection.prototype.addIceCandidate is undefined', () => {
       window.RTCPeerConnection.prototype.addIceCandidate = null;
-      expect(() => shim.shimAddIceCandidateNullOrEmpty({}, {})).not.to.throw();
+      expect(() => shim.shimAddIceCandidateNullOrEmpty({}, {})).not.toThrow();
     });
     it('the candidate argument is optional', () => {
       expect(window.RTCPeerConnection.prototype.addIceCandidate.length)
-        .to.equal(0);
+        .toBe(0);
       shim.shimAddIceCandidateNullOrEmpty({}, {});
       expect(window.RTCPeerConnection.prototype.addIceCandidate)
-        .to.equal(origAddIceCandidate);
+        .toBe(origAddIceCandidate);
     });
   });
 
@@ -46,7 +40,7 @@ describe('addIceCandidate with null or empty candidate', () => {
       (candidate) => origAddIceCandidate(candidate);
     shim.shimAddIceCandidateNullOrEmpty(window, {});
     expect(window.RTCPeerConnection.prototype.addIceCandidate.length)
-      .to.equal(0);
+      .toBe(0);
   });
 
   it('ignores addIceCandidate(null)', () => {
@@ -55,7 +49,7 @@ describe('addIceCandidate with null or empty candidate', () => {
     shim.shimAddIceCandidateNullOrEmpty(window, {});
     const pc = new window.RTCPeerConnection();
     pc.addIceCandidate({candidate: '', sdpMLineIndex: 0});
-    expect(origAddIceCandidate.callCount).to.equal(1);
+    expect(origAddIceCandidate.mock.calls.length).toBe(1);
   });
 
   describe('Chrome behaviour', () => {
@@ -73,7 +67,7 @@ describe('addIceCandidate with null or empty candidate', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.addIceCandidate({candidate: '', sdpMLineIndex: 0});
-      expect(origAddIceCandidate.callCount).to.equal(0);
+      expect(origAddIceCandidate.mock.calls.length).toBe(0);
     });
 
     it('passes {candidate: ""} after Chrome 78', () => {
@@ -82,7 +76,7 @@ describe('addIceCandidate with null or empty candidate', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.addIceCandidate({candidate: '', sdpMLineIndex: 0});
-      expect(origAddIceCandidate.callCount).to.equal(1);
+      expect(origAddIceCandidate.mock.calls.length).toBe(1);
     });
   });
 
@@ -101,7 +95,7 @@ describe('addIceCandidate with null or empty candidate', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.addIceCandidate({candidate: '', sdpMLineIndex: 0});
-      expect(origAddIceCandidate.callCount).to.equal(0);
+      expect(origAddIceCandidate.mock.calls.length).toBe(0);
     });
 
     it('passes {candidate: ""} after Firefox 68', () => {
@@ -110,7 +104,7 @@ describe('addIceCandidate with null or empty candidate', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.addIceCandidate({candidate: '', sdpMLineIndex: 0});
-      expect(origAddIceCandidate.callCount).to.equal(1);
+      expect(origAddIceCandidate.mock.calls.length).toBe(1);
     });
   });
 
@@ -128,7 +122,7 @@ describe('addIceCandidate with null or empty candidate', () => {
 
       const pc = new window.RTCPeerConnection();
       pc.addIceCandidate({candidate: '', sdpMLineIndex: 0});
-      expect(origAddIceCandidate.callCount).to.equal(0);
+      expect(origAddIceCandidate.mock.calls.length).toBe(0);
     });
   });
 });
