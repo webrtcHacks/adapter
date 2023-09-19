@@ -5,37 +5,30 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-/* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
-
 describe('Safari shim', () => {
   const shim = require('../../dist/safari/safari_shim');
   let window;
 
   beforeEach(() => {
     window = {
-      RTCPeerConnection: sinon.stub()
+      RTCPeerConnection: jest.fn()
     };
   });
 
   describe('shimStreamsAPI', () => {
     beforeEach(() => {
-      window.RTCPeerConnection.prototype.addTrack = sinon.stub();
+      window.RTCPeerConnection.prototype.addTrack = jest.fn();
       shim.shimLocalStreamsAPI(window);
       shim.shimRemoteStreamsAPI(window);
     });
 
     it('shimStreamsAPI existence', () => {
       const prototype = window.RTCPeerConnection.prototype;
-      expect(prototype.addTrack.length).to.equal(1);
-      expect(prototype.addStream.length).to.equal(1);
-      expect(prototype.removeStream.length).to.equal(1);
-      expect(prototype.getLocalStreams.length).to.equal(0);
-      expect(prototype.getRemoteStreams.length).to.equal(0);
+      expect(prototype.addTrack.length).toBe(1);
+      expect(prototype.addStream.length).toBe(1);
+      expect(prototype.removeStream.length).toBe(1);
+      expect(prototype.getLocalStreams.length).toBe(0);
+      expect(prototype.getRemoteStreams.length).toBe(0);
     });
     it('local streams API', () => {
       const pc = new window.RTCPeerConnection();
@@ -46,12 +39,12 @@ describe('Safari shim', () => {
         getAudioTracks: () => [],
         getVideoTracks: () => [],
       };
-      expect(pc.getLocalStreams().length).to.equal(0);
-      expect(pc.getRemoteStreams().length).to.equal(0);
+      expect(pc.getLocalStreams().length).toBe(0);
+      expect(pc.getRemoteStreams().length).toBe(0);
 
       pc.addStream(stream);
-      expect(pc.getLocalStreams()[0]).to.equal(stream);
-      expect(pc.getRemoteStreams().length).to.equal(0);
+      expect(pc.getLocalStreams()[0]).toBe(stream);
+      expect(pc.getRemoteStreams().length).toBe(0);
 
       const stream2 = {
         id: 'id2',
@@ -60,19 +53,19 @@ describe('Safari shim', () => {
         getVideoTracks: () => [],
       };
       pc.removeStream(stream2);
-      expect(pc.getLocalStreams()[0]).to.equal(stream);
+      expect(pc.getLocalStreams()[0]).toBe(stream);
 
       pc.addTrack({}, stream2);
-      expect(pc.getLocalStreams().length).to.equal(2);
-      expect(pc.getLocalStreams()[0]).to.equal(stream);
-      expect(pc.getLocalStreams()[1]).to.equal(stream2);
+      expect(pc.getLocalStreams().length).toBe(2);
+      expect(pc.getLocalStreams()[0]).toBe(stream);
+      expect(pc.getLocalStreams()[1]).toBe(stream2);
 
       pc.removeStream(stream2);
-      expect(pc.getLocalStreams().length).to.equal(1);
-      expect(pc.getLocalStreams()[0]).to.equal(stream);
+      expect(pc.getLocalStreams().length).toBe(1);
+      expect(pc.getLocalStreams()[0]).toBe(stream);
 
       pc.removeStream(stream);
-      expect(pc.getLocalStreams().length).to.equal(0);
+      expect(pc.getLocalStreams().length).toBe(0);
     });
   });
 
@@ -80,11 +73,11 @@ describe('Safari shim', () => {
     it('shimCallbacksAPI existence', () => {
       shim.shimCallbacksAPI(window);
       const prototype = window.RTCPeerConnection.prototype;
-      expect(prototype.createOffer.length).to.equal(2);
-      expect(prototype.createAnswer.length).to.equal(2);
-      expect(prototype.setLocalDescription.length).to.equal(3);
-      expect(prototype.setRemoteDescription.length).to.equal(3);
-      expect(prototype.addIceCandidate.length).to.equal(3);
+      expect(prototype.createOffer.length).toBe(2);
+      expect(prototype.createAnswer.length).toBe(2);
+      expect(prototype.setLocalDescription.length).toBe(3);
+      expect(prototype.setRemoteDescription.length).toBe(3);
+      expect(prototype.addIceCandidate.length).toBe(3);
     });
   });
 
@@ -93,7 +86,7 @@ describe('Safari shim', () => {
       describe('options passing with', () => {
         let stub;
         beforeEach(() => {
-          stub = sinon.stub();
+          stub = jest.fn();
           window.RTCPeerConnection.prototype[method] = stub;
           shim.shimCallbacksAPI(window);
         });
@@ -101,31 +94,36 @@ describe('Safari shim', () => {
         it('no arguments', () => {
           const pc = new window.RTCPeerConnection();
           pc[method]();
-          expect(stub).to.have.been.calledWith(undefined);
+          expect(stub.mock.calls.length).toBe(1);
+          expect(stub.mock.calls[0]).toEqual([undefined]);
         });
 
         it('two callbacks', () => {
           const pc = new window.RTCPeerConnection();
           pc[method](null, null);
-          expect(stub).to.have.been.calledWith(undefined);
+          expect(stub.mock.calls.length).toBe(1);
+          expect(stub.mock.calls[0]).toEqual([undefined]);
         });
 
         it('a non-function first argument', () => {
           const pc = new window.RTCPeerConnection();
           pc[method](1);
-          expect(stub).to.have.been.calledWith(1);
+          expect(stub.mock.calls.length).toBe(1);
+          expect(stub.mock.calls[0]).toEqual([1]);
         });
 
         it('two callbacks and options', () => {
           const pc = new window.RTCPeerConnection();
           pc[method](null, null, 1);
-          expect(stub).to.have.been.calledWith(1);
+          expect(stub.mock.calls.length).toBe(1);
+          expect(stub.mock.calls[0]).toEqual([1]);
         });
 
         it('two callbacks and two additional arguments', () => {
           const pc = new window.RTCPeerConnection();
           pc[method](null, null, 1, 2);
-          expect(stub).to.have.been.calledWith(1);
+          expect(stub.mock.calls.length).toBe(1);
+          expect(stub.mock.calls[0]).toEqual([1]);
         });
       });
     });
@@ -134,7 +132,7 @@ describe('Safari shim', () => {
   describe('legacy createOffer shim converts offer into transceivers', () => {
     let pc, stub, options;
     beforeEach(() => {
-      stub = sinon.stub();
+      stub = jest.fn();
       window.RTCPeerConnection.prototype.createOffer = function() {};
       shim.shimCreateOfferLegacy(window);
 
@@ -153,42 +151,44 @@ describe('Safari shim', () => {
     it('when offerToReceive Audio is true', () => {
       options.offerToReceiveAudio = true;
       pc.createOffer(options);
-      expect(stub).to.have.been.calledWith('audio');
+      expect(stub.mock.calls.length).toBe(1);
+      expect(stub.mock.calls[0]).toEqual(['audio', {direction: 'recvonly'}]);
     });
 
     it('when offerToReceive Video is true', () => {
       options.offerToReceiveVideo = true;
       pc.createOffer(options);
-      expect(stub).to.have.been.calledWith('video');
+      expect(stub.mock.calls.length).toBe(1);
+      expect(stub.mock.calls[0]).toEqual(['video', {direction: 'recvonly'}]);
     });
 
     it('when both offers are false', () => {
       pc.createOffer(options);
-      expect(stub).to.not.have.been.calledWith('audio');
-      expect(stub).to.not.have.been.calledWith('video');
+      expect(stub.mock.calls.length).toBe(0);
     });
 
     it('when both offers are true', () => {
       options.offerToReceiveAudio = true;
       options.offerToReceiveVideo = true;
       pc.createOffer(options);
-      expect(stub).to.have.been.calledWith('audio');
-      expect(stub).to.have.been.calledWith('video');
+      expect(stub.mock.calls.length).toBe(2);
+      expect(stub.mock.calls[0]).toEqual(['audio', {direction: 'recvonly'}]);
+      expect(stub.mock.calls[1]).toEqual(['video', {direction: 'recvonly'}]);
     });
 
     it('when offerToReceive has bit values', () => {
       options.offerToReceiveAudio = 0;
       options.offerToReceiveVideo = 1;
       pc.createOffer(options);
-      expect(stub).to.not.have.been.calledWith('audio');
-      expect(stub).to.have.been.calledWith('video');
+      expect(stub.mock.calls.length).toBe(1);
+      expect(stub.mock.calls[0]).toEqual(['video', {direction: 'recvonly'}]);
     });
   });
 
   describe('conversion of RTCIceServer.url', () => {
     let nativeStub;
     beforeEach(() => {
-      nativeStub = window.RTCPeerConnection;
+      nativeStub = jest.spyOn(window, 'RTCPeerConnection');
       shim.shimRTCIceServerUrls(window);
     });
 
@@ -201,40 +201,36 @@ describe('Safari shim', () => {
     describe('does not modify RTCIceServer.urls', () => {
       it('for strings', () => {
         new window.RTCPeerConnection({iceServers: [urls]});
-        expect(nativeStub).to.have.been.calledWith(sinon.match({
-          iceServers: sinon.match([
-            sinon.match(urls)
-          ])
-        }));
+        expect(nativeStub.mock.calls.length).toBe(1);
+        expect(nativeStub.mock.calls[0][0]).toEqual({
+          iceServers: [urls],
+        });
       });
 
       it('for arrays', () => {
         new window.RTCPeerConnection({iceServers: [urlsArray]});
-        expect(nativeStub).to.have.been.calledWith(sinon.match({
-          iceServers: sinon.match([
-            sinon.match(urlsArray)
-          ])
-        }));
+        expect(nativeStub.mock.calls.length).toBe(1);
+        expect(nativeStub.mock.calls[0][0]).toEqual({
+          iceServers: [urlsArray],
+        });
       });
     });
 
     describe('transforms RTCIceServer.url to RTCIceServer.urls', () => {
       it('for strings', () => {
         new window.RTCPeerConnection({iceServers: [url]});
-        expect(nativeStub).to.have.been.calledWith(sinon.match({
-          iceServers: sinon.match([
-            sinon.match(urls)
-          ])
-        }));
+        expect(nativeStub.mock.calls.length).toBe(1);
+        expect(nativeStub.mock.calls[0][0]).toEqual({
+          iceServers: [urls],
+        });
       });
 
       it('for arrays', () => {
         new window.RTCPeerConnection({iceServers: [urlArray]});
-        expect(nativeStub).to.have.been.calledWith(sinon.match({
-          iceServers: sinon.match([
-            sinon.match(urlsArray)
-          ])
-        }));
+        expect(nativeStub.mock.calls.length).toBe(1);
+        expect(nativeStub.mock.calls[0][0]).toEqual({
+          iceServers: [urlsArray],
+        });
       });
     });
   });

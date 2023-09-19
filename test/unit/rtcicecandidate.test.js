@@ -6,9 +6,6 @@
  *  tree.
  */
 /* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-
 describe('RTCIceCandidate', () => {
   const shim = require('../../dist/common_shim');
   let RTCIceCandidate;
@@ -37,9 +34,9 @@ describe('RTCIceCandidate', () => {
         sdpMid: 'audio',
         sdpMLineIndex: 0
       });
-      expect(candidate.candidate).to.equal(candidateString);
-      expect(candidate.sdpMid).to.equal('audio');
-      expect(candidate.sdpMLineIndex).to.equal(0);
+      expect(candidate.candidate).toBe(candidateString);
+      expect(candidate.sdpMid).toBe('audio');
+      expect(candidate.sdpMLineIndex).toBe(0);
     });
 
     it('drops the a= part of the candidate if present', () => {
@@ -48,7 +45,7 @@ describe('RTCIceCandidate', () => {
         sdpMid: 'audio',
         sdpMLineIndex: 0
       });
-      expect(candidate.candidate).to.equal(candidateString);
+      expect(candidate.candidate).toBe(candidateString);
     });
 
     it('parses the candidate', () => {
@@ -57,18 +54,18 @@ describe('RTCIceCandidate', () => {
         sdpMid: 'audio',
         sdpMLineIndex: 0
       });
-      expect(candidate.foundation).to.equal('702786350');
-      // expect(candidate.component).to.equal('2'); // TODO
-      expect(candidate.priority).to.equal(41819902);
-      expect(candidate.ip).to.equal('8.8.8.8');
-      expect(candidate.protocol).to.equal('udp');
-      expect(candidate.port).to.equal(60769);
-      expect(candidate.type).to.equal('relay');
-      expect(candidate.tcpType).to.equal('active');
-      expect(candidate.relatedAddress).to.equal('8.8.8.8');
-      expect(candidate.relatedPort).to.equal(1234);
-      expect(candidate.generation).to.equal('0');
-      expect(candidate.usernameFragment).to.equal('abc');
+      expect(candidate.foundation).toBe('702786350');
+      expect(candidate.component).toBe('rtcp');
+      expect(candidate.priority).toBe(41819902);
+      expect(candidate.ip).toBe('8.8.8.8');
+      expect(candidate.protocol).toBe('udp');
+      expect(candidate.port).toBe(60769);
+      expect(candidate.type).toBe('relay');
+      expect(candidate.tcpType).toBe('active');
+      expect(candidate.relatedAddress).toBe('8.8.8.8');
+      expect(candidate.relatedPort).toBe(1234);
+      expect(candidate.generation).toBe('0');
+      expect(candidate.usernameFragment).toBe('abc');
     });
   });
 
@@ -81,6 +78,6 @@ describe('RTCIceCandidate', () => {
     });
     const serialized = JSON.stringify(candidate);
     // there should be only 4 items in the JSON.
-    expect(Object.keys(JSON.parse(serialized)).length).to.equal(4);
+    expect(Object.keys(JSON.parse(serialized)).length).toBe(4);
   });
 });

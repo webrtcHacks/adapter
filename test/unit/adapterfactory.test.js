@@ -5,13 +5,6 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-/* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
-
 describe('adapter factory', () => {
   const {adapterFactory} = require('../../dist/adapter_factory.js');
   const utils = require('../../dist/utils.js');
@@ -19,23 +12,23 @@ describe('adapter factory', () => {
   let window;
   beforeEach(() => {
     window = {
-      RTCPeerConnection: sinon.stub(),
+      RTCPeerConnection: jest.fn(),
     };
   });
 
   describe('does not shim', () => {
     afterEach(() => {
-      utils.detectBrowser.restore();
+      utils.detectBrowser.mockRestore();
     });
     ['Chrome', 'Firefox', 'Safari'].forEach(browser => {
       it(browser + ' when disabled', () => {
-        sinon.stub(utils, 'detectBrowser').returns({
+        jest.spyOn(utils, 'detectBrowser').mockReturnValue({
           browser: browser.toLowerCase()
         });
         let options = {};
         options['shim' + browser] = false;
         const adapter = adapterFactory(window, options);
-        expect(adapter).not.to.have.property('browserShim');
+        expect(adapter).not.toHaveProperty('browserShim');
       });
     });
   });
@@ -48,6 +41,6 @@ describe('adapter factory', () => {
           'Gecko/20100101 Firefox/44.0'
     }};
     const constructor = () => adapterFactory({window});
-    expect(constructor).not.to.throw();
+    expect(constructor).not.toThrow();
   });
 });

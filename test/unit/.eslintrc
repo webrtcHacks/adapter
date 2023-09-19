@@ -1,7 +1,7 @@
 {
     "env": {
-        "mocha": true,
+        "jest": true,
         "browser": true
     },
-    "rules": {}
+    "plugins": ["jest"]
 }

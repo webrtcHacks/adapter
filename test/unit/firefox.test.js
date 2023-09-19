@@ -5,13 +5,6 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-/* eslint-env node */
-const chai = require('chai');
-const expect = chai.expect;
-const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-chai.use(sinonChai);
-
 describe('Firefox shim', () => {
   const shim = require('../../dist/firefox/firefox_shim');
   let window;
@@ -20,7 +13,7 @@ describe('Firefox shim', () => {
     window = {
       navigator: {
         mediaDevices: {
-          getUserMedia: sinon.stub(),
+          getUserMedia: jest.fn(),
         },
       },
     };
@@ -30,27 +23,30 @@ describe('Firefox shim', () => {
     it('does not if navigator.mediaDevices does not exist', () => {
       delete window.navigator.mediaDevices;
       shim.shimGetDisplayMedia(window);
-      expect(window.navigator.mediaDevices).to.equal(undefined);
+      expect(window.navigator.mediaDevices).toBe(undefined);
     });
 
     it('does not overwrite an existing ' +
         'navigator.mediaDevices.getDisplayMedia', () => {
       window.navigator.mediaDevices.getDisplayMedia = 'foo';
       shim.shimGetDisplayMedia(window, 'screen');
-      expect(window.navigator.mediaDevices.getDisplayMedia).to.equal('foo');
+      expect(window.navigator.mediaDevices.getDisplayMedia).toBe('foo');
     });
 
     it('shims navigator.mediaDevices.getDisplayMedia', () => {
       shim.shimGetDisplayMedia(window, 'screen');
-      expect(window.navigator.mediaDevices.getDisplayMedia).to.be.a('function');
+      expect(typeof window.navigator.mediaDevices.getDisplayMedia)
+        .toBe('function');
     });
 
     ['screen', 'window'].forEach((mediaSource) => {
       it('calls getUserMedia with the given default mediaSource', () => {
         shim.shimGetDisplayMedia(window, mediaSource);
         window.navigator.mediaDevices.getDisplayMedia({video: true});
-        expect(window.navigator.mediaDevices.getUserMedia)
-          .to.have.been.calledWith({video: {mediaSource}});
+        expect(window.navigator.mediaDevices.getUserMedia.mock.calls.length)
+          .toBe(1);
+        expect(window.navigator.mediaDevices.getUserMedia.mock.calls[0][0])
+          .toEqual({video: {mediaSource}});
       });
     });
   });
