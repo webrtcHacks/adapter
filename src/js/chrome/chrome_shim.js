@@ -712,16 +712,18 @@ export function shimRTCRtpScriptTransform(window) {
         this._transfer = transfer;
       }
     };
-    const property = {
+    const prop = {
       get() {
         return this._transform || null;
       },
       set(transform) {
         if (transform && !(transform instanceof window.RTCRtpScriptTransform)) {
-          throw new TypeError("expected window.RTCRtpScriptTransform");
+          throw new TypeError('expected window.RTCRtpScriptTransform');
         }
         this._transform = transform || null;
-        if (!transform) return;
+        if (!transform) {
+          return;
+        }
         const {readable, writable} = this.createEncodedStreams();
         transform._worker.postMessage({
           rtctransform: {
@@ -730,7 +732,7 @@ export function shimRTCRtpScriptTransform(window) {
         }, [readable, writable, ...(transform._transfer || [])]);
       }
     };
-    Object.defineProperty(window.RTCRtpSender.prototype, 'transform', property);
-    Object.defineProperty(window.RTCRtpReceiver.prototype, 'transform', property);
+    Object.defineProperty(window.RTCRtpSender.prototype, 'transform', prop);
+    Object.defineProperty(window.RTCRtpReceiver.prototype, 'transform', prop);
   }
 }
