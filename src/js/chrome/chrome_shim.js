@@ -700,3 +700,37 @@ export function fixNegotiationNeeded(window, browserDetails) {
     return e;
   });
 }
+
+export function shimRTCRtpScriptTransform(window) {
+  if (!window.RTCRtpScriptTransform &&
+      !('transform' in window.RTCRtpSender.prototype) &&
+      !('transform' in window.RTCRtpReceiver.prototype)) {
+    window.RTCRtpScriptTransform = class RTCRtpScriptTransform {
+      constructor(worker, options, transfer) {
+        this._worker = worker;
+        this._options = options;
+        this._transfer = transfer;
+      }
+    };
+    const property = {
+      get() {
+        return this._transform || null;
+      },
+      set(transform) {
+        if (transform && !(transform instanceof window.RTCRtpScriptTransform)) {
+          throw new TypeError("expected window.RTCRtpScriptTransform");
+        }
+        this._transform = transform || null;
+        if (!transform) return;
+        const {readable, writable} = this.createEncodedStreams();
+        transform._worker.postMessage({
+          rtctransform: {
+            readable, writable, options: transform._options
+          }
+        }, [readable, writable, ...(transform._transfer || [])]);
+      }
+    };
+    Object.defineProperty(window.RTCRtpSender.prototype, 'transform', property);
+    Object.defineProperty(window.RTCRtpReceiver.prototype, 'transform', property);
+  }
+}
