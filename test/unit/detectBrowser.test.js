@@ -49,7 +49,7 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).toEqual(95);
   });
 
-  it('detects Chrome if navigator.userAgentData exist', () => {
+  it('detects Chrome if navigator.userAgentData exists', () => {
     navigator.userAgentData = {brands: [{brand: 'Chromium', version: 102}]};
     // Use the wrong UA string for Firefox.
     navigator.userAgent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ' +
@@ -57,8 +57,8 @@ describe('detectBrowser', () => {
     navigator.mozGetUserMedia = function() {};
 
     const browserDetails = detectBrowser(window);
-    expect(browserDetails.browser).to.equal('chrome');
-    expect(browserDetails.version).to.equal(102);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toEqual(102);
   });
 
   it('detects Safari if window.RTCPeerConnection exists', () => {
