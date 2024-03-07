@@ -17,7 +17,6 @@ declare module "webrtc-adapter" {
         shimMediaStream(window: Window): void;
         shimOnTrack(window: Window): void;
         shimGetSendersWithDtmf(window: Window): void;
-        shimGetStats(window: Window): void;
         shimSenderReceiverGetStats(window: Window): void;
         shimAddTrackRemoveTrackWithNative(window: Window): void;
         shimAddTrackRemoveTrack(window: Window): void;
