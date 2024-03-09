@@ -37,6 +37,7 @@
     "@puppeteer/browsers": "^1.4.1",
     "babel-preset-env": "^1.7.0",
     "brfs": "^1.5.0",
+    "chai": "^3.5.0",
     "eslint-plugin-jest": "^27.4.0",
     "grunt": "^1.1.0",
     "grunt-babel": "^8.0.0",
