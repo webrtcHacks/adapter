@@ -49,6 +49,18 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).toEqual(95);
   });
 
+  it('detects Chrome if navigator.userAgentData exists', () => {
+    navigator.userAgentData = {brands: [{brand: 'Chromium', version: 102}]};
+    // Use the wrong UA string for Firefox.
+    navigator.userAgent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ' +
+        'rv:44.0) Gecko/20100101 Firefox/44.0';
+    navigator.mozGetUserMedia = function() {};
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toEqual(102);
+  });
+
   it('detects Safari if window.RTCPeerConnection exists', () => {
     navigator.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
