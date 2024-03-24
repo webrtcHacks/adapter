@@ -42,12 +42,13 @@ describe('maxMessageSize', () => {
 
   function patchMaxMessageSizeFactory(maxMessageSize) {
     return ((description) => {
-      description.sdp = description.sdp.replace(
-        /^a=max-message-size:\s*(\d+)\s*$/gm, '');
-      description.sdp = description.sdp.replace(
-        /(^m=application\s+\d+\s+[\w/]*SCTP.*$)/m,
-        '$1\r\na=max-message-size:' + maxMessageSize);
-      return description;
+      return {
+        type: description.type,
+        sdp: description.sdp
+          .replace(/^a=max-message-size:\s*(\d+)\s*$/gm, '')
+          .replace(/(^m=application\s+\d+\s+[\w/]*SCTP.*$)/m,
+            '$1\r\na=max-message-size:' + maxMessageSize),
+      };
     });
   }
 

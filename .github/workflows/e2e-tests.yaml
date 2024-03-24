@@ -13,8 +13,8 @@ jobs:
           - browser: firefox
             version: nightly
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
     - run: npm install
     - run: Xvfb :99 &
     - name: e2e-tests
