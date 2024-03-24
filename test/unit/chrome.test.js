@@ -20,13 +20,6 @@ RTCLegacyStatsReport.prototype.stat = function(name) {
   return this._data[name];
 };
 
-function makeLegacyStatsReport(type, data) {
-  const report = new RTCLegacyStatsReport();
-  report.type = type;
-  report._data = data;
-  return report;
-}
-
 describe('Chrome shim', () => {
   const shim = require('../../dist/chrome/chrome_shim');
   let window;
@@ -40,50 +33,6 @@ describe('Chrome shim', () => {
       },
       RTCPeerConnection: function() {}
     };
-  });
-
-  describe('legacy getStats', () => {
-    let pc;
-    beforeEach(() => {
-      window.RTCPeerConnection.prototype.getStats = function(cb) {
-        setTimeout(cb, 0, {
-          result: () => [
-            makeLegacyStatsReport('localcandidate', {
-              portNumber: '31337',
-              ipAddress: '8.8.8.8',
-              transport: 'udp',
-              candidateType: 'host',
-              priority: '12345'
-            }),
-          ]
-        });
-      };
-      shim.shimGetStats(window);
-      pc = new window.RTCPeerConnection();
-    });
-
-    it('returns a promise', () => {
-      return pc.getStats();
-    });
-
-    it('returns chrome legacy getStats when called with a callback', (done) => {
-      pc.getStats((result) => {
-        expect(result).toHaveProperty('result');
-        const report = result.result()[0];
-        expect(report).toHaveProperty('id');
-        expect(report).toHaveProperty('type');
-        expect(report).toHaveProperty('timestamp');
-        expect(report).toHaveProperty('stat');
-        done();
-      });
-    });
-
-    it('is translated into a Map', () => {
-      return pc.getStats()
-        .then(result => {
-          expect(result).toBeInstanceOf(Map);
-        });
-    });
   });
 
   describe('PeerConnection shim', () => {
