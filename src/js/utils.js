@@ -167,7 +167,7 @@ export function detectBrowser(window) {
       return brand.brand === 'Chromium';
     });
     if (chromium) {
-      return {browser: 'chrome', version: chromium.version};
+      return {browser: 'chrome', version: parseInt(chromium.version)};
     }
   }
 
