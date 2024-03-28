@@ -1,6 +1,6 @@
 {
   "name": "webrtc-adapter",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "A shim to insulate apps from WebRTC spec changes and browser prefix differences",
   "license": "BSD-3-Clause",
   "main": "./dist/adapter_core.js",
@@ -34,7 +34,7 @@
   "devDependencies": {
     "@babel/core": "^7.21.0",
     "@babel/preset-env": "^7.20.2",
-    "@puppeteer/browsers": "^1.4.1",
+    "@puppeteer/browsers": "^2.2.0",
     "babel-preset-env": "^1.7.0",
     "brfs": "^1.5.0",
     "chai": "^3.5.0",
