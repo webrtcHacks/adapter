@@ -2374,7 +2374,7 @@ function detectBrowser(window) {
     if (chromium) {
       return {
         browser: 'chrome',
-        version: chromium.version
+        version: parseInt(chromium.version, 10)
       };
     }
   }
