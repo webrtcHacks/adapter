@@ -50,7 +50,7 @@ describe('detectBrowser', () => {
   });
 
   it('detects Chrome if navigator.userAgentData exists', () => {
-    navigator.userAgentData = {brands: [{brand: 'Chromium', version: 102}]};
+    navigator.userAgentData = {brands: [{brand: 'Chromium', version: '102'}]};
     // Use the wrong UA string for Firefox.
     navigator.userAgent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ' +
         'rv:44.0) Gecko/20100101 Firefox/44.0';
