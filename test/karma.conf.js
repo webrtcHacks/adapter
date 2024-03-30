@@ -11,29 +11,7 @@
 const os = require('os');
 const puppeteerBrowsers = require('@puppeteer/browsers');
 
-async function determineFirefoxVersion(version) {
-  const rawVersions = await fetch('https://product-details.mozilla.org/1.0/firefox_versions.json');
-  const versions = await rawVersions.json();
-  return versions.FIREFOX_NIGHTLY;
-  // TODO: support stable, beta, nightly, esr.
-  // This has issues with the assumptions browsers makes about download urls
-  // (or Firefox about directory structure and where it includes the platform)
-  // This base url coems close:
-  // 'https://archive.mozilla.org/pub/firefox/releases/' + buildId + '/' + platform + '/en-US/';
-}
-
 async function download(browser, version, cacheDir, platform) {
-  if (browser === 'firefox') {
-    // TODO: see above, resolve stable, beta, nightly, esr
-    const buildId = await determineFirefoxVersion(version);
-    await puppeteerBrowsers.install({
-      browser,
-      buildId,
-      cacheDir,
-      platform,
-    });
-    return buildId;
-  }
   const buildId = await puppeteerBrowsers
     .resolveBuildId(browser, platform, version);
   await puppeteerBrowsers.install({

@@ -7,9 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        browser: [chrome]
-        version: [stable, beta, dev]
+        browser: [chrome, firefox]
+        version: [stable, beta]
         include:
+          - browser: chrome
+            version: dev
           - browser: firefox
             version: nightly
     steps:
