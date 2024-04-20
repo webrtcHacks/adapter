@@ -9,6 +9,7 @@
 'use strict';
 
 const os = require('os');
+const path = require('path');
 const puppeteerBrowsers = require('@puppeteer/browsers');
 
 async function download(browser, version, cacheDir, platform) {
@@ -24,7 +25,7 @@ async function download(browser, version, cacheDir, platform) {
 }
 
 module.exports = async(config) => {
-  const cacheDir = process.cwd() + '/browsers';
+  const cacheDir = path.join(process.cwd(), 'browsers');
   const platform = puppeteerBrowsers.detectBrowserPlatform();
 
   let browsers;
@@ -58,13 +59,13 @@ module.exports = async(config) => {
         '/Contents/MacOS/Safari Technology Preview';
   }
 
-  if (browsers.includes('firefox') && !process.env.FIREFOX_BIN) {
+  if (browsers.includes('firefox')) {
     const buildId = await download('firefox', process.env.BVER || 'stable',
       cacheDir, platform);
     process.env.FIREFOX_BIN = puppeteerBrowsers
       .computeExecutablePath({browser: 'firefox', buildId, cacheDir, platform});
   }
-  if (browsers.includes('chrome') && !process.env.CHROME_BIN) {
+  if (browsers.includes('chrome')) {
     const buildId = await download('chrome', process.env.BVER || 'stable',
       cacheDir, platform);
     process.env.CHROME_BIN = puppeteerBrowsers
