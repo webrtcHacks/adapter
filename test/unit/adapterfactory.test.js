@@ -35,7 +35,6 @@ describe('adapter factory', () => {
 
   it('does not throw in Firefox with peerconnection disabled', () => {
     window = {navigator: {
-      mozGetUserMedia: () => {},
       mediaDevices: {getUserMedia: () => {}},
       userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) ' +
           'Gecko/20100101 Firefox/44.0'
