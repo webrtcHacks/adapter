@@ -149,16 +149,11 @@ export function deprecated(oldMethod, newMethod) {
  *     properties.
  */
 export function detectBrowser(window) {
-  // Returned result object.
-  const result = {browser: null, version: null};
-
   // Fail early if it's not a browser
   if (typeof window === 'undefined' || !window.navigator ||
       !window.navigator.userAgent) {
-    result.browser = 'Not a browser.';
-    return result;
+    return {browser: 'Not a browser.', version: null};
   }
-
   const {navigator} = window;
 
   // Prefer navigator.userAgentData.
@@ -171,32 +166,29 @@ export function detectBrowser(window) {
     }
   }
 
-  if (navigator.mozGetUserMedia) { // Firefox.
-    result.browser = 'firefox';
-    result.version = extractVersion(navigator.userAgent,
-      /Firefox\/(\d+)\./, 1);
-  } else if (navigator.webkitGetUserMedia ||
-      (window.isSecureContext === false && window.webkitRTCPeerConnection)) {
+  const ua = navigator.userAgent;
+  const firefoxVer = extractVersion(ua, /Firefox\/(\d+)\./, 1);
+  if (firefoxVer) {
+    return {browser: 'firefox', version: firefoxVer};
+  }
+  const chromeVer = extractVersion(ua, /Chrom(e|ium)\/(\d+)\./, 2);
+  if (chromeVer) {
     // Chrome, Chromium, Webview, Opera.
     // Version matches Chrome/WebRTC version.
-    // Chrome 74 removed webkitGetUserMedia on http as well so we need the
-    // more complicated fallback to webkitRTCPeerConnection.
-    result.browser = 'chrome';
-    result.version = extractVersion(navigator.userAgent,
-      /Chrom(e|ium)\/(\d+)\./, 2);
-  } else if (window.RTCPeerConnection &&
-      navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
-    result.browser = 'safari';
-    result.version = extractVersion(navigator.userAgent,
-      /AppleWebKit\/(\d+)\./, 1);
-    result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
-        'currentDirection' in window.RTCRtpTransceiver.prototype;
-  } else { // Default fallthrough: not supported.
-    result.browser = 'Not a supported browser.';
-    return result;
+    return {browser: 'chrome', version: chromeVer};
   }
-
-  return result;
+  const safariVer = extractVersion(ua, /AppleWebKit\/(\d+)\./i, 1);
+  if (safariVer && /Safari/.test(ua)) {
+    // Version is the AppleWebKit one for adapter backwards compat
+    return {
+      browser: 'safari',
+      version: safariVer,
+      supportsUnifiedPlan:
+        window.RTCRtpTransceiver &&
+        'currentDirection' in window.RTCRtpTransceiver.prototype
+    };
+  }
+  return {browser: 'Not a supported browser.', version: null};
 }
 
 /**
