@@ -116,7 +116,7 @@ describe('extractVersion', () => {
   });
 
   describe('Safari regular expression', () => {
-    const expr = /version\/(\d+(\.?\d+))/i;
+    const expr = /Version\/(\d+(\.?\d+))/i;
     it('matches the Safari version', () => {
       ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
           'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
