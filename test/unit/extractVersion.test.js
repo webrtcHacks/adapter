@@ -111,7 +111,7 @@ describe('extractVersion', () => {
     });
   });
 
-  describe('Safari regular expression', () => {
+  describe('Webkit regular expression', () => {
     const expr = /AppleWebKit\/(\d+)/;
     it('matches the webkit version', () => {
       ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
@@ -142,6 +142,14 @@ describe('extractVersion', () => {
       ua = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:44.0) Gecko/20100101 ' +
           'Firefox/44.0';
       expect(extractVersion(ua, expr, 1)).toBe(null);
+    });
+  });
+  describe('Safari regular expression', () => {
+    const expr = /Version\/(\d+(\.?\d+))/;
+    it('extracts the Safari version', () => {
+      ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) ' +
+          'AppleWebKit/604.1.6 (KHTML, like Gecko) Version/10.2 Safari/604.1.6';
+      expect(extractVersion(ua, expr, 1)).toBe(10.2);
     });
   });
 });

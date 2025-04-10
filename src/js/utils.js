@@ -21,7 +21,7 @@ let deprecationWarnings_ = true;
  */
 export function extractVersion(uastring, expr, pos) {
   const match = uastring.match(expr);
-  return match && match.length >= pos && parseInt(match[pos], 10);
+  return match && match.length >= pos && parseFloat(match[pos], 10);
 }
 
 // Wraps the peerconnection event eventNameToWrap in a function
@@ -173,8 +173,8 @@ export function detectBrowser(window) {
 
   if (navigator.mozGetUserMedia) { // Firefox.
     result.browser = 'firefox';
-    result.version = extractVersion(navigator.userAgent,
-      /Firefox\/(\d+)\./, 1);
+    result.version = parseInt(extractVersion(navigator.userAgent,
+      /Firefox\/(\d+)\./, 1));
   } else if (navigator.webkitGetUserMedia ||
       (window.isSecureContext === false && window.webkitRTCPeerConnection)) {
     // Chrome, Chromium, Webview, Opera.
@@ -182,15 +182,18 @@ export function detectBrowser(window) {
     // Chrome 74 removed webkitGetUserMedia on http as well so we need the
     // more complicated fallback to webkitRTCPeerConnection.
     result.browser = 'chrome';
-    result.version = extractVersion(navigator.userAgent,
-      /Chrom(e|ium)\/(\d+)\./, 2);
+    result.version = parseInt(extractVersion(navigator.userAgent,
+      /Chrom(e|ium)\/(\d+)\./, 2));
   } else if (window.RTCPeerConnection &&
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';
-    result.version = extractVersion(navigator.userAgent,
-      /AppleWebKit\/(\d+)\./, 1);
+    result.version = parseInt(extractVersion(navigator.userAgent,
+      /AppleWebKit\/(\d+)\./, 1));
     result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
         'currentDirection' in window.RTCRtpTransceiver.prototype;
+    // Only for internal usage.
+    result._safariVersion = extractVersion(navigator.userAgent,
+      /Version\/(\d+(\.?\d+))/);
   } else { // Default fallthrough: not supported.
     result.browser = 'Not a supported browser.';
     return result;
