@@ -193,7 +193,7 @@ export function detectBrowser(window) {
         'currentDirection' in window.RTCRtpTransceiver.prototype;
     // Only for internal usage.
     result._safariVersion = extractVersion(navigator.userAgent,
-      /Version\/(\d+(\.?\d+))/);
+      /Version\/(\d+(\.?\d+))/, 1);
   } else { // Default fallthrough: not supported.
     result.browser = 'Not a supported browser.';
     return result;
