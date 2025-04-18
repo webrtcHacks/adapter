@@ -69,6 +69,6 @@ describe('detectBrowser', () => {
     const browserDetails = detectBrowser(window);
     expect(browserDetails.browser).toEqual('safari');
     expect(browserDetails.version).toEqual(604);
-    // expect(browserDetails._safariVersion).toEqual(10.2);
+    expect(browserDetails._safariVersion).toEqual(10.2);
   });
 });
