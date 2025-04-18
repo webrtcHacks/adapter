@@ -2395,7 +2395,7 @@ function detectBrowser(window) {
     result.version = parseInt(extractVersion(navigator.userAgent, /AppleWebKit\/(\d+)\./, 1));
     result.supportsUnifiedPlan = window.RTCRtpTransceiver && 'currentDirection' in window.RTCRtpTransceiver.prototype;
     // Only for internal usage.
-    result._safariVersion = extractVersion(navigator.userAgent, /Version\/(\d+(\.?\d+))/);
+    result._safariVersion = extractVersion(navigator.userAgent, /Version\/(\d+(\.?\d+))/, 1);
   } else {
     // Default fallthrough: not supported.
     result.browser = 'Not a supported browser.';
