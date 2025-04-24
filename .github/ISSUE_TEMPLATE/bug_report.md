@@ -1,3 +1,12 @@
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
+
+---
+
 # Please read first!
 Please use [discuss-webrtc](https://groups.google.com/forum/#!forum/discuss-webrtc) for general technical discussions and questions.
 
