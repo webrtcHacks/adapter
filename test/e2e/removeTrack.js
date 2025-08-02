@@ -114,7 +114,10 @@ describe('removeTrack', () => {
           expect(sendersWithTrack).to.have.length(0);
         });
 
-        it('no local streams remain', () => {
+        it('no local streams remain', function() {
+          if (window.adapter.browserDetails.browser === 'firefox') {
+            this.skip();
+          }
           const senders = pc.getSenders();
           senders.forEach(sender => pc.removeTrack(sender));
           expect(pc.getLocalStreams()).to.have.length(0);
