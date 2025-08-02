@@ -2,15 +2,12 @@
 
 # Intro #
 
-Functional unit tests located in `test/unit` are run in node using [Mocha](https://mochajs.org/), [Chai](http://chaijs.com/) and [Sinon](http://sinonjs.org/).
+Functional unit tests located in `test/unit` are run in node using [Mocha](https://mochajs.org/) and [Chai](http://chaijs.com/).
 They are preferred way to test the behaviour of isolated pieces of code or when behaviour depends on the browser version.
 
-[Karma](http://karma-runner.github.io/1.0/index.html) is used to run the end-to-end tests which are also based on Mocha, Chai and Sinon.
+[Karma](https://karma-runner.github.io/latest/index.html) is used to run the end-to-end tests which are also based on Mocha, Chai and Sinon.
 Those tests are run in many browsers using the different karma launchers for [Chrome](https://www.npmjs.com/package/karma-chrome-launcher),
-[Firefox](https://www.npmjs.com/package/karma-firefox-launcher), [MicrosoftEdge](https://www.npmjs.com/package/karma-edge-launcher) and
-[Safari](https://www.npmjs.com/package/karma-safari-launcher). Not all expected tests are expected to pass and they will be compared again
-expectation files similar to [Chrome tests](https://chromium.googlesource.com/chromium/src/+/lkcr/docs/testing/layout_test_expectations.md).
-This provides ensures stability while not restricting the project to tests that pass in all browsers.
+[Firefox](https://www.npmjs.com/package/karma-firefox-launcher) and [Safari](https://www.npmjs.com/package/karma-safari-launcher).
 
 ## Development ##
 Detailed information on developing in the [webrtc](https://github.com/webrtc) GitHub repo can be mark in the [WebRTC GitHub repo developer's guide](https://docs.google.com/document/d/1tn1t6LW2ffzGuYTK3366w1fhTkkzsSvHsBnOHoDfRzY/edit?pli=1#heading=h.e3366rrgmkdk).

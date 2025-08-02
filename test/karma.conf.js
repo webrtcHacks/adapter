@@ -45,13 +45,6 @@ module.exports = async(config) => {
     browsers = ['chrome', 'firefox'];
   }
 
-  let reporters = ['mocha'];
-  if (process.env.CI) {
-    // stability must be the last reporter as it munges the
-    // exit code and always returns 0.
-    reporters.push('stability');
-  }
-
   // uses Safari Technology Preview.
   if (browsers.includes('Safari') && os.platform() === 'darwin' &&
       process.env.BVER === 'unstable' && !process.env.SAFARI_BIN) {
@@ -94,7 +87,7 @@ module.exports = async(config) => {
     preprocessors: {
       'dist/adapter_core5.js': ['browserify']
     },
-    reporters,
+    reporters: ['mocha'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
@@ -127,12 +120,5 @@ module.exports = async(config) => {
       transform: ['brfs'],
       standalone: 'adapter',
     },
-    stabilityReporter: {
-      path: 'test/e2e/expectations/' +
-          process.env.BROWSER +
-          (process.env.BVER ? '-' + process.env.BVER : '') +
-          (process.env.CHROMEEXPERIMENT === 'false' ? '-no-experimental' : ''),
-      update: process.env.UPDATE_STABILITYREPORTER || false,
-    }
   });
 };

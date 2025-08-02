@@ -55,7 +55,6 @@
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.3",
     "karma-safari-launcher": "^1.0.0",
-    "karma-stability-reporter": "^3.0.1",
     "mocha": "^10.2.0"
   }
 }
