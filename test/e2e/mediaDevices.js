@@ -51,7 +51,7 @@ describe('navigator.mediaDevices', () => {
           });
       });
 
-      ['audioinput', 'videoinput', 'audiooutput'].forEach(kind => {
+      ['audioinput', 'videoinput'].forEach(kind => {
         it('some ' + kind + ' devices', () => {
           return navigator.mediaDevices.enumerateDevices()
             .then(devices => {

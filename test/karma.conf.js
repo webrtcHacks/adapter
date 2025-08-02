@@ -112,7 +112,9 @@ module.exports = async(config) => {
         base: 'Firefox',
         prefs: {
           'media.navigator.streams.fake': true,
-          'media.navigator.permission.disabled': true
+          'media.navigator.permission.disabled': true,
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=1980731
+          'media.peerconnection.sctp.use_dcsctp': false,
         },
         flags: ['-headless']
       }
