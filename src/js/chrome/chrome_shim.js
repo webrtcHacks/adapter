@@ -543,7 +543,7 @@ export function shimAddTrackRemoveTrack(window, browserDetails) {
     'localDescription', {
       get() {
         const description = origLocalDescription.get.apply(this);
-        if (description.type === '') {
+        if (!description || description.type === '') {
           return description;
         }
         return replaceInternalStreamId(this, description);
