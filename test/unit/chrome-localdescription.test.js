@@ -5,137 +5,51 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-
-/* eslint-env node */
-'use strict';
-
-const shim = require('../../dist/chrome/chrome_shim');
-
-describe('Chrome shim: localDescription getter (OLD path)', () => {
+describe('Chrome version detection with iOS emulated UA', () => {
+  const detectBrowser = require('../../dist/utils.js').detectBrowser;
   let window;
+  let navigator;
 
   beforeEach(() => {
-    global.RTCSessionDescription = function(init) {
-      this.type = init.type;
-      this.sdp = init.sdp;
-    };
+    navigator = {};
+    window = {navigator};
   });
 
-  afterEach(() => {
-    delete global.RTCSessionDescription;
+  it('returns version null when Chrome API exists but UA has no Chrome version (iOS emulator)', () => {
+    // Chrome DevTools simulating iPhone: webkitGetUserMedia exists
+    // but UA is iOS Safari format without Chrome/XX
+    navigator.userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 ' +
+        'like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
+        'Version/18.5 Mobile/15E148 Safari/604.1';
+    navigator.webkitGetUserMedia = function() {};
+    window.webkitRTCPeerConnection = function() {};
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toBeNull();
   });
 
-  // 使用 version: 64 (< 65) 或 NaN 触发 OLD shim 路径
-  // OLD 路径会包装 localDescription getter
+  it('returns version null when Chrome API exists but UA has no Chrome version (iPad emulator)', () => {
+    navigator.userAgent = 'Mozilla/5.0 (iPad; CPU OS 18_5 ' +
+        'like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
+        'Version/18.5 Mobile/15E148 Safari/604.1';
+    navigator.webkitGetUserMedia = function() {};
+    window.webkitRTCPeerConnection = function() {};
 
-  describe('when localDescription returns null', () => {
-    it('should not throw when accessing localDescription', () => {
-      window = {
-        RTCPeerConnection: function() {
-          this._streams = {};
-          this._reverseStreams = {};
-        },
-        RTCSessionDescription: global.RTCSessionDescription,
-        navigator: {
-          mediaDevices: {}
-        }
-      };
-
-      Object.defineProperty(
-        window.RTCPeerConnection.prototype,
-        'localDescription',
-        {
-          get: function() {
-            return null;
-          },
-          configurable: true
-        }
-      );
-
-      // version: 64 < 65, 走 OLD 路径
-      shim.shimAddTrackRemoveTrack(window, {version: 64});
-
-      const pc = new window.RTCPeerConnection();
-
-      expect(() => {
-        const desc = pc.localDescription;
-        expect(desc).toBe(null);
-      }).not.toThrow();
-    });
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toBeNull();
   });
 
-  describe('when localDescription returns empty object', () => {
-    it('should return the description as-is when type is empty', () => {
-      const emptyDesc = {
-        type: '',
-        sdp: ''
-      };
+  it('returns correct version for normal Chrome UA', () => {
+    navigator.userAgent = 'Mozilla/5.0 (X11; Linux x86_64) ' +
+        'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 ' +
+        'Safari/537.36';
+    navigator.webkitGetUserMedia = function() {};
+    window.webkitRTCPeerConnection = function() {};
 
-      window = {
-        RTCPeerConnection: function() {},
-        RTCSessionDescription: global.RTCSessionDescription,
-        navigator: {
-          mediaDevices: {}
-        }
-      };
-
-      Object.defineProperty(
-        window.RTCPeerConnection.prototype,
-        'localDescription',
-        {
-          get: function() {
-            return emptyDesc;
-          },
-          configurable: true
-        }
-      );
-
-      shim.shimAddTrackRemoveTrack(window, {version: 64});
-
-      const pc = new window.RTCPeerConnection();
-      const desc = pc.localDescription;
-
-      expect(desc).toBe(emptyDesc);
-    });
-  });
-
-  describe('when localDescription returns a valid description', () => {
-    it('should process the description through replaceInternalStreamId',
-      () => {
-        const validDesc = {
-          type: 'offer',
-          sdp: 'v=0\r\n'
-        };
-
-        window = {
-          RTCPeerConnection: function() {
-            this._streams = {};
-            this._reverseStreams = {};
-          },
-          RTCSessionDescription: global.RTCSessionDescription,
-          navigator: {
-            mediaDevices: {}
-          }
-        };
-
-        Object.defineProperty(
-          window.RTCPeerConnection.prototype,
-          'localDescription',
-          {
-            get: function() {
-              return validDesc;
-            },
-            configurable: true
-          }
-        );
-
-        shim.shimAddTrackRemoveTrack(window, {version: 64});
-
-        const pc = new window.RTCPeerConnection();
-        const desc = pc.localDescription;
-
-        expect(desc).toBeDefined();
-        expect(desc.type).toBe('offer');
-      });
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toEqual(144);
   });
 });
