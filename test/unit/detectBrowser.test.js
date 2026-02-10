@@ -71,4 +71,16 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).toEqual(604);
     expect(browserDetails._safariVersion).toEqual(10.2);
   });
+
+  it('does not misdetect Chrome devtools iOS emulation', () => {
+    navigator.userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 ' +
+        'like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
+        'Version/18.5 Mobile/15E148 Safari/604.1';
+    navigator.webkitGetUserMedia = function() {};
+    window.webkitRTCPeerConnection = function() {};
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toEqual(null);
+  });
 });
