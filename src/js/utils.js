@@ -183,7 +183,7 @@ export function detectBrowser(window) {
     // more complicated fallback to webkitRTCPeerConnection.
     result.browser = 'chrome';
     result.version = parseInt(extractVersion(navigator.userAgent,
-      /Chrom(e|ium)\/(\d+)\./, 2));
+      /Chrom(e|ium)\/(\d+)\./, 2)) || null;
   } else if (window.RTCPeerConnection &&
       navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
     result.browser = 'safari';
