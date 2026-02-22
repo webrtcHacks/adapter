@@ -30,8 +30,7 @@ var firefoxShim = _interopRequireWildcard(require("./firefox/firefox_shim"));
 var safariShim = _interopRequireWildcard(require("./safari/safari_shim"));
 var commonShim = _interopRequireWildcard(require("./common_shim"));
 var sdp = _interopRequireWildcard(require("sdp"));
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -188,8 +187,7 @@ exports.shimPeerConnection = shimPeerConnection;
 exports.shimSenderReceiverGetStats = shimSenderReceiverGetStats;
 var utils = _interopRequireWildcard(require("../utils.js"));
 var _getusermedia = require("./getusermedia");
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
@@ -560,20 +558,20 @@ function shimAddTrackRemoveTrack(window, browserDetails) {
   // to return the original streams.
   var origGetLocalStreams = window.RTCPeerConnection.prototype.getLocalStreams;
   window.RTCPeerConnection.prototype.getLocalStreams = function getLocalStreams() {
-    var _this10 = this;
+    var _this0 = this;
     var nativeStreams = origGetLocalStreams.apply(this);
     this._reverseStreams = this._reverseStreams || {};
     return nativeStreams.map(function (stream) {
-      return _this10._reverseStreams[stream.id];
+      return _this0._reverseStreams[stream.id];
     });
   };
   var origAddStream = window.RTCPeerConnection.prototype.addStream;
   window.RTCPeerConnection.prototype.addStream = function addStream(stream) {
-    var _this11 = this;
+    var _this1 = this;
     this._streams = this._streams || {};
     this._reverseStreams = this._reverseStreams || {};
     stream.getTracks().forEach(function (track) {
-      var alreadyExists = _this11.getSenders().find(function (s) {
+      var alreadyExists = _this1.getSenders().find(function (s) {
         return s.track === track;
       });
       if (alreadyExists) {
@@ -599,7 +597,7 @@ function shimAddTrackRemoveTrack(window, browserDetails) {
     delete this._streams[stream.id];
   };
   window.RTCPeerConnection.prototype.addTrack = function addTrack(track, stream) {
-    var _this12 = this;
+    var _this10 = this;
     if (this.signalingState === 'closed') {
       throw new DOMException('The RTCPeerConnection\'s signalingState is \'closed\'.', 'InvalidStateError');
     }
@@ -629,7 +627,7 @@ function shimAddTrackRemoveTrack(window, browserDetails) {
 
       // Trigger ONN async.
       Promise.resolve().then(function () {
-        _this12.dispatchEvent(new Event('negotiationneeded'));
+        _this10.dispatchEvent(new Event('negotiationneeded'));
       });
     } else {
       var newStream = new window.MediaStream([track]);
@@ -671,12 +669,12 @@ function shimAddTrackRemoveTrack(window, browserDetails) {
   ['createOffer', 'createAnswer'].forEach(function (method) {
     var nativeMethod = window.RTCPeerConnection.prototype[method];
     var methodObj = _defineProperty({}, method, function () {
-      var _this13 = this;
+      var _this11 = this;
       var args = arguments;
       var isLegacyCall = arguments.length && typeof arguments[0] === 'function';
       if (isLegacyCall) {
         return nativeMethod.apply(this, [function (description) {
-          var desc = replaceInternalStreamId(_this13, description);
+          var desc = replaceInternalStreamId(_this11, description);
           args[0].apply(null, [desc]);
         }, function (err) {
           if (args[1]) {
@@ -685,7 +683,7 @@ function shimAddTrackRemoveTrack(window, browserDetails) {
         }, arguments[2]]);
       }
       return nativeMethod.apply(this, arguments).then(function (description) {
-        return replaceInternalStreamId(_this13, description);
+        return replaceInternalStreamId(_this11, description);
       });
     });
     window.RTCPeerConnection.prototype[method] = methodObj[method];
@@ -712,7 +710,7 @@ function shimAddTrackRemoveTrack(window, browserDetails) {
     }
   });
   window.RTCPeerConnection.prototype.removeTrack = function removeTrack(sender) {
-    var _this14 = this;
+    var _this12 = this;
     if (this.signalingState === 'closed') {
       throw new DOMException('The RTCPeerConnection\'s signalingState is \'closed\'.', 'InvalidStateError');
     }
@@ -730,11 +728,11 @@ function shimAddTrackRemoveTrack(window, browserDetails) {
     this._streams = this._streams || {};
     var stream;
     Object.keys(this._streams).forEach(function (streamid) {
-      var hasTrack = _this14._streams[streamid].getTracks().find(function (track) {
+      var hasTrack = _this12._streams[streamid].getTracks().find(function (track) {
         return sender.track === track;
       });
       if (hasTrack) {
-        stream = _this14._streams[streamid];
+        stream = _this12._streams[streamid];
       }
     });
     if (stream) {
@@ -801,8 +799,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.shimGetUserMedia = shimGetUserMedia;
 var utils = _interopRequireWildcard(require("../utils.js"));
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 var logging = utils.log;
 function shimGetUserMedia(window, browserDetails) {
@@ -1009,8 +1006,7 @@ exports.shimRTCIceCandidateRelayProtocol = shimRTCIceCandidateRelayProtocol;
 exports.shimSendThrowTypeError = shimSendThrowTypeError;
 var _sdp = _interopRequireDefault(require("sdp"));
 var utils = _interopRequireWildcard(require("./utils"));
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function shimRTCIceCandidate(window) {
@@ -1462,8 +1458,7 @@ exports.shimSenderGetStats = shimSenderGetStats;
 var utils = _interopRequireWildcard(require("../utils"));
 var _getusermedia = require("./getusermedia");
 var _getdisplaymedia = require("./getdisplaymedia");
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -1799,8 +1794,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.shimGetUserMedia = shimGetUserMedia;
 var utils = _interopRequireWildcard(require("../utils"));
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function shimGetUserMedia(window, browserDetails) {
   var navigator = window && window.navigator;
@@ -1872,8 +1866,7 @@ exports.shimRTCIceServerUrls = shimRTCIceServerUrls;
 exports.shimRemoteStreamsAPI = shimRemoteStreamsAPI;
 exports.shimTrackEventTransceiver = shimTrackEventTransceiver;
 var utils = _interopRequireWildcard(require("../utils"));
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, "default": e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function shimLocalStreamsAPI(window) {
   if (_typeof(window) !== 'object' || !window.RTCPeerConnection) {
@@ -2388,7 +2381,7 @@ function detectBrowser(window) {
     // Chrome 74 removed webkitGetUserMedia on http as well so we need the
     // more complicated fallback to webkitRTCPeerConnection.
     result.browser = 'chrome';
-    result.version = parseInt(extractVersion(navigator.userAgent, /Chrom(e|ium)\/(\d+)\./, 2));
+    result.version = parseInt(extractVersion(navigator.userAgent, /Chrom(e|ium)\/(\d+)\./, 2)) || null;
   } else if (window.RTCPeerConnection && navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) {
     // Safari.
     result.browser = 'safari';
@@ -2480,9 +2473,7 @@ function filterStats(result, track, outbound) {
 
 // SDP helpers.
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var SDPUtils = {};
+const SDPUtils = {};
 
 // Generate an alphanumeric identifier for cname or mids.
 // TODO: use UUIDs instead? https://gist.github.com/jed/982883
@@ -2495,36 +2486,30 @@ SDPUtils.localCName = SDPUtils.generateIdentifier();
 
 // Splits SDP into lines, dealing with both CRLF and LF.
 SDPUtils.splitLines = function (blob) {
-  return blob.trim().split('\n').map(function (line) {
-    return line.trim();
-  });
+  return blob.trim().split('\n').map(line => line.trim());
 };
 // Splits SDP into sessionpart and mediasections. Ensures CRLF.
 SDPUtils.splitSections = function (blob) {
-  var parts = blob.split('\nm=');
-  return parts.map(function (part, index) {
-    return (index > 0 ? 'm=' + part : part).trim() + '\r\n';
-  });
+  const parts = blob.split('\nm=');
+  return parts.map((part, index) => (index > 0 ? 'm=' + part : part).trim() + '\r\n');
 };
 
 // Returns the session description.
 SDPUtils.getDescription = function (blob) {
-  var sections = SDPUtils.splitSections(blob);
+  const sections = SDPUtils.splitSections(blob);
   return sections && sections[0];
 };
 
 // Returns the individual media sections.
 SDPUtils.getMediaSections = function (blob) {
-  var sections = SDPUtils.splitSections(blob);
+  const sections = SDPUtils.splitSections(blob);
   sections.shift();
   return sections;
 };
 
 // Returns lines that start with a certain prefix.
 SDPUtils.matchPrefix = function (blob, prefix) {
-  return SDPUtils.splitLines(blob).filter(function (line) {
-    return line.indexOf(prefix) === 0;
-  });
+  return SDPUtils.splitLines(blob).filter(line => line.indexOf(prefix) === 0);
 };
 
 // Parses an ICE candidate line. Sample input:
@@ -2532,7 +2517,7 @@ SDPUtils.matchPrefix = function (blob, prefix) {
 // rport 55996"
 // Input can be prefixed with a=.
 SDPUtils.parseCandidate = function (line) {
-  var parts = void 0;
+  let parts;
   // Parse both variants.
   if (line.indexOf('a=candidate:') === 0) {
     parts = line.substring(12).split(' ');
@@ -2540,7 +2525,7 @@ SDPUtils.parseCandidate = function (line) {
     parts = line.substring(10).split(' ');
   }
 
-  var candidate = {
+  const candidate = {
     foundation: parts[0],
     component: { 1: 'rtp', 2: 'rtcp' }[parts[1]] || parts[1],
     protocol: parts[2].toLowerCase(),
@@ -2552,7 +2537,7 @@ SDPUtils.parseCandidate = function (line) {
     type: parts[7]
   };
 
-  for (var i = 8; i < parts.length; i += 2) {
+  for (let i = 8; i < parts.length; i += 2) {
     switch (parts[i]) {
       case 'raddr':
         candidate.relatedAddress = parts[i + 1];
@@ -2581,10 +2566,10 @@ SDPUtils.parseCandidate = function (line) {
 // Translates a candidate object into SDP candidate attribute.
 // This does not include the a= prefix!
 SDPUtils.writeCandidate = function (candidate) {
-  var sdp = [];
+  const sdp = [];
   sdp.push(candidate.foundation);
 
-  var component = candidate.component;
+  const component = candidate.component;
   if (component === 'rtp') {
     sdp.push(1);
   } else if (component === 'rtcp') {
@@ -2597,7 +2582,7 @@ SDPUtils.writeCandidate = function (candidate) {
   sdp.push(candidate.address || candidate.ip);
   sdp.push(candidate.port);
 
-  var type = candidate.type;
+  const type = candidate.type;
   sdp.push('typ');
   sdp.push(type);
   if (type !== 'host' && candidate.relatedAddress && candidate.relatedPort) {
@@ -2627,8 +2612,8 @@ SDPUtils.parseIceOptions = function (line) {
 // Parses a rtpmap line, returns RTCRtpCoddecParameters. Sample input:
 // a=rtpmap:111 opus/48000/2
 SDPUtils.parseRtpMap = function (line) {
-  var parts = line.substring(9).split(' ');
-  var parsed = {
+  let parts = line.substring(9).split(' ');
+  const parsed = {
     payloadType: parseInt(parts.shift(), 10) // was: id
   };
 
@@ -2645,11 +2630,11 @@ SDPUtils.parseRtpMap = function (line) {
 // Generates a rtpmap line from RTCRtpCodecCapability or
 // RTCRtpCodecParameters.
 SDPUtils.writeRtpMap = function (codec) {
-  var pt = codec.payloadType;
+  let pt = codec.payloadType;
   if (codec.preferredPayloadType !== undefined) {
     pt = codec.preferredPayloadType;
   }
-  var channels = codec.channels || codec.numChannels || 1;
+  const channels = codec.channels || codec.numChannels || 1;
   return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate + (channels !== 1 ? '/' + channels : '') + '\r\n';
 };
 
@@ -2657,7 +2642,7 @@ SDPUtils.writeRtpMap = function (codec) {
 // a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
 // a=extmap:2/sendonly urn:ietf:params:rtp-hdrext:toffset
 SDPUtils.parseExtmap = function (line) {
-  var parts = line.substring(9).split(' ');
+  const parts = line.substring(9).split(' ');
   return {
     id: parseInt(parts[0], 10),
     direction: parts[0].indexOf('/') > 0 ? parts[0].split('/')[1] : 'sendrecv',
@@ -2675,11 +2660,13 @@ SDPUtils.writeExtmap = function (headerExtension) {
 // Parses a fmtp line, returns dictionary. Sample input:
 // a=fmtp:96 vbr=on;cng=on
 // Also deals with vbr=on; cng=on
+// Non-key-value such as telephone-events `0-15` get parsed as
+// {`0-15`:undefined}
 SDPUtils.parseFmtp = function (line) {
-  var parsed = {};
-  var kv = void 0;
-  var parts = line.substring(line.indexOf(' ') + 1).split(';');
-  for (var j = 0; j < parts.length; j++) {
+  const parsed = {};
+  let kv;
+  const parts = line.substring(line.indexOf(' ') + 1).split(';');
+  for (let j = 0; j < parts.length; j++) {
     kv = parts[j].trim().split('=');
     parsed[kv[0].trim()] = kv[1];
   }
@@ -2688,14 +2675,14 @@ SDPUtils.parseFmtp = function (line) {
 
 // Generates a fmtp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
 SDPUtils.writeFmtp = function (codec) {
-  var line = '';
-  var pt = codec.payloadType;
+  let line = '';
+  let pt = codec.payloadType;
   if (codec.preferredPayloadType !== undefined) {
     pt = codec.preferredPayloadType;
   }
   if (codec.parameters && Object.keys(codec.parameters).length) {
-    var params = [];
-    Object.keys(codec.parameters).forEach(function (param) {
+    const params = [];
+    Object.keys(codec.parameters).forEach(param => {
       if (codec.parameters[param] !== undefined) {
         params.push(param + '=' + codec.parameters[param]);
       } else {
@@ -2710,7 +2697,7 @@ SDPUtils.writeFmtp = function (codec) {
 // Parses a rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
 // a=rtcp-fb:98 nack rpsi
 SDPUtils.parseRtcpFb = function (line) {
-  var parts = line.substring(line.indexOf(' ') + 1).split(' ');
+  const parts = line.substring(line.indexOf(' ') + 1).split(' ');
   return {
     type: parts.shift(),
     parameter: parts.join(' ')
@@ -2719,14 +2706,14 @@ SDPUtils.parseRtcpFb = function (line) {
 
 // Generate a=rtcp-fb lines from RTCRtpCodecCapability or RTCRtpCodecParameters.
 SDPUtils.writeRtcpFb = function (codec) {
-  var lines = '';
-  var pt = codec.payloadType;
+  let lines = '';
+  let pt = codec.payloadType;
   if (codec.preferredPayloadType !== undefined) {
     pt = codec.preferredPayloadType;
   }
   if (codec.rtcpFeedback && codec.rtcpFeedback.length) {
     // FIXME: special handling for trr-int?
-    codec.rtcpFeedback.forEach(function (fb) {
+    codec.rtcpFeedback.forEach(fb => {
       lines += 'a=rtcp-fb:' + pt + ' ' + fb.type + (fb.parameter && fb.parameter.length ? ' ' + fb.parameter : '') + '\r\n';
     });
   }
@@ -2736,11 +2723,11 @@ SDPUtils.writeRtcpFb = function (codec) {
 // Parses a RFC 5576 ssrc media attribute. Sample input:
 // a=ssrc:3735928559 cname:something
 SDPUtils.parseSsrcMedia = function (line) {
-  var sp = line.indexOf(' ');
-  var parts = {
+  const sp = line.indexOf(' ');
+  const parts = {
     ssrc: parseInt(line.substring(7, sp), 10)
   };
-  var colon = line.indexOf(':', sp);
+  const colon = line.indexOf(':', sp);
   if (colon > -1) {
     parts.attribute = line.substring(sp + 1, colon);
     parts.value = line.substring(colon + 1);
@@ -2753,19 +2740,17 @@ SDPUtils.parseSsrcMedia = function (line) {
 // Parse a ssrc-group line (see RFC 5576). Sample input:
 // a=ssrc-group:semantics 12 34
 SDPUtils.parseSsrcGroup = function (line) {
-  var parts = line.substring(13).split(' ');
+  const parts = line.substring(13).split(' ');
   return {
     semantics: parts.shift(),
-    ssrcs: parts.map(function (ssrc) {
-      return parseInt(ssrc, 10);
-    })
+    ssrcs: parts.map(ssrc => parseInt(ssrc, 10))
   };
 };
 
 // Extracts the MID (RFC 5888) from a media section.
 // Returns the MID or undefined if no mid line was found.
 SDPUtils.getMid = function (mediaSection) {
-  var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0];
+  const mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0];
   if (mid) {
     return mid.substring(6);
   }
@@ -2773,7 +2758,7 @@ SDPUtils.getMid = function (mediaSection) {
 
 // Parses a fingerprint line for DTLS-SRTP.
 SDPUtils.parseFingerprint = function (line) {
-  var parts = line.substring(14).split(' ');
+  const parts = line.substring(14).split(' ');
   return {
     algorithm: parts[0].toLowerCase(), // algorithm is case-sensitive in Edge.
     value: parts[1].toUpperCase() // the definition is upper-case in RFC 4572.
@@ -2784,7 +2769,7 @@ SDPUtils.parseFingerprint = function (line) {
 // FIXME: for consistency with other functions this should only
 //   get the fingerprint line as input. See also getIceParameters.
 SDPUtils.getDtlsParameters = function (mediaSection, sessionpart) {
-  var lines = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=fingerprint:');
+  const lines = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=fingerprint:');
   // Note: a=setup line is ignored since we use the 'auto' role in Edge.
   return {
     role: 'auto',
@@ -2794,8 +2779,8 @@ SDPUtils.getDtlsParameters = function (mediaSection, sessionpart) {
 
 // Serializes DTLS parameters to SDP.
 SDPUtils.writeDtlsParameters = function (params, setupType) {
-  var sdp = 'a=setup:' + setupType + '\r\n';
-  params.fingerprints.forEach(function (fp) {
+  let sdp = 'a=setup:' + setupType + '\r\n';
+  params.fingerprints.forEach(fp => {
     sdp += 'a=fingerprint:' + fp.algorithm + ' ' + fp.value + '\r\n';
   });
   return sdp;
@@ -2804,7 +2789,7 @@ SDPUtils.writeDtlsParameters = function (params, setupType) {
 // Parses a=crypto lines into
 //   https://rawgit.com/aboba/edgertc/master/msortc-rs4.html#dictionary-rtcsrtpsdesparameters-members
 SDPUtils.parseCryptoLine = function (line) {
-  var parts = line.substring(9).split(' ');
+  const parts = line.substring(9).split(' ');
   return {
     tag: parseInt(parts[0], 10),
     cryptoSuite: parts[1],
@@ -2814,7 +2799,7 @@ SDPUtils.parseCryptoLine = function (line) {
 };
 
 SDPUtils.writeCryptoLine = function (parameters) {
-  return 'a=crypto:' + parameters.tag + ' ' + parameters.cryptoSuite + ' ' + (_typeof(parameters.keyParams) === 'object' ? SDPUtils.writeCryptoKeyParams(parameters.keyParams) : parameters.keyParams) + (parameters.sessionParams ? ' ' + parameters.sessionParams.join(' ') : '') + '\r\n';
+  return 'a=crypto:' + parameters.tag + ' ' + parameters.cryptoSuite + ' ' + (typeof parameters.keyParams === 'object' ? SDPUtils.writeCryptoKeyParams(parameters.keyParams) : parameters.keyParams) + (parameters.sessionParams ? ' ' + parameters.sessionParams.join(' ') : '') + '\r\n';
 };
 
 // Parses the crypto key parameters into
@@ -2823,7 +2808,7 @@ SDPUtils.parseCryptoKeyParams = function (keyParams) {
   if (keyParams.indexOf('inline:') !== 0) {
     return null;
   }
-  var parts = keyParams.substring(7).split('|');
+  const parts = keyParams.substring(7).split('|');
   return {
     keyMethod: 'inline',
     keySalt: parts[0],
@@ -2839,7 +2824,7 @@ SDPUtils.writeCryptoKeyParams = function (keyParams) {
 
 // Extracts all SDES parameters.
 SDPUtils.getCryptoParameters = function (mediaSection, sessionpart) {
-  var lines = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=crypto:');
+  const lines = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=crypto:');
   return lines.map(SDPUtils.parseCryptoLine);
 };
 
@@ -2847,8 +2832,8 @@ SDPUtils.getCryptoParameters = function (mediaSection, sessionpart) {
 // FIXME: for consistency with other functions this should only
 //   get the ice-ufrag and ice-pwd lines as input.
 SDPUtils.getIceParameters = function (mediaSection, sessionpart) {
-  var ufrag = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=ice-ufrag:')[0];
-  var pwd = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=ice-pwd:')[0];
+  const ufrag = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=ice-ufrag:')[0];
+  const pwd = SDPUtils.matchPrefix(mediaSection + sessionpart, 'a=ice-pwd:')[0];
   if (!(ufrag && pwd)) {
     return null;
   }
@@ -2860,7 +2845,7 @@ SDPUtils.getIceParameters = function (mediaSection, sessionpart) {
 
 // Serializes ICE parameters to SDP.
 SDPUtils.writeIceParameters = function (params) {
-  var sdp = 'a=ice-ufrag:' + params.usernameFragment + '\r\n' + 'a=ice-pwd:' + params.password + '\r\n';
+  let sdp = 'a=ice-ufrag:' + params.usernameFragment + '\r\n' + 'a=ice-pwd:' + params.password + '\r\n';
   if (params.iceLite) {
     sdp += 'a=ice-lite\r\n';
   }
@@ -2869,22 +2854,22 @@ SDPUtils.writeIceParameters = function (params) {
 
 // Parses the SDP media section and returns RTCRtpParameters.
 SDPUtils.parseRtpParameters = function (mediaSection) {
-  var description = {
+  const description = {
     codecs: [],
     headerExtensions: [],
     fecMechanisms: [],
     rtcp: []
   };
-  var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
+  const lines = SDPUtils.splitLines(mediaSection);
+  const mline = lines[0].split(' ');
   description.profile = mline[2];
-  for (var i = 3; i < mline.length; i++) {
+  for (let i = 3; i < mline.length; i++) {
     // find all codecs from mline[3..]
-    var pt = mline[i];
-    var rtpmapline = SDPUtils.matchPrefix(mediaSection, 'a=rtpmap:' + pt + ' ')[0];
+    const pt = mline[i];
+    const rtpmapline = SDPUtils.matchPrefix(mediaSection, 'a=rtpmap:' + pt + ' ')[0];
     if (rtpmapline) {
-      var codec = SDPUtils.parseRtpMap(rtpmapline);
-      var fmtps = SDPUtils.matchPrefix(mediaSection, 'a=fmtp:' + pt + ' ');
+      const codec = SDPUtils.parseRtpMap(rtpmapline);
+      const fmtps = SDPUtils.matchPrefix(mediaSection, 'a=fmtp:' + pt + ' ');
       // Only the first a=fmtp:<pt> is considered.
       codec.parameters = fmtps.length ? SDPUtils.parseFmtp(fmtps[0]) : {};
       codec.rtcpFeedback = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-fb:' + pt + ' ').map(SDPUtils.parseRtcpFb);
@@ -2901,13 +2886,13 @@ SDPUtils.parseRtpParameters = function (mediaSection) {
       }
     }
   }
-  SDPUtils.matchPrefix(mediaSection, 'a=extmap:').forEach(function (line) {
+  SDPUtils.matchPrefix(mediaSection, 'a=extmap:').forEach(line => {
     description.headerExtensions.push(SDPUtils.parseExtmap(line));
   });
-  var wildcardRtcpFb = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-fb:* ').map(SDPUtils.parseRtcpFb);
-  description.codecs.forEach(function (codec) {
-    wildcardRtcpFb.forEach(function (fb) {
-      var duplicate = codec.rtcpFeedback.find(function (existingFeedback) {
+  const wildcardRtcpFb = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-fb:* ').map(SDPUtils.parseRtcpFb);
+  description.codecs.forEach(codec => {
+    wildcardRtcpFb.forEach(fb => {
+      const duplicate = codec.rtcpFeedback.find(existingFeedback => {
         return existingFeedback.type === fb.type && existingFeedback.parameter === fb.parameter;
       });
       if (!duplicate) {
@@ -2922,13 +2907,13 @@ SDPUtils.parseRtpParameters = function (mediaSection) {
 // Generates parts of the SDP media section describing the capabilities /
 // parameters.
 SDPUtils.writeRtpDescription = function (kind, caps) {
-  var sdp = '';
+  let sdp = '';
 
   // Build the mline.
   sdp += 'm=' + kind + ' ';
   sdp += caps.codecs.length > 0 ? '9' : '0'; // reject if no codecs.
   sdp += ' ' + (caps.profile || 'UDP/TLS/RTP/SAVPF') + ' ';
-  sdp += caps.codecs.map(function (codec) {
+  sdp += caps.codecs.map(codec => {
     if (codec.preferredPayloadType !== undefined) {
       return codec.preferredPayloadType;
     }
@@ -2939,13 +2924,13 @@ SDPUtils.writeRtpDescription = function (kind, caps) {
   sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
 
   // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
-  caps.codecs.forEach(function (codec) {
+  caps.codecs.forEach(codec => {
     sdp += SDPUtils.writeRtpMap(codec);
     sdp += SDPUtils.writeFmtp(codec);
     sdp += SDPUtils.writeRtcpFb(codec);
   });
-  var maxptime = 0;
-  caps.codecs.forEach(function (codec) {
+  let maxptime = 0;
+  caps.codecs.forEach(codec => {
     if (codec.maxptime > maxptime) {
       maxptime = codec.maxptime;
     }
@@ -2955,7 +2940,7 @@ SDPUtils.writeRtpDescription = function (kind, caps) {
   }
 
   if (caps.headerExtensions) {
-    caps.headerExtensions.forEach(function (extension) {
+    caps.headerExtensions.forEach(extension => {
       sdp += SDPUtils.writeExtmap(extension);
     });
   }
@@ -2966,33 +2951,27 @@ SDPUtils.writeRtpDescription = function (kind, caps) {
 // Parses the SDP media section and returns an array of
 // RTCRtpEncodingParameters.
 SDPUtils.parseRtpEncodingParameters = function (mediaSection) {
-  var encodingParameters = [];
-  var description = SDPUtils.parseRtpParameters(mediaSection);
-  var hasRed = description.fecMechanisms.indexOf('RED') !== -1;
-  var hasUlpfec = description.fecMechanisms.indexOf('ULPFEC') !== -1;
+  const encodingParameters = [];
+  const description = SDPUtils.parseRtpParameters(mediaSection);
+  const hasRed = description.fecMechanisms.indexOf('RED') !== -1;
+  const hasUlpfec = description.fecMechanisms.indexOf('ULPFEC') !== -1;
 
   // filter a=ssrc:... cname:, ignore PlanB-msid
-  var ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:').map(function (line) {
-    return SDPUtils.parseSsrcMedia(line);
-  }).filter(function (parts) {
-    return parts.attribute === 'cname';
-  });
-  var primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
-  var secondarySsrc = void 0;
+  const ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:').map(line => SDPUtils.parseSsrcMedia(line)).filter(parts => parts.attribute === 'cname');
+  const primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
+  let secondarySsrc;
 
-  var flows = SDPUtils.matchPrefix(mediaSection, 'a=ssrc-group:FID').map(function (line) {
-    var parts = line.substring(17).split(' ');
-    return parts.map(function (part) {
-      return parseInt(part, 10);
-    });
+  const flows = SDPUtils.matchPrefix(mediaSection, 'a=ssrc-group:FID').map(line => {
+    const parts = line.substring(17).split(' ');
+    return parts.map(part => parseInt(part, 10));
   });
   if (flows.length > 0 && flows[0].length > 1 && flows[0][0] === primarySsrc) {
     secondarySsrc = flows[0][1];
   }
 
-  description.codecs.forEach(function (codec) {
+  description.codecs.forEach(codec => {
     if (codec.name.toUpperCase() === 'RTX' && codec.parameters.apt) {
-      var encParam = {
+      let encParam = {
         ssrc: primarySsrc,
         codecPayloadType: parseInt(codec.parameters.apt, 10)
       };
@@ -3017,7 +2996,7 @@ SDPUtils.parseRtpEncodingParameters = function (mediaSection) {
   }
 
   // we support both b=AS and b=TIAS but interpret AS as TIAS.
-  var bandwidth = SDPUtils.matchPrefix(mediaSection, 'b=');
+  let bandwidth = SDPUtils.matchPrefix(mediaSection, 'b=');
   if (bandwidth.length) {
     if (bandwidth[0].indexOf('b=TIAS:') === 0) {
       bandwidth = parseInt(bandwidth[0].substring(7), 10);
@@ -3027,7 +3006,7 @@ SDPUtils.parseRtpEncodingParameters = function (mediaSection) {
     } else {
       bandwidth = undefined;
     }
-    encodingParameters.forEach(function (params) {
+    encodingParameters.forEach(params => {
       params.maxBitrate = bandwidth;
     });
   }
@@ -3036,15 +3015,11 @@ SDPUtils.parseRtpEncodingParameters = function (mediaSection) {
 
 // parses http://draft.ortc.org/#rtcrtcpparameters*
 SDPUtils.parseRtcpParameters = function (mediaSection) {
-  var rtcpParameters = {};
+  const rtcpParameters = {};
 
   // Gets the first SSRC. Note that with RTX there might be multiple
   // SSRCs.
-  var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:').map(function (line) {
-    return SDPUtils.parseSsrcMedia(line);
-  }).filter(function (obj) {
-    return obj.attribute === 'cname';
-  })[0];
+  const remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:').map(line => SDPUtils.parseSsrcMedia(line)).filter(obj => obj.attribute === 'cname')[0];
   if (remoteSsrc) {
     rtcpParameters.cname = remoteSsrc.value;
     rtcpParameters.ssrc = remoteSsrc.ssrc;
@@ -3052,20 +3027,20 @@ SDPUtils.parseRtcpParameters = function (mediaSection) {
 
   // Edge uses the compound attribute instead of reducedSize
   // compound is !reducedSize
-  var rsize = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-rsize');
+  const rsize = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-rsize');
   rtcpParameters.reducedSize = rsize.length > 0;
   rtcpParameters.compound = rsize.length === 0;
 
   // parses the rtcp-mux attrіbute.
   // Note that Edge does not support unmuxed RTCP.
-  var mux = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-mux');
+  const mux = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-mux');
   rtcpParameters.mux = mux.length > 0;
 
   return rtcpParameters;
 };
 
 SDPUtils.writeRtcpParameters = function (rtcpParameters) {
-  var sdp = '';
+  let sdp = '';
   if (rtcpParameters.reducedSize) {
     sdp += 'a=rtcp-rsize\r\n';
   }
@@ -3081,17 +3056,13 @@ SDPUtils.writeRtcpParameters = function (rtcpParameters) {
 // parses either a=msid: or a=ssrc:... msid lines and returns
 // the id of the MediaStream and MediaStreamTrack.
 SDPUtils.parseMsid = function (mediaSection) {
-  var parts = void 0;
-  var spec = SDPUtils.matchPrefix(mediaSection, 'a=msid:');
+  let parts;
+  const spec = SDPUtils.matchPrefix(mediaSection, 'a=msid:');
   if (spec.length === 1) {
     parts = spec[0].substring(7).split(' ');
     return { stream: parts[0], track: parts[1] };
   }
-  var planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:').map(function (line) {
-    return SDPUtils.parseSsrcMedia(line);
-  }).filter(function (msidParts) {
-    return msidParts.attribute === 'msid';
-  });
+  const planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:').map(line => SDPUtils.parseSsrcMedia(line)).filter(msidParts => msidParts.attribute === 'msid');
   if (planB.length > 0) {
     parts = planB[0].value.split(' ');
     return { stream: parts[0], track: parts[1] };
@@ -3102,30 +3073,30 @@ SDPUtils.parseMsid = function (mediaSection) {
 // parses draft-ietf-mmusic-sctp-sdp-26 first and falls back
 // to draft-ietf-mmusic-sctp-sdp-05
 SDPUtils.parseSctpDescription = function (mediaSection) {
-  var mline = SDPUtils.parseMLine(mediaSection);
-  var maxSizeLine = SDPUtils.matchPrefix(mediaSection, 'a=max-message-size:');
-  var maxMessageSize = void 0;
+  const mline = SDPUtils.parseMLine(mediaSection);
+  const maxSizeLine = SDPUtils.matchPrefix(mediaSection, 'a=max-message-size:');
+  let maxMessageSize;
   if (maxSizeLine.length > 0) {
     maxMessageSize = parseInt(maxSizeLine[0].substring(19), 10);
   }
   if (isNaN(maxMessageSize)) {
     maxMessageSize = 65536;
   }
-  var sctpPort = SDPUtils.matchPrefix(mediaSection, 'a=sctp-port:');
+  const sctpPort = SDPUtils.matchPrefix(mediaSection, 'a=sctp-port:');
   if (sctpPort.length > 0) {
     return {
       port: parseInt(sctpPort[0].substring(12), 10),
       protocol: mline.fmt,
-      maxMessageSize: maxMessageSize
+      maxMessageSize
     };
   }
-  var sctpMapLines = SDPUtils.matchPrefix(mediaSection, 'a=sctpmap:');
+  const sctpMapLines = SDPUtils.matchPrefix(mediaSection, 'a=sctpmap:');
   if (sctpMapLines.length > 0) {
-    var parts = sctpMapLines[0].substring(10).split(' ');
+    const parts = sctpMapLines[0].substring(10).split(' ');
     return {
       port: parseInt(parts[0], 10),
       protocol: parts[1],
-      maxMessageSize: maxMessageSize
+      maxMessageSize
     };
   }
 };
@@ -3136,7 +3107,7 @@ SDPUtils.parseSctpDescription = function (mediaSection) {
 // as the draft-ietf-mmusic-sctp-sdp-05 format (indicated by the m-line
 // protocol of DTLS/SCTP -- without UDP/ or TCP/)
 SDPUtils.writeSctpDescription = function (media, sctp) {
-  var output = [];
+  let output = [];
   if (media.protocol !== 'DTLS/SCTP') {
     output = ['m=' + media.kind + ' 9 ' + media.protocol + ' ' + sctp.protocol + '\r\n', 'c=IN IP4 0.0.0.0\r\n', 'a=sctp-port:' + sctp.port + '\r\n'];
   } else {
@@ -3162,14 +3133,14 @@ SDPUtils.generateSessionId = function () {
 // sessVersion is optional and defaults to 2
 // sessUser is optional and defaults to 'thisisadapterortc'
 SDPUtils.writeSessionBoilerplate = function (sessId, sessVer, sessUser) {
-  var sessionId = void 0;
-  var version = sessVer !== undefined ? sessVer : 2;
+  let sessionId;
+  const version = sessVer !== undefined ? sessVer : 2;
   if (sessId) {
     sessionId = sessId;
   } else {
     sessionId = SDPUtils.generateSessionId();
   }
-  var user = sessUser || 'thisisadapterortc';
+  const user = sessUser || 'thisisadapterortc';
   // FIXME: sess-id should be an NTP timestamp.
   return 'v=0\r\n' + 'o=' + user + ' ' + sessionId + ' ' + version + ' IN IP4 127.0.0.1\r\n' + 's=-\r\n' + 't=0 0\r\n';
 };
@@ -3177,8 +3148,8 @@ SDPUtils.writeSessionBoilerplate = function (sessId, sessVer, sessUser) {
 // Gets the direction from the mediaSection or the sessionpart.
 SDPUtils.getDirection = function (mediaSection, sessionpart) {
   // Look for sendrecv, sendonly, recvonly, inactive, default to sendrecv.
-  var lines = SDPUtils.splitLines(mediaSection);
-  for (var i = 0; i < lines.length; i++) {
+  const lines = SDPUtils.splitLines(mediaSection);
+  for (let i = 0; i < lines.length; i++) {
     switch (lines[i]) {
       case 'a=sendrecv':
       case 'a=sendonly':
@@ -3196,8 +3167,8 @@ SDPUtils.getDirection = function (mediaSection, sessionpart) {
 };
 
 SDPUtils.getKind = function (mediaSection) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
+  const lines = SDPUtils.splitLines(mediaSection);
+  const mline = lines[0].split(' ');
   return mline[0].substring(2);
 };
 
@@ -3206,8 +3177,8 @@ SDPUtils.isRejected = function (mediaSection) {
 };
 
 SDPUtils.parseMLine = function (mediaSection) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  var parts = lines[0].substring(2).split(' ');
+  const lines = SDPUtils.splitLines(mediaSection);
+  const parts = lines[0].substring(2).split(' ');
   return {
     kind: parts[0],
     port: parseInt(parts[1], 10),
@@ -3217,8 +3188,8 @@ SDPUtils.parseMLine = function (mediaSection) {
 };
 
 SDPUtils.parseOLine = function (mediaSection) {
-  var line = SDPUtils.matchPrefix(mediaSection, 'o=')[0];
-  var parts = line.substring(2).split(' ');
+  const line = SDPUtils.matchPrefix(mediaSection, 'o=')[0];
+  const parts = line.substring(2).split(' ');
   return {
     username: parts[0],
     sessionId: parts[1],
@@ -3234,8 +3205,8 @@ SDPUtils.isValidSDP = function (blob) {
   if (typeof blob !== 'string' || blob.length === 0) {
     return false;
   }
-  var lines = SDPUtils.splitLines(blob);
-  for (var i = 0; i < lines.length; i++) {
+  const lines = SDPUtils.splitLines(blob);
+  for (let i = 0; i < lines.length; i++) {
     if (lines[i].length < 2 || lines[i].charAt(1) !== '=') {
       return false;
     }
@@ -3245,7 +3216,7 @@ SDPUtils.isValidSDP = function (blob) {
 };
 
 // Expose public methods.
-if ((typeof module === 'undefined' ? 'undefined' : _typeof(module)) === 'object') {
+if (typeof module === 'object') {
   module.exports = SDPUtils;
 }
 },{}]},{},[1])(1)
