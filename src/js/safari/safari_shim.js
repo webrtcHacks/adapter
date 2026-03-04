@@ -247,11 +247,11 @@ export function shimRTCIceServerUrls(window) {
   // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
   const OrigPeerConnection = window.RTCPeerConnection;
   window.RTCPeerConnection =
-    function RTCPeerConnection(pcConfig, pcConstraints) {
-      if (pcConfig && pcConfig.iceServers) {
+    function RTCPeerConnection(config, ...args) {
+      if (config && config.iceServers) {
         const newIceServers = [];
-        for (let i = 0; i < pcConfig.iceServers.length; i++) {
-          let server = pcConfig.iceServers[i];
+        for (let i = 0; i < config.iceServers.length; i++) {
+          let server = config.iceServers[i];
           if (server.urls === undefined && server.url) {
             utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
             server = JSON.parse(JSON.stringify(server));
@@ -259,12 +259,12 @@ export function shimRTCIceServerUrls(window) {
             delete server.url;
             newIceServers.push(server);
           } else {
-            newIceServers.push(pcConfig.iceServers[i]);
+            newIceServers.push(config.iceServers[i]);
           }
         }
-        pcConfig.iceServers = newIceServers;
+        config.iceServers = newIceServers;
       }
-      return new OrigPeerConnection(pcConfig, pcConstraints);
+      return new OrigPeerConnection(config, [...args]);
     };
   window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
   // wrap static methods. Currently just generateCertificate.
