@@ -33,9 +33,9 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   }
   const proto = window.RTCPeerConnection.prototype;
   const nativeAddEventListener = proto.addEventListener;
-  proto.addEventListener = function(nativeEventName, cb) {
+  proto.addEventListener = function(nativeEventName, cb, ...args) {
     if (nativeEventName !== eventNameToWrap) {
-      return nativeAddEventListener.apply(this, arguments);
+      return nativeAddEventListener.apply(this, [nativeEventName, cb, ...args]);
     }
     const wrappedCallback = (e) => {
       const modifiedEvent = wrapper(e);
@@ -53,17 +53,19 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     }
     this._eventMap[eventNameToWrap].set(cb, wrappedCallback);
     return nativeAddEventListener.apply(this, [nativeEventName,
-      wrappedCallback]);
+      wrappedCallback, ...args]);
   };
 
   const nativeRemoveEventListener = proto.removeEventListener;
-  proto.removeEventListener = function(nativeEventName, cb) {
+  proto.removeEventListener = function(nativeEventName, cb, ...args) {
     if (nativeEventName !== eventNameToWrap || !this._eventMap
         || !this._eventMap[eventNameToWrap]) {
-      return nativeRemoveEventListener.apply(this, arguments);
+      return nativeRemoveEventListener.apply(this, [nativeEventName, cb,
+        ...args]);
     }
     if (!this._eventMap[eventNameToWrap].has(cb)) {
-      return nativeRemoveEventListener.apply(this, arguments);
+      return nativeRemoveEventListener.apply(this, [nativeEventName, cb,
+        ...args]);
     }
     const unwrappedCb = this._eventMap[eventNameToWrap].get(cb);
     this._eventMap[eventNameToWrap].delete(cb);
@@ -74,7 +76,7 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       delete this._eventMap;
     }
     return nativeRemoveEventListener.apply(this, [nativeEventName,
-      unwrappedCb]);
+      unwrappedCb, ...args]);
   };
 
   Object.defineProperty(proto, 'on' + eventNameToWrap, {
@@ -120,13 +122,13 @@ export function disableWarnings(bool) {
   return 'adapter.js deprecation warnings ' + (bool ? 'disabled' : 'enabled');
 }
 
-export function log() {
+export function log(...args) {
   if (typeof window === 'object') {
     if (logDisabled_) {
       return;
     }
     if (typeof console !== 'undefined' && typeof console.log === 'function') {
-      console.log.apply(console, arguments);
+      console.log(...args);
     }
   }
 }
