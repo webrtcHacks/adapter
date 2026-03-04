@@ -49,7 +49,7 @@ export function shimLocalStreamsAPI(window) {
             }
           });
         }
-        return _addTrack.apply(this, arguments);
+        return _addTrack.apply(this, [track, ...streams]);
       };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
@@ -113,7 +113,7 @@ export function shimRemoteStreamsAPI(window) {
     const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
     window.RTCPeerConnection.prototype.setRemoteDescription =
-      function setRemoteDescription() {
+      function setRemoteDescription(description, ...args) {
         const pc = this;
         if (!this._onaddstreampoly) {
           this.addEventListener('track', this._onaddstreampoly = function(e) {
@@ -131,7 +131,7 @@ export function shimRemoteStreamsAPI(window) {
             });
           });
         }
-        return origSetRemoteDescription.apply(pc, arguments);
+        return origSetRemoteDescription.apply(pc, [description, ...args]);
       };
   }
 }
@@ -140,16 +140,13 @@ export function shimCallbacksAPI(window) {
   if (typeof window !== 'object' || !window.RTCPeerConnection) {
     return;
   }
-  const prototype = window.RTCPeerConnection.prototype;
-  const origCreateOffer = prototype.createOffer;
-  const origCreateAnswer = prototype.createAnswer;
-  const setLocalDescription = prototype.setLocalDescription;
-  const setRemoteDescription = prototype.setRemoteDescription;
-  const addIceCandidate = prototype.addIceCandidate;
 
-  prototype.createOffer =
-    function createOffer(successCallback, failureCallback) {
-      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+  const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+  window.RTCPeerConnection.prototype.createOffer =
+    function createOffer(...args) {
+      const successCallback = args[0];
+      const failureCallback = args[1];
+      const options = (args.length >= 2) ? args[2] : args[0];
       const promise = origCreateOffer.apply(this, [options]);
       if (!failureCallback) {
         return promise;
@@ -158,9 +155,12 @@ export function shimCallbacksAPI(window) {
       return Promise.resolve();
     };
 
-  prototype.createAnswer =
-    function createAnswer(successCallback, failureCallback) {
-      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+  const origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
+  window.RTCPeerConnection.prototype.createAnswer =
+    function createAnswer(...args) {
+      const successCallback = args[0];
+      const failureCallback = args[1];
+      const options = (args.length >= 2) ? args[2] : args[0];
       const promise = origCreateAnswer.apply(this, [options]);
       if (!failureCallback) {
         return promise;
@@ -169,35 +169,43 @@ export function shimCallbacksAPI(window) {
       return Promise.resolve();
     };
 
-  let withCallback = function(description, successCallback, failureCallback) {
-    const promise = setLocalDescription.apply(this, [description]);
-    if (!failureCallback) {
-      return promise;
-    }
-    promise.then(successCallback, failureCallback);
-    return Promise.resolve();
-  };
-  prototype.setLocalDescription = withCallback;
+  const origSetLocalDescription =
+    window.RTCPeerConnection.prototype.setLocalDescription;
+  window.RTCPeerConnection.prototype.setLocalDescription =
+    function(...args) {
+      const [description, successCallback, failureCallback] = args;
+      const promise = origSetLocalDescription.apply(this, [description]);
+      if (!failureCallback) {
+        return promise;
+      }
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    };
 
-  withCallback = function(description, successCallback, failureCallback) {
-    const promise = setRemoteDescription.apply(this, [description]);
-    if (!failureCallback) {
-      return promise;
-    }
-    promise.then(successCallback, failureCallback);
-    return Promise.resolve();
-  };
-  prototype.setRemoteDescription = withCallback;
+  const origSetRemoteDescription =
+    window.RTCPeerConnection.prototype.setRemoteDescription;
+  window.RTCPeerConnection.prototype.setRemoteDescription =
+    function(description, ...args) {
+      const [successCallback, failureCallback] = args;
+      const promise = origSetRemoteDescription.apply(this, [description]);
+      if (!failureCallback) {
+        return promise;
+      }
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    };
 
-  withCallback = function(candidate, successCallback, failureCallback) {
-    const promise = addIceCandidate.apply(this, [candidate]);
+  const origAddIceCandidate =
+    window.RTCPeerConnection.prototype.addIceCandidate;
+  window.RTCPeerConnection.prototype.addIceCandidate = function(...args) {
+    const [candidate, successCallback, failureCallback] = args;
+    const promise = origAddIceCandidate.apply(this, [candidate]);
     if (!failureCallback) {
       return promise;
     }
     promise.then(successCallback, failureCallback);
     return Promise.resolve();
   };
-  prototype.addIceCandidate = withCallback;
 }
 
 export function shimGetUserMedia(window) {
@@ -285,7 +293,8 @@ export function shimTrackEventTransceiver(window) {
 export function shimCreateOfferLegacy(window) {
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
   window.RTCPeerConnection.prototype.createOffer =
-    function createOffer(offerOptions) {
+    function createOffer(...args) {
+      const offerOptions = args[0];
       if (offerOptions) {
         if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
           // support bit values
@@ -339,7 +348,7 @@ export function shimCreateOfferLegacy(window) {
           this.addTransceiver('video', {direction: 'recvonly'});
         }
       }
-      return origCreateOffer.apply(this, arguments);
+      return origCreateOffer.apply(this, args);
     };
 }
 

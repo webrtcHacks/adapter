@@ -191,7 +191,7 @@ export function shimMaxMessageSize(window, browserDetails) {
   const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
   window.RTCPeerConnection.prototype.setRemoteDescription =
-    function setRemoteDescription() {
+    function setRemoteDescription(description, ...args) {
       this._sctp = null;
       // Chrome decided to not expose .sctp in plan-b mode.
       // As usual, adapter.js has to do an 'ugly worakaround'
@@ -209,15 +209,15 @@ export function shimMaxMessageSize(window, browserDetails) {
         }
       }
 
-      if (sctpInDescription(arguments[0])) {
+      if (sctpInDescription(description)) {
         // Check if the remote is FF.
-        const isFirefox = getRemoteFirefoxVersion(arguments[0]);
+        const isFirefox = getRemoteFirefoxVersion(description);
 
         // Get the maximum message size the local peer is capable of sending
         const canSendMMS = getCanSendMaxMessageSize(isFirefox);
 
         // Get the maximum message size of the remote peer.
-        const remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
+        const remoteMMS = getMaxMessageSize(description, isFirefox);
 
         // Determine final maximum message size
         let maxMessageSize;
@@ -240,7 +240,7 @@ export function shimMaxMessageSize(window, browserDetails) {
         this._sctp = sctp;
       }
 
-      return origSetRemoteDescription.apply(this, arguments);
+      return origSetRemoteDescription.apply(this, [description, ...args]);
     };
 }
 
@@ -263,22 +263,21 @@ export function shimSendThrowTypeError(window, browserDetails) {
 
   function wrapDcSend(dc, pc) {
     const origDataChannelSend = dc.send;
-    dc.send = function send() {
-      const data = arguments[0];
+    dc.send = function send(data, ...args) {
       const length = data.length || data.size || data.byteLength;
       if (dc.readyState === 'open' &&
           pc.sctp && length > pc.sctp.maxMessageSize) {
         throw new TypeError('Message too large (can send a maximum of ' +
           pc.sctp.maxMessageSize + ' bytes)');
       }
-      return origDataChannelSend.apply(dc, arguments);
+      return origDataChannelSend.apply(dc, [data, ...args]);
     };
   }
   const origCreateDataChannel =
     window.RTCPeerConnection.prototype.createDataChannel;
   window.RTCPeerConnection.prototype.createDataChannel =
-    function createDataChannel() {
-      const dataChannel = origCreateDataChannel.apply(this, arguments);
+    function createDataChannel(label, ...args) {
+      const dataChannel = origCreateDataChannel.apply(this, [label, ...args]);
       wrapDcSend(dataChannel, this);
       return dataChannel;
     };
@@ -333,7 +332,7 @@ export function shimConnectionState(window) {
 
   ['setLocalDescription', 'setRemoteDescription'].forEach((method) => {
     const origMethod = proto[method];
-    proto[method] = function() {
+    proto[method] = function(...args) {
       if (!this._connectionstatechangepoly) {
         this._connectionstatechangepoly = e => {
           const pc = e.target;
@@ -347,7 +346,7 @@ export function shimConnectionState(window) {
         this.addEventListener('iceconnectionstatechange',
           this._connectionstatechangepoly);
       }
-      return origMethod.apply(this, arguments);
+      return origMethod.apply(this, args);
     };
   });
 }
@@ -366,23 +365,24 @@ export function removeExtmapAllowMixed(window, browserDetails) {
   }
   const nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;
   window.RTCPeerConnection.prototype.setRemoteDescription =
-  function setRemoteDescription(desc) {
-    if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
-      const sdp = desc.sdp.split('\n').filter((line) => {
+  function setRemoteDescription(description, ...args) {
+    if (description && description.sdp &&
+        description.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
+      const sdp = description.sdp.split('\n').filter((line) => {
         return line.trim() !== 'a=extmap-allow-mixed';
       }).join('\n');
       // Safari enforces read-only-ness of RTCSessionDescription fields.
       if (window.RTCSessionDescription &&
-          desc instanceof window.RTCSessionDescription) {
-        arguments[0] = new window.RTCSessionDescription({
-          type: desc.type,
+          description instanceof window.RTCSessionDescription) {
+        description = new window.RTCSessionDescription({
+          type: description.type,
           sdp,
         });
       } else {
-        desc.sdp = sdp;
+        description.sdp = sdp;
       }
     }
-    return nativeSRD.apply(this, arguments);
+    return nativeSRD.apply(this, [description, ...args]);
   };
 }
 
@@ -400,10 +400,11 @@ export function shimAddIceCandidateNullOrEmpty(window, browserDetails) {
     return;
   }
   window.RTCPeerConnection.prototype.addIceCandidate =
-    function addIceCandidate() {
-      if (!arguments[0]) {
-        if (arguments[1]) {
-          arguments[1].apply(null);
+    function addIceCandidate(...args) {
+      const candidate = args[0];
+      if (!candidate) {
+        if (args[1]) {
+          args[1].apply(null);
         }
         return Promise.resolve();
       }
@@ -416,10 +417,10 @@ export function shimAddIceCandidateNullOrEmpty(window, browserDetails) {
            || (browserDetails.browser === 'firefox'
                && browserDetails.version < 68)
            || (browserDetails.browser === 'safari'))
-          && arguments[0] && arguments[0].candidate === '') {
+          && candidate && candidate.candidate === '') {
         return Promise.resolve();
       }
-      return nativeAddIceCandidate.apply(this, arguments);
+      return nativeAddIceCandidate.apply(this, args);
     };
 }
 
@@ -435,10 +436,10 @@ export function shimParameterlessSetLocalDescription(window, browserDetails) {
     return;
   }
   window.RTCPeerConnection.prototype.setLocalDescription =
-    function setLocalDescription() {
-      let desc = arguments[0] || {};
+    function setLocalDescription(...args) {
+      let desc = args[0] || {};
       if (typeof desc !== 'object' || (desc.type && desc.sdp)) {
-        return nativeSetLocalDescription.apply(this, arguments);
+        return nativeSetLocalDescription.apply(this, args);
       }
       // The remaining steps should technically happen when SLD comes off the
       // RTCPeerConnection's operations chain (not ahead of going on it), but

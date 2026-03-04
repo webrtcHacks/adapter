@@ -39,11 +39,12 @@ export function shimPeerConnection(window, browserDetails) {
     ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
       .forEach(function(method) {
         const nativeMethod = window.RTCPeerConnection.prototype[method];
-        const methodObj = {[method]() {
-          arguments[0] = new ((method === 'addIceCandidate') ?
+        const methodObj = {[method](...args) {
+          let description = args[0];
+          description = new ((method === 'addIceCandidate') ?
             window.RTCIceCandidate :
-            window.RTCSessionDescription)(arguments[0]);
-          return nativeMethod.apply(this, arguments);
+            window.RTCSessionDescription)(description);
+          return nativeMethod.apply(this, [description, ...args.slice(1)]);
         }};
         window.RTCPeerConnection.prototype[method] = methodObj[method];
       });
@@ -69,8 +70,8 @@ export function shimGetStats(window, browserDetails) {
   };
 
   const nativeGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function getStats() {
-    const [selector, onSucc, onErr] = arguments;
+  window.RTCPeerConnection.prototype.getStats = function getStats(...args) {
+    const [selector, onSucc, onErr] = args;
     if (this.signalingState === 'closed') {
       // No longer required in FF151+
       return Promise.resolve(new Map());
@@ -121,11 +122,12 @@ export function shimSenderGetStats(window) {
 
   const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
   if (origAddTrack) {
-    window.RTCPeerConnection.prototype.addTrack = function addTrack() {
-      const sender = origAddTrack.apply(this, arguments);
-      sender._pc = this;
-      return sender;
-    };
+    window.RTCPeerConnection.prototype.addTrack =
+      function addTrack(track, ...args) {
+        const sender = origAddTrack.apply(this, [track, ...args]);
+        sender._pc = this;
+        return sender;
+      };
   }
   window.RTCRtpSender.prototype.getStats = function getStats() {
     return this.track ? this._pc.getStats(this.track) :
@@ -192,10 +194,10 @@ export function shimAddTransceiver(window) {
   const origAddTransceiver = window.RTCPeerConnection.prototype.addTransceiver;
   if (origAddTransceiver) {
     window.RTCPeerConnection.prototype.addTransceiver =
-      function addTransceiver() {
+      function addTransceiver(trackOrKind, ...args) {
         this.setParametersPromises = [];
         // WebIDL input coercion and validation
-        let sendEncodings = arguments[1] && arguments[1].sendEncodings;
+        let sendEncodings = args[0] && args[0].sendEncodings;
         if (sendEncodings === undefined) {
           sendEncodings = [];
         }
@@ -222,7 +224,8 @@ export function shimAddTransceiver(window) {
             }
           });
         }
-        const transceiver = origAddTransceiver.apply(this, arguments);
+        const transceiver = origAddTransceiver.apply(this,
+          [trackOrKind, ...args]);
         if (shouldPerformCheck) {
           // Check if the init options were applied. If not we do this in an
           // asynchronous way and save the promise reference in a global object.
@@ -260,8 +263,8 @@ export function shimGetParameters(window) {
   const origGetParameters = window.RTCRtpSender.prototype.getParameters;
   if (origGetParameters) {
     window.RTCRtpSender.prototype.getParameters =
-      function getParameters() {
-        const params = origGetParameters.apply(this, arguments);
+      function getParameters(...args) {
+        const params = origGetParameters.apply(this, args);
         if (!('encodings' in params)) {
           params.encodings = [].concat(this.sendEncodings || [{}]);
         }
@@ -278,18 +281,19 @@ export function shimCreateOffer(window) {
     return;
   }
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
-  window.RTCPeerConnection.prototype.createOffer = function createOffer() {
-    if (this.setParametersPromises && this.setParametersPromises.length) {
-      return Promise.all(this.setParametersPromises)
-        .then(() => {
-          return origCreateOffer.apply(this, arguments);
-        })
-        .finally(() => {
-          this.setParametersPromises = [];
-        });
-    }
-    return origCreateOffer.apply(this, arguments);
-  };
+  window.RTCPeerConnection.prototype.createOffer =
+    function createOffer(...args) {
+      if (this.setParametersPromises && this.setParametersPromises.length) {
+        return Promise.all(this.setParametersPromises)
+          .then(() => {
+            return origCreateOffer.apply(this, args);
+          })
+          .finally(() => {
+            this.setParametersPromises = [];
+          });
+      }
+      return origCreateOffer.apply(this, args);
+    };
 }
 
 export function shimCreateAnswer(window) {
@@ -300,16 +304,17 @@ export function shimCreateAnswer(window) {
     return;
   }
   const origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
-  window.RTCPeerConnection.prototype.createAnswer = function createAnswer() {
-    if (this.setParametersPromises && this.setParametersPromises.length) {
-      return Promise.all(this.setParametersPromises)
-        .then(() => {
-          return origCreateAnswer.apply(this, arguments);
-        })
-        .finally(() => {
-          this.setParametersPromises = [];
-        });
-    }
-    return origCreateAnswer.apply(this, arguments);
-  };
+  window.RTCPeerConnection.prototype.createAnswer =
+    function createAnswer(...args) {
+      if (this.setParametersPromises && this.setParametersPromises.length) {
+        return Promise.all(this.setParametersPromises)
+          .then(() => {
+            return origCreateAnswer.apply(this, args);
+          })
+          .finally(() => {
+            this.setParametersPromises = [];
+          });
+      }
+      return origCreateAnswer.apply(this, args);
+    };
 }
