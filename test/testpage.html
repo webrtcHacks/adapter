@@ -5,6 +5,11 @@
 </head>
 <body>
 <h1>Test page for adapter.js</h1>
+<script>
+Object.defineProperty(EventTarget.prototype, 'addEventListener', {
+  writable: false
+});
+</script>
 <script src="../out/adapter.js"></script>
 The browser is: <span id="browser"></span>
 <br>

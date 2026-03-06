@@ -15,7 +15,11 @@ export function shimMediaStream(window) {
   window.MediaStream = window.MediaStream || window.webkitMediaStream;
 }
 
-export function shimOnTrack(window) {
+export function shimOnTrack(window, browserDetails) {
+  if (browserDetails.version > 102) {
+    // Unified plan is supported so no need to do anything.
+    return;
+  }
   if (typeof window === 'object' && window.RTCPeerConnection && !('ontrack' in
       window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
@@ -621,6 +625,10 @@ export function shimPeerConnection(window, browserDetails) {
 
 // Attempt to fix ONN in plan-b mode.
 export function fixNegotiationNeeded(window, browserDetails) {
+  if (browserDetails.version > 102) {
+    // Plan-B is no longer supported.
+    return;
+  }
   utils.wrapPeerConnectionEvent(window, 'negotiationneeded', e => {
     const pc = e.target;
     if (browserDetails.version < 72 || (pc.getConfiguration &&
