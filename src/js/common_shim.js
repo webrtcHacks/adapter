@@ -244,15 +244,22 @@ export function shimMaxMessageSize(window, browserDetails) {
     };
 }
 
-export function shimSendThrowTypeError(window) {
+export function shimSendThrowTypeError(window, browserDetails) {
   if (!(window.RTCPeerConnection &&
       'createDataChannel' in window.RTCPeerConnection.prototype)) {
+    return;
+  }
+  if (browserDetails.browser === 'chrome' && browserDetails.version > 149) {
+    // Fixed by https://issues.chromium.org/issues/490588131
     return;
   }
 
   // Note: Although Firefox >= 57 has a native implementation, the maximum
   //       message size can be reset for all data channels at a later stage.
   //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
+  if (browserDetails.browser === 'firefox' && browserDetails.version > 60) {
+    return;
+  }
 
   function wrapDcSend(dc, pc) {
     const origDataChannelSend = dc.send;
