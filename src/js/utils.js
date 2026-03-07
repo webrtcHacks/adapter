@@ -31,8 +31,15 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
   }
+  const addEventListener = Object.getOwnPropertyDescriptor(
+    EventTarget.prototype, 'addEventListener');
+  if (!addEventListener.writable) {
+    log('Unable to polyfill events');
+    return;
+  }
   const proto = window.RTCPeerConnection.prototype;
   const nativeAddEventListener = proto.addEventListener;
+
   proto.addEventListener = function(nativeEventName, cb) {
     if (nativeEventName !== eventNameToWrap) {
       return nativeAddEventListener.apply(this, arguments);
