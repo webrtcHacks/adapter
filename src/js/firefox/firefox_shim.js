@@ -48,6 +48,17 @@ export function shimPeerConnection(window, browserDetails) {
         window.RTCPeerConnection.prototype[method] = methodObj[method];
       });
   }
+}
+
+export function shimGetStats(window, browserDetails) {
+  if (typeof window !== 'object' ||
+      !(window.RTCPeerConnection || window.mozRTCPeerConnection)) {
+    return; // probably media.peerconnection.enabled=false in about:config
+  }
+  if (browserDetails.version >= 151) {
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1056433
+    return;
+  }
 
   const modernStatsTypes = {
     inboundrtp: 'inbound-rtp',
@@ -60,6 +71,10 @@ export function shimPeerConnection(window, browserDetails) {
   const nativeGetStats = window.RTCPeerConnection.prototype.getStats;
   window.RTCPeerConnection.prototype.getStats = function getStats() {
     const [selector, onSucc, onErr] = arguments;
+    if (this.signalingState === 'closed') {
+      // No longer required in FF151+
+      return Promise.resolve(new Map());
+    }
     return nativeGetStats.apply(this, [selector || null])
       .then(stats => {
         if (browserDetails.version < 53 && !onSucc) {
