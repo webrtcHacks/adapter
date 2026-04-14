@@ -30,4 +30,8 @@ describe('getStats', () => {
         expect(result).to.have.property('forEach');
       });
   });
+  it('resolves on a closed peerconnection without throwing', () => {
+    pc.close();
+    return pc.getStats();
+  });
 });

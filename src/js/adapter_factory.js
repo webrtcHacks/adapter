@@ -86,6 +86,7 @@ export function adapterFactory({window} = {}, options = {
 
       firefoxShim.shimGetUserMedia(window, browserDetails);
       firefoxShim.shimPeerConnection(window, browserDetails);
+      firefoxShim.shimGetStats(window, browserDetails);
       firefoxShim.shimOnTrack(window, browserDetails);
       firefoxShim.shimRemoveStream(window, browserDetails);
       firefoxShim.shimSenderGetStats(window, browserDetails);
