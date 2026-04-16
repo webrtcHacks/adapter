@@ -110,6 +110,7 @@ function adapterFactory() {
       commonShim.shimParameterlessSetLocalDescription(window, browserDetails);
       firefoxShim.shimGetUserMedia(window, browserDetails);
       firefoxShim.shimPeerConnection(window, browserDetails);
+      firefoxShim.shimGetStats(window, browserDetails);
       firefoxShim.shimOnTrack(window, browserDetails);
       firefoxShim.shimRemoveStream(window, browserDetails);
       firefoxShim.shimSenderGetStats(window, browserDetails);
@@ -195,7 +196,11 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 function shimMediaStream(window) {
   window.MediaStream = window.MediaStream || window.webkitMediaStream;
 }
-function shimOnTrack(window) {
+function shimOnTrack(window, browserDetails) {
+  if (browserDetails.version > 102) {
+    // Unified plan is supported so no need to do anything.
+    return;
+  }
   if (_typeof(window) === 'object' && window.RTCPeerConnection && !('ontrack' in window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'ontrack', {
       get: function get() {
@@ -772,6 +777,10 @@ function shimPeerConnection(window, browserDetails) {
 
 // Attempt to fix ONN in plan-b mode.
 function fixNegotiationNeeded(window, browserDetails) {
+  if (browserDetails.version > 102) {
+    // Plan-B is no longer supported.
+    return;
+  }
   utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function (e) {
     var pc = e.target;
     if (browserDetails.version < 72 || pc.getConfiguration && pc.getConfiguration().sdpSemantics === 'plan-b') {
@@ -1220,15 +1229,21 @@ function shimMaxMessageSize(window, browserDetails) {
     return origSetRemoteDescription.apply(this, arguments);
   };
 }
-function shimSendThrowTypeError(window) {
+function shimSendThrowTypeError(window, browserDetails) {
   if (!(window.RTCPeerConnection && 'createDataChannel' in window.RTCPeerConnection.prototype)) {
+    return;
+  }
+  if (browserDetails.browser === 'chrome' && browserDetails.version > 149) {
+    // Fixed by https://issues.chromium.org/issues/490588131
     return;
   }
 
   // Note: Although Firefox >= 57 has a native implementation, the maximum
   //       message size can be reset for all data channels at a later stage.
   //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
-
+  if (browserDetails.browser === 'firefox' && browserDetails.version > 60) {
+    return;
+  }
   function wrapDcSend(dc, pc) {
     var origDataChannelSend = dc.send;
     dc.send = function send() {
@@ -1443,6 +1458,7 @@ Object.defineProperty(exports, "shimGetDisplayMedia", {
   }
 });
 exports.shimGetParameters = shimGetParameters;
+exports.shimGetStats = shimGetStats;
 Object.defineProperty(exports, "shimGetUserMedia", {
   enumerable: true,
   get: function get() {
@@ -1499,6 +1515,15 @@ function shimPeerConnection(window, browserDetails) {
       window.RTCPeerConnection.prototype[method] = methodObj[method];
     });
   }
+}
+function shimGetStats(window, browserDetails) {
+  if (_typeof(window) !== 'object' || !(window.RTCPeerConnection || window.mozRTCPeerConnection)) {
+    return; // probably media.peerconnection.enabled=false in about:config
+  }
+  if (browserDetails.version >= 151) {
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1056433
+    return;
+  }
   var modernStatsTypes = {
     inboundrtp: 'inbound-rtp',
     outboundrtp: 'outbound-rtp',
@@ -1512,6 +1537,10 @@ function shimPeerConnection(window, browserDetails) {
       selector = _arguments[0],
       onSucc = _arguments[1],
       onErr = _arguments[2];
+    if (this.signalingState === 'closed') {
+      // No longer required in FF151+
+      return Promise.resolve(new Map());
+    }
     return nativeGetStats.apply(this, [selector || null]).then(function (stats) {
       if (browserDetails.version < 53 && !onSucc) {
         // Shim only promise getStats with spec-hyphens in type names
@@ -2241,6 +2270,11 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
   }
+  var addEventListener = Object.getOwnPropertyDescriptor(EventTarget.prototype, 'addEventListener');
+  if (!addEventListener.writable) {
+    log('Unable to polyfill events');
+    return;
+  }
   var proto = window.RTCPeerConnection.prototype;
   var nativeAddEventListener = proto.addEventListener;
   proto.addEventListener = function (nativeEventName, cb) {
@@ -2585,7 +2619,7 @@ SDPUtils.writeCandidate = function (candidate) {
   const type = candidate.type;
   sdp.push('typ');
   sdp.push(type);
-  if (type !== 'host' && candidate.relatedAddress && candidate.relatedPort) {
+  if (type !== 'host' && candidate.relatedAddress && candidate.relatedPort !== undefined) {
     sdp.push('raddr');
     sdp.push(candidate.relatedAddress);
     sdp.push('rport');
