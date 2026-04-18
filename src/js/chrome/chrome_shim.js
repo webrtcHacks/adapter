@@ -191,7 +191,10 @@ export function shimGetSendersWithDtmf(window) {
   }
 }
 
-export function shimSenderReceiverGetStats(window) {
+export function shimSenderReceiverGetStats(window, browserDetails) {
+  if (browserDetails.version >= 67) {
+    return;
+  }
   if (!(typeof window === 'object' && window.RTCPeerConnection &&
       window.RTCRtpSender && window.RTCRtpReceiver)) {
     return;
