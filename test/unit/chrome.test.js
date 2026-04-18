@@ -57,7 +57,7 @@ describe('Chrome shim', () => {
         navigator: {}
       };
 
-      shim.shimGetUserMedia(window);
+      shim.shimGetUserMedia(window, {});
     });
   });
 });
