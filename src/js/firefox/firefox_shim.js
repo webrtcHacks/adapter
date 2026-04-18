@@ -182,11 +182,15 @@ export function shimRTCDataChannel(window) {
   }
 }
 
-export function shimAddTransceiver(window) {
+export function shimAddTransceiver(window, browserDetails) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
   if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   const origAddTransceiver = window.RTCPeerConnection.prototype.addTransceiver;
@@ -253,8 +257,12 @@ export function shimAddTransceiver(window) {
   }
 }
 
-export function shimGetParameters(window) {
+export function shimGetParameters(window, browserDetails) {
   if (!(typeof window === 'object' && window.RTCRtpSender)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   const origGetParameters = window.RTCRtpSender.prototype.getParameters;
@@ -270,11 +278,15 @@ export function shimGetParameters(window) {
   }
 }
 
-export function shimCreateOffer(window) {
+export function shimCreateOffer(window, browserDetails) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
   if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
@@ -292,11 +304,15 @@ export function shimCreateOffer(window) {
   };
 }
 
-export function shimCreateAnswer(window) {
+export function shimCreateAnswer(window, browserDetails) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
   if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   const origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
