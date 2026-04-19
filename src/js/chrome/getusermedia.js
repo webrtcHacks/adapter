@@ -11,6 +11,9 @@ import * as utils from '../utils.js';
 const logging = utils.log;
 
 export function shimGetUserMedia(window, browserDetails) {
+  if (browserDetails.version >= 64) {
+    return;
+  }
   const navigator = window && window.navigator;
 
   if (!navigator.mediaDevices) {
@@ -170,6 +173,8 @@ export function shimGetUserMedia(window, browserDetails) {
   // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
   // function which returns a Promise, it does not accept spec-style
   // constraints.
+  // Fixed in M64 too, see
+  //   https://groups.google.com/g/discuss-webrtc/c/DMPTKcXVUQ4/m/85FaASoFBwAJ?
   if (navigator.mediaDevices.getUserMedia) {
     const origGetUserMedia = navigator.mediaDevices.getUserMedia.
       bind(navigator.mediaDevices);
