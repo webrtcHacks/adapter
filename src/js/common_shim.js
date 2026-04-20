@@ -96,6 +96,10 @@ export function shimMaxMessageSize(window, browserDetails) {
   if (!window.RTCPeerConnection) {
     return;
   }
+  if (browserDetails.browser === 'chrome' && browserDetails.version > 102) {
+    // Unified plan is supported so no need to do anything.
+    return;
+  }
 
   if (!('sctp' in window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {
