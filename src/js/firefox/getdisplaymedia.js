@@ -9,11 +9,11 @@
 'use strict';
 
 export function shimGetDisplayMedia(window, preferredMediaSource) {
-  if (window.navigator.mediaDevices &&
-    'getDisplayMedia' in window.navigator.mediaDevices) {
+  if (!(window.navigator.mediaDevices)) {
     return;
   }
-  if (!(window.navigator.mediaDevices)) {
+  if (window.navigator.mediaDevices &&
+    'getDisplayMedia' in window.navigator.mediaDevices) {
     return;
   }
   window.navigator.mediaDevices.getDisplayMedia =
