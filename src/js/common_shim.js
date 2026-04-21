@@ -253,7 +253,7 @@ export function shimSendThrowTypeError(window, browserDetails) {
       'createDataChannel' in window.RTCPeerConnection.prototype)) {
     return;
   }
-  if (browserDetails.browser === 'chrome' && browserDetails.version > 149) {
+  if (browserDetails.browser === 'chrome' && browserDetails.version >= 149) {
     // Fixed by https://issues.chromium.org/issues/490588131
     return;
   }
