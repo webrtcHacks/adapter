@@ -4,21 +4,28 @@ on: [pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
     strategy:
       matrix:
+        os: [ubuntu-latest]
         browser: [chrome, firefox]
         version: [stable, beta]
         include:
-          - browser: chrome
+          - os: ubuntu-latest
+            browser: chrome
             version: dev
-          - browser: firefox
+          - os: ubuntu-latest
+            browser: firefox
             version: nightly
+          - os: macos-latest
+            browser: safari
+            version: stable
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
     - run: npm install
     - run: Xvfb :99 &
+      if: runner.os == 'Linux'
     - name: e2e-tests
       env:
         BROWSER: ${{matrix.browser}}
