@@ -100,6 +100,11 @@ export function shimMaxMessageSize(window, browserDetails) {
     // Unified plan is supported so no need to do anything.
     return;
   }
+  if (browserDetails.browser === 'firefox' && browserDetails.version >= 113) {
+    // Native RTCSctpTransport, see
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1278299
+    return;
+  }
 
   if (!('sctp' in window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {
