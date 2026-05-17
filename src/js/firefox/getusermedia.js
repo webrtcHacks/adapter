@@ -43,8 +43,8 @@ export function shimGetUserMedia(window, browserDetails) {
 
     if (MediaStreamTrack && MediaStreamTrack.prototype.getSettings) {
       const nativeGetSettings = MediaStreamTrack.prototype.getSettings;
-      MediaStreamTrack.prototype.getSettings = function() {
-        const obj = nativeGetSettings.apply(this, arguments);
+      MediaStreamTrack.prototype.getSettings = function(...args) {
+        const obj = nativeGetSettings.apply(this, args);
         remap(obj, 'mozAutoGainControl', 'autoGainControl');
         remap(obj, 'mozNoiseSuppression', 'noiseSuppression');
         return obj;

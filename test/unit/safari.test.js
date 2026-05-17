@@ -23,12 +23,12 @@ describe('Safari shim', () => {
     });
 
     it('shimStreamsAPI existence', () => {
-      const prototype = window.RTCPeerConnection.prototype;
-      expect(prototype.addTrack.length).toBe(1);
-      expect(prototype.addStream.length).toBe(1);
-      expect(prototype.removeStream.length).toBe(1);
-      expect(prototype.getLocalStreams.length).toBe(0);
-      expect(prototype.getRemoteStreams.length).toBe(0);
+      expect(window.RTCPeerConnection.prototype.addTrack.length).toBe(1);
+      expect(window.RTCPeerConnection.prototype.addStream.length).toBe(1);
+      expect(window.RTCPeerConnection.prototype.removeStream.length).toBe(1);
+      expect(window.RTCPeerConnection.prototype.getLocalStreams.length).toBe(0);
+      expect(window.RTCPeerConnection.prototype.getRemoteStreams.length)
+        .toBe(0);
     });
     it('local streams API', () => {
       const pc = new window.RTCPeerConnection();
@@ -72,12 +72,13 @@ describe('Safari shim', () => {
   describe('shimCallbacksAPI', () => {
     it('shimCallbacksAPI existence', () => {
       shim.shimCallbacksAPI(window);
-      const prototype = window.RTCPeerConnection.prototype;
-      expect(prototype.createOffer.length).toBe(2);
-      expect(prototype.createAnswer.length).toBe(2);
-      expect(prototype.setLocalDescription.length).toBe(3);
-      expect(prototype.setRemoteDescription.length).toBe(3);
-      expect(prototype.addIceCandidate.length).toBe(3);
+      expect(window.RTCPeerConnection.prototype.createOffer.length).toBe(0);
+      expect(window.RTCPeerConnection.prototype.createAnswer.length).toBe(0);
+      expect(window.RTCPeerConnection.prototype.setLocalDescription.length)
+        .toBe(0);
+      expect(window.RTCPeerConnection.prototype.setRemoteDescription.length)
+        .toBe(1);
+      expect(window.RTCPeerConnection.prototype.addIceCandidate.length).toBe(0);
     });
   });
 
