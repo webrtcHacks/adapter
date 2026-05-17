@@ -12,6 +12,9 @@ import * as utils from '../utils';
 
 export function shimGetUserMedia(window, browserDetails) {
   const navigator = window && window.navigator;
+  if (!navigator.mediaDevices) {
+    return;
+  }
   const MediaStreamTrack = window && window.MediaStreamTrack;
 
   navigator.getUserMedia = function(constraints, onSuccess, onError) {
