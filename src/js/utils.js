@@ -174,7 +174,12 @@ export function detectBrowser(window) {
       return brand.brand === 'Chromium';
     });
     if (chromium) {
-      return {browser: 'chrome', version: parseInt(chromium.version, 10)};
+      const version = parseInt(chromium.version, 10);
+      // navigator.userAgentData was introduced in Chromium 90
+      // so any Chromium brand reporting a version below 90 is invalid
+      if (version >= 90) {
+        return {browser: 'chrome', version};
+      }
     }
   }
 

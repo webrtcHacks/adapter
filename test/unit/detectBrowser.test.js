@@ -83,4 +83,25 @@ describe('detectBrowser', () => {
     expect(browserDetails.browser).toEqual('chrome');
     expect(browserDetails.version).toEqual(null);
   });
+
+  it('falls back to UA when userAgentData Chromium version < 90', () => {
+    // SLBrowser incorrectly reports its own version (9.x) as the
+    // Chromium brand version. Since userAgentData shipped in Chromium 90,
+    // any version below 90 is invalid and should be ignored.
+    navigator.userAgentData = {
+      brands: [
+        {brand: 'Chromium', version: '9'},
+        {brand: 'Not?A_Brand', version: '8'}
+      ]
+    };
+    navigator.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+        'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 ' +
+        'Safari/537.36 SLBrowser/9.0.8.3131 SLBChan/103 SLBVPV/64-bit';
+    navigator.webkitGetUserMedia = function() {};
+    window.webkitRTCPeerConnection = function() {};
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toEqual(141);
+  });
 });
