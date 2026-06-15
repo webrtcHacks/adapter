@@ -815,6 +815,9 @@ function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 var logging = utils.log;
 function shimGetUserMedia(window, browserDetails) {
+  if (browserDetails.version >= 64) {
+    return;
+  }
   var navigator = window && window.navigator;
   if (!navigator.mediaDevices) {
     return;
@@ -974,6 +977,8 @@ function shimGetUserMedia(window, browserDetails) {
   // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
   // function which returns a Promise, it does not accept spec-style
   // constraints.
+  // Fixed in M64 too, see
+  //   https://groups.google.com/g/discuss-webrtc/c/DMPTKcXVUQ4/m/85FaASoFBwAJ?
   if (navigator.mediaDevices.getUserMedia) {
     var origGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = function (cs) {
@@ -1098,6 +1103,15 @@ function shimRTCIceCandidateRelayProtocol(window) {
 }
 function shimMaxMessageSize(window, browserDetails) {
   if (!window.RTCPeerConnection) {
+    return;
+  }
+  if (browserDetails.browser === 'chrome' && browserDetails.version > 102) {
+    // Unified plan is supported so no need to do anything.
+    return;
+  }
+  if (browserDetails.browser === 'firefox' && browserDetails.version >= 113) {
+    // Native RTCSctpTransport, see
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1278299
     return;
   }
   if (!('sctp' in window.RTCPeerConnection.prototype)) {
@@ -1236,7 +1250,7 @@ function shimSendThrowTypeError(window, browserDetails) {
   if (!(window.RTCPeerConnection && 'createDataChannel' in window.RTCPeerConnection.prototype)) {
     return;
   }
-  if (browserDetails.browser === 'chrome' && browserDetails.version > 149) {
+  if (browserDetails.browser === 'chrome' && browserDetails.version >= 149) {
     // Fixed by https://issues.chromium.org/issues/490588131
     return;
   }
@@ -1645,11 +1659,15 @@ function shimRTCDataChannel(window) {
     window.RTCDataChannel = window.DataChannel;
   }
 }
-function shimAddTransceiver(window) {
+function shimAddTransceiver(window, browserDetails) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
   if (!(_typeof(window) === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   var origAddTransceiver = window.RTCPeerConnection.prototype.addTransceiver;
@@ -1711,8 +1729,12 @@ function shimAddTransceiver(window) {
     };
   }
 }
-function shimGetParameters(window) {
+function shimGetParameters(window, browserDetails) {
   if (!(_typeof(window) === 'object' && window.RTCRtpSender)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   var origGetParameters = window.RTCRtpSender.prototype.getParameters;
@@ -1726,11 +1748,15 @@ function shimGetParameters(window) {
     };
   }
 }
-function shimCreateOffer(window) {
+function shimCreateOffer(window, browserDetails) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
   if (!(_typeof(window) === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   var origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
@@ -1747,11 +1773,15 @@ function shimCreateOffer(window) {
     return origCreateOffer.apply(this, arguments);
   };
 }
-function shimCreateAnswer(window) {
+function shimCreateAnswer(window, browserDetails) {
   // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
   // Firefox ignores the init sendEncodings options passed to addTransceiver
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
   if (!(_typeof(window) === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  // Fixed by https://bugzilla.mozilla.org/show_bug.cgi?id=1401592 in FF110.
+  if (browserDetails.version >= 110) {
     return;
   }
   var origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
@@ -1785,10 +1815,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.shimGetDisplayMedia = shimGetDisplayMedia;
 function shimGetDisplayMedia(window, preferredMediaSource) {
-  if (window.navigator.mediaDevices && 'getDisplayMedia' in window.navigator.mediaDevices) {
+  if (!window.navigator.mediaDevices) {
     return;
   }
-  if (!window.navigator.mediaDevices) {
+  if (window.navigator.mediaDevices && 'getDisplayMedia' in window.navigator.mediaDevices) {
     return;
   }
   window.navigator.mediaDevices.getDisplayMedia = function getDisplayMedia(constraints) {
@@ -1830,6 +1860,9 @@ function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function shimGetUserMedia(window, browserDetails) {
   var navigator = window && window.navigator;
+  if (!navigator.mediaDevices) {
+    return;
+  }
   var MediaStreamTrack = window && window.MediaStreamTrack;
   navigator.getUserMedia = function (constraints, onSuccess, onError) {
     // Replace Firefox 44+'s deprecation warning with unprefixed version.
@@ -2402,10 +2435,15 @@ function detectBrowser(window) {
       return brand.brand === 'Chromium';
     });
     if (chromium) {
-      return {
-        browser: 'chrome',
-        version: parseInt(chromium.version, 10)
-      };
+      var version = parseInt(chromium.version, 10);
+      // navigator.userAgentData was introduced in Chromium 90
+      // so any Chromium brand reporting a version below 90 is invalid
+      if (version >= 90) {
+        return {
+          browser: 'chrome',
+          version: version
+        };
+      }
     }
   }
   if (navigator.mozGetUserMedia) {
