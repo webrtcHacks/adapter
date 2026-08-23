@@ -45,7 +45,7 @@ describe('maxMessageSize', () => {
       return {
         type: description.type,
         sdp: description.sdp
-          .replace(/^a=max-message-size:\s*(\d+)\s*$/gm, '')
+          .replace(/^a=max-message-size:\s*(\d+)\s*\r?\n/gm, '')
           .replace(/(^m=application\s+\d+\s+[\w/]*SCTP.*$)/m,
             '$1\r\na=max-message-size:' + maxMessageSize),
       };
