@@ -25,7 +25,8 @@ describe('detectBrowser', () => {
     expect(browserDetails.version).toEqual(44);
   });
 
-  it('detects Chrome if navigator.webkitGetUserMedia exists', () => {
+  it('detects Chrome via the user agent if navigator.webkitGetUserMedia ' +
+     'exists', () => {
     navigator.userAgent = 'Mozilla/5.0 (X11; Linux x86_64) ' +
         'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 ' +
         'Safari/537.36';
@@ -82,6 +83,21 @@ describe('detectBrowser', () => {
     const browserDetails = detectBrowser(window);
     expect(browserDetails.browser).toEqual('chrome');
     expect(browserDetails.version).toEqual(null);
+  });
+
+  it('detects Chrome < 90 without userAgentData via the user agent', () => {
+    // userAgentData shipped in Chromium 90. Older versions (including
+    // WebViews) must still be detected from the user agent string.
+    expect(navigator.userAgentData).toBeUndefined();
+    navigator.userAgent = 'Mozilla/5.0 (Linux; Android 10; wv) ' +
+        'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 ' +
+        'Chrome/85.0.4183.101 Mobile Safari/537.36';
+    navigator.webkitGetUserMedia = function() {};
+    window.webkitRTCPeerConnection = function() {};
+
+    const browserDetails = detectBrowser(window);
+    expect(browserDetails.browser).toEqual('chrome');
+    expect(browserDetails.version).toEqual(85);
   });
 
   it('falls back to UA when userAgentData Chromium version < 90', () => {
