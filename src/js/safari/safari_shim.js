@@ -51,6 +51,24 @@ export function shimLocalStreamsAPI(window) {
         }
         return _addTrack.apply(this, arguments);
       };
+
+    if ('removeTrack' in window.RTCPeerConnection.prototype) {
+      const _removeTrack = window.RTCPeerConnection.prototype.removeTrack;
+      window.RTCPeerConnection.prototype.removeTrack =
+        function removeTrack(sender) {
+          const track = sender && sender.track;
+          const result = _removeTrack.apply(this, arguments);
+          // Drop streams none of whose tracks are sent anymore. Other
+          // browsers do this in their legacy getLocalStreams shim.
+          if (track && this._localStreams) {
+            const tracks = this.getSenders().map(s => s.track);
+            this._localStreams = this._localStreams.filter(
+              stream => !stream.getTracks().includes(track) ||
+                  stream.getTracks().some(t => tracks.includes(t)));
+          }
+          return result;
+        };
+    }
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
     window.RTCPeerConnection.prototype.removeStream =
