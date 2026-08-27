@@ -18,6 +18,9 @@ describe('Safari shim', () => {
   describe('shimStreamsAPI', () => {
     beforeEach(() => {
       window.RTCPeerConnection.prototype.addTrack = jest.fn();
+      window.RTCPeerConnection.prototype.removeTrack = jest.fn((sender) => {
+        sender.track = null;
+      });
       shim.shimLocalStreamsAPI(window);
       shim.shimRemoteStreamsAPI(window);
     });
@@ -65,6 +68,29 @@ describe('Safari shim', () => {
       expect(pc.getLocalStreams()[0]).toBe(stream);
 
       pc.removeStream(stream);
+      expect(pc.getLocalStreams().length).toBe(0);
+    });
+
+    it('removeTrack removes the stream after the last track', () => {
+      const pc = new window.RTCPeerConnection();
+      const audioTrack = {id: 'audio'};
+      const videoTrack = {id: 'video'};
+      const stream = {
+        id: 'id1',
+        getTracks: () => [audioTrack, videoTrack],
+        getAudioTracks: () => [audioTrack],
+        getVideoTracks: () => [videoTrack],
+      };
+      const senders = [{track: audioTrack}, {track: videoTrack}];
+      pc.getSenders = () => senders;
+
+      pc.addStream(stream);
+      expect(pc.getLocalStreams().length).toBe(1);
+
+      pc.removeTrack(senders[0]);
+      expect(pc.getLocalStreams().length).toBe(1);
+
+      pc.removeTrack(senders[1]);
       expect(pc.getLocalStreams().length).toBe(0);
     });
   });
