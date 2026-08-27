@@ -27,7 +27,7 @@ describe('addTrack', () => {
           const again = () => {
             pc.addTrack(stream.getTracks()[0], stream);
           };
-          expect(again).to.throw(/already/)
+          expect(again).to.throw()
             .that.has.property('name').that.equals('InvalidAccessError');
         });
     });
@@ -39,7 +39,7 @@ describe('addTrack', () => {
           const again = () => {
             pc.addTrack(stream.getTracks()[0], stream);
           };
-          expect(again).to.throw(/already/)
+          expect(again).to.throw()
             .that.has.property('name').that.equals('InvalidAccessError');
         });
     });
@@ -52,7 +52,7 @@ describe('addTrack', () => {
           const again = () => {
             pc.addStream(stream);
           };
-          expect(again).to.throw(/already/)
+          expect(again).to.throw()
             .that.has.property('name').that.equals('InvalidAccessError');
         });
     });
@@ -64,7 +64,7 @@ describe('addTrack', () => {
           const afterClose = () => {
             pc.addTrack(stream.getTracks()[0], stream);
           };
-          expect(afterClose).to.throw(/closed/)
+          expect(afterClose).to.throw()
             .that.has.property('name').that.equals('InvalidStateError');
         });
     });

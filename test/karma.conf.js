@@ -10,7 +10,12 @@
 
 const os = require('os');
 const path = require('path');
+const http = require('http');
+const {spawn} = require('child_process');
 const puppeteerBrowsers = require('@puppeteer/browsers');
+
+const SAFARIDRIVER_BIN = process.env.SAFARIDRIVER_BIN ||
+    '/usr/bin/safaridriver';
 
 async function download(browser, version, cacheDir, platform) {
   const buildId = await puppeteerBrowsers
@@ -22,6 +27,39 @@ async function download(browser, version, cacheDir, platform) {
     platform
   });
   return buildId;
+}
+
+function isListening(port) {
+  return new Promise((resolve) => {
+    const request = http.get({host: '127.0.0.1', port, path: '/status'},
+      (response) => {
+        response.resume();
+        resolve(response.statusCode === 200);
+      });
+    request.on('error', () => resolve(false));
+  });
+}
+
+// Starts safaridriver, Safari's WebDriver server. Safari replaces the actual
+// capture devices with mock devices when it is driven by WebDriver and does
+// not show a permission prompt which is what makes it testable on machines
+// without a camera such as CI runners.
+// Note that safaridriver needs to be enabled once per machine by running
+//   sudo safaridriver --enable
+async function startSafariDriver(port) {
+  const child = spawn(SAFARIDRIVER_BIN, ['-p', port], {stdio: 'inherit'});
+  child.on('error', (error) => {
+    console.error('Failed to start safaridriver: ' + error.message);
+  });
+  process.on('exit', () => child.kill());
+
+  for (let i = 0; i < 40; i++) {
+    if (await isListening(port)) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error('safaridriver is not listening on port ' + port);
 }
 
 module.exports = async(config) => {
@@ -45,11 +83,9 @@ module.exports = async(config) => {
     browsers = ['chrome', 'firefox'];
   }
 
-  // uses Safari Technology Preview.
-  if (browsers.includes('Safari') && os.platform() === 'darwin' &&
-      process.env.BVER === 'unstable' && !process.env.SAFARI_BIN) {
-    process.env.SAFARI_BIN = '/Applications/Safari Technology Preview.app' +
-        '/Contents/MacOS/Safari Technology Preview';
+  const safariDriverPort = parseInt(process.env.SAFARIDRIVER_PORT || 4444, 10);
+  if (browsers.includes('Safari')) {
+    await startSafariDriver(safariDriverPort);
   }
 
   if (browsers.includes('firefox')) {
@@ -100,6 +136,17 @@ module.exports = async(config) => {
       electron: {
         base: 'Electron',
         flags: ['--use-fake-device-for-media-stream']
+      },
+      Safari: {
+        base: 'WebDriver',
+        // safaridriver serves the WebDriver API at / while wd defaults
+        // to the /wd/hub path used by the selenium standalone server.
+        config: {hostname: '127.0.0.1', port: safariDriverPort, path: '/'},
+        browserName: 'safari',
+        // safaridriver only speaks the W3C protocol and does not accept
+        // the legacy capabilities wd sends by default.
+        forceW3C: true,
+        'wd-no-defaults': true
       },
       firefox: {
         base: 'Firefox',
