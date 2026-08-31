@@ -31,13 +31,20 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
   }
-  const addEventListener = Object.getOwnPropertyDescriptor(
-    EventTarget.prototype, 'addEventListener');
-  if (!addEventListener.writable) {
+
+  const proto = window.RTCPeerConnection.prototype;
+
+  const isAddEventListenerWritable =
+    tryMakePropertyWritable(proto, 'addEventListener');
+  const isRemoveEventListenerWritable =
+    tryMakePropertyWritable(proto, 'removeEventListener');
+  const canPolyfill =
+    isAddEventListenerWritable && isRemoveEventListenerWritable;
+
+  if (!canPolyfill) {
     log('Unable to polyfill events');
     return;
   }
-  const proto = window.RTCPeerConnection.prototype;
   const nativeAddEventListener = proto.addEventListener;
 
   proto.addEventListener = function(nativeEventName, cb) {
@@ -102,6 +109,28 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     enumerable: true,
     configurable: true
   });
+}
+
+/**
+ * Tries to ensure the property is writable.
+ * If the property is read-only but configurable,
+ * it will be redefined to be writable.
+ * @param {object} target the object to check the property on.
+ * @param {string} property the property to check.
+ * @return {boolean} true if the property is writable, false otherwise.
+ */
+export function tryMakePropertyWritable(target, property) {
+  try {
+    Object.defineProperty(target, property, {
+      value: target[property],
+      writable: true,
+      configurable: true,
+    });
+
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 export function disableLog(bool) {
