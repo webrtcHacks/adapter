@@ -68,6 +68,7 @@ export function shimRTCIceCandidate(window) {
 }
 
 export function shimRTCIceCandidateRelayProtocol(window) {
+  // Uses the candidate attributes, depends on shimRTCIceCandidate.
   if (!window.RTCIceCandidate || (window.RTCIceCandidate && 'relayProtocol' in
       window.RTCIceCandidate.prototype)) {
     return;
@@ -77,15 +78,14 @@ export function shimRTCIceCandidateRelayProtocol(window) {
   // addEventListener('icecandidate', ...)
   utils.wrapPeerConnectionEvent(window, 'icecandidate', e => {
     if (e.candidate) {
-      const parsedCandidate = SDPUtils.parseCandidate(e.candidate.candidate);
-      if (parsedCandidate.type === 'relay') {
+      if (e.candidate.type === 'relay') {
         // This is a libwebrtc-specific mapping of local type preference
         // to relayProtocol.
         e.candidate.relayProtocol = {
           0: 'tls',
           1: 'tcp',
           2: 'udp',
-        }[parsedCandidate.priority >> 24];
+        }[e.candidate.priority >> 24];
       }
     }
     return e;
