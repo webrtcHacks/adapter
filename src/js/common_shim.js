@@ -105,6 +105,12 @@ export function shimMaxMessageSize(window, browserDetails) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1278299
     return;
   }
+  if (browserDetails.browser === 'safari' &&
+      'sctp' in window.RTCPeerConnection.prototype) {
+    // Native RTCSctpTransport. The sctp getter below is not installed in
+    // that case so nothing can read what setRemoteDescription computes.
+    return;
+  }
 
   if (!('sctp' in window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'sctp', {
