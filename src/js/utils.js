@@ -37,72 +37,77 @@ export function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
     log('Unable to polyfill events');
     return;
   }
-  const proto = window.RTCPeerConnection.prototype;
-  const nativeAddEventListener = proto.addEventListener;
-  proto.addEventListener = function(nativeEventName, cb, ...args) {
-    if (nativeEventName !== eventNameToWrap) {
-      return nativeAddEventListener.apply(this, [nativeEventName, cb, ...args]);
-    }
-    const wrappedCallback = (e) => {
-      const modifiedEvent = wrapper(e);
-      if (modifiedEvent) {
-        if (cb.handleEvent) {
-          cb.handleEvent(modifiedEvent);
-        } else {
-          cb(modifiedEvent);
+  const nativeAddEventListener =
+    window.RTCPeerConnection.prototype.addEventListener;
+  window.RTCPeerConnection.prototype.addEventListener =
+    function(nativeEventName, cb, ...args) {
+      if (nativeEventName !== eventNameToWrap) {
+        return nativeAddEventListener.apply(this, [nativeEventName, cb,
+          ...args]);
+      }
+      const wrappedCallback = (e) => {
+        const modifiedEvent = wrapper(e);
+        if (modifiedEvent) {
+          if (cb.handleEvent) {
+            cb.handleEvent(modifiedEvent);
+          } else {
+            cb(modifiedEvent);
+          }
         }
+      };
+      this._eventMap = this._eventMap || {};
+      if (!this._eventMap[eventNameToWrap]) {
+        this._eventMap[eventNameToWrap] = new Map();
       }
+      this._eventMap[eventNameToWrap].set(cb, wrappedCallback);
+      return nativeAddEventListener.apply(this, [nativeEventName,
+        wrappedCallback, ...args]);
     };
-    this._eventMap = this._eventMap || {};
-    if (!this._eventMap[eventNameToWrap]) {
-      this._eventMap[eventNameToWrap] = new Map();
-    }
-    this._eventMap[eventNameToWrap].set(cb, wrappedCallback);
-    return nativeAddEventListener.apply(this, [nativeEventName,
-      wrappedCallback, ...args]);
-  };
 
-  const nativeRemoveEventListener = proto.removeEventListener;
-  proto.removeEventListener = function(nativeEventName, cb, ...args) {
-    if (nativeEventName !== eventNameToWrap || !this._eventMap
+  const nativeRemoveEventListener =
+    window.RTCPeerConnection.prototype.removeEventListener;
+  window.RTCPeerConnection.prototype.removeEventListener =
+    function(nativeEventName, cb, ...args) {
+      if (nativeEventName !== eventNameToWrap || !this._eventMap
         || !this._eventMap[eventNameToWrap]) {
-      return nativeRemoveEventListener.apply(this, [nativeEventName, cb,
-        ...args]);
-    }
-    if (!this._eventMap[eventNameToWrap].has(cb)) {
-      return nativeRemoveEventListener.apply(this, [nativeEventName, cb,
-        ...args]);
-    }
-    const unwrappedCb = this._eventMap[eventNameToWrap].get(cb);
-    this._eventMap[eventNameToWrap].delete(cb);
-    if (this._eventMap[eventNameToWrap].size === 0) {
-      delete this._eventMap[eventNameToWrap];
-    }
-    if (Object.keys(this._eventMap).length === 0) {
-      delete this._eventMap;
-    }
-    return nativeRemoveEventListener.apply(this, [nativeEventName,
-      unwrappedCb, ...args]);
-  };
+        return nativeRemoveEventListener.apply(this, [nativeEventName, cb,
+          ...args]);
+      }
+      if (!this._eventMap[eventNameToWrap].has(cb)) {
+        return nativeRemoveEventListener.apply(this, [nativeEventName, cb,
+          ...args]);
+      }
+      const unwrappedCb = this._eventMap[eventNameToWrap].get(cb);
+      this._eventMap[eventNameToWrap].delete(cb);
+      if (this._eventMap[eventNameToWrap].size === 0) {
+        delete this._eventMap[eventNameToWrap];
+      }
+      if (Object.keys(this._eventMap).length === 0) {
+        delete this._eventMap;
+      }
+      return nativeRemoveEventListener.apply(this, [nativeEventName,
+        unwrappedCb, ...args]);
+    };
 
-  Object.defineProperty(proto, 'on' + eventNameToWrap, {
-    get() {
-      return this['_on' + eventNameToWrap];
-    },
-    set(cb) {
-      if (this['_on' + eventNameToWrap]) {
-        this.removeEventListener(eventNameToWrap,
-          this['_on' + eventNameToWrap]);
-        delete this['_on' + eventNameToWrap];
-      }
-      if (cb) {
-        this.addEventListener(eventNameToWrap,
-          this['_on' + eventNameToWrap] = cb);
-      }
-    },
-    enumerable: true,
-    configurable: true
-  });
+  Object.defineProperty(window.RTCPeerConnection.prototype,
+    'on' + eventNameToWrap, {
+      get() {
+        return this['_on' + eventNameToWrap];
+      },
+      set(cb) {
+        if (this['_on' + eventNameToWrap]) {
+          this.removeEventListener(eventNameToWrap,
+            this['_on' + eventNameToWrap]);
+          delete this['_on' + eventNameToWrap];
+        }
+        if (cb) {
+          this.addEventListener(eventNameToWrap,
+            this['_on' + eventNameToWrap] = cb);
+        }
+      },
+      enumerable: true,
+      configurable: true
+    });
 }
 
 export function disableLog(bool) {

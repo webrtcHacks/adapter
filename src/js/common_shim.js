@@ -315,8 +315,7 @@ export function shimConnectionState(window) {
       'connectionState' in window.RTCPeerConnection.prototype) {
     return;
   }
-  const proto = window.RTCPeerConnection.prototype;
-  Object.defineProperty(proto, 'connectionState', {
+  Object.defineProperty(window.RTCPeerConnection.prototype, 'connectionState', {
     get() {
       return {
         completed: 'connected',
@@ -326,28 +325,29 @@ export function shimConnectionState(window) {
     enumerable: true,
     configurable: true
   });
-  Object.defineProperty(proto, 'onconnectionstatechange', {
-    get() {
-      return this._onconnectionstatechange || null;
-    },
-    set(cb) {
-      if (this._onconnectionstatechange) {
-        this.removeEventListener('connectionstatechange',
-          this._onconnectionstatechange);
-        delete this._onconnectionstatechange;
-      }
-      if (cb) {
-        this.addEventListener('connectionstatechange',
-          this._onconnectionstatechange = cb);
-      }
-    },
-    enumerable: true,
-    configurable: true
-  });
+  Object.defineProperty(window.RTCPeerConnection.prototype,
+    'onconnectionstatechange', {
+      get() {
+        return this._onconnectionstatechange || null;
+      },
+      set(cb) {
+        if (this._onconnectionstatechange) {
+          this.removeEventListener('connectionstatechange',
+            this._onconnectionstatechange);
+          delete this._onconnectionstatechange;
+        }
+        if (cb) {
+          this.addEventListener('connectionstatechange',
+            this._onconnectionstatechange = cb);
+        }
+      },
+      enumerable: true,
+      configurable: true
+    });
 
   ['setLocalDescription', 'setRemoteDescription'].forEach((method) => {
-    const origMethod = proto[method];
-    proto[method] = function(...args) {
+    const origMethod = window.RTCPeerConnection.prototype[method];
+    window.RTCPeerConnection.prototype[method] = function(...args) {
       if (!this._connectionstatechangepoly) {
         this._connectionstatechangepoly = e => {
           const pc = e.target;
